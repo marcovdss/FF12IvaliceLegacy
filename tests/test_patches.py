@@ -127,7 +127,10 @@ class FullBuildTest(unittest.TestCase):
             expected = {json.loads((root / 'opening_stock.json').read_text())['resultSectionSha256']}
             expected |= {c['resultSectionSha256'] for c in json.loads((root / 'ability_chests.json').read_text())['chests']}
             self.assertTrue(expected <= set(manifest['files'].values()))
-            self.assertEqual(len(manifest['files']), len(expected) + len(json.loads((root / 'kings.json').read_text())['kings']))
+            package_files = [p for p in (root.parent / 'package').rglob('*') if p.is_file()]
+            self.assertEqual(len(manifest['files']), len(expected) + len(json.loads((root / 'kings.json').read_text())['kings'])
+                             + len(package_files))
+            self.assertIn('x64/scripts/IvaliceLegacySaves.lua', manifest['files'])
 
 
 if __name__ == '__main__':

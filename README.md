@@ -7,7 +7,7 @@ The goal is an Ivalice where preparation wins: jobs that combine instead of over
 play, enemies that act instead of just hitting harder, rare monsters that rule their zones, a Clan worth climbing,
 and progression you can't steamroll.
 
-> **Status: early development (0.0.5).** Only the first modules exist so far. Expect large changes between
+> **Status: early development (0.0.6).** Only the first modules exist so far. Expect large changes between
 > versions; start a new game for each development build.
 
 ## What's in this version
@@ -35,6 +35,12 @@ Abyssal - North). Contents and one-time collection are unchanged.
 
 More Kings, each with its own fight and reward, are planned.
 
+**Separate save files.** While Ivalice Legacy is installed, the game saves and loads its own files
+(`LEGCY_000`, `LEGCY_001`, ...) in the usual save folder, so Legacy and your other playthroughs never share or
+overwrite slots. Without the mod, the game shows your normal saves (`FFXII_000`, ...) as before. This needs the
+[FF12 LUA Loader](https://www.nexusmods.com/finalfantasy12/mods/171). If the game version differs from the
+supported one, the script leaves save names unchanged and says so in `x64/hook.log`.
+
 ## Planned
 
 - Twelve jobs designed in pairs, so every job combination plays differently, with little overlap.
@@ -47,7 +53,8 @@ More Kings, each with its own fight and reward, are planned.
 ## Requirements
 
 - FINAL FANTASY XII THE ZODIAC AGE, Steam version 1.0.4.0, **English** game language.
-- [FF12 External File Loader](https://www.nexusmods.com/finalfantasy12/mods/170).
+- [FF12 External File Loader](https://www.nexusmods.com/finalfantasy12/mods/170) and
+  [FF12 LUA Loader](https://www.nexusmods.com/finalfantasy12/mods/171).
 - Optional: [Ivalice Together](https://www.nexusmods.com/finalfantasy12/mods/548) for local co-op. Ivalice Legacy
   does not change Ivalice Together's files or settings.
 - Recommended: [The Insurgent's Companions](https://www.nexusmods.com/finalfantasy12/mods/217) for a party of four,
@@ -78,7 +85,8 @@ the full build test).
   collections intact.
 - **Manually:** copy the zip's `mods` folder into the game folder.
 
-Save files are shared with your other playthroughs, so start Ivalice Legacy in an empty save slot.
+Ivalice Legacy keeps its own save files (see above). To continue a Legacy game started before 0.0.6, copy its
+`FFXII_###` file (and its `FFXII_###.dir` folder, if present) to `LEGCY_###` in the same save folder.
 
 To uninstall, disable or remove the mod in Vortex, or delete the copied files.
 
@@ -88,6 +96,7 @@ To uninstall, disable or remove the mod in Vortex, or delete the copied files.
 |---|---|
 | `patches/` | Readable patch definitions (opening stock, ability chests, Kings): what changes, plus hashes of the expected source and result |
 | `ivalice_legacy/` | Archive reader, file formats, patch appliers and the build command |
+| `package/` | Files shipped as they are, such as the separate-saves script |
 | `tests/` | Tests for the patch appliers and the full build |
 
 ## Credits

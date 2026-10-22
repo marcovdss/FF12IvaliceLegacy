@@ -3,8 +3,9 @@
     python -m ivalice_legacy build [--game "<FINAL FANTASY XII THE ZODIAC AGE folder>"] [--out dist]
 
 The game folder can also be given with the IVALICE_LEGACY_GAME environment variable. The result is
-dist/IvaliceLegacy-<version>/ plus a .zip for Vortex (or manual copying into the game folder): loose files
-under mods/deploy/ff12data, loaded by the FF12 External File Loader.
+dist/IvaliceLegacy-<version>/ plus a .zip for Vortex (or manual copying into the game folder): patched game
+data as loose files under mods/deploy/ff12data (loaded by the FF12 External File Loader), plus the mod's own
+files from package/ (Lua scripts, loaded by the FF12 LUA Loader).
 """
 from pathlib import Path
 import argparse
@@ -33,19 +34,23 @@ def build(game, out):
             if rel in files:
                 raise ValueError(f'two patches write {rel}')
             files[rel] = data
+    files = {PREFIX + rel: data for rel, data in files.items()}
+    for source in sorted((ROOT / 'package').rglob('*')):
+        if source.is_file():
+            files[source.relative_to(ROOT / 'package').as_posix()] = source.read_bytes()
     package = Path(out) / f'IvaliceLegacy-{__version__}'
     if package.exists():
         shutil.rmtree(package)
     manifest = {'name': 'Ivalice Legacy', 'version': __version__,
-                'files': {PREFIX + rel: sha256(data) for rel, data in sorted(files.items())}}
+                'files': {rel: sha256(data) for rel, data in sorted(files.items())}}
     for rel, data in files.items():
-        target = package / PREFIX / rel
+        target = package / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
     archive = Path(out) / f'IvaliceLegacy-{__version__}.zip'
     with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
         for rel, data in sorted(files.items()):
-            info = zipfile.ZipInfo(PREFIX + rel, date_time=STAMP)
+            info = zipfile.ZipInfo(rel, date_time=STAMP)
             info.compress_type = zipfile.ZIP_DEFLATED
             z.writestr(info, data)
     (Path(out) / f'IvaliceLegacy-{__version__}.json').write_text(json.dumps(manifest, indent=2) + '\n')
