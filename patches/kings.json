@@ -1,0 +1,57 @@
+{
+  "name": "Kings of the zone",
+  "description": "Each area's rare monster rules its zone. This version: Ripe Rampager always appears in Yardang Labyrinth (Dalmasca Estersand) when you enter, instead of a 33% chance.",
+  "kings": [
+    {
+      "king": "Ripe Rampager",
+      "area": "Dalmasca Estersand - Yardang Labyrinth",
+      "file": "ps2data/plan_master/us/plan_map/dst_a/dst_a02/global/dst_a02.ebp",
+      "section": 0,
+      "sourceFileSha256": "b3fe5015753400b33dbe0fb09e46c29cc6e970af0e74d37d09eabda9207225e5",
+      "sourceSectionSha256": "117140aac0bc90960f59fed758f9afb8b0b519a9297571202f23658e642edd25",
+      "note": "Field-script thread 30 rolls rand(100) < 33 on a fresh spawn to allow the Ripe Rampager spawn; each roll's threshold is a push of a 16-bit immediate.",
+      "immediates": [
+        {
+          "sectionByteOffset": 21711,
+          "before": 33,
+          "after": 100
+        },
+        {
+          "sectionByteOffset": 21885,
+          "before": 33,
+          "after": 100
+        },
+        {
+          "sectionByteOffset": 22177,
+          "before": 33,
+          "after": 100
+        },
+        {
+          "sectionByteOffset": 22351,
+          "before": 33,
+          "after": 100
+        },
+        {
+          "sectionByteOffset": 22643,
+          "before": 33,
+          "after": 100
+        },
+        {
+          "sectionByteOffset": 22817,
+          "before": 33,
+          "after": 100
+        },
+        {
+          "sectionByteOffset": 23109,
+          "before": 33,
+          "after": 100
+        },
+        {
+          "sectionByteOffset": 23283,
+          "before": 33,
+          "after": 100
+        }
+      ]
+    }
+  ]
+}

@@ -100,4 +100,31 @@ def ability_chests(read, patch):
     return files
 
 
-APPLIERS = {'opening_stock': opening_stock, 'ability_chests': ability_chests}
+PUSH_IMM16 = 0x4F  # field-script VM: push signed 16-bit immediate (opcode byte + little-endian operand)
+
+
+def kings(read, patch):
+    """Change pushed 16-bit constants in field scripts (spawn-chance thresholds and similar).
+
+    Every edit names the instruction's position in the script section; the opcode and the old value must match
+    before anything changes, so a moved or different script is rejected instead of patched blindly.
+    """
+    files = {}
+    for king in patch['kings']:
+        raw = read(king['file'])
+        require(raw, king['sourceFileSha256'], king['file'])
+        section = bytearray(ebp_section(raw, king['section']))
+        require(bytes(section), king['sourceSectionSha256'], f"{king['file']} section {king['section']}")
+        for edit in king['immediates']:
+            at = edit['sectionByteOffset']
+            if section[at] != PUSH_IMM16 or struct.unpack_from('<h', section, at + 1)[0] != edit['before']:
+                raise ValueError(f"{king['king']}: unexpected instruction at {at:#x}")
+            struct.pack_into('<h', section, at + 1, edit['after'])
+        rel = f"{king['file']}.dir/section_{king['section']:03}.bin"
+        if rel in files:
+            raise ValueError(f'{rel} edited twice')
+        files[rel] = bytes(section)
+    return files
+
+
+APPLIERS = {'opening_stock': opening_stock, 'ability_chests': ability_chests, 'kings': kings}

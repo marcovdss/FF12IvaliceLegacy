@@ -7,7 +7,7 @@ The goal is an Ivalice where preparation wins: jobs that combine instead of over
 play, enemies that act instead of just hitting harder, rare monsters that rule their zones, a Clan worth climbing,
 and progression you can't steamroll.
 
-> **Status: early development (0.0.3).** Only the first two modules exist so far. Expect large changes between
+> **Status: early development (0.0.4).** Only the first modules exist so far. Expect large changes between
 > versions; start a new game for each development build.
 
 ## What's in this version
@@ -26,6 +26,10 @@ already stocked later in the story move to the start instead of appearing twice.
 **Reliable ability chests.** Three chests holding abilities that are easy to miss now always appear: Cleanse
 (Cerobi Steppe, The Terraced Bank), Addle (Henne Mines, Special Charter Shaft) and Wither (Pharos, Subterra -
 Abyssal - North). Contents and one-time collection are unchanged.
+
+**Kings of the zone (first King).** Ripe Rampager, the rare monster of Dalmasca Estersand, now always appears in
+Yardang Labyrinth when you enter, instead of a one-in-three chance. More Kings, each with its own fight and
+reward, are planned.
 
 ## Planned
 
@@ -75,7 +79,7 @@ To uninstall, disable or remove the mod in Vortex, or delete the copied files.
 
 | Path | Contents |
 |---|---|
-| `patches/` | Readable patch definitions: what changes, plus hashes of the expected source and result |
+| `patches/` | Readable patch definitions (opening stock, ability chests, Kings): what changes, plus hashes of the expected source and result |
 | `ivalice_legacy/` | Archive reader, file formats, patch appliers and the build command |
 | `tests/` | Tests for the patch appliers and the full build |
 

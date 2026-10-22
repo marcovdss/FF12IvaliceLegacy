@@ -80,6 +80,31 @@ class AbilityChestTest(unittest.TestCase):
         self.assertEqual(out[10], 100)
 
 
+class KingsTest(unittest.TestCase):
+    def script_file(self, script):
+        return bytes(b'EBP2' + bytes(12) + struct.pack('<20I', 96, *([0] * 19))) + bytes(script)
+
+    def patch(self, raw, script, before):
+        return {'kings': [{'king': 'Test', 'file': 'a.ebp', 'section': 0, 'sourceFileSha256': patches.sha256(raw),
+                           'sourceSectionSha256': patches.sha256(bytes(script)),
+                           'immediates': [{'sectionByteOffset': 4, 'before': before, 'after': 100}]}]}
+
+    def test_changes_only_the_operand(self):
+        script = bytearray(16)
+        script[4:7] = bytes([0x4F, 33, 0])  # push 33
+        raw = self.script_file(script)
+        out = patches.kings(lambda name: raw, self.patch(raw, script, 33))['a.ebp.dir/section_000.bin']
+        self.assertEqual(out[4:7], bytes([0x4F, 100, 0]))  # push 100
+        self.assertEqual([i for i, (a, b) in enumerate(zip(script, out)) if a != b], [5])
+
+    def test_rejects_unexpected_value(self):
+        script = bytearray(16)
+        script[4:7] = bytes([0x4F, 34, 0])  # push 34
+        raw = self.script_file(script)
+        with self.assertRaises(ValueError):
+            patches.kings(lambda name: raw, self.patch(raw, script, 33))
+
+
 @unittest.skipUnless(os.environ.get('IVALICE_LEGACY_GAME'), 'set IVALICE_LEGACY_GAME to run the full build')
 class FullBuildTest(unittest.TestCase):
     def test_build_matches_recorded_results(self):
@@ -90,7 +115,8 @@ class FullBuildTest(unittest.TestCase):
             root = Path(__file__).resolve().parents[1] / 'patches'
             expected = {json.loads((root / 'opening_stock.json').read_text())['resultSectionSha256']}
             expected |= {c['resultSectionSha256'] for c in json.loads((root / 'ability_chests.json').read_text())['chests']}
-            self.assertEqual(set(manifest['files'].values()), expected)
+            self.assertTrue(expected <= set(manifest['files'].values()))
+            self.assertEqual(len(manifest['files']), len(expected) + len(json.loads((root / 'kings.json').read_text())['kings']))
 
 
 if __name__ == '__main__':
