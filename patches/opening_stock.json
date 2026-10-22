@@ -1,0 +1,113 @@
+{
+  "name": "Opening stock",
+  "description": "Rabanastre merchants sell the opening tools from the start of the game. Items already sold later by the same merchant move to the start instead of appearing twice. Prices are unchanged.",
+  "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
+  "section": 39,
+  "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
+  "sourceSectionSha256": "552e8abe5627de754125fe52e524e5da321af4c13f81531b70fc9a75c40e2be7",
+  "resultSectionSha256": "5d6ffbf2f902ef012ca2bc2e48104397b1e200593da123d0c82bc1d4454b4e9c",
+  "shops": [
+    {
+      "shop": 37,
+      "merchant": "Amal's Weaponry",
+      "availableFromStart": [
+        {
+          "id": 4176,
+          "name": "Bowgun"
+        },
+        {
+          "id": 4201,
+          "name": "Iron Hammer"
+        },
+        {
+          "id": 4217,
+          "name": "Rod"
+        },
+        {
+          "id": 4225,
+          "name": "Oak Staff"
+        },
+        {
+          "id": 4235,
+          "name": "Mace"
+        },
+        {
+          "id": 4250,
+          "name": "Hornito"
+        }
+      ]
+    },
+    {
+      "shop": 38,
+      "merchant": "Panamis's Protectives",
+      "availableFromStart": [
+        {
+          "id": 4442,
+          "name": "Bangle"
+        },
+        {
+          "id": 4443,
+          "name": "Orrachea Armlet"
+        }
+      ]
+    },
+    {
+      "shop": 39,
+      "merchant": "Migelo's Sundries",
+      "availableFromStart": [
+        {
+          "id": 6,
+          "name": "Phoenix Down"
+        },
+        {
+          "id": 9,
+          "name": "Antidote"
+        },
+        {
+          "id": 4492,
+          "name": "Onion Bolts"
+        },
+        {
+          "id": 4508,
+          "name": "Onion Bombs"
+        }
+      ]
+    },
+    {
+      "shop": 40,
+      "merchant": "Yugri's Magicks",
+      "availableFromStart": [
+        {
+          "id": 12307,
+          "name": "Thunder"
+        },
+        {
+          "id": 12308,
+          "name": "Blizzard"
+        },
+        {
+          "id": 12345,
+          "name": "Blind"
+        },
+        {
+          "id": 12348,
+          "name": "Silence"
+        }
+      ]
+    },
+    {
+      "shop": 41,
+      "merchant": "Batahn's Technicks",
+      "availableFromStart": [
+        {
+          "id": 16384,
+          "name": "First Aid"
+        },
+        {
+          "id": 16395,
+          "name": "Steal"
+        }
+      ]
+    }
+  ]
+}

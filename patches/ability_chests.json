@@ -1,0 +1,42 @@
+{
+  "name": "Reliable ability chests",
+  "description": "Three chests holding abilities that are otherwise easy to miss always appear. Contents, locations and one-time collection are unchanged.",
+  "chests": [
+    {
+      "ability": "Cleanse",
+      "area": "The Terraced Bank",
+      "file": "ps2data/plan_master/us/plan_map/srb_a/srb_a03/global/srb_a03.ebp",
+      "section": 0,
+      "sourceFileSha256": "2a05b249d5e5a34875dc3e335a775bc6bac5bebbac31c83a592f345869d49a1c",
+      "sourceSectionSha256": "d3ebb1f094a3867f13fbf40ae0919e9066cdfaa085f3667eff8d4b7f19dbbfca",
+      "resultSectionSha256": "32ab670f03e64bb55dbbd7758436c6039cc7ebaf055c18d5e3f55c80a0e6842c",
+      "sectionByteOffset": 1026,
+      "spawnChanceBefore": 20,
+      "spawnChanceAfter": 100
+    },
+    {
+      "ability": "Addle",
+      "area": "Special Charter Shaft",
+      "file": "ps2data/plan_master/us/plan_map/hne_d/hne_d01/global/hne_d01.ebp",
+      "section": 0,
+      "sourceFileSha256": "2b797d894613c2317ec129e3bef601d1fdcfbb45aeee3aac23a8df194152d5bb",
+      "sourceSectionSha256": "da370b7e6361295ffea99c60b7e7cb771c12e642fb143260970b910880bdb7ee",
+      "resultSectionSha256": "576633ee43dad3d967d48750db1469d777b624d1a2e536fb929a330c7e4b8e16",
+      "sectionByteOffset": 1082,
+      "spawnChanceBefore": 10,
+      "spawnChanceAfter": 100
+    },
+    {
+      "ability": "Wither",
+      "area": "Subterra - Abyssal - North",
+      "file": "ps2data/plan_master/us/plan_map/rbl_i/rbl_i02/global/rbl_i02.ebp",
+      "section": 0,
+      "sourceFileSha256": "89a6b2caf821d2d1cc33389223b7a5ff89239d8142ce7b047fc4f91b799124ed",
+      "sourceSectionSha256": "b50ed31e6d869d09a74086a7bc6c61c174c2752f23c104fe7b3187bf0da01160",
+      "resultSectionSha256": "4275dc08ec1b8f220e5111a49261d912f96c052b8b12c07a1436d38f81d3e400",
+      "sectionByteOffset": 1426,
+      "spawnChanceBefore": 10,
+      "spawnChanceAfter": 100
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# Game files and extracted game data are never committed.
+*.vbf
+extracted/
+reference/
+
+# Build output and caches.
+build/
+dist/
+__pycache__/
+*.pyc
+.venv/
