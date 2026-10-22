@@ -97,6 +97,17 @@ class KingsTest(unittest.TestCase):
         self.assertEqual(out[4:7], bytes([0x4F, 100, 0]))  # push 100
         self.assertEqual([i for i, (a, b) in enumerate(zip(script, out)) if a != b], [5])
 
+    def test_replaces_whole_instruction(self):
+        script = bytearray(16)
+        script[4:7] = bytes([0x58, 0xA9, 0x05])  # call command 0x5A9
+        raw = self.script_file(script)
+        patch = self.patch(raw, script, 0)
+        patch['kings'][0]['immediates'] = []
+        patch['kings'][0]['replacements'] = [{'sectionByteOffset': 4, 'before': '58a905', 'after': '4f0100'}]
+        out = patches.kings(lambda name: raw, patch)['a.ebp.dir/section_000.bin']
+        self.assertEqual(out[4:7], bytes([0x4F, 1, 0]))  # push 1
+        self.assertEqual(len(out), len(script))
+
     def test_rejects_unexpected_value(self):
         script = bytearray(16)
         script[4:7] = bytes([0x4F, 34, 0])  # push 34

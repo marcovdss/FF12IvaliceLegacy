@@ -7,7 +7,7 @@ The goal is an Ivalice where preparation wins: jobs that combine instead of over
 play, enemies that act instead of just hitting harder, rare monsters that rule their zones, a Clan worth climbing,
 and progression you can't steamroll.
 
-> **Status: early development (0.0.4).** Only the first modules exist so far. Expect large changes between
+> **Status: early development (0.0.5).** Only the first modules exist so far. Expect large changes between
 > versions; start a new game for each development build.
 
 ## What's in this version
@@ -27,9 +27,13 @@ already stocked later in the story move to the start instead of appearing twice.
 (Cerobi Steppe, The Terraced Bank), Addle (Henne Mines, Special Charter Shaft) and Wither (Pharos, Subterra -
 Abyssal - North). Contents and one-time collection are unchanged.
 
-**Kings of the zone (first King).** Ripe Rampager, the rare monster of Dalmasca Estersand, now always appears in
-Yardang Labyrinth when you enter, instead of a one-in-three chance. More Kings, each with its own fight and
-reward, are planned.
+**Kings of the zone.** Each area's rare monster becomes the ruler of its zone and is always there:
+
+- **Ripe Rampager** always appears in Yardang Labyrinth (Dalmasca Estersand), instead of a one-in-three chance.
+- **Rain Dancer** always appears in Warrior's Wash, Toam Hills and Giza's South Bank during Giza Plains' rainy
+  season, and only then.
+
+More Kings, each with its own fight and reward, are planned.
 
 ## Planned
 
@@ -46,6 +50,9 @@ reward, are planned.
 - [FF12 External File Loader](https://www.nexusmods.com/finalfantasy12/mods/170).
 - Optional: [Ivalice Together](https://www.nexusmods.com/finalfantasy12/mods/548) for local co-op. Ivalice Legacy
   does not change Ivalice Together's files or settings.
+- Recommended: [The Insurgent's Companions](https://www.nexusmods.com/finalfantasy12/mods/217) for a party of four,
+  which Ivalice Legacy is being balanced around, plus [Second Accessory](https://www.nexusmods.com/finalfantasy12/mods/436)
+  and [Gambit Rework](https://www.nexusmods.com/finalfantasy12/mods/471).
 - Do not combine with other content overhauls (Struggle for Freedom, The Planetary Age, Horizontal Progression
   Overhaul and similar). They replace the same game data.
 

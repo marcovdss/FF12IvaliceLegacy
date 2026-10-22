@@ -1,6 +1,6 @@
 {
   "name": "Kings of the zone",
-  "description": "Each area's rare monster rules its zone. This version: Ripe Rampager always appears in Yardang Labyrinth (Dalmasca Estersand) when you enter, instead of a 33% chance.",
+  "description": "Each area's rare monster rules its zone. This version: Ripe Rampager always appears in Yardang Labyrinth (Dalmasca Estersand), and Rain Dancer always appears in its three Giza Plains areas during the rainy season (it does not exist in the dry season).",
   "kings": [
     {
       "king": "Ripe Rampager",
@@ -50,6 +50,54 @@
           "sectionByteOffset": 23283,
           "before": 33,
           "after": 100
+        }
+      ]
+    },
+    {
+      "king": "Rain Dancer",
+      "area": "Giza Plains (rainy season) - Warrior's Wash",
+      "file": "ps2data/plan_master/us/plan_map/sav_d/sav_d02/global/sav_d02.ebp",
+      "section": 0,
+      "sourceFileSha256": "ba2d52133278a88e63483025491acd1a8d4adf05a16f9ed5af2ed09b3a78d6a6",
+      "sourceSectionSha256": "d62bcd0c346337130ad25d13171968fd590affb84d5926a2b82c1211bad0f832",
+      "note": "The spawner thread asks the engine's rare-game switch (script command 0x5A9, the same switch other mods use to force every rare game) whether to force the spawn. Here that one call is replaced by pushing 1, so only this spawner is forced.",
+      "replacements": [
+        {
+          "sectionByteOffset": 6931,
+          "before": "58a905",
+          "after": "4f0100"
+        }
+      ]
+    },
+    {
+      "king": "Rain Dancer",
+      "area": "Giza Plains (rainy season) - Toam Hills",
+      "file": "ps2data/plan_master/us/plan_map/sav_d/sav_d04/global/sav_d04.ebp",
+      "section": 0,
+      "sourceFileSha256": "e3a33dc5ad45a0bc9cabf4a7d97266729dfedf2fa6737110c7bd5824b7cd6e5f",
+      "sourceSectionSha256": "d90907d2851695e2f6b2c8c5674c42d91ebd6983a1b0f8da6d2ce2bbb61398aa",
+      "note": "The spawner thread asks the engine's rare-game switch (script command 0x5A9, the same switch other mods use to force every rare game) whether to force the spawn. Here that one call is replaced by pushing 1, so only this spawner is forced.",
+      "replacements": [
+        {
+          "sectionByteOffset": 13065,
+          "before": "58a905",
+          "after": "4f0100"
+        }
+      ]
+    },
+    {
+      "king": "Rain Dancer",
+      "area": "Giza Plains (rainy season) - Giza's South Bank",
+      "file": "ps2data/plan_master/us/plan_map/sav_f/sav_f03/global/sav_f03.ebp",
+      "section": 0,
+      "sourceFileSha256": "9afc345d97507dcd1644b162fd05f21b4b2acd1b9e49920f21dfe00d9d50bc1a",
+      "sourceSectionSha256": "88e38bbcc4c40b86d9508282526e14e3ea3ba02c71dc0afe8d7c0bfec172fc2b",
+      "note": "The spawner thread asks the engine's rare-game switch (script command 0x5A9, the same switch other mods use to force every rare game) whether to force the spawn. Here that one call is replaced by pushing 1, so only this spawner is forced.",
+      "replacements": [
+        {
+          "sectionByteOffset": 17538,
+          "before": "58a905",
+          "after": "4f0100"
         }
       ]
     }
