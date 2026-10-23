@@ -57,3 +57,33 @@ def shop_table(section):
                          'items': list(struct.unpack_from(f'<{n_items}H', section, items))})
         shops.append({'shop': i, 'offset': pos, 'owner': owner, 'rows': rows})
     return shops
+
+
+def ard_section(raw, index):
+    """Return the complete AR03 section, including its trailing bytes."""
+    if len(raw) < 48 or raw[:8] != b'FF12AR03':
+        raise ValueError('not an AR03 file')
+    offsets = struct.unpack_from('<10I', raw, 8)
+    if not 0 <= index < 10 or not offsets[index]:
+        raise ValueError('missing AR03 section')
+    if any(offset and not 48 <= offset < len(raw) for offset in offsets):
+        raise ValueError('AR03 section offset out of range')
+    start = offsets[index]
+    return raw[start:min([offset for offset in offsets if offset > start] + [len(raw)])]
+
+
+def ai_rule_offset(section, script, row):
+    """Locate a zero-based 24-byte battle-logic rule after its 32 group counts."""
+    if len(section) < 4:
+        raise ValueError('truncated AI bank')
+    count = struct.unpack_from('<H', section)[0]
+    if not 0 <= script < count or 4 + (count + 1) * 4 > len(section):
+        raise ValueError('invalid AI script directory')
+    offsets = struct.unpack_from(f'<{count + 1}i', section, 4)
+    start, end = offsets[script:script + 2]
+    if not 4 + (count + 1) * 4 <= start <= end <= len(section) or start + 32 > end:
+        raise ValueError('invalid AI script bounds')
+    rules = sum(section[start:start + 32])
+    if start + 32 + rules * 24 > end or not 0 <= row < rules:
+        raise ValueError('invalid AI rule bounds')
+    return start + 32 + row * 24

@@ -1,0 +1,38 @@
+{
+  "name": "Ripe Rampager recovery pilot",
+  "version": "0.0.1",
+  "file": "ps2data/plan_master/in/plan_map/dst_a/area/dst_a.ard",
+  "section": 3,
+  "sourceFileSha256": "d1f75860df9f31e7b8ca94ed782df22b38f20ae7ecf1e013287c2b189bd90cb9",
+  "sourceSectionSha256": "6539780c97447cafa4eeb96347283946aaab10c106a94fb147c8398773894f50",
+  "conditions": [
+    {
+      "script": 9,
+      "row": 17,
+      "conditionSlot": 0,
+      "before": 3844,
+      "after": 3843,
+      "ruleBeforeHex": "2141640040000400040f0000000000000000000000000000",
+      "description": "Enter recovery: Self HP < 50% to < 60%"
+    },
+    {
+      "script": 9,
+      "row": 28,
+      "conditionSlot": 0,
+      "before": 3587,
+      "after": 3586,
+      "ruleBeforeHex": "1941640000000400030e0000000000000000000000000000",
+      "description": "Leave recovery: Self HP >= 60% to >= 70%"
+    },
+    {
+      "script": 9,
+      "row": 49,
+      "conditionSlot": 0,
+      "before": 3587,
+      "after": 3586,
+      "ruleBeforeHex": "1841640000000400030e000004000d070000000000000000",
+      "description": "Leave recovery fallback: Self HP >= 60% to >= 70%"
+    }
+  ],
+  "resultSectionSha256": "81a35c6548248ad2d8d7141481dbbb018f2e2376fbace828b0f1d97e37ba70d0"
+}

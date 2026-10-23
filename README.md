@@ -8,7 +8,8 @@ play, enemies that act instead of just hitting harder, rare monsters that rule t
 and progression you can't steamroll.
 
 > **Status: early development (0.0.6).** Only the first modules exist so far. Expect large changes between
-> versions; start a new game for each development build.
+> versions. Incremental updates are intended to continue your existing Legacy campaign. Save compatibility will
+> be checked for each change; any migration or restart requirement will be stated before installation.
 
 ## What's in this version
 
@@ -35,11 +36,15 @@ Abyssal - North). Contents and one-time collection are unchanged.
 
 More Kings, each with its own fight and reward, are planned.
 
-**Separate save files.** While Ivalice Legacy is installed, the game saves and loads its own files
+**Separate save files.** When the save redirect activates successfully, the game saves and loads its own files
 (`LEGCY_000`, `LEGCY_001`, ...) in the usual save folder, so Legacy and your other playthroughs never share or
 overwrite slots. Without the mod, the game shows your normal saves (`FFXII_000`, ...) as before. This needs the
 [FF12 LUA Loader](https://www.nexusmods.com/finalfantasy12/mods/171). If the game version differs from the
-supported one, the script leaves save names unchanged and says so in `x64/hook.log`.
+supported one, the script leaves save names unchanged and says so in `x64/hook.log`. Before saving for the first
+time, check that the log says `Ivalice Legacy: using separate save files (LEGCY_###).` (or `separate save files
+already active`) and that the load menu shows your Legacy saves. If activation fails, ordinary `FFXII_###` saves
+remain accessible; stop before saving to protect other playthroughs. Native save isolation is still awaiting
+in-game validation in this development build.
 
 ## Planned
 
@@ -79,16 +84,38 @@ mod has replaced them inside the archive.
 Run the tests with `python -m unittest discover -s tests` (set `IVALICE_LEGACY_GAME` to your game folder to include
 the full build test).
 
+## Optional Rampager pilot
+
+Build the separate recovery-phase experiment with:
+
+```
+python -m ivalice_legacy build-rampager-pilot --game "<game folder>"
+```
+
+This produces `IvaliceLegacy-RampagerPilot-0.0.1.zip`: one enemy AI section, without a save redirect or other
+modules. The normal build remains unchanged. This is an offline experimental addon awaiting in-game validation.
+
+| Ripe Rampager condition | Original | Pilot |
+|---|---|---|
+| Enter existing recovery phase | HP < 50% | HP < 60% |
+| Leave recovery (two rules) | HP >= 60% | HP >= 70% |
+
+All other behavior, stats, rewards and spawns are preserved. Earlier recovery may lengthen the fight;
+its effect on difficulty remains untested. The addon replaces Estersand's complete enemy AI section and must not
+be combined with another mod editing that section. It does not include the Kings spawn changes.
+
 ## Installing
 
 - **Vortex:** install the built zip as a mod and deploy. Using a separate Vortex profile keeps other mod
   collections intact.
-- **Manually:** copy the zip's `mods` folder into the game folder.
+- **Manually:** copy both the zip's `mods` and `x64` folders into the game folder, merging them with the existing
+  folders. The save-isolation script must be at `x64/scripts/IvaliceLegacySaves.lua`.
 
 Ivalice Legacy keeps its own save files (see above). To continue a Legacy game started before 0.0.6, copy its
 `FFXII_###` file (and its `FFXII_###.dir` folder, if present) to `LEGCY_###` in the same save folder.
 
-To uninstall, disable or remove the mod in Vortex, or delete the copied files.
+To uninstall, disable or remove the mod in Vortex, or delete only the files copied from this package, including
+`x64/scripts/IvaliceLegacySaves.lua`. Preserve the existing `mods` and `x64` folders and their other contents.
 
 ## Repository layout
 

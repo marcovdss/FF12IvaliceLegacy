@@ -134,3 +134,29 @@ def kings(read, patch):
 
 
 APPLIERS = {'opening_stock': opening_stock, 'ability_chests': ability_chests, 'kings': kings}
+
+
+def enemy_ai(read, patch):
+    """Apply explicit condition-ID edits to one source-pinned AR03 AI bank."""
+    from .formats import ard_section, ai_rule_offset
+    raw = read(patch['file'])
+    require(raw, patch['sourceFileSha256'], patch['file'])
+    original = ard_section(raw, patch['section'])
+    require(original, patch['sourceSectionSha256'], 'enemy AI source')
+    out = bytearray(original)
+    used = set()
+    for edit in patch['conditions']:
+        slot = edit['conditionSlot']
+        if not 0 <= slot < 3:
+            raise ValueError('invalid AI condition slot')
+        rule = ai_rule_offset(original, edit['script'], edit['row'])
+        if original[rule:rule + 24] != bytes.fromhex(edit['ruleBeforeHex']):
+            raise ValueError('unexpected AI rule')
+        at = rule + 8 + slot * 6
+        if at in used or struct.unpack_from('<H', original, at)[0] != edit['before']:
+            raise ValueError('duplicate or unexpected AI condition')
+        used.add(at)
+        struct.pack_into('<H', out, at, edit['after'])
+    result = bytes(out)
+    require(result, patch['resultSectionSha256'], 'enemy AI result')
+    return {f"{patch['file']}.dir/section_{patch['section']:03}.bin": result}

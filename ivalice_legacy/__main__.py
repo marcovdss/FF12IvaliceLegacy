@@ -38,22 +38,40 @@ def build(game, out):
     for source in sorted((ROOT / 'package').rglob('*')):
         if source.is_file():
             files[source.relative_to(ROOT / 'package').as_posix()] = source.read_bytes()
-    package = Path(out) / f'IvaliceLegacy-{__version__}'
+    return write_package(files, out, f'IvaliceLegacy-{__version__}', 'Ivalice Legacy', __version__)
+
+
+def build_rampager_pilot(game, out):
+    from .patches import enemy_ai
+    vbf = VBF(Path(game) / 'FFXII_TZA.vbf')
+    patch = json.loads((ROOT / 'patches/rampager_pilot.json').read_text(encoding='utf-8'))
+    files = {PREFIX + rel: data for rel, data in enemy_ai(vbf.read, patch).items()}
+    return write_package(files, out, 'IvaliceLegacy-RampagerPilot-0.0.1',
+                         'Ivalice Legacy Rampager Pilot', '0.0.1',
+                         {'source': {'file': patch['file'], 'fileSha256': patch['sourceFileSha256'],
+                                     'section': patch['section'], 'sectionSha256': patch['sourceSectionSha256']},
+                          'conditions': patch['conditions']})
+
+
+def write_package(files, out, stem, name, version, metadata=None):
+    package = Path(out) / stem
     if package.exists():
         shutil.rmtree(package)
-    manifest = {'name': 'Ivalice Legacy', 'version': __version__,
+    manifest = {'name': name, 'version': version,
                 'files': {rel: sha256(data) for rel, data in sorted(files.items())}}
+    if metadata:
+        manifest.update(metadata)
     for rel, data in files.items():
         target = package / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
-    archive = Path(out) / f'IvaliceLegacy-{__version__}.zip'
+    archive = Path(out) / f'{stem}.zip'
     with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
         for rel, data in sorted(files.items()):
             info = zipfile.ZipInfo(rel, date_time=STAMP)
             info.compress_type = zipfile.ZIP_DEFLATED
             z.writestr(info, data)
-    (Path(out) / f'IvaliceLegacy-{__version__}.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    (Path(out) / f'{stem}.json').write_text(json.dumps(manifest, indent=2) + '\n')
     return archive, manifest
 
 
@@ -61,11 +79,15 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog='ivalice_legacy')
     sub = ap.add_subparsers(dest='command', required=True)
     b = sub.add_parser('build', help='build the mod package from your game files')
+    pilot = sub.add_parser('build-rampager-pilot', help='build only the optional Rampager AI pilot')
+    pilot.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
+    pilot.add_argument('--out', default=str(ROOT / 'dist'))
     b.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     b.add_argument('--out', default=str(ROOT / 'dist'))
     args = ap.parse_args(argv)
     try:
-        archive, manifest = build(args.game, args.out)
+        builder = build_rampager_pilot if args.command == 'build-rampager-pilot' else build
+        archive, manifest = builder(args.game, args.out)
     except (OSError, KeyError, ValueError) as error:
         print(f'Build failed: {error}', file=sys.stderr)
         return 1
