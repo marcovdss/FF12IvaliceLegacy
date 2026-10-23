@@ -125,6 +125,7 @@ To uninstall, disable or remove the mod in Vortex, or delete only the files copi
 | `ivalice_legacy/` | Archive reader, file formats, patch appliers and the build command |
 | `package/` | Files shipped as they are, such as the separate-saves script |
 | `tests/` | Tests for the patch appliers and the full build |
+| `native/hybrid_boards/` | Experimental C++ hybrid-board core and build tools, excluded from installable packages |
 
 ## Credits
 
