@@ -1,2 +1,5 @@
 # Runtime Lua bytes are hash-pinned by the native pilot's build gate.
 native/hybrid_boards/*.lua text eol=lf
+# Base-job package bytes and embedded recipe fingerprints must survive checkout.
+patches/base_jobs.json text eol=lf
+package_base_jobs/*.md text eol=lf
