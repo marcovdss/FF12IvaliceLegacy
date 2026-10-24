@@ -82,11 +82,17 @@ def main(argv=None):
     pilot = sub.add_parser('build-rampager-pilot', help='build only the optional Rampager AI pilot')
     pilot.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     pilot.add_argument('--out', default=str(ROOT / 'dist'))
+    bases = sub.add_parser('build-base-jobs', help='build the separate experimental twelve-base-job candidate')
+    bases.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
+    bases.add_argument('--out', default=str(ROOT / 'dist'))
     b.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     b.add_argument('--out', default=str(ROOT / 'dist'))
     args = ap.parse_args(argv)
     try:
-        builder = build_rampager_pilot if args.command == 'build-rampager-pilot' else build
+        if args.command == 'build-base-jobs':
+            from .base_jobs import build as builder
+        else:
+            builder = build_rampager_pilot if args.command == 'build-rampager-pilot' else build
         archive, manifest = builder(args.game, args.out)
     except (OSError, KeyError, ValueError) as error:
         print(f'Build failed: {error}', file=sys.stderr)

@@ -48,7 +48,7 @@ in-game validation in this development build.
 
 ## Planned
 
-- Twelve jobs designed in pairs, so every job combination plays differently, with little overlap.
+- Twelve standalone base jobs, followed by derived hybrid classes for their combinations.
 - Gear with real trade-offs and effects, a second accessory slot for deeper builds.
 - Enemy behavior: roles in every group, reactions to what the party does, boss phases.
 - Kings of the zone: each area's rare monster is always present, with its own fight and reward.
@@ -83,6 +83,28 @@ mod has replaced them inside the archive.
 
 Run the tests with `python -m unittest discover -s tests` (set `IVALICE_LEGACY_GAME` to your game folder to include
 the full build test).
+
+## Experimental twelve-base-job candidate
+
+```
+python -m ivalice_legacy build-base-jobs --game "<game folder>"
+```
+
+This builds a separate `IvaliceLegacy-BaseJobs-0.1.0.zip` containing twelve authored
+boards, English native job names, package hashes and rollback documentation. It
+does not include the normal modules or the Paladin pilot. The regular `build`
+command is unchanged.
+
+The bases are Knight, Lancer, Warrior, Samurai, Hunter, Gunner, Chemist, Green Mage,
+Time Mage, Mystic, White Mage and Black Mage. Existing saved slot IDs and acquired
+licenses persist; each slot receives the curriculum listed in the candidate's
+README. No automatic respec or job reassignment occurs. Native special-license
+restrictions remain in place, with no ordinary node gated behind a special choice.
+
+These are offline candidates. Source hashes, geometry, LP routes and native text
+records were checked; game rendering, saved-campaign behavior and combat balance
+remain unverified. Do not combine with other board/English menu-command replacements
+or the experimental Paladin pilot. Together's files and settings are untouched.
 
 ## Optional Rampager pilot
 
