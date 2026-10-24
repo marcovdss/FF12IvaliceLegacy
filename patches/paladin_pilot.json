@@ -1,0 +1,1410 @@
+{
+  "schemaVersion": 1,
+  "name": "Paladin",
+  "status": "Design candidate; not approved for deployment",
+  "pair": [
+    0,
+    4
+  ],
+  "width": 24,
+  "height": 24,
+  "sourceBoards": [
+    {
+      "job": 0,
+      "sha256": "5a220b2d8e3cc2c78042cd5bd5161407f7f4dbadb811b7c1380b573e39fb380d"
+    },
+    {
+      "job": 4,
+      "sha256": "902b04e41c7f4d2b99469b615369f4c3142db6eaa2af7a9e7d6e4a1cef650888"
+    }
+  ],
+  "licenseTableSha256": "665019abce04423118529e461709a1b4aa77a164176c6fdf537b4b6d3b0ac8ea",
+  "cells": [
+    {
+      "x": 10,
+      "y": 4,
+      "licenseId": 333,
+      "branch": "mist-island",
+      "purpose": "Connected native reward island remains behind any original junction gate"
+    },
+    {
+      "x": 11,
+      "y": 4,
+      "licenseId": 296,
+      "branch": "mist-island",
+      "purpose": "Connected native reward island remains behind any original junction gate"
+    },
+    {
+      "x": 12,
+      "y": 4,
+      "licenseId": 304,
+      "branch": "mist-island",
+      "purpose": "Connected native reward island remains behind any original junction gate"
+    },
+    {
+      "x": 10,
+      "y": 5,
+      "licenseId": 30,
+      "branch": "mist-junction",
+      "purpose": "Preserved native Quickening/Esper junction, with original limits and costs"
+    },
+    {
+      "x": 11,
+      "y": 5,
+      "licenseId": 3,
+      "branch": "mist-junction",
+      "purpose": "Preserved native Quickening/Esper junction, with original limits and costs"
+    },
+    {
+      "x": 12,
+      "y": 5,
+      "licenseId": 26,
+      "branch": "mist-junction",
+      "purpose": "Preserved native Quickening/Esper junction, with original limits and costs"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "licenseId": 242,
+      "branch": "esper-island",
+      "purpose": "Original gated curriculum; no direct ordinary-core adjacency"
+    },
+    {
+      "x": 10,
+      "y": 6,
+      "licenseId": 176,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 11,
+      "y": 6,
+      "licenseId": 168,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 12,
+      "y": 6,
+      "licenseId": 360,
+      "branch": "initiation",
+      "purpose": "Immediate martial/support tools and preserved second-board license"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "licenseId": 18,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "licenseId": 19,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 6,
+      "y": 7,
+      "licenseId": 20,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 10,
+      "y": 7,
+      "licenseId": 172,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 11,
+      "y": 7,
+      "licenseId": 173,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 12,
+      "y": 7,
+      "licenseId": 174,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 13,
+      "y": 7,
+      "licenseId": 175,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 18,
+      "y": 7,
+      "licenseId": 21,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 20,
+      "y": 7,
+      "licenseId": 24,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "licenseId": 33,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "licenseId": 34,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "licenseId": 35,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "licenseId": 36,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 6,
+      "y": 8,
+      "licenseId": 37,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 8,
+      "y": 8,
+      "licenseId": 127,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 9,
+      "y": 8,
+      "licenseId": 270,
+      "branch": "tactics",
+      "purpose": "Shared gambit capacity before choosing deeper martial or support investment"
+    },
+    {
+      "x": 10,
+      "y": 8,
+      "licenseId": 269,
+      "branch": "tactics",
+      "purpose": "Shared gambit capacity before choosing deeper martial or support investment"
+    },
+    {
+      "x": 11,
+      "y": 8,
+      "licenseId": 268,
+      "branch": "tactics",
+      "purpose": "Shared gambit capacity before choosing deeper martial or support investment"
+    },
+    {
+      "x": 12,
+      "y": 8,
+      "licenseId": 162,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 13,
+      "y": 8,
+      "licenseId": 163,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 14,
+      "y": 8,
+      "licenseId": 161,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 15,
+      "y": 8,
+      "licenseId": 150,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 17,
+      "y": 8,
+      "licenseId": 184,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 18,
+      "y": 8,
+      "licenseId": 209,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 19,
+      "y": 8,
+      "licenseId": 233,
+      "branch": "channeling",
+      "purpose": "Native Channeling reduces resource pressure without new modifiers"
+    },
+    {
+      "x": 20,
+      "y": 8,
+      "licenseId": 256,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 21,
+      "y": 8,
+      "licenseId": 321,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "licenseId": 0,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "licenseId": 38,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "licenseId": 329,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "licenseId": 330,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "licenseId": 331,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 6,
+      "y": 9,
+      "licenseId": 39,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 8,
+      "y": 9,
+      "licenseId": 129,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 9,
+      "y": 9,
+      "licenseId": 130,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 10,
+      "y": 9,
+      "licenseId": 164,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 11,
+      "y": 9,
+      "licenseId": 267,
+      "branch": "tactics",
+      "purpose": "Shared gambit capacity before choosing deeper martial or support investment"
+    },
+    {
+      "x": 12,
+      "y": 9,
+      "licenseId": 166,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 13,
+      "y": 9,
+      "licenseId": 167,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 14,
+      "y": 9,
+      "licenseId": 151,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 15,
+      "y": 9,
+      "licenseId": 152,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 17,
+      "y": 9,
+      "licenseId": 185,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 18,
+      "y": 9,
+      "licenseId": 210,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 19,
+      "y": 9,
+      "licenseId": 234,
+      "branch": "channeling",
+      "purpose": "Native Channeling reduces resource pressure without new modifiers"
+    },
+    {
+      "x": 20,
+      "y": 9,
+      "licenseId": 257,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 21,
+      "y": 9,
+      "licenseId": 322,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 22,
+      "y": 9,
+      "licenseId": 27,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "licenseId": 284,
+      "branch": "esper-island",
+      "purpose": "Original gated curriculum; no direct ordinary-core adjacency"
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "licenseId": 40,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "licenseId": 41,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "licenseId": 42,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "licenseId": 332,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 6,
+      "y": 10,
+      "licenseId": 43,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 8,
+      "y": 10,
+      "licenseId": 131,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 9,
+      "y": 10,
+      "licenseId": 132,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 10,
+      "y": 10,
+      "licenseId": 126,
+      "branch": "initiation",
+      "purpose": "Immediate martial/support tools and preserved second-board license"
+    },
+    {
+      "x": 11,
+      "y": 10,
+      "licenseId": 266,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 12,
+      "y": 10,
+      "licenseId": 170,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 13,
+      "y": 10,
+      "licenseId": 171,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 14,
+      "y": 10,
+      "licenseId": 153,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 15,
+      "y": 10,
+      "licenseId": 154,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 17,
+      "y": 10,
+      "licenseId": 186,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 18,
+      "y": 10,
+      "licenseId": 211,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 19,
+      "y": 10,
+      "licenseId": 235,
+      "branch": "channeling",
+      "purpose": "Native Channeling reduces resource pressure without new modifiers"
+    },
+    {
+      "x": 20,
+      "y": 10,
+      "licenseId": 258,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 21,
+      "y": 10,
+      "licenseId": 323,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "licenseId": 94,
+      "branch": "esper-island",
+      "purpose": "Original gated curriculum; no direct ordinary-core adjacency"
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "licenseId": 23,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "licenseId": 44,
+      "branch": "sword-vow",
+      "purpose": "Successive swords and greatswords form the offensive specialization"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "licenseId": 121,
+      "branch": "shield-vow",
+      "purpose": "Shield progression is approached from the common martial bridge"
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "licenseId": 120,
+      "branch": "shield-vow",
+      "purpose": "Shield progression is approached from the common martial bridge"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "licenseId": 119,
+      "branch": "shield-vow",
+      "purpose": "Shield progression is approached from the common martial bridge"
+    },
+    {
+      "x": 6,
+      "y": 11,
+      "licenseId": 118,
+      "branch": "shield-vow",
+      "purpose": "Shield progression is approached from the common martial bridge"
+    },
+    {
+      "x": 7,
+      "y": 11,
+      "licenseId": 177,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 8,
+      "y": 11,
+      "licenseId": 133,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 9,
+      "y": 11,
+      "licenseId": 251,
+      "branch": "martial-bridge",
+      "purpose": "HP and Battle Lore entry into the martial specialization"
+    },
+    {
+      "x": 10,
+      "y": 11,
+      "licenseId": 32,
+      "branch": "initiation",
+      "purpose": "Immediate martial/support tools and preserved second-board license"
+    },
+    {
+      "x": 11,
+      "y": 11,
+      "licenseId": 31,
+      "branch": "initiation",
+      "purpose": "Immediate martial/support tools and preserved second-board license"
+    },
+    {
+      "x": 12,
+      "y": 11,
+      "licenseId": 182,
+      "branch": "initiation",
+      "purpose": "Immediate martial/support tools and preserved second-board license"
+    },
+    {
+      "x": 13,
+      "y": 11,
+      "licenseId": 183,
+      "branch": "initiation",
+      "purpose": "White Magick 2 follows the first cure without a long equipment detour"
+    },
+    {
+      "x": 14,
+      "y": 11,
+      "licenseId": 155,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 15,
+      "y": 11,
+      "licenseId": 156,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 16,
+      "y": 11,
+      "licenseId": 245,
+      "branch": "restoration-supplies",
+      "purpose": "Existing Ether Lores support longer recovery duties"
+    },
+    {
+      "x": 17,
+      "y": 11,
+      "licenseId": 187,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 18,
+      "y": 11,
+      "licenseId": 205,
+      "branch": "green-support",
+      "purpose": "Existing Green Magick offers situational support"
+    },
+    {
+      "x": 19,
+      "y": 11,
+      "licenseId": 207,
+      "branch": "green-support",
+      "purpose": "Existing Green Magick offers situational support"
+    },
+    {
+      "x": 20,
+      "y": 11,
+      "licenseId": 259,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 21,
+      "y": 11,
+      "licenseId": 324,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 22,
+      "y": 11,
+      "licenseId": 28,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 23,
+      "y": 11,
+      "licenseId": 303,
+      "branch": "esper-island",
+      "purpose": "Original gated curriculum; no direct ordinary-core adjacency"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "licenseId": 125,
+      "branch": "shield-vow",
+      "purpose": "Shield progression is approached from the common martial bridge"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "licenseId": 124,
+      "branch": "shield-vow",
+      "purpose": "Shield progression is approached from the common martial bridge"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "licenseId": 123,
+      "branch": "shield-vow",
+      "purpose": "Shield progression is approached from the common martial bridge"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "licenseId": 348,
+      "branch": "shield-vow",
+      "purpose": "Shield progression is approached from the common martial bridge"
+    },
+    {
+      "x": 6,
+      "y": 12,
+      "licenseId": 122,
+      "branch": "shield-vow",
+      "purpose": "Shield progression is approached from the common martial bridge"
+    },
+    {
+      "x": 7,
+      "y": 12,
+      "licenseId": 134,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 8,
+      "y": 12,
+      "licenseId": 135,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 9,
+      "y": 12,
+      "licenseId": 230,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 10,
+      "y": 12,
+      "licenseId": 117,
+      "branch": "initiation",
+      "purpose": "Immediate martial/support tools and preserved second-board license"
+    },
+    {
+      "x": 11,
+      "y": 12,
+      "licenseId": 261,
+      "branch": "martial-bridge",
+      "purpose": "HP and Battle Lore entry into the martial specialization"
+    },
+    {
+      "x": 12,
+      "y": 12,
+      "licenseId": 149,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 13,
+      "y": 12,
+      "licenseId": 278,
+      "branch": "support-bridge",
+      "purpose": "First Aid enters the recovery specialization"
+    },
+    {
+      "x": 14,
+      "y": 12,
+      "licenseId": 157,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 15,
+      "y": 12,
+      "licenseId": 158,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 17,
+      "y": 12,
+      "licenseId": 188,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 18,
+      "y": 12,
+      "licenseId": 206,
+      "branch": "green-support",
+      "purpose": "Existing Green Magick offers situational support"
+    },
+    {
+      "x": 19,
+      "y": 12,
+      "licenseId": 326,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 20,
+      "y": 12,
+      "licenseId": 260,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 21,
+      "y": 12,
+      "licenseId": 325,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "licenseId": 243,
+      "branch": "esper-island",
+      "purpose": "Original gated curriculum; no direct ordinary-core adjacency"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "licenseId": 25,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "licenseId": 252,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "licenseId": 253,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "licenseId": 254,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "licenseId": 255,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 6,
+      "y": 13,
+      "licenseId": 307,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 8,
+      "y": 13,
+      "licenseId": 349,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 9,
+      "y": 13,
+      "licenseId": 350,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 10,
+      "y": 13,
+      "licenseId": 180,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 11,
+      "y": 13,
+      "licenseId": 262,
+      "branch": "endurance",
+      "purpose": "HP investment forms the defensive specialization below the common hall"
+    },
+    {
+      "x": 12,
+      "y": 13,
+      "licenseId": 280,
+      "branch": "resource-bridge",
+      "purpose": "Early native Charge access from the shared starter hall"
+    },
+    {
+      "x": 13,
+      "y": 13,
+      "licenseId": 354,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 14,
+      "y": 13,
+      "licenseId": 159,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 15,
+      "y": 13,
+      "licenseId": 160,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 17,
+      "y": 13,
+      "licenseId": 189,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 18,
+      "y": 13,
+      "licenseId": 96,
+      "branch": "rod-vow",
+      "purpose": "Rods provide an alternative equipment commitment to sword and shield"
+    },
+    {
+      "x": 19,
+      "y": 13,
+      "licenseId": 327,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 20,
+      "y": 13,
+      "licenseId": 318,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 21,
+      "y": 13,
+      "licenseId": 219,
+      "branch": "support-discipline",
+      "purpose": "Existing spell-related augments finish the support arm"
+    },
+    {
+      "x": 22,
+      "y": 13,
+      "licenseId": 29,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 23,
+      "y": 13,
+      "licenseId": 299,
+      "branch": "esper-island",
+      "purpose": "Original gated curriculum; no direct ordinary-core adjacency"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "licenseId": 136,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "licenseId": 232,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "licenseId": 221,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "licenseId": 222,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 6,
+      "y": 14,
+      "licenseId": 223,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 8,
+      "y": 14,
+      "licenseId": 220,
+      "branch": "common-discipline",
+      "purpose": "Native MP and tempo passives bridge the armor and tactics regions"
+    },
+    {
+      "x": 9,
+      "y": 14,
+      "licenseId": 236,
+      "branch": "common-discipline",
+      "purpose": "Native MP and tempo passives bridge the armor and tactics regions"
+    },
+    {
+      "x": 10,
+      "y": 14,
+      "licenseId": 237,
+      "branch": "common-discipline",
+      "purpose": "Native MP and tempo passives bridge the armor and tactics regions"
+    },
+    {
+      "x": 11,
+      "y": 14,
+      "licenseId": 263,
+      "branch": "endurance",
+      "purpose": "HP investment forms the defensive specialization below the common hall"
+    },
+    {
+      "x": 12,
+      "y": 14,
+      "licenseId": 264,
+      "branch": "endurance",
+      "purpose": "HP investment forms the defensive specialization below the common hall"
+    },
+    {
+      "x": 13,
+      "y": 14,
+      "licenseId": 265,
+      "branch": "endurance",
+      "purpose": "HP investment forms the defensive specialization below the common hall"
+    },
+    {
+      "x": 14,
+      "y": 14,
+      "licenseId": 352,
+      "branch": "mystic-ward",
+      "purpose": "Mystic armor alternative on the support side of the common hall"
+    },
+    {
+      "x": 15,
+      "y": 14,
+      "licenseId": 228,
+      "branch": "common-discipline",
+      "purpose": "Native MP and tempo passives bridge the armor and tactics regions"
+    },
+    {
+      "x": 17,
+      "y": 14,
+      "licenseId": 355,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 18,
+      "y": 14,
+      "licenseId": 97,
+      "branch": "rod-vow",
+      "purpose": "Rods provide an alternative equipment commitment to sword and shield"
+    },
+    {
+      "x": 19,
+      "y": 14,
+      "licenseId": 99,
+      "branch": "rod-vow",
+      "purpose": "Rods provide an alternative equipment commitment to sword and shield"
+    },
+    {
+      "x": 20,
+      "y": 14,
+      "licenseId": 319,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 21,
+      "y": 14,
+      "licenseId": 224,
+      "branch": "support-discipline",
+      "purpose": "Existing spell-related augments finish the support arm"
+    },
+    {
+      "x": 23,
+      "y": 14,
+      "licenseId": 313,
+      "branch": "esper-island",
+      "purpose": "Original gated curriculum; no direct ordinary-core adjacency"
+    },
+    {
+      "x": 4,
+      "y": 15,
+      "licenseId": 225,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 5,
+      "y": 15,
+      "licenseId": 227,
+      "branch": "frontline-discipline",
+      "purpose": "Native martial passives, blocking and battle training complete the western arm"
+    },
+    {
+      "x": 6,
+      "y": 15,
+      "licenseId": 169,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 8,
+      "y": 15,
+      "licenseId": 165,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 9,
+      "y": 15,
+      "licenseId": 178,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 10,
+      "y": 15,
+      "licenseId": 353,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 11,
+      "y": 15,
+      "licenseId": 128,
+      "branch": "physical-ward",
+      "purpose": "Progressive heavy armor choices on the martial side of the common hall"
+    },
+    {
+      "x": 12,
+      "y": 15,
+      "licenseId": 271,
+      "branch": "tactics",
+      "purpose": "Shared gambit capacity before choosing deeper martial or support investment"
+    },
+    {
+      "x": 13,
+      "y": 15,
+      "licenseId": 272,
+      "branch": "tactics",
+      "purpose": "Shared gambit capacity before choosing deeper martial or support investment"
+    },
+    {
+      "x": 14,
+      "y": 15,
+      "licenseId": 273,
+      "branch": "tactics",
+      "purpose": "Shared gambit capacity before choosing deeper martial or support investment"
+    },
+    {
+      "x": 15,
+      "y": 15,
+      "licenseId": 274,
+      "branch": "tactics",
+      "purpose": "Shared gambit capacity before choosing deeper martial or support investment"
+    },
+    {
+      "x": 17,
+      "y": 15,
+      "licenseId": 208,
+      "branch": "white-vow",
+      "purpose": "Healing and protection licenses remain their native action packages"
+    },
+    {
+      "x": 18,
+      "y": 15,
+      "licenseId": 98,
+      "branch": "rod-vow",
+      "purpose": "Rods provide an alternative equipment commitment to sword and shield"
+    },
+    {
+      "x": 19,
+      "y": 15,
+      "licenseId": 100,
+      "branch": "rod-vow",
+      "purpose": "Rods provide an alternative equipment commitment to sword and shield"
+    },
+    {
+      "x": 20,
+      "y": 15,
+      "licenseId": 320,
+      "branch": "magick-discipline",
+      "purpose": "Magick Lore investment supports recovery instead of adding a free hybrid multiplier"
+    },
+    {
+      "x": 21,
+      "y": 15,
+      "licenseId": 226,
+      "branch": "support-discipline",
+      "purpose": "Existing spell-related augments finish the support arm"
+    },
+    {
+      "x": 10,
+      "y": 16,
+      "licenseId": 181,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 11,
+      "y": 16,
+      "licenseId": 179,
+      "branch": "equipment-logistics",
+      "purpose": "Retained native accessory licenses; these are not Clan accessory upgrades"
+    },
+    {
+      "x": 12,
+      "y": 16,
+      "licenseId": 246,
+      "branch": "restoration-supplies",
+      "purpose": "Existing Ether Lores support longer recovery duties"
+    },
+    {
+      "x": 13,
+      "y": 16,
+      "licenseId": 275,
+      "branch": "tactics",
+      "purpose": "Shared gambit capacity before choosing deeper martial or support investment"
+    },
+    {
+      "x": 18,
+      "y": 16,
+      "licenseId": 1,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 20,
+      "y": 16,
+      "licenseId": 2,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 10,
+      "y": 17,
+      "licenseId": 300,
+      "branch": "endurance",
+      "purpose": "HP investment forms the defensive specialization below the common hall"
+    },
+    {
+      "x": 11,
+      "y": 17,
+      "licenseId": 301,
+      "branch": "endurance",
+      "purpose": "HP investment forms the defensive specialization below the common hall"
+    },
+    {
+      "x": 12,
+      "y": 17,
+      "licenseId": 302,
+      "branch": "endurance",
+      "purpose": "HP investment forms the defensive specialization below the common hall"
+    },
+    {
+      "x": 13,
+      "y": 17,
+      "licenseId": 282,
+      "branch": "field-techniques",
+      "purpose": "Retained native techniques complete the endurance branch"
+    },
+    {
+      "x": 10,
+      "y": 18,
+      "licenseId": 308,
+      "branch": "veteran-training",
+      "purpose": "Late Battle Lores require commitment down the endurance branch"
+    },
+    {
+      "x": 11,
+      "y": 18,
+      "licenseId": 309,
+      "branch": "veteran-training",
+      "purpose": "Late Battle Lores require commitment down the endurance branch"
+    },
+    {
+      "x": 12,
+      "y": 18,
+      "licenseId": 310,
+      "branch": "veteran-training",
+      "purpose": "Late Battle Lores require commitment down the endurance branch"
+    },
+    {
+      "x": 13,
+      "y": 18,
+      "licenseId": 311,
+      "branch": "veteran-training",
+      "purpose": "Late Battle Lores require commitment down the endurance branch"
+    },
+    {
+      "x": 10,
+      "y": 19,
+      "licenseId": 286,
+      "branch": "field-techniques",
+      "purpose": "Retained native techniques complete the endurance branch"
+    },
+    {
+      "x": 11,
+      "y": 19,
+      "licenseId": 289,
+      "branch": "field-techniques",
+      "purpose": "Retained native techniques complete the endurance branch"
+    },
+    {
+      "x": 12,
+      "y": 19,
+      "licenseId": 290,
+      "branch": "field-techniques",
+      "purpose": "Retained native techniques complete the endurance branch"
+    },
+    {
+      "x": 13,
+      "y": 19,
+      "licenseId": 294,
+      "branch": "field-techniques",
+      "purpose": "Retained native techniques complete the endurance branch"
+    },
+    {
+      "x": 11,
+      "y": 20,
+      "licenseId": 231,
+      "branch": "guardian-anchor",
+      "purpose": "Native shield training connects the final preserved Esper junction"
+    },
+    {
+      "x": 10,
+      "y": 21,
+      "licenseId": 277,
+      "branch": "esper-island",
+      "purpose": "Original gated curriculum; no direct ordinary-core adjacency"
+    },
+    {
+      "x": 11,
+      "y": 21,
+      "licenseId": 22,
+      "branch": "native-gates",
+      "purpose": "Native Esper/Quickening identity and contracted gate connections retained"
+    },
+    {
+      "x": 12,
+      "y": 21,
+      "licenseId": 312,
+      "branch": "esper-island",
+      "purpose": "Original gated curriculum; no direct ordinary-core adjacency"
+    }
+  ]
+}

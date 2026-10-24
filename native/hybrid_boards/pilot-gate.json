@@ -1,0 +1,29 @@
+{
+  "completeHookSet": true,
+  "scope": "Uninstalled offline-validated test candidate; in-game observation pending",
+  "sites": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ],
+  "adapterSize": 98376,
+  "adapterImageSha256": "2800c0b143b7d1b3018a180b13a4fdfd2c2723f36945f33c6832dc232fb28818",
+  "layoutSha256": "ac4c4c7f0b2e3c922d58546323181364fd8af96c5cf27386837129a32f3b1a97",
+  "hookPlanSha256": "d44674aacb555510dd343747b901a88fef3c23781b7a487e4982306b15a9fb66",
+  "loaderSha256": "131481fce8b6fe37ccfaa343e2202420619a835d6e557c624b0962706c9e0bfe",
+  "hooksSha256": "2c4afc99aeafc7c6db9cb8c343a02e521595a24fb6368d2ea191c48832d51a8a"
+}

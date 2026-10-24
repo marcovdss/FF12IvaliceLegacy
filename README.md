@@ -104,6 +104,30 @@ All other behavior, stats, rewards and spawns are preserved. Earlier recovery ma
 its effect on difficulty remains untested. The addon replaces Estersand's complete enemy AI section and must not
 be combined with another mod editing that section. It does not include the Kings spawn changes.
 
+## Paladin pilot (separate review candidate)
+
+The experimental Paladin pilot presents native **White Mage + Knight** as one
+authored board, in either job order. It retains all198 unique licenses from the
+source pair, native ownership, LP prices, Espers and Quickenings. Other pairs keep
+their normal boards. This is one pilot, not66 completed hybrid jobs.
+
+The new paths change progression: unchanged node prices do not mean identical
+LP investment to reach each ability. The layout remains a design candidate;
+actual UI, installed-loader behavior and campaign play await in-game validation.
+It is excluded from the normal build and introduces no save redirect.
+
+Build the pinned Windows x64 adapter and the separate candidate:
+
+```powershell
+python native/hybrid_boards/adapterbuild.py
+python -m ivalice_legacy.hybrid_pilot --game "<game folder>" --recipe patches/paladin_pilot.json --gate native/hybrid_boards/pilot-gate.json --out dist
+```
+
+The build refuses changed source boards, license definitions, incomplete hook
+plans or a gate that no longer matches the image/layout/loader bytes. Install
+only after reviewing the candidate on the intended Legacy profile, with the
+game closed. Do not hot-reload or hot-unload its process-lifetime native hooks.
+
 ## Installing
 
 - **Vortex:** install the built zip as a mod and deploy. Using a separate Vortex profile keeps other mod

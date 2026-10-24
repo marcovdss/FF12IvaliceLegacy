@@ -10,7 +10,7 @@ def require(condition,message='Invalid native-core PE'):
     if not condition:raise ValueError(message)
 
 
-def mapped_image(raw):
+def mapped_image(raw, expected_exports=11):
     pe=struct.unpack_from('<I',raw,0x3c)[0]
     require(raw[pe:pe+4]==b'PE\0\0')
     require(struct.unpack_from('<H',raw,pe+4)[0]==0x8664)
@@ -48,9 +48,9 @@ def mapped_image(raw):
         target=struct.unpack_from('<I',data,frva+4*ordinal)[0]
         require(not erva<=target<erva+esize,'Forwarded export requires loader')
         require(any(a<=target<b for a,b in executable),'Export outside executable code')
-        require(name.startswith('HB_') and name not in exports)
+        require(name.startswith(('HB_', 'HBX_')) and name not in exports)
         exports[name]=target
-    require(len(exports)==11)
+    require(len(exports)==expected_exports)
     return bytes(data),{'preferredBase':base,'imageSize':size,'exports':exports,
                        'executableRvas':executable,'imports':0,'entrypoint':0,
                        'relocations':0,'tls':False,'unwind':False}

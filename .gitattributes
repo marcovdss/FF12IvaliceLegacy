@@ -1,0 +1,2 @@
+# Runtime Lua bytes are hash-pinned by the native pilot's build gate.
+native/hybrid_boards/*.lua text eol=lf
