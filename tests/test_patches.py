@@ -130,7 +130,8 @@ class FullBuildTest(unittest.TestCase):
             package_files = [p for p in (root.parent / 'package').rglob('*') if p.is_file()]
             self.assertEqual(len(manifest['files']), len(expected) + len(json.loads((root / 'kings.json').read_text())['kings'])
                              + len(package_files))
-            self.assertIn('x64/scripts/IvaliceLegacySaves.lua', manifest['files'])
+            self.assertIn('x64/scripts/init/IvaliceLegacySaves.lua', manifest['files'])
+            self.assertNotIn('x64/scripts/IvaliceLegacySaves.lua', manifest['files'])
 
 
 if __name__ == '__main__':

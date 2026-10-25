@@ -97,12 +97,19 @@ def build(game, out):
             'Unsupported game executable')
     archive = VBF(game/'FFXII_TZA.vbf')
     deploy = game/'mods/deploy/ff12data'
+    # Rebuilding from our own exact deployed candidate is safe: all inputs
+    # still come from the pinned archive, never from the loose replacements.
+    own_outputs = {BOARD.format(j['nativeSlot']+1): j['candidateSha256'] for j in recipe['jobs']}
+    from .job_labels import apply_text_patch
+    for patch in recipe['labels']:
+        relative = safe_path(patch['archivePath'])
+        own_outputs[relative] = sha(apply_text_patch(archive.read(relative), patch))
     def read(relative):
         relative = safe_path(relative)
         baseline = archive.read(relative)
         loose = deploy/relative
         if loose.exists():
-            require(loose.is_file() and loose.read_bytes() == baseline,
+            require(loose.is_file() and (loose.read_bytes() == baseline or sha(loose.read_bytes()) == own_outputs.get(relative)),
                     f'Conflicting deployed replacement: {relative}')
         require(not (deploy/(relative+'.dir')).exists(), f'Conflicting deployed section replacements: {relative}')
         return baseline

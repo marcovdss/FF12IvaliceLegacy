@@ -3,3 +3,4 @@ native/hybrid_boards/*.lua text eol=lf
 # Base-job package bytes and embedded recipe fingerprints must survive checkout.
 patches/base_jobs.json text eol=lf
 package_base_jobs/*.md text eol=lf
+package/x64/scripts/init/*.lua text eol=lf

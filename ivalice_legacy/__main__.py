@@ -26,6 +26,8 @@ STAMP = (2026, 1, 1, 0, 0, 0)  # fixed zip timestamps keep builds reproducible
 
 
 def build(game, out):
+    from .save_isolation import validate_runtime
+    runtime = validate_runtime(game)
     vbf = VBF(Path(game) / 'FFXII_TZA.vbf')
     files = {}
     for name, apply in APPLIERS.items():
@@ -38,7 +40,8 @@ def build(game, out):
     for source in sorted((ROOT / 'package').rglob('*')):
         if source.is_file():
             files[source.relative_to(ROOT / 'package').as_posix()] = source.read_bytes()
-    return write_package(files, out, f'IvaliceLegacy-{__version__}', 'Ivalice Legacy', __version__)
+    return write_package(files, out, f'IvaliceLegacy-{__version__}', 'Ivalice Legacy', __version__,
+                         {'saveIsolation': runtime})
 
 
 def build_rampager_pilot(game, out):

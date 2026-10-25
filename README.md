@@ -7,7 +7,7 @@ The goal is an Ivalice where preparation wins: jobs that combine instead of over
 play, enemies that act instead of just hitting harder, rare monsters that rule their zones, a Clan worth climbing,
 and progression you can't steamroll.
 
-> **Status: early development (0.0.6).** Only the first modules exist so far. Expect large changes between
+> **Status: early development (0.0.7).** Only the first modules exist so far. Expect large changes between
 > versions. Incremental updates are intended to continue your existing Legacy campaign. Save compatibility will
 > be checked for each change; any migration or restart requirement will be stated before installation.
 
@@ -36,15 +36,22 @@ Abyssal - North). Contents and one-time collection are unchanged.
 
 More Kings, each with its own fight and reward, are planned.
 
-**Separate save files.** When the save redirect activates successfully, the game saves and loads its own files
-(`LEGCY_000`, `LEGCY_001`, ...) in the usual save folder, so Legacy and your other playthroughs never share or
-overwrite slots. Without the mod, the game shows your normal saves (`FFXII_000`, ...) as before. This needs the
-[FF12 LUA Loader](https://www.nexusmods.com/finalfantasy12/mods/171). If the game version differs from the
-supported one, the script leaves save names unchanged and says so in `x64/hook.log`. Before saving for the first
-time, check that the log says `Ivalice Legacy: using separate save files (LEGCY_###).` (or `separate save files
-already active`) and that the load menu shows your Legacy saves. If activation fails, ordinary `FFXII_###` saves
-remain accessible; stop before saving to protect other playthroughs. Native save isolation is still awaiting
-in-game validation in this development build.
+**Separate save files.** The main package includes an early-init save redirect at
+`x64/scripts/init/IvaliceLegacySaves.lua`, requiring FF12 LUA Loader **2.0.1**. On the supported build it patches
+the native listing prefix and filename format to `LEGCY_`, before game startup continues. Legacy therefore lists
+and addresses its own `LEGCY_000`, `LEGCY_001`, ... namespace. Normal `FFXII_000`, `FFXII_001`, ... files are
+left in place. Disabling the main package and restarting the game restores the normal namespace. A restart is
+required when switching; this is not an in-session toggle.
+
+The script does not copy, rename or convert saves. An intentionally imported `LEGCY_` campaign stays available;
+without Legacy files, an empty Legacy load list is expected. Filenames separate namespaces, not creation provenance.
+
+The build checks the exact supported executable and Lua-loader bytes. Startup verifies both patched strings
+and logs `Ivalice Legacy: using separate save files (LEGCY_###); early-init readback verified.` (or
+`separate save files already active`). On activation failure it reports **FATAL** and attempts to restore only
+its own changes to their exact initial bytes. This does **not** block the whole game: stop before loading or saving
+if activation fails. Native filename/wildcard instructions and synthetic-memory transaction tests are checked;
+the actual load menu, saving, sidecars and Steam Cloud still require in-game validation.
 
 ## Planned
 
