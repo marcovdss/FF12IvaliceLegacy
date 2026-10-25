@@ -174,6 +174,27 @@ combat effects or hook the game, and contains no production upgrade catalogue.
 Synthetic tests cover all 66 pairs and isolation between characters and classes.
 This prototype is excluded from installable game payloads.
 
+## QoL integration
+
+The selected QoL foundation uses separately obtained Manifesto **1.5.2** for
+Smart Stealing Gambits, Dynamic Description **1.1.14**, and Descriptive Inventory
+**1.2.2**. The checked loader versions are External File Loader **1.6.1** and
+Lua Loader **2.0.1**. These dependencies and their assets are not included in the
+main Legacy ZIP. Use Manifesto as the sole Smart Steal provider.
+
+Keep the integration's writable configuration in a separate Legacy-only provider:
+DD's `customAttributes.json` and all nine generated TIDI language files must
+belong to that provider. English-only isolation would still allow another game
+language to overwrite a shared preset. Preserve autosaves, automatic pause and
+crash diagnostics; the selected preset leaves optional changes other than
+Smart Stealing disabled.
+
+Offline checks cover the twelve boards' ordinary licensed gear/command selection
+and the generated-description buffer path. Native text rendering and gameplay
+acceptance require an existing-save observation. Esper descriptions remain outside
+the selected DD action range. Native DD/TIDI descriptions do not update Together's
+private overlay catalogue.
+
 ## Installing
 
 - **Vortex:** install the built zip as a mod and deploy. Using a separate Vortex profile keeps other mod
