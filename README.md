@@ -158,18 +158,34 @@ plans or a gate that no longer matches the image/layout/loader bytes. Install
 only after reviewing the candidate on the intended Legacy profile, with the
 game closed. Do not hot-reload or hot-unload its process-lifetime native hooks.
 
+## Clan progression prototype
+
+`ivalice_legacy/clan_progression.py` defines an offline contract for character-specific
+equipment training. Each campaign supplies its own schema-1 ledger, keyed by stable
+character ID and either one job or a canonical unordered pair. Switching class or
+equipment selects only matching owned rules; base-job training is not added to a
+hybrid's line. Weapons, actual shields, head armor and body armor are eligible.
+Both accessory slots are excluded.
+
+Rank and completed quests determine availability separately from ownership. Missing
+ledger data starts empty; malformed data is rejected; unknown owned rule IDs are
+preserved but grant nothing. The module does not read saves, charge costs, apply
+combat effects or hook the game, and contains no production upgrade catalogue.
+Synthetic tests cover all 66 pairs and isolation between characters and classes.
+This prototype is excluded from installable game payloads.
+
 ## Installing
 
 - **Vortex:** install the built zip as a mod and deploy. Using a separate Vortex profile keeps other mod
   collections intact.
 - **Manually:** copy both the zip's `mods` and `x64` folders into the game folder, merging them with the existing
-  folders. The save-isolation script must be at `x64/scripts/IvaliceLegacySaves.lua`.
+  folders. The save-isolation script must be at `x64/scripts/init/IvaliceLegacySaves.lua`.
 
 Ivalice Legacy keeps its own save files (see above). To continue a Legacy game started before 0.0.6, copy its
 `FFXII_###` file (and its `FFXII_###.dir` folder, if present) to `LEGCY_###` in the same save folder.
 
 To uninstall, disable or remove the mod in Vortex, or delete only the files copied from this package, including
-`x64/scripts/IvaliceLegacySaves.lua`. Preserve the existing `mods` and `x64` folders and their other contents.
+`x64/scripts/init/IvaliceLegacySaves.lua`. Preserve the existing `mods` and `x64` folders and their other contents.
 
 ## Repository layout
 
