@@ -25,7 +25,7 @@ PREFIX = 'mods/deploy/ff12data/'
 STAMP = (2026, 1, 1, 0, 0, 0)  # fixed zip timestamps keep builds reproducible
 
 
-def build(game, out):
+def build(game, out, settings_from=None):
     from .save_isolation import validate_runtime
     runtime = validate_runtime(game)
     vbf = VBF(Path(game) / 'FFXII_TZA.vbf')
@@ -40,8 +40,14 @@ def build(game, out):
     for source in sorted((ROOT / 'package').rglob('*')):
         if source.is_file():
             files[source.relative_to(ROOT / 'package').as_posix()] = source.read_bytes()
-    return write_package(files, out, f'IvaliceLegacy-{__version__}', 'Ivalice Legacy', __version__,
-                         {'saveIsolation': runtime})
+    stem = f'IvaliceLegacy-{__version__}'
+    metadata = {'saveIsolation': runtime}
+    if settings_from is not None:
+        from .settings_isolation import read_settings, add_settings, metadata as settings_metadata
+        settings = read_settings(settings_from, protected_output=Path(out) / stem)
+        files = add_settings(files, settings)
+        metadata['settingsIsolation'] = settings_metadata(settings)
+    return write_package(files, out, stem, 'Ivalice Legacy', __version__, metadata)
 
 
 def build_rampager_pilot(game, out):
@@ -90,13 +96,17 @@ def main(argv=None):
     bases.add_argument('--out', default=str(ROOT / 'dist'))
     b.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     b.add_argument('--out', default=str(ROOT / 'dist'))
+    b.add_argument('--settings-from', help='include the four current personal configs from this game-shaped directory')
     args = ap.parse_args(argv)
     try:
         if args.command == 'build-base-jobs':
             from .base_jobs import build as builder
         else:
             builder = build_rampager_pilot if args.command == 'build-rampager-pilot' else build
-        archive, manifest = builder(args.game, args.out)
+        if args.command == 'build':
+            archive, manifest = builder(args.game, args.out, settings_from=args.settings_from)
+        else:
+            archive, manifest = builder(args.game, args.out)
     except (OSError, KeyError, ValueError) as error:
         print(f'Build failed: {error}', file=sys.stderr)
         return 1

@@ -7,7 +7,7 @@ The goal is an Ivalice where preparation wins: jobs that combine instead of over
 play, enemies that act instead of just hitting harder, rare monsters that rule their zones, a Clan worth climbing,
 and progression you can't steamroll.
 
-> **Status: early development (0.0.7).** Only the first modules exist so far. Expect large changes between
+> **Status: early development (0.0.8).** Only the first modules exist so far. Expect large changes between
 > versions. Incremental updates are intended to continue your existing Legacy campaign. Save compatibility will
 > be checked for each change; any migration or restart requirement will be stated before installation.
 
@@ -196,6 +196,37 @@ the selected DD action range. Native DD/TIDI descriptions do not update Together
 private overlay catalogue.
 
 ## Installing
+
+### Separate personal settings while Legacy is enabled
+
+For the four selected mods, build a personalized MAIN package from your current
+settings. The source directory must contain the normal `x64/scripts/config/`
+structure:
+
+```powershell
+python -m ivalice_legacy build --game "<game folder>" --settings-from "<settings source folder>" --out dist
+```
+
+This adds exact copies of Bountiful Bundle's JSON, Global Gameplay Settings' Lua
+config, Vision's JSON and `Orderkeeper/modMenu.json` to the main Legacy package.
+Install that package with Legacy winning those four paths over their original
+providers. With MAIN enabled, reads and writes follow the deployed links into
+Legacy's private staging files. Disable MAIN and redeploy to restore the normal
+providers; enable and redeploy to resume the retained Legacy copies. Restart the
+game after switching. This isolates settings by enabled mod, not by individual save.
+
+The builder preserves bytes and chosen values, and requires all four files. It
+does not edit the source files or include these personal configs in this repository.
+Before a later upgrade, back up and carry forward the existing Legacy-owned
+copies, including changes saved through mod menus. A replacement package must
+not reset them to the other profile's settings. Without `--settings-from`, the
+build contains only the nine core Legacy files and does not provide this settings
+isolation. The four external mods remain separate dependencies.
+
+Use mod-manager deployment for this personalized package, with regular config
+files in Legacy's own staging directory. Manually copying over existing deployed
+links can overwrite another provider's settings and does not establish separate
+storage. The manual procedure below applies to the core-only build.
 
 - **Vortex:** install the built zip as a mod and deploy. Using a separate Vortex profile keeps other mod
   collections intact.
