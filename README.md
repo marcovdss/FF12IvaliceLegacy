@@ -51,7 +51,8 @@ and logs `Ivalice Legacy: using separate save files (LEGCY_###); early-init read
 `separate save files already active`). On activation failure it reports **FATAL** and attempts to restore only
 its own changes to their exact initial bytes. This does **not** block the whole game: stop before loading or saving
 if activation fails. Native filename/wildcard instructions and synthetic-memory transaction tests are checked;
-the actual load menu, saving, sidecars and Steam Cloud still require in-game validation.
+the save-list switch has also been checked in-game with Legacy enabled and disabled. Actual save writing,
+sidecars and Steam Cloud still require in-game validation.
 
 ## Planned
 
