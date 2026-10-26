@@ -43,10 +43,26 @@ local resetRegistered = event.registerEventSync('onSaveLoad', function()
   print('Ivalice Legacy diagnostic: native load reset; bonuses=off')
   return true
 end)
--- Clan points: u32 at save image 0xBA68; the decoded save is a memory image at
--- 0x2164280 in the fixed .data section (no ASLR). Logged once per load so the
--- address can be checked against the Clan Primer during normal play.
-local CLAN_POINTS = 0x2164280 + 0xBA68
+-- Clan rank, marks and points, logged once per load so they can be checked
+-- against the Clan Primer during normal play. See clan_rank.lua for sources.
+-- Optional: a missing or broken reader only changes the log line.
+local clanChunk = loadfile('scripts/IvaliceLegacy/clan_rank.lua', 't', _ENV)
+local clanLoaded, ClanRank = pcall(clanChunk or error)
+if not clanLoaded or type(ClanRank) ~= 'table' then ClanRank = nil end
+local clanMemory = ClanRank and {
+  u8 = function(address) return memory.u8[address] end,
+  u32 = function(address) return memory.u32[address] end,
+  marks = function() return memory.execute(ClanRank.MARKS_FN, arg.s32) end,
+}
+
+local function clanLine()
+  if not ClanRank then return 'clan=missing' end
+  local ok, clan, why = pcall(ClanRank.read, clanMemory)
+  if not ok then return 'clan=unreadable' end
+  if not clan then return 'clan=refused(' .. tostring(why) .. ')' end
+  return string.format('clanRank=%d marks=%d clanPoints=%d den=%d',
+    clan.rank, clan.marks, clan.points, clan.den)
+end
 
 local pathRegistered = event.registerLoadHandler('IvaliceLegacyDiagnostic', function(path)
   observer:reset()
@@ -56,8 +72,7 @@ local pathRegistered = event.registerLoadHandler('IvaliceLegacyDiagnostic', func
     print('Ivalice Legacy diagnostic: load path rejected; bonuses=off')
     return
   end
-  local read, points = pcall(function() return memory.u32[CLAN_POINTS] end)
-  print('Legacy diagnostic: clanPoints=' .. (read and tostring(points) or 'unreadable') .. ' bonuses=off')
+  print('Legacy diagnostic: ' .. clanLine() .. ' bonuses=off')
 end)
 local newGameRegistered = event.registerEventSync('onNewGameStart', function()
   observer:reset()

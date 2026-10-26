@@ -1,7 +1,8 @@
 # Offline combat prototypes
 
 These modules are excluded from installable packages and have no loader entrypoint.
-They do not add a Clan menu, purchases, quest/rank readers or persisted progress.
+They do not add a Clan menu, purchases or quests. `clan_rank.lua` reads Clan rank;
+`clan_ledger.lua` persists unlocks but is not wired in.
 
 `clan_status.lua` explores a single ordinary-attack path: native Attack150 with
 Dagger4206 and formula21. The caller supplies personal ownership, rule definitions
@@ -96,3 +97,21 @@ without the sidecar loads an empty ledger; non-Legacy saves get none. An
 unreadable sidecar is logged and kept on disk (the save handler returns nil)
 until a new grant replaces it. The module is not wired into a loader entry
 point yet; how lines are earned (Clan rank, hunts, costs) is undecided.
+
+## Clan rank reader
+
+`clan_rank.lua` returns the Clan rank, marks, Clan points and Sky Pirate's Den
+count the game itself uses, from static reading of the executable. The game
+does not store a rank: `0x315390` checks the save against a 12-row table at
+`0xD105D0` (Clan points, marks, Den count) from rank 12 down. Clan points are a
+u32 at save image `0xBA68`; marks come from the game's read-only counter
+`0x316480`, which counts hunts that reached their required stage; the Den count
+is 30 bits at save image `0xBA44`. The rank function itself is not called because
+its Den helper `0x316930` writes Den state; the module repeats its rule instead.
+Four table rows are pinned, so another executable is refused rather than misread.
+
+`forge_diagnostic_171.lua` logs the result once per accepted Legacy load
+(`clanRank=… marks=… clanPoints=… den=…`). A missing or failing reader only
+changes that line. The values have not been compared with the Clan Primer
+in-game yet, and when the load handler runs relative to the save copy is
+unverified.
