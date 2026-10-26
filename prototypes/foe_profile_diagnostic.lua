@@ -23,12 +23,33 @@ M.names = names
 function M.new(deps)
   assert(type(deps)=='table' and type(deps.profile)=='function' and type(deps.emit)=='function',
     'diagnostic requires profile and log adapters')
-  local seen, count, errorLogged = {}, 0, false
+  local seen, count, charges, errorLogged = {}, 0, 0, false
   local LIMIT = 400
   local observer = {}
 
   function observer:reset()
-    seen, count = {}, 0
+    seen, count, charges = {}, 0, 0
+  end
+
+  -- Charge-timer samples (current/required/last/idle) for the attacker and target of a hit, to learn how
+  -- the native charge works before any mechanic writes to it. Read-only, capped per load.
+  local CHARGE_LIMIT = 120
+  function observer:charge(s)
+    if charges >= CHARGE_LIMIT or type(s) ~= 'table' then return false end
+    for _, side in ipairs({'caster', 'target'}) do
+      local c = s[side]
+      if type(c) ~= 'table' then return false end
+      for _, k in ipairs({'current', 'required', 'last', 'idle'}) do
+        if not integer(c[k], 0, 0xFFFFFFFF) then return false end
+      end
+    end
+    charges = charges + 1
+    local c, t = s.caster, s.target
+    deps.emit(string.format(
+      'Legacy charge probe: clock=%s action=%s casterType=%s caster=%d/%d/%d/%d targetType=%s target=%d/%d/%d/%d bonuses=off',
+      tostring(s.clock), tostring(s.action), tostring(s.casterType), c.current, c.required, c.last, c.idle,
+      tostring(s.targetType), t.current, t.required, t.last, t.idle))
+    return true
   end
 
   function observer:observe(formula, caster, target)
@@ -58,6 +79,7 @@ function M.new(deps)
       local result = table.pack(original(...))
       -- Logging failure must never interrupt Forge or change its return values.
       local ok, err = pcall(self.observe, self, ...)
+      if ok and deps.charge then ok, err = pcall(function(...) return self:charge(deps.charge(...)) end, ...) end
       if not ok and not errorLogged then
         errorLogged = true
         pcall(deps.emit, 'Legacy foe profile: observer error='..tostring(err):gsub('[%z\r\n]', ' ')..' bonuses=off')

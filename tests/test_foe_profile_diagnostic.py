@@ -41,6 +41,28 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
           foe.level=20; foe.story=70000; assert(observer:observe()); assert(logs[2]:find('story=%? '))
         ''')
 
+    def test_charge_probe_logs_both_sides_and_is_capped(self):
+        self.lua.execute('''
+          sample={clock=12, action=150, casterType=0, targetType=1,
+                  caster={current=40,required=100,last=90,idle=0}, target={current=7,required=60,last=55,idle=3}}
+          assert(observer:charge(sample))
+          assert(logs[1]:find('action=150 casterType=0 caster=40/100/90/0 targetType=1 target=7/60/55/3 bonuses=off$'))
+          sample.target.current=-1; assert(not observer:charge(sample)); sample.target.current=7
+          assert(not observer:charge({caster=sample.caster}))
+          for i=1,200 do observer:charge(sample) end
+          assert(#logs==120)
+          observer:reset(); assert(observer:charge(sample))
+        ''')
+
+    def test_wrap_runs_charge_probe_after_profile(self):
+        self.lua.execute('''
+          deps.charge=function() return {clock=1, action=2, casterType=0, targetType=1,
+            caster={current=1,required=2,last=3,idle=4}, target={current=5,required=6,last=7,idle=8}} end
+          local wrapped=observer:wrap(function() return 'r' end)
+          assert(wrapped()=='r')
+          assert(#logs==2 and logs[1]:find('foe profile') and logs[2]:find('charge probe'))
+        ''')
+
     def test_rejects_party_and_malformed_profiles(self):
         self.lua.execute('''
           current=nil; assert(not observer:observe())
