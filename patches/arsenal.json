@@ -1,0 +1,227 @@
+{
+  "name": "Arsenal",
+  "description": "Weapon family identities: Dagger.",
+  "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
+  "section": 13,
+  "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
+  "sourceSectionSha256": "981d88689d4292d55db4697a06fb6105d80a62e83405d25c3422d6716936979e",
+  "items": [
+    {
+      "contentId": 4206,
+      "name": "Dagger",
+      "category": "Dagger",
+      "set": {
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4207,
+      "name": "Mage Masher",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          5,
+          6
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4208,
+      "name": "Assassin's Dagger",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          5,
+          6
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4209,
+      "name": "Chopper",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          5,
+          7
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          17
+        ]
+      }
+    },
+    {
+      "contentId": 4210,
+      "name": "Main Gauche",
+      "category": "Dagger",
+      "set": {
+        "chargeTime": [
+          21,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4211,
+      "name": "Gladius",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          5,
+          8
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4212,
+      "name": "Avenger",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          5,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ]
+      }
+    },
+    {
+      "contentId": 4213,
+      "name": "Orichalcum Dirk",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          5,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ]
+      }
+    },
+    {
+      "contentId": 4214,
+      "name": "Platinum Dagger",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          5,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ]
+      }
+    },
+    {
+      "contentId": 4215,
+      "name": "Zwill Crossblade",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          10,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ]
+      }
+    },
+    {
+      "contentId": 4216,
+      "name": "Shikari Nagasa",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          10,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ]
+      }
+    },
+    {
+      "contentId": 4268,
+      "name": "Mina",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          25,
+          10
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          15,
+          20
+        ]
+      }
+    }
+  ],
+  "resultSectionSha256": "a45f3661bcd121cfbd0a334a4372d8c6361d749f2233a155bdefda55cd4a8152"
+}

@@ -94,6 +94,9 @@ def main(argv=None):
     bases = sub.add_parser('build-base-jobs', help='build the separate experimental twelve-base-job candidate')
     bases.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     bases.add_argument('--out', default=str(ROOT / 'dist'))
+    arsenal = sub.add_parser('build-arsenal', help='build the separate experimental weapon/armour package')
+    arsenal.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
+    arsenal.add_argument('--out', default=str(ROOT / 'dist'))
     b.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     b.add_argument('--out', default=str(ROOT / 'dist'))
     b.add_argument('--settings-from', help='include the four current personal configs from this game-shaped directory')
@@ -101,6 +104,8 @@ def main(argv=None):
     try:
         if args.command == 'build-base-jobs':
             from .base_jobs import build as builder
+        elif args.command == 'build-arsenal':
+            from .arsenal import build as builder
         else:
             builder = build_rampager_pilot if args.command == 'build-rampager-pilot' else build
         if args.command == 'build':

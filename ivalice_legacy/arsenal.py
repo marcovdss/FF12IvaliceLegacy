@@ -1,0 +1,48 @@
+"""Build the separate Arsenal package: weapon, armour and accessory field changes (battle_pack section 13)."""
+import hashlib
+import json
+
+VERSION = '0.1.0'
+PACK = 'ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin'
+SECTION = PACK + '.dir/section_013.bin'
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def require(value, message):
+    if not value:
+        raise ValueError(message)
+
+
+def build(game, out):
+    from pathlib import Path
+    from .__main__ import ROOT, PREFIX, write_package
+    from .equipment import equipment
+    from .vbf import VBF
+    game = Path(game)
+    patch = json.loads((ROOT/'patches/arsenal.json').read_text(encoding='utf-8'))
+    require(patch['file'] == PACK and patch['section'] == 13, 'Unexpected Arsenal patch target')
+    archive = VBF(game/'FFXII_TZA.vbf')
+    files = equipment(archive.read, patch)
+    result = files[SECTION]
+    # A deployed equipment table must be the native one or this package's own output.
+    deploy = game/'mods/deploy/ff12data'
+    loose = deploy/SECTION
+    if loose.exists():
+        require(loose.is_file() and sha(loose.read_bytes()) in {patch['sourceSectionSha256'], sha(result)},
+                'Another mod replaces the equipment table (section 13)')
+    require(not (deploy/PACK).is_file(), 'A whole battle_pack.bin replacement is deployed')
+    files = {PREFIX+key: value for key, value in files.items()}
+    docs = 'IvaliceLegacy-Arsenal/'
+    for name in ('README.md', 'CHANGELOG.md'):
+        files[docs+name] = (ROOT/'package_arsenal'/name).read_bytes()
+    metadata = {'status': 'Experimental candidate', 'version': VERSION,
+                'recipeSha256': sha((ROOT/'patches/arsenal.json').read_bytes()),
+                'source': {'file': PACK, 'fileSha256': patch['sourceFileSha256'], 'section': 13,
+                           'sectionSha256': patch['sourceSectionSha256']},
+                'items': [{'contentId': i['contentId'], 'name': i['name'], 'set': i['set']} for i in patch['items']]}
+    files[docs+'manifest.json'] = (json.dumps({**metadata, 'files': {k: sha(v) for k, v in sorted(files.items())},
+                                             'manifestExcludesOwnHash': True}, indent=2)+'\n').encode()
+    return write_package(files, out, f'IvaliceLegacy-Arsenal-{VERSION}', 'Ivalice Legacy Arsenal', VERSION, metadata)
