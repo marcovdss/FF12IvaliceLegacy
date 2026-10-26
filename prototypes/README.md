@@ -35,3 +35,23 @@ are separate from passing a request to a native helper boundary.
 The repository's Lua unit tests use Lupa Lua5.5 when available. They verify pure
 selection/proxy contracts, not a running game. This is not a drop-in replacement
 for arbitrary other providers' overrides of the same Forge functions.
+
+## Diagnostic observer
+
+`clan_diagnostic.lua` is a separate, bonus-free observer prototype, also excluded
+from normal packages. Its caller supplies read-only `legacyMode()` and canonical
+`identity(caster)` adapters plus `emit(line)`. `new(deps)` returns an observer with
+`load(path)`, `reset()`, `observe(formula,caster)` and `wrap(original)` methods.
+Only a basename exactly matching `LEGCY_ddd` opens the campaign gate. Every load
+attempt clears previous state; callers must invalidate it on every native save
+load and new-game transition. Loader callback ordering requires integration
+verification. The mode adapter must return literal `true` on each observation.
+
+Ordinary Attack observations record the canonical character, complete unordered
+job combination, weapon and formula. Hunter and Chemist singles are labeled as
+base pilots; other valid combinations provide controls without requiring a job
+change. Logs are deduplicated and capped at256 observations per load. No ownership,
+status effects, balance values or save handler are supplied. The wrapper invokes
+the original exactly once before observing, preserves all results and isolates
+diagnostic errors. A canonical pointer match remains an integration input,
+not proof of every native actor classification or lifetime.
