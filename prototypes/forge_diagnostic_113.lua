@@ -3,6 +3,15 @@
 local original = assert(loadfile('scripts/TheInsurgentsForge/functions/113.lua', 't', _ENV))()
 local Diagnostic = assert(loadfile('scripts/IvaliceLegacy/foe_profile_diagnostic.lua', 't', _ENV))()
 
+-- Story progress: the word variable shop rows test (group 3, index 0). Mirrors the native reader 0x264640:
+-- valid only while the flag byte's bit 0 is set and the table pointer is non-null.
+local function story()
+  if memory.u8[0x02098E20] & 1 ~= 1 then return nil end
+  local table = memory.u64[0x02098E58]
+  if type(table) ~= 'number' or table == 0 then return nil end
+  return memory.u16[table]
+end
+
 local function profile(formula, caster, target)
   if target.type ~= 1 then return nil end
   local work = formula.target.battleUnitWork
@@ -21,6 +30,7 @@ local function profile(formula, caster, target)
     -- Battle unit keep +0x38 / +0x3C (Forge classes/getBattleUnitKeep.lua), read raw as u32 masks.
     immune = memory.u32[address + 0x38],
     innate = memory.u32[address + 0x3C],
+    story = story(),
   }
 end
 

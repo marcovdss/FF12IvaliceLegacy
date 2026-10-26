@@ -42,8 +42,9 @@ function M.new(deps)
     if seen[key] then return false end
     seen[key], count = true, count+1
     deps.emit(string.format(
-      'Legacy foe profile: name=%d bestiary=%s class=%s genus=%s level=%d maxHp=%d str=%s mag=%s vit=%s spd=%s '..
+      'Legacy foe profile: story=%s name=%d bestiary=%s class=%s genus=%s level=%d maxHp=%d str=%s mag=%s vit=%s spd=%s '..
       'atk=%s def=%s mres=%s immune=0x%08X[%s] innate=0x%08X[%s] bonuses=off',
+      integer(p.story, 0, 0xFFFF) and tostring(p.story) or '?',
       p.nameId, tostring(p.bestiary), tostring(p.classification), tostring(p.genus), p.level, p.maxHp,
       tostring(p.str), tostring(p.mag), tostring(p.vit), tostring(p.spd), tostring(p.atk), tostring(p.def),
       tostring(p.mres), p.immune, names(p.immune), p.innate, names(p.innate)))

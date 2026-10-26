@@ -1,5 +1,6 @@
 """No-game contracts for the foe profile diagnostic; native integration is verified separately."""
 from pathlib import Path
+import re
 import unittest
 
 try:
@@ -18,7 +19,7 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
         self.lua.execute('''
           logs={}
           foe={foe=true,nameId=88,bestiary=12,classification=3,genus=7,level=14,maxHp=2200,
-               str=15,mag=7,vit=42,spd=15,atk=16,def=8,mres=14,immune=0x208,innate=0x40000}
+               str=15,mag=7,vit=42,spd=15,atk=16,def=8,mres=14,immune=0x208,innate=0x40000,story=1450}
           current=foe
           deps={profile=function() return current end, emit=function(line) logs[#logs+1]=line end}
           observer=module.new(deps)
@@ -28,10 +29,16 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
         self.lua.execute('''
           assert(observer:observe()); assert(not observer:observe())
           assert(#logs==1)
-          assert(logs[1]:find('name=88 ') and logs[1]:find('level=14 ') and logs[1]:find('vit=42 '))
+          assert(logs[1]:find('story=1450 name=88 ') and logs[1]:find('level=14 ') and logs[1]:find('vit=42 '))
           assert(logs[1]:find('immune=0x00000208%[stop,silence%]'))
           assert(logs[1]:find('innate=0x00040000%[protect%]') and logs[1]:find('bonuses=off$'))
           foe.level=15; assert(observer:observe()); assert(#logs==2)
+        ''')
+
+    def test_unknown_story_is_marked_not_guessed(self):
+        self.lua.execute('''
+          foe.story=nil; assert(observer:observe()); assert(logs[1]:find('story=%? name=88 '))
+          foe.level=20; foe.story=70000; assert(observer:observe()); assert(logs[2]:find('story=%? '))
         ''')
 
     def test_rejects_party_and_malformed_profiles(self):
@@ -65,8 +72,9 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
         src = (ROOT / 'prototypes/forge_diagnostic_113.lua').read_text()
         self.assertIn("loadfile('scripts/TheInsurgentsForge/functions/113.lua'", src)
         self.assertIn('return observer:wrap(original)', src)
-        for forbidden in ('memory.u8[', 'memory.u32[address + 0x38] =', 'formula.target.removedHp ='):
-            self.assertNotIn(forbidden, src)
+        # Read-only: no assignment to game memory or to Forge's pending results.
+        self.assertIsNone(re.search(r'memory\.\w+\[[^\]]+\]\s*=(?!=)', src))
+        self.assertNotIn('formula.target.removedHp =', src)
 
 
 if __name__ == '__main__':
