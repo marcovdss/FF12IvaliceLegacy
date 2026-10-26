@@ -67,3 +67,21 @@ namespace strings, registers load/new-game invalidation, and never registers a
 save writer. The tested source expects Lua Loader2.0.1 and Forge1.0.3; native
 callback order and actual loaded-path format remain unverified. Both prototype
 files remain excluded from the ordinary Legacy build.
+
+## Pursuit pilot
+
+`clan_pursuit.lua` is the first Clan line meant for play: a base Hunter's
+ordinary Attack with a dagger (native weapon category 12) deals 25% more damage
+to a target already hindered by Blind, Poison, Silence, Slow, Sap, Disease,
+Immobilize, Disable or Oil. It wraps Forge66, the shared dagger/bow damage
+function: the original runs first, then only the current formula's scratch
+`power` is scaled, the same lever Forge uses for its native Sleep bonus, which
+stays separate and multiplies. Bows reach Forge66 too and are excluded by
+category. Hybrids receive their own lines, so a Hunter pair gets nothing here.
+
+`forge_pursuit_66.lua` is its Forge configuration adapter
+(`x64/scripts/config/TheInsurgentsForgeConfig/functions/66.lua`, with the module
+at `x64/scripts/IvaliceLegacy/clan_pursuit.lua`). It loads the installed
+original Forge66, activates only after a strict `LEGCY_ddd` load in Legacy mode,
+and logs up to 32 activations per load. Clan rank, quests, purchases and
+persistence are not built: in this pilot every base Hunter has the line.
