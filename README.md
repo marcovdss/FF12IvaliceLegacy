@@ -174,6 +174,11 @@ combat effects or hook the game, and contains no production upgrade catalogue.
 Synthetic tests cover all 66 pairs and isolation between characters and classes.
 This prototype is excluded from installable game payloads.
 
+The separate [status prototype](prototypes/README.md) explores different utility
+for two owners of the same Dagger through caller-supplied class rules. It remains
+offline and excluded from builds; no production status chance or Clan effect is
+enabled by its presence in this repository.
+
 ## QoL integration
 
 The selected QoL foundation uses separately obtained Manifesto **1.5.2** for
