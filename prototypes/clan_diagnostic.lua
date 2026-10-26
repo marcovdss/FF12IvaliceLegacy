@@ -16,10 +16,27 @@ function M.new(deps)
     and type(deps.identity)=='function' and type(deps.emit)=='function',
     'diagnostic requires mode, canonical identity and log adapters')
   local campaign, seen, count = nil, {}, 0
+  -- Rejection reports are bounded per reason and in total; only a load clears them.
+  local rejects, rejectTotal, errorLogged = {}, 0, false
+  local function field(t,k)
+    local ok,v=pcall(function() return t[k] end)
+    return ok and tostring(v) or '?'
+  end
+  local function reject(reason,formula,caster)
+    local n=rejects[reason] or 0
+    if n<3 and rejectTotal<24 then
+      rejects[reason],rejectTotal=n+1,rejectTotal+1
+      deps.emit(string.format('Legacy diagnostic: reject=%s action=%s formula=%s actor=%s job1=%s job2=%s weapon=%s bonuses=off',
+        reason,field(formula,'action'),field(formula,'identifier'),field(caster,'identifier'),
+        field(caster,'job1'),field(caster,'job2'),field(caster,'weapon')))
+    end
+    return false
+  end
   local observer={}
   function observer:load(path)
     -- Every attempted load invalidates the old identity, including malformed paths.
     campaign,seen,count=nil,{},0
+    rejects,rejectTotal,errorLogged={},0,false
     if type(path)~='string' or path:find('[%z\r\n]') then return false end
     local name=path:match('([^/\\]+)$')
     if not name or not name:match('^LEGCY_%d%d%d$') then return false end
@@ -32,14 +49,19 @@ function M.new(deps)
     campaign,seen,count=nil,{},0
   end
   function observer:observe(formula,caster)
-    if deps.legacyMode()~=true then self:reset(); return false end
-    if not campaign or count>=256 or formula.action~=150 then return false end
+    if deps.legacyMode()~=true then self:reset(); return reject('mode',formula,caster) end
+    if not campaign then return reject('campaign',formula,caster) end
+    if count>=256 then return false end
+    if formula.action~=150 then return reject('action',formula,caster) end
     local context=deps.identity(caster)
     if type(context)~='table' or context.kind~='main-party'
-      or not integer(context.actorId,0,5) or context.actorId~=caster.identifier then return false end
+      or not integer(context.actorId,0,5) or context.actorId~=caster.identifier then
+      return reject('identity',formula,caster)
+    end
     local key=classKey(caster.job1,caster.job2)
-    if not key or not integer(caster.weapon,0x1000,0xFFFE)
-      or not integer(formula.identifier,0,255) then return false end
+    if not key then return reject('class',formula,caster) end
+    if not integer(caster.weapon,0x1000,0xFFFE) then return reject('weapon',formula,caster) end
+    if not integer(formula.identifier,0,255) then return reject('formula',formula,caster) end
     local signature=string.format('%d/%s/%d/%d',context.actorId,key,caster.weapon,formula.identifier)
     if seen[signature] then return false end
     seen[signature],count=true,count+1
@@ -53,7 +75,11 @@ function M.new(deps)
     return function(...)
       local result=table.pack(original(...))
       -- Instrument failure must not interrupt Forge or replace its return values.
-      pcall(self.observe,self,...)
+      local ok,err=pcall(self.observe,self,...)
+      if not ok and not errorLogged then
+        errorLogged=true
+        pcall(deps.emit,'Legacy diagnostic: observer error='..tostring(err):gsub('[%z\r\n]',' ')..' bonuses=off')
+      end
       return table.unpack(result,1,result.n)
     end
   end

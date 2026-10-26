@@ -88,6 +88,41 @@ class ClanDiagnosticTests(unittest.TestCase):
           observer:load('LEGCY_005'); assert(observer:observe(formula,actor))
         ''')
 
+    def test_rejections_report_reason_and_are_bounded(self):
+        self.lua.execute('''
+          assert(not observer:observe(formula,actor))
+          assert(logs[1]:find('reject=campaign action=150 formula=21 actor=0 job1=8 job2=255 weapon=4206',1,true))
+          observer:load('LEGCY_003'); local base=#logs
+          formula.action=114
+          for i=1,5 do assert(not observer:observe(formula,actor)) end
+          assert(#logs==base+3 and logs[base+1]:find('reject=action action=114',1,true))
+          formula.action=150; actor.address=999; assert(not observer:observe(formula,actor))
+          assert(logs[#logs]:find('reject=identity',1,true))
+          actor.address=123; actor.job1=12; assert(not observer:observe(formula,actor))
+          assert(logs[#logs]:find('reject=class',1,true) and logs[#logs]:find('job1=12',1,true))
+          actor.job1=8; actor.weapon=65535; assert(not observer:observe(formula,actor))
+          assert(logs[#logs]:find('reject=weapon',1,true))
+          actor.weapon=4206; assert(observer:observe(formula,actor)); local n=#logs
+          assert(not observer:observe(formula,actor)); assert(#logs==n)
+          for i=1,40 do formula.action=i; observer:observe(formula,actor); formula.action=150 end
+          observer:load('LEGCY_004'); local after=#logs
+          mode=false; for i=1,10 do observer:observe(formula,actor) end
+          assert(#logs-after<=3)
+        ''')
+
+    def test_unreadable_fields_and_observer_errors_are_logged_once(self):
+        self.lua.execute('''
+          observer:load('LEGCY_003')
+          local strict=setmetatable({}, {__index=function(_,k)
+            if k=='identifier' then return 0 end error('unknown '..k) end})
+          local wrapped=observer:wrap(function() return 'unchanged' end)
+          assert(wrapped(formula,strict)=='unchanged')
+          assert(wrapped(formula,strict)=='unchanged')
+          local errors=0
+          for _,line in ipairs(logs) do if line:find('observer error=',1,true) then errors=errors+1 end end
+          assert(errors==1)
+        ''')
+
     def test_bad_load_and_log_failure_cannot_reuse_campaign(self):
         self.lua.execute('''
           observer:load('LEGCY_003'); assert(observer:observe(formula,actor))
