@@ -95,7 +95,9 @@ class ClanDiagnosticTests(unittest.TestCase):
           observer:load('LEGCY_003'); local base=#logs
           formula.action=114
           for i=1,5 do assert(not observer:observe(formula,actor)) end
-          assert(#logs==base+3 and logs[base+1]:find('reject=action action=114',1,true))
+          assert(#logs==base+2 and logs[base+1]:find('reject=action action=114',1,true))
+          actor.identifier=1; assert(not observer:observe(formula,actor)); assert(#logs==base+3)
+          actor.identifier=0
           formula.action=150; actor.address=999; assert(not observer:observe(formula,actor))
           assert(logs[#logs]:find('reject=identity',1,true))
           actor.address=123; actor.job1=12; assert(not observer:observe(formula,actor))

@@ -23,11 +23,14 @@ function M.new(deps)
     return ok and tostring(v) or '?'
   end
   local function reject(reason,formula,caster)
-    local n=rejects[reason] or 0
-    if n<3 and rejectTotal<24 then
-      rejects[reason],rejectTotal=n+1,rejectTotal+1
+    -- Enemies also reach Forge171, so the cap is per reason and actor.
+    local actor=field(caster,'identifier')
+    local key=reason..':'..actor
+    local n=rejects[key] or 0
+    if n<2 and rejectTotal<48 then
+      rejects[key],rejectTotal=n+1,rejectTotal+1
       deps.emit(string.format('Legacy diagnostic: reject=%s action=%s formula=%s actor=%s job1=%s job2=%s weapon=%s bonuses=off',
-        reason,field(formula,'action'),field(formula,'identifier'),field(caster,'identifier'),
+        reason,field(formula,'action'),field(formula,'identifier'),actor,
         field(caster,'job1'),field(caster,'job2'),field(caster,'weapon')))
     end
     return false
