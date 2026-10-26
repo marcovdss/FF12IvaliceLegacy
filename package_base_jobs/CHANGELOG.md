@@ -1,3 +1,13 @@
+# 0.2.0 candidate
+
+- Refined the twelve boards around exclusive roles and whole native bundles.
+- Standardized two Swiftness licenses and opening license-kit access.
+- Removed heavy armor from Gunner; limited Chemist to eight Battle Lores.
+- Moved Kumbha to Knight and Excalibur to Warrior.
+- Raised eight exclusive weapon-license LP prices; all other table bytes stay unchanged.
+- Rewrote all twelve English job descriptions, preserving native prompts.
+- Added source-pinned LP and lossless description checks.
+
 # 0.1.0 candidate
 
 - Added twelve authored standalone license boards in the native 24-by-24 format.

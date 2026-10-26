@@ -93,6 +93,7 @@ def build(game, out):
     from .vbf import VBF
     game = Path(game)
     recipe = json.loads((ROOT/'patches/base_jobs.json').read_text(encoding='utf-8'))
+    require(recipe['version'] == '0.2.0', 'Unsupported base-job version')
     require(sha((game/'x64/FFXII_TZA.exe').read_bytes()) == recipe['gameExeSha256'],
             'Unsupported game executable')
     archive = VBF(game/'FFXII_TZA.vbf')
@@ -100,8 +101,10 @@ def build(game, out):
     # Rebuilding from our own exact deployed candidate is safe: all inputs
     # still come from the pinned archive, never from the loose replacements.
     own_outputs = {BOARD.format(j['nativeSlot']+1): j['candidateSha256'] for j in recipe['jobs']}
+    previous_outputs = {BOARD.format(j['nativeSlot']+1): j['previousCandidateSha256'] for j in recipe['jobs']}
     from .job_labels import apply_text_patch
-    for patch in recipe['labels']:
+    text_patches = [*recipe['labels'], recipe['descriptions']]
+    for patch in text_patches:
         relative = safe_path(patch['archivePath'])
         own_outputs[relative] = sha(apply_text_patch(archive.read(relative), patch))
     def read(relative):
@@ -109,7 +112,8 @@ def build(game, out):
         baseline = archive.read(relative)
         loose = deploy/relative
         if loose.exists():
-            require(loose.is_file() and (loose.read_bytes() == baseline or sha(loose.read_bytes()) == own_outputs.get(relative)),
+            require(loose.is_file() and (loose.read_bytes() == baseline or sha(loose.read_bytes()) in
+                    {own_outputs.get(relative), previous_outputs.get(relative)}),
                     f'Conflicting deployed replacement: {relative}')
         require(not (deploy/(relative+'.dir')).exists(), f'Conflicting deployed section replacements: {relative}')
         return baseline
@@ -117,26 +121,31 @@ def build(game, out):
     # Other Legacy modules replace unrelated battle-pack sections intentionally.
     packed = archive.read(pack)
     licenses = battle_pack_section(packed, 12)
+    from .license_lp import apply_license_lp
+    updated_licenses = apply_license_lp(licenses, recipe['licenseLpPatch'], recipe['jobs'])
     full_loose = deploy/pack
     if full_loose.is_file():
-        require(battle_pack_section(full_loose.read_bytes(), 12) == licenses,
+        require(battle_pack_section(full_loose.read_bytes(), 12) in (licenses, updated_licenses),
                 'Conflicting deployed license table')
     loose_license = deploy/(pack+'.dir/section_012.bin')
     if loose_license.exists():
-        require(loose_license.is_file() and loose_license.read_bytes() == licenses,
+        require(loose_license.is_file() and loose_license.read_bytes() in (licenses, updated_licenses),
                 'Conflicting deployed license section')
     files = apply_boards(read, recipe, licenses)
     # Additional native UI resources are source-pinned by the label recipe.
     from .job_labels import apply_labels
-    labels = apply_labels(read, recipe['labels'])
+    labels = apply_labels(read, text_patches)
     require(not set(files).intersection(labels), 'Duplicate board/label output resource')
     files.update(labels)
+    files[pack+'.dir/section_012.bin'] = updated_licenses
     files = {PREFIX+key: value for key, value in files.items()}
     docs = 'IvaliceLegacy-BaseJobs/'
     files[docs+'README.md'] = (ROOT/'package_base_jobs/README.md').read_bytes()
     files[docs+'CHANGELOG.md'] = (ROOT/'package_base_jobs/CHANGELOG.md').read_bytes()
     metadata = {'status': 'Offline experimental candidate; not installed or validated in-game',
+                'version': '0.2.0',
                 'recipeSha256': sha((ROOT/'patches/base_jobs.json').read_bytes()),
+                'licenseLpChanges': recipe['licenseLpPatch']['changes'],
                 'nativeSlots': [{k: j[k] for k in ('nativeSlot','sourceName','name')} for j in recipe['jobs']],
                 'limitations': ['Existing slot assignments and acquired licenses persist; no automatic respec.',
                                 'Do not combine with the separate Paladin pilot or other board replacements.',
@@ -144,5 +153,5 @@ def build(game, out):
     files[docs+'manifest.json'] = (json.dumps({**metadata, 'files': {key: sha(value) for key, value in sorted(files.items())},
                                              'manifestExcludesOwnHash': True}, indent=2)+'\n').encode()
     return write_package(files, out,
-                         'IvaliceLegacy-BaseJobs-0.1.0', 'Ivalice Legacy Base Jobs Candidate', '0.1.0',
+                         'IvaliceLegacy-BaseJobs-0.2.0', 'Ivalice Legacy Base Jobs Candidate', '0.2.0',
                          metadata)

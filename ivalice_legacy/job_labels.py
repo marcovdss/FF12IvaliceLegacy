@@ -20,6 +20,46 @@ def encode_label(text):
     return bytes(glyphs[c] for c in text) + b'\0'
 
 
+def encode_description_line(text):
+    glyphs = {' ': 4, '-': 165, ',': 167, '.': 168, ':': 170,
+              **{str(i): 133+i for i in range(10)},
+              **{chr(65+i): 32+i for i in range(26)},
+              **{chr(97+i): 58+i for i in range(26)}}
+    require(isinstance(text, str) and bool(text) and all(c in glyphs for c in text),
+            'Unsupported English description glyph')
+    return bytes(glyphs[c] for c in text)
+
+
+def text_records(raw):
+    """Return complete encoded spans, including aliased entries and control bytes."""
+    parsed = parse_text(raw)
+    bounds = sorted(set(parsed['pointers']))
+    ends = dict(zip(bounds, bounds[1:]))
+    return {value: raw[parsed['group']+p:parsed['group']+ends.get(p,p)]
+            for value,p in zip(parsed['ids'],parsed['pointers'])}
+
+
+def description_replacements(raw, patch):
+    records = text_records(raw)
+    require({r['stringId'] for r in patch['changes']} == set(range(22000,22012))
+            and len(patch['changes']) == 12, 'Expected twelve native description IDs')
+    replacements = {}
+    for row in patch['changes']:
+        value = row['stringId']
+        require(value in records, 'Unknown native description ID')
+        before = records[value]
+        require(sha(before) == row['sourceEntrySha256'], 'Description entry source hash mismatch')
+        parts = before.split(b'\x02')
+        prompt = b'\x0f\x48\x80\x04' + encode_label('Preview License Board')
+        require(len(parts) == 3 and parts[2] == prompt, 'Unexpected native description format/prompt')
+        lines = row['lines']
+        require(isinstance(lines,list) and len(lines) == 2, 'Expected two description lines')
+        encoded = [encode_description_line(s) for s in lines]
+        require(all(len(a) <= len(b) for a,b in zip(encoded,parts)), 'Description line exceeds native limit')
+        replacements[value] = (before,b'\x02'.join([*encoded,parts[2]]))
+    return replacements
+
+
 def parse_text(raw):
     require(len(raw) >= 48 and raw[:4] == b'st2e', 'Expected ST2E text')
     count, stride, entry = struct.unpack_from('<III', raw, 4)
@@ -53,12 +93,15 @@ def apply_text_patch(raw, patch):
     changes = patch['changes']
     require(len(changes) == len({row['stringId'] for row in changes}), 'Duplicate label patch ID')
     edits = []
-    changed_ids = {row['stringId'] for row in changes if row['expected'] != row['replacement']}
+    descriptions = patch.get('kind') == 'descriptions'
+    replacements = description_replacements(raw,patch) if descriptions else {
+        row['stringId']: (encode_label(row['expected']), encode_label(row['replacement'])) for row in changes}
+    changed_ids = {value for value,(before,after) in replacements.items() if before != after}
     for row in changes:
         value = row['stringId']
         require(value in positions, f'Unknown string ID {value}')
         start = positions[value]
-        before, after = encode_label(row['expected']), encode_label(row['replacement'])
+        before, after = replacements[value]
         require(raw[start:start+len(before)] == before, f'Unexpected source label {value}')
         require(start+len(before) <= parsed['stringsEnd'], 'Label runs past text group')
         if before != after:
@@ -87,6 +130,9 @@ def apply_text_patch(raw, patch):
     result = bytes(output)
     check = parse_text(result)
     require(check['ids'] == parsed['ids'], 'String directory changed')
+    before_records, after_records = text_records(raw), text_records(result)
+    require(all(after_records[value] == (replacements[value][1] if value in changed_ids else data)
+                for value,data in before_records.items()), 'Unexpected text record change')
     return result
 
 
