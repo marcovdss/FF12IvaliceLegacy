@@ -61,8 +61,29 @@ class BaseJobsTest(unittest.TestCase):
         empty = next((x,y) for y in range(24) for x in range(24)
                      if all(p not in occupied for p in [(x,y),(x-1,y),(x+1,y),(x,y-1),(x,y+1)]))
         next(c for c in job['cells'] if c['licenseId'] == 18).update(x=empty[0], y=empty[1])
-        with self.assertRaisesRegex(ValueError, 'pendant leaf'):
+        with self.assertRaisesRegex(ValueError, 'one ordinary neighbour'):
             encode_board(job)
+
+    def test_special_joining_two_ordinary_cells_rejected(self):
+        job = copy.deepcopy(self.recipe['jobs'][0])
+        at = {(c['x'], c['y']): c for c in job['cells']}
+        special = set(range(18, 31)) | {0, 1, 2, 3, 360}
+        near = lambda x, y: [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
+        spot = next((x, y) for y in range(24) for x in range(24) if (x, y) not in at
+                    and len([p for p in near(x, y) if p in at and at[p]['licenseId'] not in special]) >= 2)
+        next(c for c in job['cells'] if c['licenseId'] == 19).update(x=spot[0], y=spot[1])
+        with self.assertRaisesRegex(ValueError, 'one ordinary neighbour'):
+            encode_board(job)
+
+    def test_compact_boards_have_loops_and_second_board_stays_a_leaf(self):
+        for job in self.recipe['jobs']:
+            with self.subTest(job=job['name']):
+                at = {(c['x'], c['y']): c['licenseId'] for c in job['cells']}
+                edges = sum(1 for (x, y) in at for p in ((x+1, y), (x, y+1)) if p in at)
+                self.assertGreater(edges, len(at)-1)
+                second = next((c['x'], c['y']) for c in job['cells'] if c['licenseId'] == 360)
+                self.assertEqual(sum(p in at for p in ((second[0]-1, second[1]), (second[0]+1, second[1]),
+                                                      (second[0], second[1]-1), (second[0], second[1]+1))), 1)
 
     def test_resource_paths_cannot_escape(self):
         for value in ('../save.bin', '/absolute.bin', 'C:/save.bin', 'a\\b', 'a/../b'):

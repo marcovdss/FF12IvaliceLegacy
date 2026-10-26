@@ -10,252 +10,277 @@
       "name": "White Mage",
       "key": "kiltian_hierophant",
       "sourceSha256": "5a220b2d8e3cc2c78042cd5bd5161407f7f4dbadb811b7c1380b573e39fb380d",
-      "candidateSha256": "55430e89ff11e23213ecd0122f25f855e92ca9f046643bb71bfd6366a7221e2b",
+      "candidateSha256": "1d89bb4ab216c0eb3b2736a13b45db46414a0344cfd95e455f1ae1d5b54096a8",
       "cells": [
         {
-          "x": 9,
-          "y": 0,
-          "licenseId": 156
+          "x": 10,
+          "y": 6,
+          "licenseId": 2
+        },
+        {
+          "x": 12,
+          "y": 6,
+          "licenseId": 3
+        },
+        {
+          "x": 16,
+          "y": 6,
+          "licenseId": 18
+        },
+        {
+          "x": 6,
+          "y": 7,
+          "licenseId": 19
+        },
+        {
+          "x": 8,
+          "y": 7,
+          "licenseId": 20
         },
         {
           "x": 10,
-          "y": 0,
-          "licenseId": 155
-        },
-        {
-          "x": 11,
-          "y": 0,
-          "licenseId": 100
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 157
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 99
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 158
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 154
-        },
-        {
-          "x": 12,
-          "y": 2,
-          "licenseId": 27
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 159
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 153
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 160
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 152
-        },
-        {
-          "x": 12,
-          "y": 4,
-          "licenseId": 24
-        },
-        {
-          "x": 9,
-          "y": 5,
+          "y": 7,
           "licenseId": 352
         },
         {
           "x": 11,
-          "y": 5,
-          "licenseId": 151
-        },
-        {
-          "x": 10,
-          "y": 6,
-          "licenseId": 20
-        },
-        {
-          "x": 11,
-          "y": 6,
-          "licenseId": 150
+          "y": 7,
+          "licenseId": 160
         },
         {
           "x": 12,
-          "y": 6,
+          "y": 7,
+          "licenseId": 100
+        },
+        {
+          "x": 14,
+          "y": 7,
+          "licenseId": 1
+        },
+        {
+          "x": 16,
+          "y": 7,
+          "licenseId": 320
+        },
+        {
+          "x": 17,
+          "y": 7,
+          "licenseId": 275
+        },
+        {
+          "x": 18,
+          "y": 7,
           "licenseId": 21
         },
         {
+          "x": 5,
+          "y": 8,
+          "licenseId": 360
+        },
+        {
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
+        },
+        {
+          "x": 7,
+          "y": 8,
+          "licenseId": 175
+        },
+        {
+          "x": 8,
+          "y": 8,
+          "licenseId": 158
+        },
+        {
+          "x": 9,
+          "y": 8,
+          "licenseId": 156
+        },
+        {
+          "x": 10,
+          "y": 8,
+          "licenseId": 99
+        },
+        {
           "x": 11,
-          "y": 7,
+          "y": 8,
+          "licenseId": 154
+        },
+        {
+          "x": 12,
+          "y": 8,
+          "licenseId": 155
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 157
+        },
+        {
+          "x": 14,
+          "y": 8,
+          "licenseId": 159
+        },
+        {
+          "x": 15,
+          "y": 8,
+          "licenseId": 263
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 318
+        },
+        {
+          "x": 17,
+          "y": 8,
+          "licenseId": 324
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
+        },
+        {
+          "x": 9,
+          "y": 9,
+          "licenseId": 153
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 152
+        },
+        {
+          "x": 11,
+          "y": 9,
+          "licenseId": 151
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 97
+        },
+        {
+          "x": 13,
+          "y": 9,
           "licenseId": 98
         },
         {
           "x": 14,
-          "y": 7,
-          "licenseId": 235
-        },
-        {
-          "x": 15,
-          "y": 7,
-          "licenseId": 226
-        },
-        {
-          "x": 10,
-          "y": 8,
-          "licenseId": 2
-        },
-        {
-          "x": 11,
-          "y": 8,
-          "licenseId": 97
-        },
-        {
-          "x": 12,
-          "y": 8,
-          "licenseId": 3
-        },
-        {
-          "x": 14,
-          "y": 8,
-          "licenseId": 237
-        },
-        {
-          "x": 11,
           "y": 9,
-          "licenseId": 161
-        },
-        {
-          "x": 14,
-          "y": 9,
-          "licenseId": 265
+          "licenseId": 233
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 264
+          "licenseId": 269
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 324
+          "licenseId": 264
         },
         {
           "x": 17,
           "y": 9,
-          "licenseId": 323
-        },
-        {
-          "x": 18,
-          "y": 9,
           "licenseId": 322
         },
         {
-          "x": 19,
-          "y": 9,
-          "licenseId": 321
-        },
-        {
-          "x": 20,
-          "y": 9,
-          "licenseId": 320
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 319
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 274
-        },
-        {
-          "x": 0,
+          "x": 5,
           "y": 10,
-          "licenseId": 30
+          "licenseId": 22
         },
         {
-          "x": 2,
+          "x": 6,
           "y": 10,
-          "licenseId": 28
+          "licenseId": 178
         },
         {
-          "x": 4,
+          "x": 7,
           "y": 10,
-          "licenseId": 25
+          "licenseId": 171
         },
         {
-          "x": 11,
+          "x": 8,
+          "y": 10,
+          "licenseId": 165
+        },
+        {
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
           "y": 10,
           "licenseId": 96
         },
         {
-          "x": 22,
+          "x": 11,
+          "y": 10,
+          "licenseId": 149
+        },
+        {
+          "x": 12,
+          "y": 10,
+          "licenseId": 150
+        },
+        {
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
+        },
+        {
+          "x": 14,
+          "y": 10,
+          "licenseId": 267
+        },
+        {
+          "x": 15,
+          "y": 10,
+          "licenseId": 259
+        },
+        {
+          "x": 16,
           "y": 10,
           "licenseId": 234
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 17,
+          "y": 10,
+          "licenseId": 274
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
-        },
-        {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
-        },
-        {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
-        },
-        {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
-        },
-        {
-          "x": 5,
-          "y": 11,
-          "licenseId": 267
+          "x": 18,
+          "y": 10,
+          "licenseId": 24
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -265,7 +290,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 149
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -275,12 +300,12 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 182
+          "licenseId": 256
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 257
+          "licenseId": 236
         },
         {
           "x": 14,
@@ -290,102 +315,92 @@
         {
           "x": 15,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 258
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 272
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 233
+          "licenseId": 226
         },
         {
-          "x": 18,
-          "y": 11,
-          "licenseId": 258
-        },
-        {
-          "x": 19,
-          "y": 11,
-          "licenseId": 259
-        },
-        {
-          "x": 20,
-          "y": 11,
-          "licenseId": 260
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 318
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 263
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 360
-        },
-        {
-          "x": 0,
+          "x": 5,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 30
+        },
+        {
+          "x": 6,
+          "y": 12,
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 183
         },
         {
           "x": 11,
           "y": 12,
-          "licenseId": 256
+          "licenseId": 182
+        },
+        {
+          "x": 12,
+          "y": 12,
+          "licenseId": 185
+        },
+        {
+          "x": 13,
+          "y": 12,
+          "licenseId": 266
+        },
+        {
+          "x": 14,
+          "y": 12,
+          "licenseId": 268
+        },
+        {
+          "x": 15,
+          "y": 12,
+          "licenseId": 262
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 260
+        },
+        {
+          "x": 17,
+          "y": 12,
+          "licenseId": 321
         },
         {
           "x": 18,
           "y": 12,
-          "licenseId": 26
-        },
-        {
-          "x": 20,
-          "y": 12,
-          "licenseId": 29
-        },
-        {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
-          "licenseId": 268
-        },
-        {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
-        },
-        {
-          "x": 5,
-          "y": 13,
-          "licenseId": 270
+          "licenseId": 0
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -395,155 +410,140 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
+        },
+        {
+          "x": 9,
+          "y": 13,
+          "licenseId": 188
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 0
-        },
-        {
-          "x": 11,
-          "y": 13,
-          "licenseId": 183
-        },
-        {
-          "x": 12,
-          "y": 13,
-          "licenseId": 1
-        },
-        {
-          "x": 8,
-          "y": 14,
-          "licenseId": 176
-        },
-        {
-          "x": 11,
-          "y": 14,
-          "licenseId": 325
-        },
-        {
-          "x": 0,
-          "y": 15,
-          "licenseId": 273
-        },
-        {
-          "x": 1,
-          "y": 15,
-          "licenseId": 272
-        },
-        {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
-        },
-        {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
-        },
-        {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
-        },
-        {
-          "x": 6,
-          "y": 15,
-          "licenseId": 179
-        },
-        {
-          "x": 7,
-          "y": 15,
-          "licenseId": 178
-        },
-        {
-          "x": 8,
-          "y": 15,
-          "licenseId": 177
-        },
-        {
-          "x": 10,
-          "y": 15,
-          "licenseId": 18
-        },
-        {
-          "x": 11,
-          "y": 15,
-          "licenseId": 185
-        },
-        {
-          "x": 12,
-          "y": 15,
-          "licenseId": 19
-        },
-        {
-          "x": 11,
-          "y": 16,
           "licenseId": 186
         },
         {
-          "x": 10,
-          "y": 17,
-          "licenseId": 22
-        },
-        {
           "x": 11,
-          "y": 17,
+          "y": 13,
           "licenseId": 280
         },
         {
           "x": 12,
-          "y": 17,
-          "licenseId": 23
-        },
-        {
-          "x": 11,
-          "y": 18,
+          "y": 13,
           "licenseId": 187
         },
         {
-          "x": 11,
-          "y": 19,
-          "licenseId": 188
-        },
-        {
-          "x": 11,
-          "y": 20,
+          "x": 13,
+          "y": 13,
           "licenseId": 189
         },
         {
-          "x": 11,
-          "y": 21,
+          "x": 14,
+          "y": 13,
+          "licenseId": 257
+        },
+        {
+          "x": 15,
+          "y": 13,
+          "licenseId": 270
+        },
+        {
+          "x": 16,
+          "y": 13,
+          "licenseId": 273
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 323
+        },
+        {
+          "x": 5,
+          "y": 14,
+          "licenseId": 25
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
+          "y": 14,
+          "licenseId": 176
+        },
+        {
+          "x": 9,
+          "y": 14,
+          "licenseId": 211
+        },
+        {
+          "x": 10,
+          "y": 14,
           "licenseId": 208
         },
         {
-          "x": 13,
-          "y": 21,
+          "x": 11,
+          "y": 14,
           "licenseId": 355
         },
         {
-          "x": 11,
-          "y": 22,
+          "x": 12,
+          "y": 14,
           "licenseId": 209
         },
         {
-          "x": 12,
-          "y": 22,
-          "licenseId": 275
+          "x": 15,
+          "y": 14,
+          "licenseId": 271
         },
         {
-          "x": 13,
-          "y": 22,
-          "licenseId": 211
+          "x": 16,
+          "y": 14,
+          "licenseId": 319
+        },
+        {
+          "x": 17,
+          "y": 14,
+          "licenseId": 235
+        },
+        {
+          "x": 18,
+          "y": 14,
+          "licenseId": 23
+        },
+        {
+          "x": 6,
+          "y": 15,
+          "licenseId": 26
+        },
+        {
+          "x": 9,
+          "y": 15,
+          "licenseId": 27
+        },
+        {
+          "x": 12,
+          "y": 15,
+          "licenseId": 28
+        },
+        {
+          "x": 16,
+          "y": 15,
+          "licenseId": 265
+        },
+        {
+          "x": 17,
+          "y": 15,
+          "licenseId": 325
+        },
+        {
+          "x": 16,
+          "y": 16,
+          "licenseId": 29
         }
       ],
-      "previousCandidateSha256": "39189974cd804d25b8715ddc1a3227bfe9059eef8b1638b07e1fb327c705726e"
+      "previousCandidateSha256": "55430e89ff11e23213ecd0122f25f855e92ca9f046643bb71bfd6366a7221e2b"
     },
     {
       "nativeSlot": 1,
@@ -551,97 +551,47 @@
       "name": "Lancer",
       "key": "orderbreaker",
       "sourceSha256": "b363ed4d72eed279de1c4168006e251bf4df75eda5c83f00331a476826c35449",
-      "candidateSha256": "2d67c26b238769b7019124d5b44cd8c48678a5137e47fa0322db33a87323c767",
+      "candidateSha256": "c449eb04a452a8e7809787858ff1e5e52d5dc5b04ee574c67c212d64ff062512",
       "cells": [
         {
-          "x": 9,
-          "y": 0,
-          "licenseId": 59
-        },
-        {
-          "x": 10,
-          "y": 0,
-          "licenseId": 58
-        },
-        {
-          "x": 11,
-          "y": 0,
-          "licenseId": 57
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 337
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 131
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 132
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 130
-        },
-        {
-          "x": 12,
-          "y": 2,
-          "licenseId": 23
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 133
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 129
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 134
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 128
-        },
-        {
-          "x": 12,
-          "y": 4,
-          "licenseId": 20
-        },
-        {
-          "x": 9,
+          "x": 17,
           "y": 5,
-          "licenseId": 135
-        },
-        {
-          "x": 11,
-          "y": 5,
-          "licenseId": 127
+          "licenseId": 0
         },
         {
           "x": 9,
           "y": 6,
-          "licenseId": 349
+          "licenseId": 1
         },
         {
           "x": 11,
           "y": 6,
-          "licenseId": 56
+          "licenseId": 26
         },
         {
-          "x": 12,
+          "x": 13,
           "y": 6,
+          "licenseId": 2
+        },
+        {
+          "x": 17,
+          "y": 6,
+          "licenseId": 304
+        },
+        {
+          "x": 18,
+          "y": 6,
+          "licenseId": 3
+        },
+        {
+          "x": 6,
+          "y": 7,
           "licenseId": 18
+        },
+        {
+          "x": 7,
+          "y": 7,
+          "licenseId": 30
         },
         {
           "x": 9,
@@ -649,74 +599,159 @@
           "licenseId": 350
         },
         {
+          "x": 10,
+          "y": 7,
+          "licenseId": 349
+        },
+        {
           "x": 11,
           "y": 7,
-          "licenseId": 55
+          "licenseId": 135
         },
         {
-          "x": 14,
+          "x": 12,
           "y": 7,
-          "licenseId": 303
+          "licenseId": 337
         },
         {
-          "x": 15,
+          "x": 13,
           "y": 7,
-          "licenseId": 237
+          "licenseId": 59
         },
         {
           "x": 16,
           "y": 7,
-          "licenseId": 222
+          "licenseId": 265
+        },
+        {
+          "x": 17,
+          "y": 7,
+          "licenseId": 275
+        },
+        {
+          "x": 5,
+          "y": 8,
+          "licenseId": 360
+        },
+        {
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
+        },
+        {
+          "x": 7,
+          "y": 8,
+          "licenseId": 175
+        },
+        {
+          "x": 8,
+          "y": 8,
+          "licenseId": 58
+        },
+        {
+          "x": 9,
+          "y": 8,
+          "licenseId": 132
         },
         {
           "x": 10,
           "y": 8,
-          "licenseId": 2
+          "licenseId": 131
         },
         {
           "x": 11,
           "y": 8,
-          "licenseId": 54
+          "licenseId": 130
         },
         {
           "x": 12,
           "y": 8,
-          "licenseId": 3
+          "licenseId": 57
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 133
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 302
+          "licenseId": 134
         },
         {
-          "x": 22,
+          "x": 15,
           "y": 8,
-          "licenseId": 28
+          "licenseId": 263
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 308
+        },
+        {
+          "x": 17,
+          "y": 8,
+          "licenseId": 301
+        },
+        {
+          "x": 18,
+          "y": 8,
+          "licenseId": 27
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
+        },
+        {
+          "x": 9,
+          "y": 9,
+          "licenseId": 129
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 55
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 161
+          "licenseId": 127
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 128
         },
         {
           "x": 13,
           "y": 9,
-          "licenseId": 30
+          "licenseId": 56
         },
         {
           "x": 14,
           "y": 9,
-          "licenseId": 301
+          "licenseId": 222
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 300
+          "licenseId": 269
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 313
+          "licenseId": 273
         },
         {
           "x": 17,
@@ -724,49 +759,34 @@
           "licenseId": 312
         },
         {
-          "x": 18,
-          "y": 9,
-          "licenseId": 311
-        },
-        {
-          "x": 19,
-          "y": 9,
-          "licenseId": 310
-        },
-        {
-          "x": 20,
-          "y": 9,
-          "licenseId": 309
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 308
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 304
-        },
-        {
-          "x": 23,
-          "y": 9,
-          "licenseId": 29
-        },
-        {
-          "x": 0,
+          "x": 5,
           "y": 10,
-          "licenseId": 26
+          "licenseId": 19
         },
         {
-          "x": 2,
+          "x": 6,
           "y": 10,
-          "licenseId": 24
+          "licenseId": 178
         },
         {
-          "x": 4,
+          "x": 7,
           "y": 10,
-          "licenseId": 21
+          "licenseId": 171
+        },
+        {
+          "x": 8,
+          "y": 10,
+          "licenseId": 165
+        },
+        {
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
+          "y": 10,
+          "licenseId": 126
         },
         {
           "x": 11,
@@ -774,54 +794,54 @@
           "licenseId": 53
         },
         {
-          "x": 22,
+          "x": 12,
           "y": 10,
-          "licenseId": 265
+          "licenseId": 54
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
-        },
-        {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
-        },
-        {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
-        },
-        {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
-        },
-        {
-          "x": 5,
-          "y": 11,
+          "x": 14,
+          "y": 10,
           "licenseId": 267
+        },
+        {
+          "x": 15,
+          "y": 10,
+          "licenseId": 254
+        },
+        {
+          "x": 16,
+          "y": 10,
+          "licenseId": 255
+        },
+        {
+          "x": 17,
+          "y": 10,
+          "licenseId": 310
+        },
+        {
+          "x": 18,
+          "y": 10,
+          "licenseId": 28
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -831,7 +851,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 126
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -841,12 +861,12 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 192
+          "licenseId": 251
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 252
+          "licenseId": 236
         },
         {
           "x": 14,
@@ -856,107 +876,92 @@
         {
           "x": 15,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 253
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 272
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 253
+          "licenseId": 300
         },
         {
-          "x": 18,
-          "y": 11,
-          "licenseId": 254
-        },
-        {
-          "x": 19,
-          "y": 11,
-          "licenseId": 255
-        },
-        {
-          "x": 20,
-          "y": 11,
-          "licenseId": 307
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 263
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 264
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 27
-        },
-        {
-          "x": 0,
+          "x": 5,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 29
+        },
+        {
+          "x": 6,
+          "y": 12,
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 285
         },
         {
           "x": 11,
           "y": 12,
-          "licenseId": 251
+          "licenseId": 192
+        },
+        {
+          "x": 12,
+          "y": 12,
+          "licenseId": 291
+        },
+        {
+          "x": 13,
+          "y": 12,
+          "licenseId": 266
+        },
+        {
+          "x": 14,
+          "y": 12,
+          "licenseId": 268
+        },
+        {
+          "x": 15,
+          "y": 12,
+          "licenseId": 262
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 264
         },
         {
           "x": 17,
           "y": 12,
-          "licenseId": 19
+          "licenseId": 311
         },
         {
-          "x": 19,
+          "x": 18,
           "y": 12,
-          "licenseId": 22
-        },
-        {
-          "x": 21,
-          "y": 12,
-          "licenseId": 25
-        },
-        {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
-          "licenseId": 268
-        },
-        {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
-        },
-        {
-          "x": 5,
-          "y": 13,
-          "licenseId": 270
+          "licenseId": 20
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -966,105 +971,100 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 0
+          "licenseId": 298
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 285
+          "licenseId": 295
         },
         {
-          "x": 12,
+          "x": 14,
           "y": 13,
-          "licenseId": 1
+          "licenseId": 252
         },
         {
-          "x": 8,
+          "x": 15,
+          "y": 13,
+          "licenseId": 270
+        },
+        {
+          "x": 16,
+          "y": 13,
+          "licenseId": 307
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 313
+        },
+        {
+          "x": 5,
+          "y": 14,
+          "licenseId": 21
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
-          "x": 9,
+          "x": 10,
           "y": 14,
-          "licenseId": 360
+          "licenseId": 22
         },
         {
-          "x": 11,
+          "x": 15,
           "y": 14,
-          "licenseId": 295
+          "licenseId": 271
         },
         {
-          "x": 0,
-          "y": 15,
-          "licenseId": 273
+          "x": 16,
+          "y": 14,
+          "licenseId": 309
         },
         {
-          "x": 1,
-          "y": 15,
-          "licenseId": 272
+          "x": 17,
+          "y": 14,
+          "licenseId": 302
         },
         {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
-        },
-        {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
-        },
-        {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
+          "x": 18,
+          "y": 14,
+          "licenseId": 23
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 179
+          "licenseId": 25
         },
         {
-          "x": 7,
+          "x": 16,
           "y": 15,
-          "licenseId": 178
-        },
-        {
-          "x": 8,
-          "y": 15,
-          "licenseId": 177
-        },
-        {
-          "x": 11,
-          "y": 15,
-          "licenseId": 291
-        },
-        {
-          "x": 0,
-          "y": 16,
           "licenseId": 274
         },
         {
-          "x": 11,
-          "y": 16,
-          "licenseId": 298
+          "x": 17,
+          "y": 15,
+          "licenseId": 303
         },
         {
-          "x": 0,
-          "y": 17,
-          "licenseId": 275
+          "x": 17,
+          "y": 16,
+          "licenseId": 24
         }
       ],
-      "previousCandidateSha256": "9958e43a6043b528a2d21f9b02ad7e60f75788888e6a81bf97745bc1a5d41791"
+      "previousCandidateSha256": "2d67c26b238769b7019124d5b44cd8c48678a5137e47fa0322db33a87323c767"
     },
     {
       "nativeSlot": 2,
@@ -1072,102 +1072,42 @@
       "name": "Gunner",
       "key": "fusilier",
       "sourceSha256": "ebb8af58b7b641598bae31f532f38321aed9bcea632625ac2fe225906ad19e48",
-      "candidateSha256": "c50745ac17cc7840f51b5a4e0c1cc0bbe9bd03cd852c74aa511ac9aba8de12d3",
+      "candidateSha256": "da9edd2c62287518b04f449cf2ab6002539fc119097fb496f77ffd5ec214d7e2",
       "cells": [
         {
           "x": 9,
-          "y": 0,
-          "licenseId": 342
-        },
-        {
-          "x": 10,
-          "y": 0,
-          "licenseId": 82
-        },
-        {
-          "x": 11,
-          "y": 0,
-          "licenseId": 81
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 143
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 142
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 144
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 141
-        },
-        {
-          "x": 12,
-          "y": 2,
-          "licenseId": 25
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 145
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 140
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 146
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 139
-        },
-        {
-          "x": 12,
-          "y": 4,
-          "licenseId": 21
-        },
-        {
-          "x": 9,
-          "y": 5,
-          "licenseId": 147
-        },
-        {
-          "x": 11,
-          "y": 5,
-          "licenseId": 138
-        },
-        {
-          "x": 9,
-          "y": 6,
-          "licenseId": 148
-        },
-        {
-          "x": 11,
-          "y": 6,
-          "licenseId": 80
-        },
-        {
-          "x": 12,
           "y": 6,
           "licenseId": 18
         },
         {
+          "x": 10,
+          "y": 6,
+          "licenseId": 26
+        },
+        {
+          "x": 12,
+          "y": 6,
+          "licenseId": 24
+        },
+        {
+          "x": 6,
+          "y": 7,
+          "licenseId": 19
+        },
+        {
+          "x": 7,
+          "y": 7,
+          "licenseId": 27
+        },
+        {
           "x": 9,
           "y": 7,
-          "licenseId": 351
+          "licenseId": 82
+        },
+        {
+          "x": 10,
+          "y": 7,
+          "licenseId": 80
         },
         {
           "x": 11,
@@ -1175,119 +1115,209 @@
           "licenseId": 79
         },
         {
+          "x": 12,
+          "y": 7,
+          "licenseId": 81
+        },
+        {
+          "x": 13,
+          "y": 7,
+          "licenseId": 342
+        },
+        {
+          "x": 15,
+          "y": 7,
+          "licenseId": 1
+        },
+        {
+          "x": 5,
+          "y": 8,
+          "licenseId": 360
+        },
+        {
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
+        },
+        {
+          "x": 7,
+          "y": 8,
+          "licenseId": 175
+        },
+        {
+          "x": 8,
+          "y": 8,
+          "licenseId": 351
+        },
+        {
+          "x": 9,
+          "y": 8,
+          "licenseId": 147
+        },
+        {
           "x": 10,
           "y": 8,
-          "licenseId": 0
+          "licenseId": 145
         },
         {
           "x": 11,
           "y": 8,
-          "licenseId": 78
+          "licenseId": 144
         },
         {
           "x": 12,
           "y": 8,
-          "licenseId": 1
+          "licenseId": 146
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 148
+        },
+        {
+          "x": 14,
+          "y": 8,
+          "licenseId": 78
+        },
+        {
+          "x": 15,
+          "y": 8,
+          "licenseId": 265
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
+        },
+        {
+          "x": 9,
+          "y": 9,
+          "licenseId": 142
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 140
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 161
+          "licenseId": 139
         },
         {
-          "x": 21,
+          "x": 12,
           "y": 9,
-          "licenseId": 273
+          "licenseId": 141
         },
         {
-          "x": 22,
+          "x": 13,
+          "y": 9,
+          "licenseId": 143
+        },
+        {
+          "x": 14,
+          "y": 9,
+          "licenseId": 269
+        },
+        {
+          "x": 15,
+          "y": 9,
+          "licenseId": 264
+        },
+        {
+          "x": 16,
           "y": 9,
           "licenseId": 275
         },
         {
-          "x": 0,
-          "y": 10,
-          "licenseId": 27
+          "x": 17,
+          "y": 9,
+          "licenseId": 20
         },
         {
-          "x": 2,
+          "x": 6,
           "y": 10,
-          "licenseId": 26
+          "licenseId": 178
         },
         {
-          "x": 4,
+          "x": 7,
           "y": 10,
-          "licenseId": 22
+          "licenseId": 171
         },
         {
-          "x": 11,
+          "x": 8,
+          "y": 10,
+          "licenseId": 165
+        },
+        {
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
           "y": 10,
           "licenseId": 77
         },
         {
+          "x": 11,
+          "y": 10,
+          "licenseId": 137
+        },
+        {
+          "x": 12,
+          "y": 10,
+          "licenseId": 138
+        },
+        {
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
+        },
+        {
+          "x": 14,
+          "y": 10,
+          "licenseId": 268
+        },
+        {
           "x": 15,
           "y": 10,
-          "licenseId": 2
+          "licenseId": 271
         },
         {
-          "x": 17,
+          "x": 16,
           "y": 10,
-          "licenseId": 19
-        },
-        {
-          "x": 19,
-          "y": 10,
-          "licenseId": 23
-        },
-        {
-          "x": 22,
-          "y": 10,
-          "licenseId": 302
-        },
-        {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
-        },
-        {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
-        },
-        {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
-        },
-        {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
-        },
-        {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
+          "licenseId": 301
         },
         {
           "x": 5,
           "y": 11,
-          "licenseId": 267
+          "licenseId": 0
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -1297,7 +1327,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 137
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -1307,17 +1337,17 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 297
+          "licenseId": 261
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 236
         },
         {
           "x": 14,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 267
         },
         {
           "x": 15,
@@ -1327,97 +1357,72 @@
         {
           "x": 16,
           "y": 11,
-          "licenseId": 264
-        },
-        {
-          "x": 17,
-          "y": 11,
-          "licenseId": 237
-        },
-        {
-          "x": 18,
-          "y": 11,
-          "licenseId": 274
-        },
-        {
-          "x": 19,
-          "y": 11,
-          "licenseId": 272
-        },
-        {
-          "x": 20,
-          "y": 11,
-          "licenseId": 265
-        },
-        {
-          "x": 21,
-          "y": 11,
           "licenseId": 300
         },
         {
-          "x": 22,
-          "y": 11,
-          "licenseId": 301
+          "x": 6,
+          "y": 12,
+          "licenseId": 179
         },
         {
-          "x": 0,
+          "x": 7,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 287
         },
         {
           "x": 11,
           "y": 12,
-          "licenseId": 261
+          "licenseId": 297
+        },
+        {
+          "x": 13,
+          "y": 12,
+          "licenseId": 266
+        },
+        {
+          "x": 14,
+          "y": 12,
+          "licenseId": 262
         },
         {
           "x": 15,
           "y": 12,
-          "licenseId": 3
+          "licenseId": 272
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 302
         },
         {
           "x": 17,
           "y": 12,
-          "licenseId": 20
-        },
-        {
-          "x": 19,
-          "y": 12,
-          "licenseId": 24
-        },
-        {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
-          "licenseId": 268
-        },
-        {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
+          "licenseId": 21
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 270
+          "licenseId": 22
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -1427,75 +1432,70 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 28
+          "licenseId": 23
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 287
+          "licenseId": 28
         },
         {
-          "x": 12,
+          "x": 14,
           "y": 13,
+          "licenseId": 270
+        },
+        {
+          "x": 15,
+          "y": 13,
+          "licenseId": 273
+        },
+        {
+          "x": 5,
+          "y": 14,
           "licenseId": 29
         },
         {
-          "x": 8,
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
-          "x": 9,
+          "x": 15,
           "y": 14,
-          "licenseId": 360
+          "licenseId": 274
         },
         {
-          "x": 11,
+          "x": 16,
           "y": 14,
-          "licenseId": 30
-        },
-        {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
-        },
-        {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
-        },
-        {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
+          "licenseId": 2
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 179
+          "licenseId": 25
         },
         {
           "x": 7,
           "y": 15,
-          "licenseId": 178
+          "licenseId": 30
         },
         {
-          "x": 8,
+          "x": 15,
           "y": 15,
-          "licenseId": 177
+          "licenseId": 3
         }
       ],
-      "previousCandidateSha256": "0d050647cf81ec94a269e1dba225512ccb304e637c28360f08333b36be6fff3a"
+      "previousCandidateSha256": "c50745ac17cc7840f51b5a4e0c1cc0bbe9bd03cd852c74aa511ac9aba8de12d3"
     },
     {
       "nativeSlot": 3,
@@ -1503,142 +1503,87 @@
       "name": "Green Mage",
       "key": "wood_warder",
       "sourceSha256": "c0ac046eac985d6a768f87ea474b79419fc26892f378ea7e031b849ed276af97",
-      "candidateSha256": "61f0068b8286b313e1937e605ec478e4f9d939fbb10449679b8be8134546d84d",
+      "candidateSha256": "c9a26dae67e9f5192defcba369e5cebfb0dcbbd53659617fcfbb2aecc036a2a9",
       "cells": [
         {
-          "x": 9,
-          "y": 0,
-          "licenseId": 109
+          "x": 17,
+          "y": 5,
+          "licenseId": 1
         },
         {
           "x": 10,
-          "y": 0,
-          "licenseId": 154
-        },
-        {
-          "x": 11,
-          "y": 0,
-          "licenseId": 153
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 110
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 152
+          "y": 6,
+          "licenseId": 20
         },
         {
           "x": 12,
-          "y": 1,
-          "licenseId": 24
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 325
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 151
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 326
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 150
-        },
-        {
-          "x": 12,
-          "y": 3,
+          "y": 6,
           "licenseId": 21
         },
         {
-          "x": 9,
-          "y": 4,
-          "licenseId": 327
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 324
-        },
-        {
-          "x": 9,
-          "y": 5,
-          "licenseId": 272
-        },
-        {
-          "x": 11,
-          "y": 5,
-          "licenseId": 323
-        },
-        {
-          "x": 12,
-          "y": 5,
-          "licenseId": 19
-        },
-        {
-          "x": 7,
+          "x": 17,
           "y": 6,
-          "licenseId": 352
+          "licenseId": 326
         },
         {
-          "x": 9,
+          "x": 18,
           "y": 6,
-          "licenseId": 155
+          "licenseId": 22
         },
         {
-          "x": 11,
-          "y": 6,
-          "licenseId": 108
-        },
-        {
-          "x": 7,
+          "x": 6,
           "y": 7,
-          "licenseId": 160
+          "licenseId": 23
         },
         {
-          "x": 9,
-          "y": 7,
-          "licenseId": 156
-        },
-        {
-          "x": 11,
-          "y": 7,
-          "licenseId": 107
-        },
-        {
-          "x": 12,
+          "x": 8,
           "y": 7,
           "licenseId": 2
         },
         {
-          "x": 14,
+          "x": 10,
           "y": 7,
-          "licenseId": 273
+          "licenseId": 352
         },
         {
-          "x": 15,
+          "x": 11,
           "y": 7,
-          "licenseId": 328
+          "licenseId": 160
+        },
+        {
+          "x": 12,
+          "y": 7,
+          "licenseId": 110
+        },
+        {
+          "x": 14,
+          "y": 7,
+          "licenseId": 3
+        },
+        {
+          "x": 16,
+          "y": 7,
+          "licenseId": 320
+        },
+        {
+          "x": 17,
+          "y": 7,
+          "licenseId": 275
+        },
+        {
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
         },
         {
           "x": 7,
           "y": 8,
-          "licenseId": 159
+          "licenseId": 175
         },
         {
           "x": 8,
           "y": 8,
-          "licenseId": 158
+          "licenseId": 109
         },
         {
           "x": 9,
@@ -1646,149 +1591,194 @@
           "licenseId": 157
         },
         {
+          "x": 10,
+          "y": 8,
+          "licenseId": 108
+        },
+        {
           "x": 11,
           "y": 8,
-          "licenseId": 161
+          "licenseId": 155
+        },
+        {
+          "x": 12,
+          "y": 8,
+          "licenseId": 156
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 158
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 234
+          "licenseId": 159
         },
         {
-          "x": 7,
+          "x": 15,
+          "y": 8,
+          "licenseId": 263
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 318
+        },
+        {
+          "x": 17,
+          "y": 8,
+          "licenseId": 324
+        },
+        {
+          "x": 5,
           "y": 9,
           "licenseId": 360
         },
         {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
+        },
+        {
           "x": 9,
           "y": 9,
-          "licenseId": 28
+          "licenseId": 107
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 152
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 235
+          "licenseId": 151
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 153
         },
         {
           "x": 13,
           "y": 9,
-          "licenseId": 29
+          "licenseId": 154
         },
         {
           "x": 14,
           "y": 9,
-          "licenseId": 237
+          "licenseId": 233
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 300
+          "licenseId": 269
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 265
+          "licenseId": 264
         },
         {
           "x": 17,
           "y": 9,
-          "licenseId": 264
+          "licenseId": 322
         },
         {
           "x": 18,
           "y": 9,
-          "licenseId": 322
+          "licenseId": 24
         },
         {
-          "x": 19,
-          "y": 9,
-          "licenseId": 321
-        },
-        {
-          "x": 20,
-          "y": 9,
-          "licenseId": 320
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 319
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 318
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 10,
-          "licenseId": 26
+          "licenseId": 178
         },
         {
-          "x": 2,
+          "x": 7,
           "y": 10,
-          "licenseId": 23
+          "licenseId": 171
         },
         {
-          "x": 4,
+          "x": 8,
           "y": 10,
-          "licenseId": 20
+          "licenseId": 165
         },
         {
-          "x": 11,
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
           "y": 10,
           "licenseId": 106
         },
         {
-          "x": 22,
+          "x": 11,
           "y": 10,
-          "licenseId": 275
+          "licenseId": 149
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 12,
+          "y": 10,
+          "licenseId": 150
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
         },
         {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
+          "x": 14,
+          "y": 10,
+          "licenseId": 267
         },
         {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
+          "x": 15,
+          "y": 10,
+          "licenseId": 259
         },
         {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
+          "x": 16,
+          "y": 10,
+          "licenseId": 234
+        },
+        {
+          "x": 17,
+          "y": 10,
+          "licenseId": 300
         },
         {
           "x": 5,
           "y": 11,
-          "licenseId": 267
+          "licenseId": 0
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -1798,7 +1788,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 149
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -1808,12 +1798,12 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 191
+          "licenseId": 256
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 257
+          "licenseId": 236
         },
         {
           "x": 14,
@@ -1823,102 +1813,97 @@
         {
           "x": 15,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 258
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 272
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 233
+          "licenseId": 274
         },
         {
           "x": 18,
           "y": 11,
-          "licenseId": 274
+          "licenseId": 328
         },
         {
           "x": 19,
           "y": 11,
-          "licenseId": 258
+          "licenseId": 18
         },
         {
-          "x": 20,
-          "y": 11,
-          "licenseId": 259
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 260
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 263
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 27
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 193
         },
         {
           "x": 11,
           "y": 12,
-          "licenseId": 256
+          "licenseId": 191
         },
         {
-          "x": 19,
+          "x": 12,
           "y": 12,
-          "licenseId": 22
+          "licenseId": 288
         },
         {
-          "x": 21,
+          "x": 13,
           "y": 12,
-          "licenseId": 25
+          "licenseId": 266
         },
         {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
+          "x": 14,
+          "y": 12,
           "licenseId": 268
         },
         {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
+          "x": 15,
+          "y": 12,
+          "licenseId": 262
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 260
+        },
+        {
+          "x": 17,
+          "y": 12,
+          "licenseId": 321
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 270
+          "licenseId": 25
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -1928,105 +1913,120 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
+        },
+        {
+          "x": 9,
+          "y": 13,
+          "licenseId": 207
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 0
+          "licenseId": 294
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 193
+          "licenseId": 205
         },
         {
           "x": 12,
           "y": 13,
-          "licenseId": 1
+          "licenseId": 206
         },
         {
-          "x": 8,
+          "x": 14,
+          "y": 13,
+          "licenseId": 257
+        },
+        {
+          "x": 15,
+          "y": 13,
+          "licenseId": 270
+        },
+        {
+          "x": 16,
+          "y": 13,
+          "licenseId": 273
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 323
+        },
+        {
+          "x": 18,
+          "y": 13,
+          "licenseId": 26
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
           "x": 9,
           "y": 14,
-          "licenseId": 30
+          "licenseId": 27
         },
         {
-          "x": 11,
+          "x": 12,
           "y": 14,
-          "licenseId": 205
+          "licenseId": 28
         },
         {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
+          "x": 15,
+          "y": 14,
+          "licenseId": 271
         },
         {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
+          "x": 16,
+          "y": 14,
+          "licenseId": 319
         },
         {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
+          "x": 17,
+          "y": 14,
+          "licenseId": 235
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 179
+          "licenseId": 29
         },
         {
-          "x": 7,
+          "x": 16,
           "y": 15,
-          "licenseId": 178
+          "licenseId": 265
         },
         {
-          "x": 8,
+          "x": 17,
           "y": 15,
-          "licenseId": 177
+          "licenseId": 325
         },
         {
-          "x": 10,
-          "y": 15,
-          "licenseId": 3
-        },
-        {
-          "x": 11,
-          "y": 15,
-          "licenseId": 288
-        },
-        {
-          "x": 12,
-          "y": 15,
-          "licenseId": 18
-        },
-        {
-          "x": 11,
+          "x": 17,
           "y": 16,
-          "licenseId": 206
+          "licenseId": 327
         },
         {
-          "x": 11,
+          "x": 18,
+          "y": 16,
+          "licenseId": 30
+        },
+        {
+          "x": 17,
           "y": 17,
-          "licenseId": 207
-        },
-        {
-          "x": 11,
-          "y": 18,
-          "licenseId": 294
+          "licenseId": 19
         }
       ],
-      "previousCandidateSha256": "fdc027360f4aea342fb86afc7e51af8e7182c1e6890b9ceb7b79da13d04b75a4"
+      "previousCandidateSha256": "61f0068b8286b313e1937e605ec478e4f9d939fbb10449679b8be8134546d84d"
     },
     {
       "nativeSlot": 4,
@@ -2034,287 +2034,302 @@
       "name": "Knight",
       "key": "oathguard",
       "sourceSha256": "902b04e41c7f4d2b99469b615369f4c3142db6eaa2af7a9e7d6e4a1cef650888",
-      "candidateSha256": "99e46bd49825aa35d9cb87d015cb42425e4ace64cc867ab878713e6ef54cef88",
+      "candidateSha256": "3931c77fec54206dcd7e20a6f1f9b4e340607ea8dd023cf376079447fa83e461",
       "cells": [
         {
           "x": 6,
-          "y": 0,
-          "licenseId": 135
+          "y": 5,
+          "licenseId": 2
         },
         {
-          "x": 7,
-          "y": 0,
-          "licenseId": 134
-        },
-        {
-          "x": 9,
-          "y": 0,
-          "licenseId": 129
+          "x": 8,
+          "y": 5,
+          "licenseId": 26
         },
         {
           "x": 10,
-          "y": 0,
-          "licenseId": 128
-        },
-        {
-          "x": 11,
-          "y": 0,
-          "licenseId": 127
-        },
-        {
-          "x": 7,
-          "y": 1,
-          "licenseId": 133
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 130
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 120
+          "y": 5,
+          "licenseId": 27
         },
         {
           "x": 12,
-          "y": 1,
-          "licenseId": 21
+          "y": 5,
+          "licenseId": 28
         },
         {
-          "x": 7,
-          "y": 2,
-          "licenseId": 132
+          "x": 15,
+          "y": 5,
+          "licenseId": 3
         },
         {
-          "x": 9,
-          "y": 2,
-          "licenseId": 131
+          "x": 5,
+          "y": 6,
+          "licenseId": 360
         },
         {
-          "x": 11,
-          "y": 2,
-          "licenseId": 119
-        },
-        {
-          "x": 7,
-          "y": 3,
-          "licenseId": 348
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 37
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 118
-        },
-        {
-          "x": 12,
-          "y": 3,
-          "licenseId": 18
-        },
-        {
-          "x": 7,
-          "y": 4,
+          "x": 6,
+          "y": 6,
           "licenseId": 125
         },
         {
-          "x": 9,
-          "y": 4,
-          "licenseId": 38
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 36
-        },
-        {
           "x": 7,
-          "y": 5,
+          "y": 6,
+          "licenseId": 350
+        },
+        {
+          "x": 8,
+          "y": 6,
+          "licenseId": 349
+        },
+        {
+          "x": 9,
+          "y": 6,
           "licenseId": 124
         },
         {
-          "x": 9,
-          "y": 5,
-          "licenseId": 39
-        },
-        {
-          "x": 11,
-          "y": 5,
-          "licenseId": 35
-        },
-        {
-          "x": 12,
-          "y": 5,
-          "licenseId": 1
-        },
-        {
-          "x": 7,
+          "x": 10,
           "y": 6,
-          "licenseId": 123
-        },
-        {
-          "x": 9,
-          "y": 6,
-          "licenseId": 210
-        },
-        {
-          "x": 11,
-          "y": 6,
-          "licenseId": 34
-        },
-        {
-          "x": 7,
-          "y": 7,
-          "licenseId": 122
-        },
-        {
-          "x": 9,
-          "y": 7,
           "licenseId": 329
         },
         {
           "x": 11,
+          "y": 6,
+          "licenseId": 135
+        },
+        {
+          "x": 12,
+          "y": 6,
+          "licenseId": 331
+        },
+        {
+          "x": 13,
+          "y": 6,
+          "licenseId": 330
+        },
+        {
+          "x": 14,
+          "y": 6,
+          "licenseId": 123
+        },
+        {
+          "x": 15,
+          "y": 6,
+          "licenseId": 335
+        },
+        {
+          "x": 14,
+          "y": 5,
+          "licenseId": 23
+        },
+        {
+          "x": 7,
           "y": 7,
-          "licenseId": 33
+          "licenseId": 38
+        },
+        {
+          "x": 8,
+          "y": 7,
+          "licenseId": 133
+        },
+        {
+          "x": 9,
+          "y": 7,
+          "licenseId": 37
+        },
+        {
+          "x": 10,
+          "y": 7,
+          "licenseId": 36
+        },
+        {
+          "x": 11,
+          "y": 7,
+          "licenseId": 130
         },
         {
           "x": 12,
           "y": 7,
-          "licenseId": 0
+          "licenseId": 131
+        },
+        {
+          "x": 13,
+          "y": 7,
+          "licenseId": 132
         },
         {
           "x": 14,
           "y": 7,
-          "licenseId": 302
+          "licenseId": 348
         },
         {
           "x": 15,
           "y": 7,
-          "licenseId": 303
+          "licenseId": 134
         },
         {
           "x": 16,
           "y": 7,
-          "licenseId": 304
+          "licenseId": 274
         },
         {
-          "x": 17,
-          "y": 7,
-          "licenseId": 232
+          "x": 5,
+          "y": 8,
+          "licenseId": 18
+        },
+        {
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
         },
         {
           "x": 7,
           "y": 8,
-          "licenseId": 121
+          "licenseId": 175
         },
         {
           "x": 8,
           "y": 8,
-          "licenseId": 331
+          "licenseId": 35
         },
         {
           "x": 9,
           "y": 8,
-          "licenseId": 330
+          "licenseId": 122
+        },
+        {
+          "x": 10,
+          "y": 8,
+          "licenseId": 121
         },
         {
           "x": 11,
           "y": 8,
-          "licenseId": 251
+          "licenseId": 34
+        },
+        {
+          "x": 12,
+          "y": 8,
+          "licenseId": 128
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 129
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 301
-        },
-        {
-          "x": 20,
-          "y": 8,
-          "licenseId": 22
-        },
-        {
-          "x": 22,
-          "y": 8,
-          "licenseId": 26
-        },
-        {
-          "x": 9,
-          "y": 9,
-          "licenseId": 360
-        },
-        {
-          "x": 11,
-          "y": 9,
-          "licenseId": 230
-        },
-        {
-          "x": 14,
-          "y": 9,
-          "licenseId": 300
+          "licenseId": 39
         },
         {
           "x": 15,
-          "y": 9,
-          "licenseId": 274
+          "y": 8,
+          "licenseId": 270
         },
         {
           "x": 16,
-          "y": 9,
-          "licenseId": 275
+          "y": 8,
+          "licenseId": 265
         },
         {
           "x": 17,
-          "y": 9,
-          "licenseId": 349
+          "y": 8,
+          "licenseId": 304
         },
         {
           "x": 18,
-          "y": 9,
-          "licenseId": 350
+          "y": 8,
+          "licenseId": 19
         },
         {
-          "x": 19,
+          "x": 6,
           "y": 9,
-          "licenseId": 335
+          "licenseId": 180
         },
         {
-          "x": 20,
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
+        },
+        {
+          "x": 9,
+          "y": 9,
+          "licenseId": 120
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 33
+        },
+        {
+          "x": 11,
+          "y": 9,
+          "licenseId": 118
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 119
+        },
+        {
+          "x": 13,
+          "y": 9,
+          "licenseId": 127
+        },
+        {
+          "x": 14,
           "y": 9,
           "licenseId": 220
         },
         {
-          "x": 21,
+          "x": 15,
           "y": 9,
-          "licenseId": 227
+          "licenseId": 262
         },
         {
-          "x": 22,
+          "x": 16,
           "y": 9,
-          "licenseId": 231
+          "licenseId": 264
         },
         {
-          "x": 23,
+          "x": 17,
           "y": 9,
-          "licenseId": 27
+          "licenseId": 275
         },
         {
-          "x": 0,
+          "x": 5,
           "y": 10,
-          "licenseId": 23
+          "licenseId": 29
         },
         {
-          "x": 2,
+          "x": 6,
           "y": 10,
-          "licenseId": 19
+          "licenseId": 178
         },
         {
-          "x": 4,
+          "x": 7,
           "y": 10,
-          "licenseId": 2
+          "licenseId": 171
+        },
+        {
+          "x": 8,
+          "y": 10,
+          "licenseId": 165
+        },
+        {
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
+          "y": 10,
+          "licenseId": 117
         },
         {
           "x": 11,
@@ -2322,54 +2337,54 @@
           "licenseId": 32
         },
         {
-          "x": 22,
+          "x": 12,
           "y": 10,
-          "licenseId": 265
+          "licenseId": 126
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
-        },
-        {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
-        },
-        {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
-        },
-        {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
-        },
-        {
-          "x": 5,
-          "y": 11,
+          "x": 14,
+          "y": 10,
           "licenseId": 267
+        },
+        {
+          "x": 15,
+          "y": 10,
+          "licenseId": 253
+        },
+        {
+          "x": 16,
+          "y": 10,
+          "licenseId": 231
+        },
+        {
+          "x": 17,
+          "y": 10,
+          "licenseId": 301
+        },
+        {
+          "x": 18,
+          "y": 10,
+          "licenseId": 30
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -2379,7 +2394,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 117
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -2389,12 +2404,12 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 126
+          "licenseId": 230
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 252
+          "licenseId": 236
         },
         {
           "x": 14,
@@ -2404,52 +2419,42 @@
         {
           "x": 15,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 252
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 271
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 161
+          "licenseId": 232
         },
         {
-          "x": 18,
-          "y": 11,
-          "licenseId": 253
-        },
-        {
-          "x": 19,
-          "y": 11,
-          "licenseId": 254
-        },
-        {
-          "x": 20,
-          "y": 11,
-          "licenseId": 237
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 263
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 264
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 24
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 299
         },
         {
           "x": 11,
@@ -2457,54 +2462,39 @@
           "licenseId": 184
         },
         {
-          "x": 18,
+          "x": 12,
           "y": 12,
-          "licenseId": 3
+          "licenseId": 210
         },
         {
-          "x": 20,
+          "x": 13,
           "y": 12,
-          "licenseId": 20
+          "licenseId": 266
         },
         {
-          "x": 22,
+          "x": 14,
           "y": 12,
-          "licenseId": 25
-        },
-        {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
           "licenseId": 268
         },
         {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
+          "x": 15,
+          "y": 12,
+          "licenseId": 254
         },
         {
-          "x": 5,
-          "y": 13,
-          "licenseId": 270
+          "x": 16,
+          "y": 12,
+          "licenseId": 272
+        },
+        {
+          "x": 17,
+          "y": 12,
+          "licenseId": 302
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -2514,80 +2504,90 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 28
-        },
-        {
-          "x": 11,
-          "y": 13,
-          "licenseId": 299
+          "licenseId": 20
         },
         {
           "x": 12,
           "y": 13,
-          "licenseId": 29
+          "licenseId": 21
         },
         {
-          "x": 8,
+          "x": 14,
+          "y": 13,
+          "licenseId": 251
+        },
+        {
+          "x": 15,
+          "y": 13,
+          "licenseId": 269
+        },
+        {
+          "x": 16,
+          "y": 13,
+          "licenseId": 273
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 303
+        },
+        {
+          "x": 18,
+          "y": 13,
+          "licenseId": 22
+        },
+        {
+          "x": 5,
+          "y": 14,
+          "licenseId": 24
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
-          "x": 11,
+          "x": 15,
           "y": 14,
-          "licenseId": 30
+          "licenseId": 263
         },
         {
-          "x": 0,
-          "y": 15,
-          "licenseId": 273
-        },
-        {
-          "x": 1,
-          "y": 15,
-          "licenseId": 272
-        },
-        {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
-        },
-        {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
-        },
-        {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
+          "x": 16,
+          "y": 14,
+          "licenseId": 227
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 179
+          "licenseId": 25
         },
         {
-          "x": 7,
+          "x": 16,
           "y": 15,
-          "licenseId": 178
+          "licenseId": 300
         },
         {
-          "x": 8,
+          "x": 17,
           "y": 15,
-          "licenseId": 177
+          "licenseId": 0
+        },
+        {
+          "x": 16,
+          "y": 16,
+          "licenseId": 1
         }
       ],
-      "previousCandidateSha256": "acc00fca2de2429d9fedbfc86d5ac52653eeea3eed3be2c83ad707814d599fc0"
+      "previousCandidateSha256": "99e46bd49825aa35d9cb87d015cb42425e4ace64cc867ab878713e6ef54cef88"
     },
     {
       "nativeSlot": 5,
@@ -2595,347 +2595,342 @@
       "name": "Mystic",
       "key": "stonekeeper",
       "sourceSha256": "0bedee771d8549741febb8aa143819c837e578bb77b07dc984a9813f27fd43d5",
-      "candidateSha256": "bd1e09e063253a75b26f250b0b4c0299160cccb73f2ee7db29b90f3b45ea11af",
+      "candidateSha256": "0f4ffff2d3991a19ecd468ddd899b31ed37bf516041590f322f336bc0c29b80b",
       "cells": [
         {
-          "x": 8,
-          "y": 0,
-          "licenseId": 27
-        },
-        {
-          "x": 9,
-          "y": 0,
-          "licenseId": 151
-        },
-        {
-          "x": 10,
-          "y": 0,
-          "licenseId": 150
-        },
-        {
           "x": 11,
-          "y": 0,
-          "licenseId": 149
+          "y": 5,
+          "licenseId": 24
         },
         {
-          "x": 12,
-          "y": 0,
-          "licenseId": 23
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 64
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 142
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 65
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 141
-        },
-        {
-          "x": 12,
-          "y": 2,
-          "licenseId": 20
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 338
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 140
+          "x": 17,
+          "y": 5,
+          "licenseId": 1
         },
         {
           "x": 7,
-          "y": 4,
-          "licenseId": 154
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 339
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 139
-        },
-        {
-          "x": 12,
-          "y": 4,
-          "licenseId": 18
-        },
-        {
-          "x": 7,
-          "y": 5,
-          "licenseId": 153
-        },
-        {
-          "x": 9,
-          "y": 5,
-          "licenseId": 143
-        },
-        {
-          "x": 11,
-          "y": 5,
-          "licenseId": 138
-        },
-        {
-          "x": 7,
-          "y": 6,
-          "licenseId": 152
-        },
-        {
-          "x": 9,
-          "y": 6,
-          "licenseId": 144
-        },
-        {
-          "x": 11,
-          "y": 6,
-          "licenseId": 63
-        },
-        {
-          "x": 12,
           "y": 6,
           "licenseId": 3
         },
         {
-          "x": 7,
-          "y": 7,
+          "x": 8,
+          "y": 6,
+          "licenseId": 28
+        },
+        {
+          "x": 10,
+          "y": 6,
           "licenseId": 351
         },
         {
-          "x": 9,
+          "x": 11,
+          "y": 6,
+          "licenseId": 148
+        },
+        {
+          "x": 12,
+          "y": 6,
+          "licenseId": 339
+        },
+        {
+          "x": 14,
+          "y": 6,
+          "licenseId": 18
+        },
+        {
+          "x": 15,
+          "y": 6,
+          "licenseId": 29
+        },
+        {
+          "x": 17,
+          "y": 6,
+          "licenseId": 300
+        },
+        {
+          "x": 18,
+          "y": 6,
+          "licenseId": 19
+        },
+        {
+          "x": 7,
+          "y": 7,
+          "licenseId": 147
+        },
+        {
+          "x": 8,
           "y": 7,
           "licenseId": 145
         },
         {
+          "x": 9,
+          "y": 7,
+          "licenseId": 144
+        },
+        {
+          "x": 10,
+          "y": 7,
+          "licenseId": 64
+        },
+        {
           "x": 11,
           "y": 7,
-          "licenseId": 62
+          "licenseId": 154
+        },
+        {
+          "x": 12,
+          "y": 7,
+          "licenseId": 143
+        },
+        {
+          "x": 13,
+          "y": 7,
+          "licenseId": 338
         },
         {
           "x": 14,
           "y": 7,
-          "licenseId": 319
+          "licenseId": 146
         },
         {
           "x": 15,
           "y": 7,
-          "licenseId": 320
+          "licenseId": 65
         },
         {
           "x": 16,
           "y": 7,
-          "licenseId": 300
+          "licenseId": 264
         },
         {
           "x": 17,
-          "y": 7,
-          "licenseId": 301
-        },
-        {
-          "x": 18,
-          "y": 7,
-          "licenseId": 302
-        },
-        {
-          "x": 19,
-          "y": 7,
-          "licenseId": 303
-        },
-        {
-          "x": 20,
-          "y": 7,
-          "licenseId": 304
-        },
-        {
-          "x": 21,
-          "y": 7,
-          "licenseId": 237
-        },
-        {
-          "x": 22,
           "y": 7,
           "licenseId": 224
         },
         {
+          "x": 18,
+          "y": 7,
+          "licenseId": 30
+        },
+        {
+          "x": 5,
+          "y": 8,
+          "licenseId": 360
+        },
+        {
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
+        },
+        {
           "x": 7,
           "y": 8,
-          "licenseId": 148
+          "licenseId": 175
         },
         {
           "x": 8,
           "y": 8,
-          "licenseId": 147
+          "licenseId": 63
         },
         {
           "x": 9,
           "y": 8,
-          "licenseId": 146
+          "licenseId": 153
         },
         {
-          "x": 11,
+          "x": 10,
           "y": 8,
           "licenseId": 61
         },
         {
+          "x": 11,
+          "y": 8,
+          "licenseId": 152
+        },
+        {
           "x": 12,
           "y": 8,
-          "licenseId": 2
+          "licenseId": 141
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 62
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 318
+          "licenseId": 142
+        },
+        {
+          "x": 15,
+          "y": 8,
+          "licenseId": 259
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 255
+        },
+        {
+          "x": 17,
+          "y": 8,
+          "licenseId": 320
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
         },
         {
           "x": 9,
           "y": 9,
-          "licenseId": 29
+          "licenseId": 151
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 150
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 161
+          "licenseId": 138
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 139
         },
         {
           "x": 13,
           "y": 9,
-          "licenseId": 30
+          "licenseId": 140
         },
         {
           "x": 14,
           "y": 9,
-          "licenseId": 260
+          "licenseId": 233
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 309
+          "licenseId": 257
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 308
+          "licenseId": 271
         },
         {
           "x": 17,
           "y": 9,
-          "licenseId": 307
+          "licenseId": 318
         },
         {
           "x": 18,
           "y": 9,
-          "licenseId": 255
+          "licenseId": 303
         },
         {
           "x": 19,
           "y": 9,
-          "licenseId": 229
+          "licenseId": 20
         },
         {
-          "x": 20,
-          "y": 9,
-          "licenseId": 265
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 264
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 263
-        },
-        {
-          "x": 23,
-          "y": 9,
-          "licenseId": 28
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 10,
-          "licenseId": 24
+          "licenseId": 178
         },
         {
-          "x": 2,
+          "x": 7,
           "y": 10,
-          "licenseId": 21
+          "licenseId": 171
         },
         {
-          "x": 4,
+          "x": 8,
           "y": 10,
-          "licenseId": 19
+          "licenseId": 165
         },
         {
-          "x": 11,
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
           "y": 10,
           "licenseId": 60
         },
         {
-          "x": 22,
+          "x": 11,
           "y": 10,
-          "licenseId": 259
+          "licenseId": 137
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 12,
+          "y": 10,
+          "licenseId": 149
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
         },
         {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
+          "x": 14,
+          "y": 10,
+          "licenseId": 267
         },
         {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
+          "x": 15,
+          "y": 10,
+          "licenseId": 254
         },
         {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
+          "x": 16,
+          "y": 10,
+          "licenseId": 270
+        },
+        {
+          "x": 17,
+          "y": 10,
+          "licenseId": 308
+        },
+        {
+          "x": 18,
+          "y": 10,
+          "licenseId": 302
         },
         {
           "x": 5,
           "y": 11,
-          "licenseId": 267
+          "licenseId": 0
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -2945,7 +2940,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 137
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -2955,117 +2950,117 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 212
+          "licenseId": 251
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 252
+          "licenseId": 236
         },
         {
           "x": 14,
           "y": 11,
-          "licenseId": 256
+          "licenseId": 261
         },
         {
           "x": 15,
           "y": 11,
-          "licenseId": 257
+          "licenseId": 253
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 261
+          "licenseId": 269
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 307
         },
         {
           "x": 18,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 229
         },
         {
           "x": 19,
           "y": 11,
-          "licenseId": 233
+          "licenseId": 27
         },
         {
-          "x": 20,
-          "y": 11,
-          "licenseId": 253
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 254
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 258
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 25
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 286
         },
         {
           "x": 11,
           "y": 12,
-          "licenseId": 251
+          "licenseId": 212
         },
         {
-          "x": 20,
+          "x": 12,
           "y": 12,
-          "licenseId": 22
+          "licenseId": 213
         },
         {
-          "x": 22,
+          "x": 13,
           "y": 12,
-          "licenseId": 26
+          "licenseId": 266
         },
         {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
+          "x": 14,
+          "y": 12,
           "licenseId": 268
         },
         {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
+          "x": 15,
+          "y": 12,
+          "licenseId": 256
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 263
+        },
+        {
+          "x": 17,
+          "y": 12,
+          "licenseId": 309
+        },
+        {
+          "x": 18,
+          "y": 12,
+          "licenseId": 275
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 270
+          "licenseId": 21
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -3075,12 +3070,12 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 0
+          "licenseId": 214
         },
         {
           "x": 11,
@@ -3088,92 +3083,97 @@
           "licenseId": 283
         },
         {
-          "x": 12,
+          "x": 14,
           "y": 13,
-          "licenseId": 1
+          "licenseId": 252
         },
         {
-          "x": 8,
+          "x": 15,
+          "y": 13,
+          "licenseId": 258
+        },
+        {
+          "x": 16,
+          "y": 13,
+          "licenseId": 272
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 319
+        },
+        {
+          "x": 18,
+          "y": 13,
+          "licenseId": 304
+        },
+        {
+          "x": 19,
+          "y": 13,
+          "licenseId": 22
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
-          "x": 9,
+          "x": 10,
           "y": 14,
-          "licenseId": 360
+          "licenseId": 23
         },
         {
-          "x": 11,
+          "x": 15,
           "y": 14,
-          "licenseId": 286
+          "licenseId": 262
         },
         {
-          "x": 0,
-          "y": 15,
-          "licenseId": 273
+          "x": 16,
+          "y": 14,
+          "licenseId": 260
         },
         {
-          "x": 1,
-          "y": 15,
-          "licenseId": 272
-        },
-        {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
-        },
-        {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
-        },
-        {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
+          "x": 17,
+          "y": 14,
+          "licenseId": 265
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 179
+          "licenseId": 25
         },
         {
-          "x": 7,
+          "x": 16,
           "y": 15,
-          "licenseId": 178
+          "licenseId": 273
         },
         {
-          "x": 8,
+          "x": 17,
           "y": 15,
-          "licenseId": 177
-        },
-        {
-          "x": 11,
-          "y": 15,
-          "licenseId": 213
-        },
-        {
-          "x": 0,
-          "y": 16,
           "licenseId": 274
         },
         {
-          "x": 11,
-          "y": 16,
-          "licenseId": 214
+          "x": 18,
+          "y": 15,
+          "licenseId": 26
         },
         {
-          "x": 0,
+          "x": 17,
+          "y": 16,
+          "licenseId": 301
+        },
+        {
+          "x": 17,
           "y": 17,
-          "licenseId": 275
+          "licenseId": 2
         }
       ],
-      "previousCandidateSha256": "628a5b511cc1d166337d4304c4a7556aa32f4cfed85c94c9eaff7d8fe6f0ca66"
+      "previousCandidateSha256": "bd1e09e063253a75b26f250b0b4c0299160cccb73f2ee7db29b90f3b45ea11af"
     },
     {
       "nativeSlot": 6,
@@ -3181,237 +3181,277 @@
       "name": "Time Mage",
       "key": "chrono_bombardier",
       "sourceSha256": "d84a87857a634fb8e594d29bb972c519758053d4e96501ca9c1212110a2470ad",
-      "candidateSha256": "9486cad077597eb0e35cffca7fc4142967c0c33350ebc7e5ac8f20f4ab975aca",
+      "candidateSha256": "f74d391b30e6d7cee161029a721484f8bc5c1080aa7159c9fcf7c6a6f7a02c52",
       "cells": [
         {
-          "x": 9,
-          "y": 0,
-          "licenseId": 156
+          "x": 8,
+          "y": 6,
+          "licenseId": 19
         },
         {
           "x": 10,
-          "y": 0,
-          "licenseId": 155
+          "y": 6,
+          "licenseId": 28
         },
         {
-          "x": 11,
-          "y": 0,
-          "licenseId": 347
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 157
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 116
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 158
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 154
-        },
-        {
-          "x": 12,
-          "y": 2,
-          "licenseId": 27
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 159
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 153
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 160
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 152
-        },
-        {
-          "x": 12,
-          "y": 4,
-          "licenseId": 24
-        },
-        {
-          "x": 9,
-          "y": 5,
-          "licenseId": 352
-        },
-        {
-          "x": 11,
-          "y": 5,
-          "licenseId": 151
-        },
-        {
-          "x": 10,
+          "x": 13,
           "y": 6,
           "licenseId": 20
         },
         {
-          "x": 11,
+          "x": 16,
           "y": 6,
-          "licenseId": 150
+          "licenseId": 1
         },
         {
-          "x": 12,
-          "y": 6,
-          "licenseId": 21
+          "x": 6,
+          "y": 7,
+          "licenseId": 2
+        },
+        {
+          "x": 8,
+          "y": 7,
+          "licenseId": 352
+        },
+        {
+          "x": 9,
+          "y": 7,
+          "licenseId": 346
+        },
+        {
+          "x": 10,
+          "y": 7,
+          "licenseId": 159
         },
         {
           "x": 11,
           "y": 7,
-          "licenseId": 115
+          "licenseId": 158
+        },
+        {
+          "x": 12,
+          "y": 7,
+          "licenseId": 160
+        },
+        {
+          "x": 13,
+          "y": 7,
+          "licenseId": 347
+        },
+        {
+          "x": 16,
+          "y": 7,
+          "licenseId": 319
+        },
+        {
+          "x": 17,
+          "y": 7,
+          "licenseId": 3
+        },
+        {
+          "x": 5,
+          "y": 8,
+          "licenseId": 360
+        },
+        {
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
+        },
+        {
+          "x": 7,
+          "y": 8,
+          "licenseId": 175
+        },
+        {
+          "x": 8,
+          "y": 8,
+          "licenseId": 157
+        },
+        {
+          "x": 9,
+          "y": 8,
+          "licenseId": 156
         },
         {
           "x": 10,
           "y": 8,
-          "licenseId": 2
+          "licenseId": 155
         },
         {
           "x": 11,
           "y": 8,
-          "licenseId": 161
+          "licenseId": 112
         },
         {
           "x": 12,
           "y": 8,
-          "licenseId": 3
+          "licenseId": 115
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 113
+        },
+        {
+          "x": 14,
+          "y": 8,
+          "licenseId": 116
+        },
+        {
+          "x": 15,
+          "y": 8,
+          "licenseId": 270
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 273
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
+        },
+        {
+          "x": 9,
+          "y": 9,
+          "licenseId": 153
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 151
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 228
+          "licenseId": 150
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 152
+        },
+        {
+          "x": 13,
+          "y": 9,
+          "licenseId": 154
         },
         {
           "x": 14,
           "y": 9,
-          "licenseId": 234
+          "licenseId": 233
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 112
+          "licenseId": 262
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 265
+          "licenseId": 260
         },
         {
           "x": 17,
           "y": 9,
-          "licenseId": 264
+          "licenseId": 322
         },
         {
           "x": 18,
           "y": 9,
-          "licenseId": 322
+          "licenseId": 21
         },
         {
-          "x": 19,
-          "y": 9,
-          "licenseId": 321
-        },
-        {
-          "x": 20,
-          "y": 9,
-          "licenseId": 320
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 319
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 318
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 10,
-          "licenseId": 30
+          "licenseId": 178
         },
         {
-          "x": 2,
+          "x": 7,
           "y": 10,
-          "licenseId": 28
+          "licenseId": 171
         },
         {
-          "x": 4,
+          "x": 8,
           "y": 10,
-          "licenseId": 25
+          "licenseId": 165
         },
         {
-          "x": 11,
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
           "y": 10,
           "licenseId": 114
         },
         {
-          "x": 22,
+          "x": 11,
           "y": 10,
-          "licenseId": 256
+          "licenseId": 149
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 12,
+          "y": 10,
+          "licenseId": 111
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
         },
         {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
+          "x": 14,
+          "y": 10,
+          "licenseId": 267
         },
         {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
+          "x": 15,
+          "y": 10,
+          "licenseId": 258
         },
         {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
+          "x": 16,
+          "y": 10,
+          "licenseId": 272
+        },
+        {
+          "x": 17,
+          "y": 10,
+          "licenseId": 274
         },
         {
           "x": 5,
           "y": 11,
-          "licenseId": 267
+          "licenseId": 0
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -3421,7 +3461,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 111
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -3431,12 +3471,12 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 149
+          "licenseId": 228
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 257
+          "licenseId": 236
         },
         {
           "x": 14,
@@ -3446,52 +3486,47 @@
         {
           "x": 15,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 257
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 271
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 233
+          "licenseId": 265
         },
         {
           "x": 18,
           "y": 11,
-          "licenseId": 258
+          "licenseId": 29
         },
         {
-          "x": 19,
-          "y": 11,
-          "licenseId": 259
-        },
-        {
-          "x": 20,
-          "y": 11,
-          "licenseId": 260
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 263
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 237
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 360
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 199
         },
         {
           "x": 11,
@@ -3499,49 +3534,44 @@
           "licenseId": 198
         },
         {
-          "x": 18,
+          "x": 12,
           "y": 12,
-          "licenseId": 26
+          "licenseId": 200
         },
         {
-          "x": 20,
+          "x": 13,
           "y": 12,
-          "licenseId": 29
+          "licenseId": 266
         },
         {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
+          "x": 14,
+          "y": 12,
           "licenseId": 268
         },
         {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
+          "x": 15,
+          "y": 12,
+          "licenseId": 259
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 234
+        },
+        {
+          "x": 17,
+          "y": 12,
+          "licenseId": 321
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 270
+          "licenseId": 22
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -3551,165 +3581,135 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
+        },
+        {
+          "x": 9,
+          "y": 13,
+          "licenseId": 202
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 0
-        },
-        {
-          "x": 11,
-          "y": 13,
-          "licenseId": 199
-        },
-        {
-          "x": 12,
-          "y": 13,
-          "licenseId": 1
-        },
-        {
-          "x": 8,
-          "y": 14,
-          "licenseId": 176
-        },
-        {
-          "x": 11,
-          "y": 14,
-          "licenseId": 200
-        },
-        {
-          "x": 0,
-          "y": 15,
-          "licenseId": 273
-        },
-        {
-          "x": 1,
-          "y": 15,
-          "licenseId": 272
-        },
-        {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
-        },
-        {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
-        },
-        {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
-        },
-        {
-          "x": 6,
-          "y": 15,
-          "licenseId": 179
-        },
-        {
-          "x": 7,
-          "y": 15,
-          "licenseId": 178
-        },
-        {
-          "x": 8,
-          "y": 15,
-          "licenseId": 177
-        },
-        {
-          "x": 10,
-          "y": 15,
-          "licenseId": 18
-        },
-        {
-          "x": 11,
-          "y": 15,
           "licenseId": 201
         },
         {
-          "x": 12,
-          "y": 15,
-          "licenseId": 19
-        },
-        {
-          "x": 0,
-          "y": 16,
-          "licenseId": 274
-        },
-        {
           "x": 11,
-          "y": 16,
-          "licenseId": 281
-        },
-        {
-          "x": 0,
-          "y": 17,
-          "licenseId": 275
-        },
-        {
-          "x": 10,
-          "y": 17,
-          "licenseId": 22
-        },
-        {
-          "x": 11,
-          "y": 17,
+          "y": 13,
           "licenseId": 284
         },
         {
           "x": 12,
-          "y": 17,
-          "licenseId": 23
+          "y": 13,
+          "licenseId": 281
         },
         {
-          "x": 0,
-          "y": 18,
-          "licenseId": 113
-        },
-        {
-          "x": 11,
-          "y": 18,
-          "licenseId": 202
-        },
-        {
-          "x": 0,
-          "y": 19,
-          "licenseId": 346
-        },
-        {
-          "x": 11,
-          "y": 19,
+          "x": 13,
+          "y": 13,
           "licenseId": 203
         },
         {
-          "x": 11,
-          "y": 20,
-          "licenseId": 204
+          "x": 14,
+          "y": 13,
+          "licenseId": 256
         },
         {
-          "x": 11,
-          "y": 21,
-          "licenseId": 218
+          "x": 15,
+          "y": 13,
+          "licenseId": 269
         },
         {
-          "x": 11,
-          "y": 22,
+          "x": 16,
+          "y": 13,
+          "licenseId": 264
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 275
+        },
+        {
+          "x": 18,
+          "y": 13,
+          "licenseId": 24
+        },
+        {
+          "x": 5,
+          "y": 14,
+          "licenseId": 30
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
+          "y": 14,
+          "licenseId": 176
+        },
+        {
+          "x": 9,
+          "y": 14,
+          "licenseId": 359
+        },
+        {
+          "x": 10,
+          "y": 14,
           "licenseId": 357
         },
         {
+          "x": 11,
+          "y": 14,
+          "licenseId": 204
+        },
+        {
           "x": 12,
-          "y": 22,
-          "licenseId": 359
+          "y": 14,
+          "licenseId": 218
+        },
+        {
+          "x": 15,
+          "y": 14,
+          "licenseId": 263
+        },
+        {
+          "x": 16,
+          "y": 14,
+          "licenseId": 318
+        },
+        {
+          "x": 6,
+          "y": 15,
+          "licenseId": 25
+        },
+        {
+          "x": 9,
+          "y": 15,
+          "licenseId": 26
+        },
+        {
+          "x": 12,
+          "y": 15,
+          "licenseId": 27
+        },
+        {
+          "x": 16,
+          "y": 15,
+          "licenseId": 320
+        },
+        {
+          "x": 17,
+          "y": 15,
+          "licenseId": 18
+        },
+        {
+          "x": 16,
+          "y": 16,
+          "licenseId": 23
         }
       ],
-      "previousCandidateSha256": "131320b216decdbbc9691fb38636f51a5ed1591ed31ec58d91c930585f7ec474"
+      "previousCandidateSha256": "9486cad077597eb0e35cffca7fc4142967c0c33350ebc7e5ac8f20f4ab975aca"
     },
     {
       "nativeSlot": 7,
@@ -3717,172 +3717,122 @@
       "name": "Warrior",
       "key": "lanista",
       "sourceSha256": "effdeab69c10e8e1179af9f6460e29417ea4e8c960fb08d3a8ff25435a4ac9de",
-      "candidateSha256": "31baa0c0664cd7ea056c7e0b79c100c0396a603a56652f95158564e511a8fa26",
+      "candidateSha256": "ee1f4c313281656c49943c36bc3a84296866064e165ebc25d403e60fe6959e85",
       "cells": [
         {
-          "x": 9,
-          "y": 0,
-          "licenseId": 87
-        },
-        {
-          "x": 10,
-          "y": 0,
-          "licenseId": 41
-        },
-        {
           "x": 11,
-          "y": 0,
-          "licenseId": 40
-        },
-        {
-          "x": 12,
-          "y": 0,
-          "licenseId": 23
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 88
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 142
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 89
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 141
-        },
-        {
-          "x": 12,
-          "y": 2,
-          "licenseId": 20
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 343
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 140
+          "y": 5,
+          "licenseId": 24
         },
         {
           "x": 7,
-          "y": 4,
-          "licenseId": 351
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 42
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 139
-        },
-        {
-          "x": 12,
-          "y": 4,
-          "licenseId": 3
-        },
-        {
-          "x": 7,
-          "y": 5,
-          "licenseId": 148
-        },
-        {
-          "x": 9,
-          "y": 5,
-          "licenseId": 44
-        },
-        {
-          "x": 11,
-          "y": 5,
-          "licenseId": 138
-        },
-        {
-          "x": 7,
-          "y": 6,
-          "licenseId": 147
-        },
-        {
-          "x": 9,
-          "y": 6,
-          "licenseId": 332
-        },
-        {
-          "x": 11,
-          "y": 6,
-          "licenseId": 86
-        },
-        {
-          "x": 12,
           "y": 6,
           "licenseId": 1
         },
         {
+          "x": 8,
+          "y": 6,
+          "licenseId": 29
+        },
+        {
+          "x": 10,
+          "y": 6,
+          "licenseId": 343
+        },
+        {
+          "x": 11,
+          "y": 6,
+          "licenseId": 43
+        },
+        {
+          "x": 12,
+          "y": 6,
+          "licenseId": 44
+        },
+        {
+          "x": 14,
+          "y": 6,
+          "licenseId": 2
+        },
+        {
+          "x": 17,
+          "y": 6,
+          "licenseId": 3
+        },
+        {
           "x": 7,
           "y": 7,
-          "licenseId": 146
+          "licenseId": 332
+        },
+        {
+          "x": 8,
+          "y": 7,
+          "licenseId": 89
         },
         {
           "x": 9,
           "y": 7,
-          "licenseId": 354
+          "licenseId": 42
+        },
+        {
+          "x": 10,
+          "y": 7,
+          "licenseId": 145
         },
         {
           "x": 11,
           "y": 7,
-          "licenseId": 85
+          "licenseId": 41
+        },
+        {
+          "x": 12,
+          "y": 7,
+          "licenseId": 146
+        },
+        {
+          "x": 13,
+          "y": 7,
+          "licenseId": 147
         },
         {
           "x": 14,
           "y": 7,
-          "licenseId": 273
+          "licenseId": 148
         },
         {
           "x": 15,
           "y": 7,
-          "licenseId": 305
+          "licenseId": 351
         },
         {
           "x": 16,
           "y": 7,
-          "licenseId": 272
+          "licenseId": 265
         },
         {
           "x": 17,
           "y": 7,
-          "licenseId": 301
+          "licenseId": 305
         },
         {
           "x": 18,
           "y": 7,
-          "licenseId": 302
+          "licenseId": 18
         },
         {
-          "x": 19,
-          "y": 7,
-          "licenseId": 303
+          "x": 5,
+          "y": 8,
+          "licenseId": 360
         },
         {
-          "x": 20,
-          "y": 7,
-          "licenseId": 304
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
         },
         {
           "x": 7,
           "y": 8,
-          "licenseId": 145
+          "licenseId": 175
         },
         {
           "x": 8,
@@ -3895,154 +3845,189 @@
           "licenseId": 143
         },
         {
+          "x": 10,
+          "y": 8,
+          "licenseId": 40
+        },
+        {
           "x": 11,
           "y": 8,
-          "licenseId": 84
+          "licenseId": 142
         },
         {
           "x": 12,
           "y": 8,
-          "licenseId": 0
+          "licenseId": 86
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 87
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 306
+          "licenseId": 88
+        },
+        {
+          "x": 15,
+          "y": 8,
+          "licenseId": 263
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 308
+        },
+        {
+          "x": 17,
+          "y": 8,
+          "licenseId": 303
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
         },
         {
           "x": 9,
           "y": 9,
-          "licenseId": 29
+          "licenseId": 141
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 84
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 161
+          "licenseId": 139
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 140
         },
         {
           "x": 13,
           "y": 9,
-          "licenseId": 30
+          "licenseId": 85
         },
         {
           "x": 14,
           "y": 9,
-          "licenseId": 237
+          "licenseId": 251
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 274
+          "licenseId": 269
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 275
+          "licenseId": 273
         },
         {
           "x": 17,
           "y": 9,
-          "licenseId": 310
+          "licenseId": 302
         },
         {
           "x": 18,
           "y": 9,
-          "licenseId": 43
-        },
-        {
-          "x": 19,
-          "y": 9,
-          "licenseId": 251
-        },
-        {
-          "x": 20,
-          "y": 9,
-          "licenseId": 300
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 265
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 264
-        },
-        {
-          "x": 23,
-          "y": 9,
           "licenseId": 26
         },
         {
-          "x": 0,
+          "x": 6,
           "y": 10,
-          "licenseId": 24
+          "licenseId": 178
         },
         {
-          "x": 2,
+          "x": 7,
           "y": 10,
-          "licenseId": 21
+          "licenseId": 171
         },
         {
-          "x": 4,
+          "x": 8,
           "y": 10,
-          "licenseId": 18
+          "licenseId": 165
         },
         {
-          "x": 11,
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
           "y": 10,
           "licenseId": 83
         },
         {
-          "x": 22,
+          "x": 11,
           "y": 10,
-          "licenseId": 263
+          "licenseId": 137
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 12,
+          "y": 10,
+          "licenseId": 138
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
         },
         {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
+          "x": 14,
+          "y": 10,
+          "licenseId": 267
         },
         {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
+          "x": 15,
+          "y": 10,
+          "licenseId": 254
         },
         {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
+          "x": 16,
+          "y": 10,
+          "licenseId": 255
+        },
+        {
+          "x": 17,
+          "y": 10,
+          "licenseId": 310
         },
         {
           "x": 5,
           "y": 11,
-          "licenseId": 267
+          "licenseId": 0
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -4052,7 +4037,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 137
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -4062,12 +4047,12 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 282
+          "licenseId": 223
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 252
+          "licenseId": 236
         },
         {
           "x": 14,
@@ -4077,107 +4062,92 @@
         {
           "x": 15,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 253
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 272
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 253
+          "licenseId": 300
         },
         {
           "x": 18,
           "y": 11,
-          "licenseId": 254
+          "licenseId": 27
         },
         {
-          "x": 19,
-          "y": 11,
-          "licenseId": 255
-        },
-        {
-          "x": 20,
-          "y": 11,
-          "licenseId": 307
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 308
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 309
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 25
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 292
         },
         {
           "x": 11,
           "y": 12,
-          "licenseId": 223
+          "licenseId": 282
+        },
+        {
+          "x": 12,
+          "y": 12,
+          "licenseId": 296
+        },
+        {
+          "x": 13,
+          "y": 12,
+          "licenseId": 266
+        },
+        {
+          "x": 14,
+          "y": 12,
+          "licenseId": 268
+        },
+        {
+          "x": 15,
+          "y": 12,
+          "licenseId": 262
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 264
         },
         {
           "x": 17,
           "y": 12,
-          "licenseId": 2
-        },
-        {
-          "x": 19,
-          "y": 12,
-          "licenseId": 19
-        },
-        {
-          "x": 21,
-          "y": 12,
-          "licenseId": 22
-        },
-        {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
-          "licenseId": 268
-        },
-        {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
+          "licenseId": 301
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 270
+          "licenseId": 19
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -4187,70 +4157,100 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 27
-        },
-        {
-          "x": 11,
-          "y": 13,
-          "licenseId": 292
+          "licenseId": 20
         },
         {
           "x": 12,
           "y": 13,
+          "licenseId": 21
+        },
+        {
+          "x": 14,
+          "y": 13,
+          "licenseId": 252
+        },
+        {
+          "x": 15,
+          "y": 13,
+          "licenseId": 270
+        },
+        {
+          "x": 16,
+          "y": 13,
+          "licenseId": 307
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 275
+        },
+        {
+          "x": 18,
+          "y": 13,
           "licenseId": 28
         },
         {
-          "x": 8,
+          "x": 5,
+          "y": 14,
+          "licenseId": 30
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
-          "x": 11,
+          "x": 15,
           "y": 14,
-          "licenseId": 296
+          "licenseId": 271
         },
         {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
+          "x": 16,
+          "y": 14,
+          "licenseId": 309
         },
         {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
+          "x": 17,
+          "y": 14,
+          "licenseId": 304
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 179
+          "licenseId": 22
         },
         {
-          "x": 7,
+          "x": 16,
           "y": 15,
-          "licenseId": 178
+          "licenseId": 274
         },
         {
-          "x": 8,
+          "x": 17,
           "y": 15,
-          "licenseId": 177
+          "licenseId": 306
         },
         {
-          "x": 11,
+          "x": 18,
           "y": 15,
-          "licenseId": 360
+          "licenseId": 23
+        },
+        {
+          "x": 16,
+          "y": 16,
+          "licenseId": 25
         }
       ],
-      "previousCandidateSha256": "4f696392e4083ad22f340587c15246d4c7b9cfe62cb7864e29ceb992067bd4a8"
+      "previousCandidateSha256": "31baa0c0664cd7ea056c7e0b79c100c0396a603a56652f95158564e511a8fa26"
     },
     {
       "nativeSlot": 8,
@@ -4258,302 +4258,332 @@
       "name": "Hunter",
       "key": "clan_tracker",
       "sourceSha256": "06bce01f6bc5b5e82fcc77cf41cbd40d308f31d842957434bc70a3e1cf86d858",
-      "candidateSha256": "838929887c3c8128b8b25aebe657a98b38993e94926cbf6e6813146eda6b6131",
+      "candidateSha256": "9186e34ab1e14be8d2caa4478cbba31c6ee5c336ca62d2b20641f807a88f5c4a",
       "cells": [
         {
-          "x": 8,
-          "y": 0,
+          "x": 10,
+          "y": 5,
+          "licenseId": 24
+        },
+        {
+          "x": 12,
+          "y": 5,
+          "licenseId": 19
+        },
+        {
+          "x": 13,
+          "y": 5,
           "licenseId": 27
         },
         {
-          "x": 9,
-          "y": 0,
-          "licenseId": 142
-        },
-        {
-          "x": 10,
-          "y": 0,
-          "licenseId": 141
-        },
-        {
-          "x": 11,
-          "y": 0,
-          "licenseId": 140
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 70
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 139
-        },
-        {
-          "x": 12,
-          "y": 1,
-          "licenseId": 23
-        },
-        {
           "x": 7,
-          "y": 2,
-          "licenseId": 351
+          "y": 6,
+          "licenseId": 1
         },
         {
           "x": 9,
-          "y": 2,
-          "licenseId": 71
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 138
-        },
-        {
-          "x": 7,
-          "y": 3,
-          "licenseId": 148
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 72
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 92
-        },
-        {
-          "x": 12,
-          "y": 3,
-          "licenseId": 20
-        },
-        {
-          "x": 7,
-          "y": 4,
-          "licenseId": 147
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 340
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 91
-        },
-        {
-          "x": 7,
-          "y": 5,
-          "licenseId": 146
-        },
-        {
-          "x": 9,
-          "y": 5,
+          "y": 6,
           "licenseId": 341
         },
         {
+          "x": 10,
+          "y": 6,
+          "licenseId": 351
+        },
+        {
           "x": 11,
-          "y": 5,
-          "licenseId": 69
+          "y": 6,
+          "licenseId": 340
         },
         {
           "x": 12,
-          "y": 5,
-          "licenseId": 3
+          "y": 6,
+          "licenseId": 72
         },
         {
-          "x": 7,
+          "x": 13,
           "y": 6,
-          "licenseId": 145
+          "licenseId": 95
         },
         {
-          "x": 9,
+          "x": 15,
           "y": 6,
-          "licenseId": 93
+          "licenseId": 20
         },
         {
-          "x": 11,
+          "x": 16,
           "y": 6,
-          "licenseId": 68
+          "licenseId": 28
         },
         {
           "x": 7,
           "y": 7,
-          "licenseId": 144
+          "licenseId": 344
+        },
+        {
+          "x": 8,
+          "y": 7,
+          "licenseId": 146
         },
         {
           "x": 9,
+          "y": 7,
+          "licenseId": 71
+        },
+        {
+          "x": 10,
           "y": 7,
           "licenseId": 94
         },
         {
           "x": 11,
           "y": 7,
-          "licenseId": 67
+          "licenseId": 70
         },
         {
           "x": 12,
           "y": 7,
+          "licenseId": 144
+        },
+        {
+          "x": 13,
+          "y": 7,
+          "licenseId": 145
+        },
+        {
+          "x": 14,
+          "y": 7,
+          "licenseId": 147
+        },
+        {
+          "x": 15,
+          "y": 7,
+          "licenseId": 148
+        },
+        {
+          "x": 16,
+          "y": 7,
+          "licenseId": 274
+        },
+        {
+          "x": 17,
+          "y": 7,
           "licenseId": 2
         },
         {
+          "x": 5,
+          "y": 8,
+          "licenseId": 360
+        },
+        {
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
+        },
+        {
           "x": 7,
+          "y": 8,
+          "licenseId": 175
+        },
+        {
+          "x": 8,
+          "y": 8,
+          "licenseId": 93
+        },
+        {
+          "x": 9,
+          "y": 8,
+          "licenseId": 142
+        },
+        {
+          "x": 10,
+          "y": 8,
+          "licenseId": 68
+        },
+        {
+          "x": 11,
+          "y": 8,
+          "licenseId": 141
+        },
+        {
+          "x": 12,
+          "y": 8,
+          "licenseId": 92
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 69
+        },
+        {
+          "x": 14,
           "y": 8,
           "licenseId": 143
         },
         {
+          "x": 15,
+          "y": 8,
+          "licenseId": 271
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 309
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
           "x": 8,
-          "y": 8,
-          "licenseId": 344
-        },
-        {
-          "x": 9,
-          "y": 8,
-          "licenseId": 95
-        },
-        {
-          "x": 11,
-          "y": 8,
-          "licenseId": 162
+          "y": 9,
+          "licenseId": 167
         },
         {
           "x": 9,
           "y": 9,
-          "licenseId": 28
+          "licenseId": 140
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 91
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 277
+          "licenseId": 138
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 139
+        },
+        {
+          "x": 13,
+          "y": 9,
+          "licenseId": 67
         },
         {
           "x": 14,
           "y": 9,
-          "licenseId": 30
+          "licenseId": 252
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 275
+          "licenseId": 270
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 310
+          "licenseId": 307
         },
         {
           "x": 17,
           "y": 9,
-          "licenseId": 301
+          "licenseId": 275
         },
         {
           "x": 18,
           "y": 9,
-          "licenseId": 300
+          "licenseId": 21
         },
         {
-          "x": 19,
-          "y": 9,
-          "licenseId": 265
-        },
-        {
-          "x": 20,
-          "y": 9,
-          "licenseId": 309
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 308
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 307
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 10,
-          "licenseId": 25
+          "licenseId": 178
         },
         {
-          "x": 2,
+          "x": 7,
           "y": 10,
-          "licenseId": 22
+          "licenseId": 171
         },
         {
-          "x": 4,
+          "x": 8,
           "y": 10,
-          "licenseId": 19
+          "licenseId": 165
+        },
+        {
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
+          "y": 10,
+          "licenseId": 90
         },
         {
           "x": 11,
           "y": 10,
+          "licenseId": 137
+        },
+        {
+          "x": 12,
+          "y": 10,
           "licenseId": 66
         },
         {
-          "x": 22,
+          "x": 13,
           "y": 10,
-          "licenseId": 255
+          "licenseId": 237
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 14,
+          "y": 10,
+          "licenseId": 267
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
+          "x": 15,
+          "y": 10,
+          "licenseId": 262
         },
         {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
+          "x": 16,
+          "y": 10,
+          "licenseId": 264
         },
         {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
-        },
-        {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
+          "x": 17,
+          "y": 10,
+          "licenseId": 301
         },
         {
           "x": 5,
           "y": 11,
-          "licenseId": 267
+          "licenseId": 0
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
           "y": 11,
-          "licenseId": 251
+          "licenseId": 162
         },
         {
           "x": 10,
           "y": 11,
-          "licenseId": 90
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -4563,12 +4593,12 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 137
+          "licenseId": 251
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 252
+          "licenseId": 236
         },
         {
           "x": 14,
@@ -4578,52 +4608,42 @@
         {
           "x": 15,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 254
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 255
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 253
+          "licenseId": 310
         },
         {
-          "x": 18,
-          "y": 11,
-          "licenseId": 254
-        },
-        {
-          "x": 19,
-          "y": 11,
-          "licenseId": 263
-        },
-        {
-          "x": 20,
-          "y": 11,
-          "licenseId": 264
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 237
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 302
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 26
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 277
         },
         {
           "x": 11,
@@ -4631,54 +4651,49 @@
           "licenseId": 276
         },
         {
-          "x": 17,
+          "x": 12,
           "y": 12,
-          "licenseId": 18
+          "licenseId": 279
         },
         {
-          "x": 19,
+          "x": 13,
           "y": 12,
-          "licenseId": 21
+          "licenseId": 266
         },
         {
-          "x": 21,
+          "x": 14,
           "y": 12,
-          "licenseId": 24
-        },
-        {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
           "licenseId": 268
         },
         {
-          "x": 4,
-          "y": 13,
+          "x": 15,
+          "y": 12,
           "licenseId": 269
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 273
+        },
+        {
+          "x": 17,
+          "y": 12,
+          "licenseId": 302
+        },
+        {
+          "x": 18,
+          "y": 12,
+          "licenseId": 22
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 270
+          "licenseId": 23
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -4688,100 +4703,85 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
-        },
-        {
-          "x": 9,
-          "y": 13,
-          "licenseId": 29
+          "licenseId": 170
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 161
+          "licenseId": 289
         },
         {
-          "x": 8,
+          "x": 14,
+          "y": 13,
+          "licenseId": 253
+        },
+        {
+          "x": 15,
+          "y": 13,
+          "licenseId": 263
+        },
+        {
+          "x": 16,
+          "y": 13,
+          "licenseId": 308
+        },
+        {
+          "x": 5,
+          "y": 14,
+          "licenseId": 29
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
-          "x": 10,
-          "y": 14,
-          "licenseId": 0
-        },
-        {
           "x": 11,
           "y": 14,
-          "licenseId": 279
+          "licenseId": 3
         },
         {
-          "x": 12,
+          "x": 15,
           "y": 14,
-          "licenseId": 1
-        },
-        {
-          "x": 0,
-          "y": 15,
-          "licenseId": 273
-        },
-        {
-          "x": 1,
-          "y": 15,
           "licenseId": 272
         },
         {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
+          "x": 16,
+          "y": 14,
+          "licenseId": 265
         },
         {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
-        },
-        {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
+          "x": 17,
+          "y": 14,
+          "licenseId": 25
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 179
+          "licenseId": 26
         },
         {
           "x": 7,
           "y": 15,
-          "licenseId": 178
+          "licenseId": 30
         },
         {
-          "x": 8,
+          "x": 16,
           "y": 15,
-          "licenseId": 177
+          "licenseId": 300
         },
         {
-          "x": 11,
-          "y": 15,
-          "licenseId": 289
-        },
-        {
-          "x": 0,
+          "x": 16,
           "y": 16,
-          "licenseId": 274
-        },
-        {
-          "x": 11,
-          "y": 16,
-          "licenseId": 360
+          "licenseId": 18
         }
       ],
-      "previousCandidateSha256": "10e3c100d404683a793e3d3a144381a9bd7c7dca0cb68b3bdba1206b742c9b10"
+      "previousCandidateSha256": "838929887c3c8128b8b25aebe657a98b38993e94926cbf6e6813146eda6b6131"
     },
     {
       "nativeSlot": 9,
@@ -4789,272 +4789,282 @@
       "name": "Black Mage",
       "key": "imperial_arcanist",
       "sourceSha256": "b7645a98b6bb3088e27de36bff7c07ee7ffb2382da2f3bdeba38faef0fe7e02a",
-      "candidateSha256": "4dd02765659646e326580d54b79095682399dfd1ede6f88748a913daa4d22e6c",
+      "candidateSha256": "91556178946dfb7dd65550ea0383a83ac21eb52d13dd3fc4eb78d13e180679f5",
       "cells": [
         {
-          "x": 9,
-          "y": 0,
-          "licenseId": 155
-        },
-        {
-          "x": 10,
-          "y": 0,
-          "licenseId": 345
-        },
-        {
-          "x": 11,
-          "y": 0,
-          "licenseId": 105
+          "x": 17,
+          "y": 5,
+          "licenseId": 1
         },
         {
           "x": 9,
-          "y": 1,
-          "licenseId": 156
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 104
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 157
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 154
-        },
-        {
-          "x": 12,
-          "y": 2,
-          "licenseId": 26
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 158
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 153
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 159
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 152
-        },
-        {
-          "x": 12,
-          "y": 4,
+          "y": 6,
           "licenseId": 21
         },
         {
+          "x": 12,
+          "y": 6,
+          "licenseId": 22
+        },
+        {
+          "x": 17,
+          "y": 6,
+          "licenseId": 326
+        },
+        {
+          "x": 18,
+          "y": 6,
+          "licenseId": 24
+        },
+        {
+          "x": 7,
+          "y": 7,
+          "licenseId": 2
+        },
+        {
           "x": 9,
-          "y": 5,
+          "y": 7,
+          "licenseId": 352
+        },
+        {
+          "x": 10,
+          "y": 7,
           "licenseId": 160
         },
         {
           "x": 11,
-          "y": 5,
-          "licenseId": 151
-        },
-        {
-          "x": 9,
-          "y": 6,
-          "licenseId": 352
-        },
-        {
-          "x": 11,
-          "y": 6,
-          "licenseId": 150
+          "y": 7,
+          "licenseId": 159
         },
         {
           "x": 12,
-          "y": 6,
-          "licenseId": 18
-        },
-        {
-          "x": 11,
           "y": 7,
-          "licenseId": 103
+          "licenseId": 105
         },
         {
           "x": 14,
           "y": 7,
-          "licenseId": 263
-        },
-        {
-          "x": 15,
-          "y": 7,
-          "licenseId": 264
+          "licenseId": 3
         },
         {
           "x": 16,
           "y": 7,
-          "licenseId": 237
+          "licenseId": 319
         },
         {
           "x": 17,
           "y": 7,
-          "licenseId": 235
+          "licenseId": 275
         },
         {
-          "x": 18,
-          "y": 7,
-          "licenseId": 272
+          "x": 5,
+          "y": 8,
+          "licenseId": 23
         },
         {
-          "x": 19,
-          "y": 7,
-          "licenseId": 273
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
+        },
+        {
+          "x": 7,
+          "y": 8,
+          "licenseId": 175
+        },
+        {
+          "x": 8,
+          "y": 8,
+          "licenseId": 157
+        },
+        {
+          "x": 9,
+          "y": 8,
+          "licenseId": 156
         },
         {
           "x": 10,
           "y": 8,
-          "licenseId": 0
+          "licenseId": 154
         },
         {
           "x": 11,
           "y": 8,
-          "licenseId": 102
+          "licenseId": 104
         },
         {
           "x": 12,
           "y": 8,
-          "licenseId": 1
+          "licenseId": 155
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 345
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 328
+          "licenseId": 158
+        },
+        {
+          "x": 15,
+          "y": 8,
+          "licenseId": 270
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 273
+        },
+        {
+          "x": 17,
+          "y": 8,
+          "licenseId": 324
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
+        },
+        {
+          "x": 9,
+          "y": 9,
+          "licenseId": 103
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 102
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 161
+          "licenseId": 151
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 152
+        },
+        {
+          "x": 13,
+          "y": 9,
+          "licenseId": 153
         },
         {
           "x": 14,
           "y": 9,
-          "licenseId": 327
+          "licenseId": 219
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 326
+          "licenseId": 262
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 325
+          "licenseId": 260
         },
         {
           "x": 17,
           "y": 9,
-          "licenseId": 324
+          "licenseId": 322
         },
         {
           "x": 18,
           "y": 9,
-          "licenseId": 323
+          "licenseId": 25
         },
         {
-          "x": 19,
-          "y": 9,
-          "licenseId": 322
-        },
-        {
-          "x": 20,
-          "y": 9,
-          "licenseId": 321
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 219
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 234
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 10,
-          "licenseId": 29
+          "licenseId": 178
         },
         {
-          "x": 2,
+          "x": 7,
           "y": 10,
-          "licenseId": 27
+          "licenseId": 171
         },
         {
-          "x": 4,
+          "x": 8,
           "y": 10,
-          "licenseId": 22
+          "licenseId": 165
         },
         {
-          "x": 11,
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
           "y": 10,
           "licenseId": 101
         },
         {
-          "x": 22,
+          "x": 11,
           "y": 10,
-          "licenseId": 320
+          "licenseId": 149
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 12,
+          "y": 10,
+          "licenseId": 150
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
         },
         {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
+          "x": 14,
+          "y": 10,
+          "licenseId": 267
         },
         {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
+          "x": 15,
+          "y": 10,
+          "licenseId": 258
         },
         {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
+          "x": 16,
+          "y": 10,
+          "licenseId": 272
+        },
+        {
+          "x": 17,
+          "y": 10,
+          "licenseId": 274
         },
         {
           "x": 5,
           "y": 11,
-          "licenseId": 267
+          "licenseId": 0
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -5064,7 +5074,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 149
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -5074,12 +5084,12 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 190
+          "licenseId": 256
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 257
+          "licenseId": 236
         },
         {
           "x": 14,
@@ -5089,107 +5099,97 @@
         {
           "x": 15,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 257
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 271
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 233
+          "licenseId": 265
         },
         {
           "x": 18,
           "y": 11,
-          "licenseId": 258
+          "licenseId": 328
         },
         {
           "x": 19,
           "y": 11,
-          "licenseId": 259
+          "licenseId": 18
         },
         {
-          "x": 20,
-          "y": 11,
-          "licenseId": 260
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 318
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 319
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 30
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 194
         },
         {
           "x": 11,
           "y": 12,
-          "licenseId": 256
+          "licenseId": 190
         },
         {
-          "x": 18,
+          "x": 12,
           "y": 12,
-          "licenseId": 23
+          "licenseId": 195
         },
         {
-          "x": 20,
+          "x": 13,
           "y": 12,
-          "licenseId": 28
+          "licenseId": 266
         },
         {
-          "x": 22,
+          "x": 14,
           "y": 12,
-          "licenseId": 360
-        },
-        {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
           "licenseId": 268
         },
         {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
+          "x": 15,
+          "y": 12,
+          "licenseId": 259
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 234
+        },
+        {
+          "x": 17,
+          "y": 12,
+          "licenseId": 321
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 270
+          "licenseId": 360
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -5199,140 +5199,140 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
+        },
+        {
+          "x": 9,
+          "y": 13,
+          "licenseId": 358
+        },
+        {
+          "x": 10,
+          "y": 13,
+          "licenseId": 197
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 265
+          "licenseId": 196
         },
         {
-          "x": 8,
+          "x": 12,
+          "y": 13,
+          "licenseId": 356
+        },
+        {
+          "x": 13,
+          "y": 13,
+          "licenseId": 215
+        },
+        {
+          "x": 14,
+          "y": 13,
+          "licenseId": 233
+        },
+        {
+          "x": 15,
+          "y": 13,
+          "licenseId": 269
+        },
+        {
+          "x": 16,
+          "y": 13,
+          "licenseId": 264
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 323
+        },
+        {
+          "x": 18,
+          "y": 13,
+          "licenseId": 26
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
           "x": 10,
           "y": 14,
-          "licenseId": 2
+          "licenseId": 217
         },
         {
           "x": 11,
           "y": 14,
-          "licenseId": 275
+          "licenseId": 216
         },
         {
-          "x": 12,
+          "x": 13,
           "y": 14,
-          "licenseId": 3
+          "licenseId": 19
         },
         {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
+          "x": 15,
+          "y": 14,
+          "licenseId": 263
         },
         {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
+          "x": 16,
+          "y": 14,
+          "licenseId": 318
         },
         {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
+          "x": 17,
+          "y": 14,
+          "licenseId": 235
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 179
+          "licenseId": 27
         },
         {
           "x": 7,
           "y": 15,
-          "licenseId": 178
-        },
-        {
-          "x": 8,
-          "y": 15,
-          "licenseId": 177
-        },
-        {
-          "x": 11,
-          "y": 15,
-          "licenseId": 274
+          "licenseId": 30
         },
         {
           "x": 10,
-          "y": 16,
-          "licenseId": 19
+          "y": 15,
+          "licenseId": 28
         },
         {
-          "x": 11,
-          "y": 16,
-          "licenseId": 194
+          "x": 16,
+          "y": 15,
+          "licenseId": 320
         },
         {
-          "x": 12,
-          "y": 16,
-          "licenseId": 20
+          "x": 17,
+          "y": 15,
+          "licenseId": 325
         },
         {
-          "x": 11,
+          "x": 17,
+          "y": 16,
+          "licenseId": 327
+        },
+        {
+          "x": 18,
+          "y": 16,
+          "licenseId": 29
+        },
+        {
+          "x": 17,
           "y": 17,
-          "licenseId": 195
-        },
-        {
-          "x": 10,
-          "y": 18,
-          "licenseId": 24
-        },
-        {
-          "x": 11,
-          "y": 18,
-          "licenseId": 354
-        },
-        {
-          "x": 12,
-          "y": 18,
-          "licenseId": 25
-        },
-        {
-          "x": 11,
-          "y": 19,
-          "licenseId": 196
-        },
-        {
-          "x": 11,
-          "y": 20,
-          "licenseId": 197
-        },
-        {
-          "x": 11,
-          "y": 21,
-          "licenseId": 215
-        },
-        {
-          "x": 13,
-          "y": 21,
-          "licenseId": 358
-        },
-        {
-          "x": 11,
-          "y": 22,
-          "licenseId": 216
-        },
-        {
-          "x": 12,
-          "y": 22,
-          "licenseId": 217
-        },
-        {
-          "x": 13,
-          "y": 22,
-          "licenseId": 356
+          "licenseId": 20
         }
       ],
-      "previousCandidateSha256": "5c405cc0a395641181a360e1659a356bedc731cace847cbf35656733ebf8924a"
+      "previousCandidateSha256": "4dd02765659646e326580d54b79095682399dfd1ede6f88748a913daa4d22e6c"
     },
     {
       "nativeSlot": 10,
@@ -5340,167 +5340,122 @@
       "name": "Samurai",
       "key": "mistblade",
       "sourceSha256": "7cf6838113adac31117cc9ca045a16d4f7845ed866f9061300f2aa50405c5ae8",
-      "candidateSha256": "21633f00c0ff92a282673bcafa056fbeeede6a85e83ebe8638a796cdc17400f5",
+      "candidateSha256": "1b9669b76586be792c8ef4caeee24105ee4e98c640cacff9db7b8ba4bf8a0d33",
       "cells": [
         {
-          "x": 9,
-          "y": 0,
-          "licenseId": 51
+          "x": 17,
+          "y": 5,
+          "licenseId": 1
         },
         {
-          "x": 10,
-          "y": 0,
-          "licenseId": 50
-        },
-        {
-          "x": 11,
-          "y": 0,
-          "licenseId": 49
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 52
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 48
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 334
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 154
-        },
-        {
-          "x": 12,
-          "y": 2,
-          "licenseId": 22
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 301
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 153
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 336
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 152
-        },
-        {
-          "x": 12,
-          "y": 4,
+          "x": 7,
+          "y": 6,
           "licenseId": 19
         },
         {
           "x": 9,
-          "y": 5,
-          "licenseId": 136
+          "y": 6,
+          "licenseId": 30
         },
         {
           "x": 11,
-          "y": 5,
-          "licenseId": 151
+          "y": 6,
+          "licenseId": 20
+        },
+        {
+          "x": 13,
+          "y": 6,
+          "licenseId": 0
+        },
+        {
+          "x": 15,
+          "y": 6,
+          "licenseId": 2
+        },
+        {
+          "x": 17,
+          "y": 6,
+          "licenseId": 275
+        },
+        {
+          "x": 18,
+          "y": 6,
+          "licenseId": 21
         },
         {
           "x": 7,
-          "y": 6,
-          "licenseId": 352
+          "y": 7,
+          "licenseId": 52
+        },
+        {
+          "x": 8,
+          "y": 7,
+          "licenseId": 336
         },
         {
           "x": 9,
-          "y": 6,
-          "licenseId": 155
+          "y": 7,
+          "licenseId": 352
+        },
+        {
+          "x": 10,
+          "y": 7,
+          "licenseId": 50
         },
         {
           "x": 11,
-          "y": 6,
-          "licenseId": 150
-        },
-        {
-          "x": 12,
-          "y": 6,
-          "licenseId": 18
-        },
-        {
-          "x": 7,
           "y": 7,
           "licenseId": 160
         },
         {
-          "x": 9,
+          "x": 12,
           "y": 7,
-          "licenseId": 156
-        },
-        {
-          "x": 11,
-          "y": 7,
-          "licenseId": 47
+          "licenseId": 334
         },
         {
           "x": 13,
           "y": 7,
-          "licenseId": 360
+          "licenseId": 51
         },
         {
           "x": 14,
           "y": 7,
-          "licenseId": 274
+          "licenseId": 49
         },
         {
           "x": 15,
           "y": 7,
-          "licenseId": 260
+          "licenseId": 136
         },
         {
           "x": 16,
           "y": 7,
-          "licenseId": 221
+          "licenseId": 260
         },
         {
           "x": 17,
           "y": 7,
-          "licenseId": 302
+          "licenseId": 301
         },
         {
-          "x": 18,
-          "y": 7,
-          "licenseId": 273
+          "x": 5,
+          "y": 8,
+          "licenseId": 360
         },
         {
-          "x": 19,
-          "y": 7,
-          "licenseId": 265
-        },
-        {
-          "x": 20,
-          "y": 7,
-          "licenseId": 300
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
         },
         {
           "x": 7,
           "y": 8,
-          "licenseId": 159
+          "licenseId": 175
         },
         {
           "x": 8,
           "y": 8,
-          "licenseId": 158
+          "licenseId": 159
         },
         {
           "x": 9,
@@ -5508,154 +5463,189 @@
           "licenseId": 157
         },
         {
+          "x": 10,
+          "y": 8,
+          "licenseId": 156
+        },
+        {
           "x": 11,
           "y": 8,
-          "licenseId": 46
+          "licenseId": 155
         },
         {
           "x": 12,
           "y": 8,
-          "licenseId": 3
+          "licenseId": 47
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 158
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 275
+          "licenseId": 48
+        },
+        {
+          "x": 15,
+          "y": 8,
+          "licenseId": 258
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 272
+        },
+        {
+          "x": 17,
+          "y": 8,
+          "licenseId": 274
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
         },
         {
           "x": 9,
           "y": 9,
-          "licenseId": 28
+          "licenseId": 154
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 152
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 161
+          "licenseId": 151
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 153
         },
         {
           "x": 13,
           "y": 9,
-          "licenseId": 29
+          "licenseId": 46
         },
         {
           "x": 14,
           "y": 9,
-          "licenseId": 304
+          "licenseId": 221
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 303
+          "licenseId": 256
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 309
+          "licenseId": 263
         },
         {
           "x": 17,
           "y": 9,
-          "licenseId": 308
+          "licenseId": 309
         },
         {
           "x": 18,
           "y": 9,
-          "licenseId": 251
+          "licenseId": 22
         },
         {
-          "x": 19,
-          "y": 9,
-          "licenseId": 237
-        },
-        {
-          "x": 20,
-          "y": 9,
-          "licenseId": 264
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 263
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 259
-        },
-        {
-          "x": 23,
-          "y": 9,
-          "licenseId": 27
-        },
-        {
-          "x": 0,
+          "x": 5,
           "y": 10,
-          "licenseId": 25
+          "licenseId": 24
         },
         {
-          "x": 2,
+          "x": 6,
           "y": 10,
-          "licenseId": 23
+          "licenseId": 178
         },
         {
-          "x": 4,
+          "x": 7,
           "y": 10,
-          "licenseId": 20
+          "licenseId": 171
         },
         {
-          "x": 11,
+          "x": 8,
+          "y": 10,
+          "licenseId": 165
+        },
+        {
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
           "y": 10,
           "licenseId": 45
         },
         {
-          "x": 22,
+          "x": 11,
           "y": 10,
-          "licenseId": 258
+          "licenseId": 149
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 12,
+          "y": 10,
+          "licenseId": 150
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
         },
         {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
-        },
-        {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
-        },
-        {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
-        },
-        {
-          "x": 5,
-          "y": 11,
+          "x": 14,
+          "y": 10,
           "licenseId": 267
+        },
+        {
+          "x": 15,
+          "y": 10,
+          "licenseId": 253
+        },
+        {
+          "x": 16,
+          "y": 10,
+          "licenseId": 269
+        },
+        {
+          "x": 17,
+          "y": 10,
+          "licenseId": 307
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -5665,7 +5655,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 149
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -5675,117 +5665,102 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 290
+          "licenseId": 225
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 252
+          "licenseId": 236
         },
         {
           "x": 14,
           "y": 11,
-          "licenseId": 256
+          "licenseId": 261
         },
         {
           "x": 15,
           "y": 11,
-          "licenseId": 257
+          "licenseId": 252
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 261
+          "licenseId": 262
         },
         {
           "x": 17,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 273
         },
         {
           "x": 18,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 304
         },
         {
           "x": 19,
           "y": 11,
-          "licenseId": 253
+          "licenseId": 3
         },
         {
-          "x": 20,
-          "y": 11,
-          "licenseId": 254
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 255
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 307
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 26
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
+        },
+        {
+          "x": 10,
+          "y": 12,
+          "licenseId": 293
         },
         {
           "x": 11,
           "y": 12,
-          "licenseId": 225
+          "licenseId": 290
         },
         {
-          "x": 19,
+          "x": 13,
           "y": 12,
-          "licenseId": 21
+          "licenseId": 266
         },
         {
-          "x": 21,
+          "x": 14,
           "y": 12,
-          "licenseId": 24
-        },
-        {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
           "licenseId": 268
         },
         {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
+          "x": 15,
+          "y": 12,
+          "licenseId": 254
         },
         {
-          "x": 5,
-          "y": 13,
+          "x": 16,
+          "y": 12,
           "licenseId": 270
+        },
+        {
+          "x": 17,
+          "y": 12,
+          "licenseId": 308
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -5795,80 +5770,105 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 0
+          "licenseId": 25
         },
         {
-          "x": 11,
+          "x": 14,
           "y": 13,
-          "licenseId": 293
+          "licenseId": 251
         },
         {
-          "x": 12,
+          "x": 15,
           "y": 13,
-          "licenseId": 1
+          "licenseId": 257
         },
         {
-          "x": 8,
+          "x": 16,
+          "y": 13,
+          "licenseId": 271
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 265
+        },
+        {
+          "x": 18,
+          "y": 13,
+          "licenseId": 26
+        },
+        {
+          "x": 5,
+          "y": 14,
+          "licenseId": 27
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
-          "x": 9,
+          "x": 15,
           "y": 14,
-          "licenseId": 30
+          "licenseId": 259
         },
         {
-          "x": 11,
+          "x": 16,
           "y": 14,
-          "licenseId": 2
+          "licenseId": 255
         },
         {
-          "x": 1,
-          "y": 15,
-          "licenseId": 272
-        },
-        {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
-        },
-        {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
-        },
-        {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
+          "x": 17,
+          "y": 14,
+          "licenseId": 300
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 179
+          "licenseId": 28
         },
         {
-          "x": 7,
+          "x": 18,
           "y": 15,
-          "licenseId": 178
+          "licenseId": 23
         },
         {
-          "x": 8,
+          "x": 16,
           "y": 15,
-          "licenseId": 177
+          "licenseId": 264
+        },
+        {
+          "x": 17,
+          "y": 15,
+          "licenseId": 302
+        },
+        {
+          "x": 17,
+          "y": 16,
+          "licenseId": 303
+        },
+        {
+          "x": 18,
+          "y": 16,
+          "licenseId": 29
+        },
+        {
+          "x": 17,
+          "y": 17,
+          "licenseId": 18
         }
       ],
-      "previousCandidateSha256": "23e95d4eeaabc4992ae8c0d623e07c9a12817df4ae21c4d115087a7d788f668f"
+      "previousCandidateSha256": "21633f00c0ff92a282673bcafa056fbeeede6a85e83ebe8638a796cdc17400f5"
     },
     {
       "nativeSlot": 11,
@@ -5876,262 +5876,292 @@
       "name": "Chemist",
       "key": "salve_maker",
       "sourceSha256": "1031ce8bfbcc45872bb030c633ec5a094623abdbc45a471fc0bb1b9678ef3881",
-      "candidateSha256": "d4e07a48ba682b33d6f303ef7d2f03c69ef160fcdb98db6d87db0a1c757d9f7f",
+      "candidateSha256": "42782c9a14992cdf5265a76875d2fec89ac75ae905363eb4aef9465ab8f4b959",
       "cells": [
         {
-          "x": 9,
-          "y": 0,
-          "licenseId": 144
-        },
-        {
-          "x": 10,
-          "y": 0,
-          "licenseId": 143
-        },
-        {
-          "x": 11,
-          "y": 0,
-          "licenseId": 76
-        },
-        {
-          "x": 9,
-          "y": 1,
-          "licenseId": 145
-        },
-        {
-          "x": 11,
-          "y": 1,
-          "licenseId": 75
-        },
-        {
-          "x": 9,
-          "y": 2,
-          "licenseId": 146
-        },
-        {
-          "x": 11,
-          "y": 2,
-          "licenseId": 142
-        },
-        {
-          "x": 12,
-          "y": 2,
-          "licenseId": 22
-        },
-        {
-          "x": 9,
-          "y": 3,
-          "licenseId": 147
-        },
-        {
-          "x": 11,
-          "y": 3,
-          "licenseId": 141
-        },
-        {
-          "x": 9,
-          "y": 4,
-          "licenseId": 148
-        },
-        {
-          "x": 11,
-          "y": 4,
-          "licenseId": 140
-        },
-        {
-          "x": 12,
-          "y": 4,
-          "licenseId": 19
-        },
-        {
-          "x": 9,
+          "x": 17,
           "y": 5,
-          "licenseId": 351
-        },
-        {
-          "x": 11,
-          "y": 5,
-          "licenseId": 139
-        },
-        {
-          "x": 10,
-          "y": 6,
-          "licenseId": 2
-        },
-        {
-          "x": 11,
-          "y": 6,
-          "licenseId": 138
-        },
-        {
-          "x": 12,
-          "y": 6,
-          "licenseId": 3
-        },
-        {
-          "x": 14,
-          "y": 6,
-          "licenseId": 360
-        },
-        {
-          "x": 11,
-          "y": 7,
-          "licenseId": 74
-        },
-        {
-          "x": 13,
-          "y": 7,
-          "licenseId": 29
-        },
-        {
-          "x": 14,
-          "y": 7,
-          "licenseId": 250
-        },
-        {
-          "x": 10,
-          "y": 8,
-          "licenseId": 0
-        },
-        {
-          "x": 11,
-          "y": 8,
-          "licenseId": 251
-        },
-        {
-          "x": 12,
-          "y": 8,
           "licenseId": 1
         },
         {
+          "x": 10,
+          "y": 6,
+          "licenseId": 18
+        },
+        {
+          "x": 11,
+          "y": 6,
+          "licenseId": 29
+        },
+        {
+          "x": 17,
+          "y": 6,
+          "licenseId": 274
+        },
+        {
+          "x": 18,
+          "y": 6,
+          "licenseId": 19
+        },
+        {
+          "x": 6,
+          "y": 7,
+          "licenseId": 20
+        },
+        {
+          "x": 8,
+          "y": 7,
+          "licenseId": 21
+        },
+        {
+          "x": 10,
+          "y": 7,
+          "licenseId": 76
+        },
+        {
+          "x": 11,
+          "y": 7,
+          "licenseId": 75
+        },
+        {
+          "x": 13,
+          "y": 7,
+          "licenseId": 22
+        },
+        {
+          "x": 14,
+          "y": 7,
+          "licenseId": 30
+        },
+        {
+          "x": 16,
+          "y": 7,
+          "licenseId": 249
+        },
+        {
+          "x": 17,
+          "y": 7,
+          "licenseId": 244
+        },
+        {
+          "x": 5,
+          "y": 8,
+          "licenseId": 360
+        },
+        {
+          "x": 6,
+          "y": 8,
+          "licenseId": 354
+        },
+        {
+          "x": 7,
+          "y": 8,
+          "licenseId": 175
+        },
+        {
+          "x": 8,
+          "y": 8,
+          "licenseId": 148
+        },
+        {
+          "x": 9,
+          "y": 8,
+          "licenseId": 146
+        },
+        {
+          "x": 10,
+          "y": 8,
+          "licenseId": 144
+        },
+        {
+          "x": 11,
+          "y": 8,
+          "licenseId": 143
+        },
+        {
+          "x": 12,
+          "y": 8,
+          "licenseId": 145
+        },
+        {
+          "x": 13,
+          "y": 8,
+          "licenseId": 147
+        },
+        {
           "x": 14,
           "y": 8,
-          "licenseId": 249
+          "licenseId": 351
+        },
+        {
+          "x": 15,
+          "y": 8,
+          "licenseId": 254
+        },
+        {
+          "x": 16,
+          "y": 8,
+          "licenseId": 271
+        },
+        {
+          "x": 17,
+          "y": 8,
+          "licenseId": 265
+        },
+        {
+          "x": 6,
+          "y": 9,
+          "licenseId": 180
+        },
+        {
+          "x": 7,
+          "y": 9,
+          "licenseId": 173
+        },
+        {
+          "x": 8,
+          "y": 9,
+          "licenseId": 167
+        },
+        {
+          "x": 9,
+          "y": 9,
+          "licenseId": 74
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "licenseId": 140
         },
         {
           "x": 11,
           "y": 9,
-          "licenseId": 161
+          "licenseId": 139
+        },
+        {
+          "x": 12,
+          "y": 9,
+          "licenseId": 141
         },
         {
           "x": 13,
           "y": 9,
-          "licenseId": 27
+          "licenseId": 142
         },
         {
           "x": 14,
           "y": 9,
-          "licenseId": 247
+          "licenseId": 267
         },
         {
           "x": 15,
           "y": 9,
-          "licenseId": 246
+          "licenseId": 252
         },
         {
           "x": 16,
           "y": 9,
-          "licenseId": 244
+          "licenseId": 270
         },
         {
           "x": 17,
           "y": 9,
-          "licenseId": 241
+          "licenseId": 308
         },
         {
           "x": 18,
           "y": 9,
-          "licenseId": 252
+          "licenseId": 275
         },
         {
           "x": 19,
           "y": 9,
-          "licenseId": 302
-        },
-        {
-          "x": 20,
-          "y": 9,
-          "licenseId": 301
-        },
-        {
-          "x": 21,
-          "y": 9,
-          "licenseId": 300
-        },
-        {
-          "x": 22,
-          "y": 9,
-          "licenseId": 265
-        },
-        {
-          "x": 0,
-          "y": 10,
-          "licenseId": 25
-        },
-        {
-          "x": 2,
-          "y": 10,
           "licenseId": 23
         },
         {
-          "x": 4,
+          "x": 6,
           "y": 10,
-          "licenseId": 20
+          "licenseId": 178
         },
         {
-          "x": 11,
+          "x": 7,
+          "y": 10,
+          "licenseId": 171
+        },
+        {
+          "x": 8,
+          "y": 10,
+          "licenseId": 165
+        },
+        {
+          "x": 9,
+          "y": 10,
+          "licenseId": 163
+        },
+        {
+          "x": 10,
           "y": 10,
           "licenseId": 73
         },
         {
-          "x": 22,
+          "x": 11,
+          "y": 10,
+          "licenseId": 137
+        },
+        {
+          "x": 12,
+          "y": 10,
+          "licenseId": 138
+        },
+        {
+          "x": 13,
+          "y": 10,
+          "licenseId": 237
+        },
+        {
+          "x": 14,
+          "y": 10,
+          "licenseId": 245
+        },
+        {
+          "x": 15,
           "y": 10,
           "licenseId": 248
         },
         {
-          "x": 0,
-          "y": 11,
-          "licenseId": 169
+          "x": 16,
+          "y": 10,
+          "licenseId": 243
         },
         {
-          "x": 1,
-          "y": 11,
-          "licenseId": 168
+          "x": 17,
+          "y": 10,
+          "licenseId": 273
         },
         {
-          "x": 2,
-          "y": 11,
-          "licenseId": 167
-        },
-        {
-          "x": 3,
-          "y": 11,
-          "licenseId": 166
-        },
-        {
-          "x": 4,
-          "y": 11,
-          "licenseId": 165
+          "x": 18,
+          "y": 10,
+          "licenseId": 250
         },
         {
           "x": 5,
           "y": 11,
-          "licenseId": 267
+          "licenseId": 0
         },
         {
           "x": 6,
           "y": 11,
-          "licenseId": 266
+          "licenseId": 177
         },
         {
           "x": 7,
           "y": 11,
-          "licenseId": 164
+          "licenseId": 168
         },
         {
           "x": 8,
           "y": 11,
-          "licenseId": 163
+          "licenseId": 164
         },
         {
           "x": 9,
@@ -6141,7 +6171,7 @@
         {
           "x": 10,
           "y": 11,
-          "licenseId": 137
+          "licenseId": 161
         },
         {
           "x": 11,
@@ -6151,122 +6181,107 @@
         {
           "x": 12,
           "y": 11,
-          "licenseId": 278
+          "licenseId": 242
         },
         {
           "x": 13,
           "y": 11,
-          "licenseId": 262
+          "licenseId": 236
         },
         {
           "x": 14,
           "y": 11,
-          "licenseId": 236
+          "licenseId": 239
         },
         {
           "x": 15,
           "y": 11,
-          "licenseId": 239
+          "licenseId": 240
         },
         {
           "x": 16,
           "y": 11,
-          "licenseId": 261
+          "licenseId": 269
         },
         {
           "x": 17,
-          "y": 11,
-          "licenseId": 263
-        },
-        {
-          "x": 18,
           "y": 11,
           "licenseId": 264
         },
         {
-          "x": 19,
+          "x": 18,
           "y": 11,
-          "licenseId": 237
+          "licenseId": 301
         },
         {
-          "x": 20,
-          "y": 11,
-          "licenseId": 240
-        },
-        {
-          "x": 21,
-          "y": 11,
-          "licenseId": 243
-        },
-        {
-          "x": 22,
-          "y": 11,
-          "licenseId": 245
-        },
-        {
-          "x": 23,
-          "y": 11,
-          "licenseId": 26
-        },
-        {
-          "x": 0,
+          "x": 6,
           "y": 12,
-          "licenseId": 170
+          "licenseId": 179
+        },
+        {
+          "x": 7,
+          "y": 12,
+          "licenseId": 172
+        },
+        {
+          "x": 8,
+          "y": 12,
+          "licenseId": 166
+        },
+        {
+          "x": 9,
+          "y": 12,
+          "licenseId": 169
         },
         {
           "x": 11,
           "y": 12,
-          "licenseId": 242
+          "licenseId": 278
+        },
+        {
+          "x": 13,
+          "y": 12,
+          "licenseId": 266
+        },
+        {
+          "x": 14,
+          "y": 12,
+          "licenseId": 261
+        },
+        {
+          "x": 15,
+          "y": 12,
+          "licenseId": 251
+        },
+        {
+          "x": 16,
+          "y": 12,
+          "licenseId": 246
         },
         {
           "x": 17,
           "y": 12,
-          "licenseId": 18
+          "licenseId": 307
+        },
+        {
+          "x": 18,
+          "y": 12,
+          "licenseId": 302
         },
         {
           "x": 19,
           "y": 12,
-          "licenseId": 21
-        },
-        {
-          "x": 21,
-          "y": 12,
-          "licenseId": 24
-        },
-        {
-          "x": 0,
-          "y": 13,
-          "licenseId": 171
-        },
-        {
-          "x": 1,
-          "y": 13,
-          "licenseId": 172
-        },
-        {
-          "x": 2,
-          "y": 13,
-          "licenseId": 173
-        },
-        {
-          "x": 3,
-          "y": 13,
-          "licenseId": 268
-        },
-        {
-          "x": 4,
-          "y": 13,
-          "licenseId": 269
+          "licenseId": 25
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 270
+          "licenseId": 26
         },
         {
           "x": 6,
           "y": 13,
-          "licenseId": 271
+          "licenseId": 353
         },
         {
           "x": 7,
@@ -6276,110 +6291,95 @@
         {
           "x": 8,
           "y": 13,
-          "licenseId": 175
+          "licenseId": 170
         },
         {
-          "x": 9,
+          "x": 11,
           "y": 13,
-          "licenseId": 28
+          "licenseId": 2
         },
         {
-          "x": 8,
+          "x": 14,
+          "y": 13,
+          "licenseId": 268
+        },
+        {
+          "x": 15,
+          "y": 13,
+          "licenseId": 253
+        },
+        {
+          "x": 16,
+          "y": 13,
+          "licenseId": 263
+        },
+        {
+          "x": 17,
+          "y": 13,
+          "licenseId": 309
+        },
+        {
+          "x": 6,
+          "y": 14,
+          "licenseId": 181
+        },
+        {
+          "x": 7,
           "y": 14,
           "licenseId": 176
         },
         {
-          "x": 0,
-          "y": 15,
-          "licenseId": 273
+          "x": 15,
+          "y": 14,
+          "licenseId": 262
         },
         {
-          "x": 1,
-          "y": 15,
+          "x": 16,
+          "y": 14,
           "licenseId": 272
         },
         {
-          "x": 2,
-          "y": 15,
-          "licenseId": 354
+          "x": 17,
+          "y": 14,
+          "licenseId": 241
         },
         {
-          "x": 3,
-          "y": 15,
-          "licenseId": 353
-        },
-        {
-          "x": 4,
-          "y": 15,
-          "licenseId": 181
-        },
-        {
-          "x": 5,
-          "y": 15,
-          "licenseId": 180
-        },
-        {
-          "x": 6,
-          "y": 15,
-          "licenseId": 179
+          "x": 18,
+          "y": 14,
+          "licenseId": 27
         },
         {
           "x": 7,
           "y": 15,
-          "licenseId": 178
+          "licenseId": 24
         },
         {
-          "x": 8,
+          "x": 16,
           "y": 15,
-          "licenseId": 177
-        },
-        {
-          "x": 9,
-          "y": 15,
-          "licenseId": 30
-        },
-        {
-          "x": 0,
-          "y": 16,
-          "licenseId": 274
-        },
-        {
-          "x": 0,
-          "y": 17,
-          "licenseId": 275
-        },
-        {
-          "x": 0,
-          "y": 18,
-          "licenseId": 253
-        },
-        {
-          "x": 0,
-          "y": 19,
-          "licenseId": 254
-        },
-        {
-          "x": 0,
-          "y": 20,
           "licenseId": 255
         },
         {
-          "x": 0,
-          "y": 21,
-          "licenseId": 307
+          "x": 17,
+          "y": 15,
+          "licenseId": 247
         },
         {
-          "x": 0,
-          "y": 22,
-          "licenseId": 308
+          "x": 17,
+          "y": 16,
+          "licenseId": 300
         },
         {
-          "x": 0,
-          "y": 23,
-          "licenseId": 309
+          "x": 18,
+          "y": 16,
+          "licenseId": 28
+        },
+        {
+          "x": 17,
+          "y": 17,
+          "licenseId": 3
         }
       ],
-      "previousCandidateSha256": "1c9b16f3615a1fc01fcaa3dc71181708895a16a39898a935bed043883c116fce"
+      "previousCandidateSha256": "d4e07a48ba682b33d6f303ef7d2f03c69ef160fcdb98db6d87db0a1c757d9f7f"
     }
   ],
   "labels": [
@@ -6450,7 +6450,7 @@
       ]
     }
   ],
-  "version": "0.2.0",
+  "version": "0.3.0",
   "licenseLpPatch": {
     "schemaVersion": 1,
     "sourceSha256": "665019abce04423118529e461709a1b4aa77a164176c6fdf537b4b6d3b0ac8ea",

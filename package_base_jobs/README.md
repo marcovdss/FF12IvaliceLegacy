@@ -1,4 +1,4 @@
-# Ivalice Legacy: twelve base jobs candidate 0.2.0
+# Ivalice Legacy: twelve base jobs candidate 0.3.0
 
 Experimental offline build for the English Steam game, version 1.0.4.0.
 Twelve custom boards, English job names and descriptions, and eight exclusive
@@ -6,7 +6,10 @@ weapon-license LP price increases are included. No Lua scripts,
 hooks, save redirection, equipment-stat changes or Together files are included.
 This candidate has not been validated in the game UI or in combat.
 
-Ordinary boards cost 4,506–5,491 LP. Every board has two Swiftness licenses;
+Boards are compact regions around Essentials: gear above, accessories to the
+left, passive augments to the right and magicks/Technicks below, cheaper licenses
+nearest the centre. Espers and Quickenings sit on the outer edge, each next to one
+ordinary license. Ordinary boards cost 4,506–5,491 LP. Every board has two Swiftness licenses;
 both are reachable before half the ordinary total. Connected opening license
 kits cost 70–145 LP. Acquisition still matters: licenses do not supply a weapon
 or command. Measures need later shop placement; Hornito costs 5,000 gil.
@@ -40,7 +43,7 @@ Existing job slot IDs remain unchanged. Their proposed new curricula are:
 Already owned licenses remain owned, including licenses outside the new board.
 No automatic respec, job reassignment or save migration is performed. Spell and
 Technick inventory acquisition still applies. Native Quickening, Esper and
-second-job restrictions remain in place; ordinary nodes are never gated by them.
+second-job restrictions remain in place; ordinary licenses are never gated by them.
 Base boards retain the native two-board interface. No hybrid class is enabled.
 
 ## Installation and rollback

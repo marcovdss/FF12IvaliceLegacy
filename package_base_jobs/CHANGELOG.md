@@ -1,3 +1,11 @@
+# 0.3.0 candidate
+
+- Redrew all twelve boards as compact regions: gear up, accessories left, passives right, commands down.
+- Cheaper licenses sit nearest Essentials; no long single-tile corridors.
+- Espers and Quickenings are edge tiles with one ordinary neighbour; the Second Board stays a leaf.
+- Kumbha and all Knight armor now sit in the Knight's gear region.
+- Same licenses, LP prices and descriptions as 0.2.0; boards may contain loops like native boards.
+
 # 0.2.0 candidate
 
 - Refined the twelve boards around exclusive roles and whole native bundles.

@@ -47,8 +47,11 @@ def encode_board(job):
     for (x, y), value in cells.items():
         graph[value] = [cells[p] for p in ((x-1,y), (x+1,y), (x,y-1), (x,y+1)) if p in cells]
     for value in SPECIAL:
-        require(len(graph[value]) == 1 and graph[value][0] not in SPECIAL,
-                'Special license must be an ordinary pendant leaf')
+        # Espers and Quickenings sit on the edge: exactly one ordinary neighbour, so they never join two parts
+        # of the curriculum. They may touch each other. The Second Board stays a plain leaf.
+        require(len([n for n in graph[value] if n not in SPECIAL]) == 1
+                and (value != 360 or len(graph[value]) == 1),
+                'Special license must be an edge tile with one ordinary neighbour')
     ordinary = ids - SPECIAL
     visited = {31}
     pending = [31]
@@ -57,9 +60,8 @@ def encode_board(job):
             if neighbor in ordinary and neighbor not in visited:
                 visited.add(neighbor)
                 pending.append(neighbor)
+    # Compact regions have loops, as native boards do; only connectivity is required.
     require(visited == ordinary, 'Disconnected ordinary curriculum')
-    require(sum(len([n for n in graph[v] if n in ordinary]) for v in ordinary) == 2*(len(ordinary)-1),
-            'Ordinary curriculum has a shortcut/cycle')
     grid = [65535]*576
     for (x, y), value in cells.items():
         grid[y*24+x] = value
@@ -93,7 +95,7 @@ def build(game, out):
     from .vbf import VBF
     game = Path(game)
     recipe = json.loads((ROOT/'patches/base_jobs.json').read_text(encoding='utf-8'))
-    require(recipe['version'] == '0.2.0', 'Unsupported base-job version')
+    require(recipe['version'] == '0.3.0', 'Unsupported base-job version')
     require(sha((game/'x64/FFXII_TZA.exe').read_bytes()) == recipe['gameExeSha256'],
             'Unsupported game executable')
     archive = VBF(game/'FFXII_TZA.vbf')
@@ -143,7 +145,7 @@ def build(game, out):
     files[docs+'README.md'] = (ROOT/'package_base_jobs/README.md').read_bytes()
     files[docs+'CHANGELOG.md'] = (ROOT/'package_base_jobs/CHANGELOG.md').read_bytes()
     metadata = {'status': 'Offline experimental candidate; not installed or validated in-game',
-                'version': '0.2.0',
+                'version': '0.3.0',
                 'recipeSha256': sha((ROOT/'patches/base_jobs.json').read_bytes()),
                 'licenseLpChanges': recipe['licenseLpPatch']['changes'],
                 'nativeSlots': [{k: j[k] for k in ('nativeSlot','sourceName','name')} for j in recipe['jobs']],
@@ -153,5 +155,5 @@ def build(game, out):
     files[docs+'manifest.json'] = (json.dumps({**metadata, 'files': {key: sha(value) for key, value in sorted(files.items())},
                                              'manifestExcludesOwnHash': True}, indent=2)+'\n').encode()
     return write_package(files, out,
-                         'IvaliceLegacy-BaseJobs-0.2.0', 'Ivalice Legacy Base Jobs Candidate', '0.2.0',
+                         'IvaliceLegacy-BaseJobs-0.3.0', 'Ivalice Legacy Base Jobs Candidate', '0.3.0',
                          metadata)
