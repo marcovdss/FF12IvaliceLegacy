@@ -43,13 +43,21 @@ local resetRegistered = event.registerEventSync('onSaveLoad', function()
   print('Ivalice Legacy diagnostic: native load reset; bonuses=off')
   return true
 end)
+-- Clan points: u32 at save image 0xBA68; the decoded save is a memory image at
+-- 0x2164280 in the fixed .data section (no ASLR). Logged once per load so the
+-- address can be checked against the Clan Primer during normal play.
+local CLAN_POINTS = 0x2164280 + 0xBA68
+
 local pathRegistered = event.registerLoadHandler('IvaliceLegacyDiagnostic', function(path)
   observer:reset()
   local ok, accepted = pcall(observer.load, observer, path)
   if not ok or accepted ~= true then
     observer:reset()
     print('Ivalice Legacy diagnostic: load path rejected; bonuses=off')
+    return
   end
+  local read, points = pcall(function() return memory.u32[CLAN_POINTS] end)
+  print('Legacy diagnostic: clanPoints=' .. (read and tostring(points) or 'unreadable') .. ' bonuses=off')
 end)
 local newGameRegistered = event.registerEventSync('onNewGameStart', function()
   observer:reset()
