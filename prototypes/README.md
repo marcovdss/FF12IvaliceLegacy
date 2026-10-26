@@ -85,3 +85,14 @@ at `x64/scripts/IvaliceLegacy/clan_pursuit.lua`). It loads the installed
 original Forge66, activates only after a strict `LEGCY_ddd` load in Legacy mode,
 and logs up to 32 activations per load. Clan rank, quests, purchases and
 persistence are not built: in this pilot every base Hunter has the line.
+
+## Clan ledger
+
+`clan_ledger.lua` records which Clan lines each main party member (0–5) has
+unlocked for each full job identity (`"8"` for a base job, `"4:8"` for a pair),
+kept per campaign in the Lua loader's save sidecar (`event.registerSaveHandler`
+and `registerLoadHandler`, handler ID `IvaliceLegacyClan`). A Legacy save
+without the sidecar loads an empty ledger; non-Legacy saves get none. An
+unreadable sidecar is logged and kept on disk (the save handler returns nil)
+until a new grant replaces it. The module is not wired into a loader entry
+point yet; how lines are earned (Clan rank, hunts, costs) is undecided.
