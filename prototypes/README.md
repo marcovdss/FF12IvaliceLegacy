@@ -55,3 +55,15 @@ status effects, balance values or save handler are supplied. The wrapper invokes
 the original exactly once before observing, preserves all results and isolates
 diagnostic errors. A canonical pointer match remains an integration input,
 not proof of every native actor classification or lifetime.
+
+`forge_diagnostic_171.lua` is the optional Forge configuration adapter for this
+observer. Its candidate package places that file at
+`x64/scripts/config/TheInsurgentsForgeConfig/functions/171.lua` and the observer at
+`x64/scripts/IvaliceLegacy/clan_diagnostic.lua`. It loads the installed original
+Forge171 rather than redistributing it. This configuration path must be unowned
+before installation; existing overrides require a separate compatibility review.
+The adapter checks the pinned executable's fixed mapping and both Legacy save
+namespace strings, registers load/new-game invalidation, and never registers a
+save writer. The tested source expects Lua Loader2.0.1 and Forge1.0.3; native
+callback order and actual loaded-path format remain unverified. Both prototype
+files remain excluded from the ordinary Legacy build.
