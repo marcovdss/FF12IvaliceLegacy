@@ -1,11 +1,198 @@
 {
   "name": "Arsenal",
-  "description": "Weapon attack and family identities: attack set per weapon for the story timing; Warrior axes and hammers and Time Mage bombs brought into line; identities (Dagger speed and combo, Katana combo, Bow critical rate, Greatsword weight) offset in attack so they change how a weapon plays, not its damage over time. Hornito, the Time Mage opening hand-bomb, is priced like the other opening weapons.",
+  "description": "Weapon attack and family identities. Attack set per weapon for the story timing; Warrior axes and hammers and Time Mage bombs brought into line. Identities that change speed, combo or critical rate are offset in attack (damage-neutral); identities that add an effect: sword evade, hammer Disable and knockback, greatsword knockback, hand-bomb Slow/Oil, ninja-sword Blind, spear reach. Hornito, the Time Mage opening hand-bomb, is priced like the other opening weapons.",
   "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
   "section": 13,
   "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
   "sourceSectionSha256": "981d88689d4292d55db4697a06fb6105d80a62e83405d25c3422d6716936979e",
   "items": [
+    {
+      "contentId": 4097,
+      "name": "Broadsword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4098,
+      "name": "Longsword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4099,
+      "name": "Iron Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4100,
+      "name": "Zwill Blade",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4101,
+      "name": "Ancient Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4102,
+      "name": "Blood Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4103,
+      "name": "Lohengrin",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4104,
+      "name": "Flametongue",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4105,
+      "name": "Demonsbane",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4106,
+      "name": "Icebrand",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4107,
+      "name": "Platinum Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4108,
+      "name": "Bastard Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4109,
+      "name": "Diamond Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4110,
+      "name": "Runeblade",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4111,
+      "name": "Deathbringer",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4112,
+      "name": "Stoneblade",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4113,
+      "name": "Durandal",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          38
+        ]
+      }
+    },
     {
       "contentId": 4114,
       "name": "Claymore",
@@ -14,6 +201,10 @@
         "attack": [
           83,
           91
+        ],
+        "knockback": [
+          10,
+          25
         ],
         "chargeTime": [
           35,
@@ -30,6 +221,10 @@
           90,
           99
         ],
+        "knockback": [
+          10,
+          25
+        ],
         "chargeTime": [
           35,
           40
@@ -44,6 +239,10 @@
         "attack": [
           92,
           101
+        ],
+        "knockback": [
+          10,
+          25
         ],
         "chargeTime": [
           35,
@@ -60,6 +259,10 @@
           117,
           130
         ],
+        "knockback": [
+          10,
+          25
+        ],
         "chargeTime": [
           35,
           40
@@ -74,6 +277,10 @@
         "attack": [
           109,
           121
+        ],
+        "knockback": [
+          10,
+          25
         ],
         "chargeTime": [
           35,
@@ -90,6 +297,10 @@
           127,
           141
         ],
+        "knockback": [
+          10,
+          25
+        ],
         "chargeTime": [
           35,
           40
@@ -104,6 +315,10 @@
         "attack": [
           138,
           153
+        ],
+        "knockback": [
+          10,
+          25
         ],
         "chargeTime": [
           35,
@@ -258,6 +473,304 @@
         "comboOrCrit": [
           30,
           45
+        ]
+      }
+    },
+    {
+      "contentId": 4134,
+      "name": "Koga Blade",
+      "category": "Ninja sword",
+      "set": {
+        "statusEffects": [
+          [],
+          [
+            "Blind"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4135,
+      "name": "Iga Blade",
+      "category": "Ninja sword",
+      "set": {
+        "statusEffects": [
+          [],
+          [
+            "Blind"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4138,
+      "name": "Javelin",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4139,
+      "name": "Spear",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4140,
+      "name": "Partisan",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4141,
+      "name": "Heavy Lance",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4142,
+      "name": "Storm Spear",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4143,
+      "name": "Obelisk",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4144,
+      "name": "Halberd",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4145,
+      "name": "Trident",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4146,
+      "name": "Holy Lance",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4147,
+      "name": "Gungnir",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4148,
+      "name": "Dragon Whisker",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4149,
+      "name": "Zodiac Spear",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4150,
+      "name": "Oaken Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4151,
+      "name": "Cypress Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4152,
+      "name": "Battle Bamboo",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4153,
+      "name": "Musk Stick",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          12
+        ]
+      }
+    },
+    {
+      "contentId": 4154,
+      "name": "Iron Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          12
+        ]
+      }
+    },
+    {
+      "contentId": 4155,
+      "name": "Six-fluted Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          13
+        ]
+      }
+    },
+    {
+      "contentId": 4156,
+      "name": "Gokuu Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4157,
+      "name": "Zephyr Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4158,
+      "name": "Ivory Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4159,
+      "name": "Sweep",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4160,
+      "name": "Eight-fluted Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4161,
+      "name": "Whale Whisker",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          14
         ]
       }
     },
@@ -545,6 +1058,20 @@
         "attack": [
           24,
           15
+        ],
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Disable"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          15
         ]
       }
     },
@@ -556,6 +1083,20 @@
         "attack": [
           42,
           35
+        ],
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Disable"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          15
         ]
       }
     },
@@ -567,6 +1108,10 @@
         "attack": [
           66,
           53
+        ],
+        "knockback": [
+          10,
+          30
         ]
       }
     },
@@ -578,6 +1123,41 @@
         "attack": [
           100,
           69
+        ],
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Disable"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4205,
+      "name": "Scorpion Tail",
+      "category": "Hammer",
+      "set": {
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Disable"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          15
         ]
       }
     },
@@ -823,6 +1403,72 @@
       }
     },
     {
+      "contentId": 4244,
+      "name": "Gilt Measure",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4245,
+      "name": "Arc Scale",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4246,
+      "name": "Multiscale",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4247,
+      "name": "Cross Scale",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4248,
+      "name": "Caliper",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4249,
+      "name": "Euclid's Sextant",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ]
+      }
+    },
+    {
       "contentId": 4250,
       "name": "Hornito",
       "category": "Hand-bomb",
@@ -834,6 +1480,16 @@
         "attack": [
           66,
           15
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Slow"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          20
         ]
       }
     },
@@ -845,6 +1501,16 @@
         "attack": [
           71,
           49
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Oil"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          20
         ]
       }
     },
@@ -856,6 +1522,16 @@
         "attack": [
           76,
           63
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Slow"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          20
         ]
       }
     },
@@ -867,6 +1543,33 @@
         "attack": [
           83,
           57
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Oil"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4254,
+      "name": "Volcano",
+      "category": "Hand-bomb",
+      "set": {
+        "statusEffects": [
+          [],
+          [
+            "Slow"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          20
         ]
       }
     },
@@ -894,6 +1597,99 @@
       }
     },
     {
+      "contentId": 4270,
+      "name": "Vrsabha",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4273,
+      "name": "Great Trango",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          0,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4288,
+      "name": "Karkata",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          16,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4290,
+      "name": "Simha",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          15,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4291,
+      "name": "Makara",
+      "category": "Hand-bomb",
+      "set": {
+        "statusEffects": [
+          [],
+          [
+            "Oil"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4292,
+      "name": "Vrscika",
+      "category": "Hammer",
+      "set": {
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Disable"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4294,
+      "name": "Kanya",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          35,
+          15
+        ]
+      }
+    },
+    {
       "contentId": 4295,
       "name": "Dhanusha",
       "category": "Bow",
@@ -909,5 +1705,5 @@
       }
     }
   ],
-  "resultSectionSha256": "2dc7970c6d1edb49e3d38f536fa79fcbf2b5dbfcc5ab93216650b3bebd5ee857"
+  "resultSectionSha256": "0449d565afd1d26a9bf8ba280f71b9b8f340e9c6d545b4432cc3588ff3fea7ca"
 }

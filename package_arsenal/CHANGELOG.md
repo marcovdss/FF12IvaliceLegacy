@@ -1,3 +1,9 @@
+# 0.3.0 candidate
+
+- Effect identities: sword evade (20 → 40 by tier; poles and measures lowered), hammer Disable 15% and
+  knockback 30, greatsword knockback 25, hand-bomb Slow/Oil 20%, ninja-sword Blind 10%, spear reach 25.
+- Builds over an installed Arsenal 0.1.0, 0.2.0 or 0.2.1.
+
 # 0.2.1 candidate
 
 - Hornito, the Time Mage opening hand-bomb sold from the start, costs 500 gil (was 5,000; its attack is now 15).

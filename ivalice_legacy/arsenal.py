@@ -2,12 +2,13 @@
 import hashlib
 import json
 
-VERSION = '0.2.1'
+VERSION = '0.3.0'
 PACK = 'ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin'
 SECTION = PACK + '.dir/section_013.bin'
 # Equipment tables written by earlier Arsenal releases, which this build replaces.
 PREVIOUS = {'0.1.0': 'a45f3661bcd121cfbd0a334a4372d8c6361d749f2233a155bdefda55cd4a8152',
-            '0.2.0': 'af3929a4ca16febdaa0e0359abfb743c226228c0ea786923d833a7baf0c0e1cc'}
+            '0.2.0': 'af3929a4ca16febdaa0e0359abfb743c226228c0ea786923d833a7baf0c0e1cc',
+            '0.2.1': '2dc7970c6d1edb49e3d38f536fa79fcbf2b5dbfcc5ab93216650b3bebd5ee857'}
 
 
 def sha(data):

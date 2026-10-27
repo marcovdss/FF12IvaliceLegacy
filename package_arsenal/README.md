@@ -1,4 +1,4 @@
-# Ivalice Legacy: Arsenal 0.2.1 (experimental)
+# Ivalice Legacy: Arsenal 0.3.0 (experimental)
 
 Weapon attack and weapon family identities for the English Steam game, version 1.0.4.0.
 
@@ -18,6 +18,16 @@ slower one a little harder.
 - **Hand-bombs**: attack brought into line (Hornito, sold from the start, 66 → 15). Hornito, the Time Mage opening
   hand-bomb, costs 500 gil (was 5,000) like the other opening weapons.
 - **Longbow** 48 → 35 (a large jump over the Killer Bow sold just before it).
+
+Families with an effect identity gain it on every weapon (a weapon's own native status stays):
+
+- **Swords** (guard): evade 20 → 40 by tier, the highest of any weapon. Poles (10–15) and measures (10) give up their
+  very high evade so swords own it.
+- **Hammers** (concussion): knockback 30, the strongest, and a 15% chance to Disable on hit.
+- **Greatswords** (overwhelm): knockback 25.
+- **Hand-bombs** (barrage): a 20% chance to Slow or Oil on hit, alternating by tier.
+- **Ninja swords** (unseen): a 10% chance to Blind on hit.
+- **Spears** (pierce): reach 25.
 
 Story and joke weapons, Seitengrat and Wyrmhero Blade keep their native stats. Other prices are unchanged.
 
