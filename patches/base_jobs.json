@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "Experimental offline candidate; not installed or validated in-game",
+  "status": "Offline candidate 0.4.0: thirteen legendary weapons on Esper islands on every board",
   "gameExeSha256": "73461d0896204b1c259c52f61aef4efbc95a2ffc388cadb36493d5d1d89721f8",
   "licenseTableSha256": "665019abce04423118529e461709a1b4aa77a164176c6fdf537b4b6d3b0ac8ea",
   "jobs": [
@@ -10,17 +10,37 @@
       "name": "White Mage",
       "key": "kiltian_hierophant",
       "sourceSha256": "5a220b2d8e3cc2c78042cd5bd5161407f7f4dbadb811b7c1380b573e39fb380d",
-      "candidateSha256": "1d89bb4ab216c0eb3b2736a13b45db46414a0344cfd95e455f1ae1d5b54096a8",
+      "candidateSha256": "d663f3340282c5cfa5cadc0283a8b618051a30bf1ff6a7c986736165811769d0",
       "cells": [
         {
           "x": 10,
-          "y": 6,
-          "licenseId": 2
+          "y": 5,
+          "licenseId": 342
         },
         {
-          "x": 12,
+          "x": 16,
+          "y": 5,
+          "licenseId": 52
+        },
+        {
+          "x": 7,
           "y": 6,
-          "licenseId": 3
+          "licenseId": 331
+        },
+        {
+          "x": 10,
+          "y": 6,
+          "licenseId": 24
+        },
+        {
+          "x": 11,
+          "y": 6,
+          "licenseId": 0
+        },
+        {
+          "x": 14,
+          "y": 6,
+          "licenseId": 343
         },
         {
           "x": 16,
@@ -28,14 +48,24 @@
           "licenseId": 18
         },
         {
+          "x": 17,
+          "y": 6,
+          "licenseId": 1
+        },
+        {
           "x": 6,
           "y": 7,
-          "licenseId": 19
+          "licenseId": 2
+        },
+        {
+          "x": 7,
+          "y": 7,
+          "licenseId": 29
         },
         {
           "x": 8,
           "y": 7,
-          "licenseId": 20
+          "licenseId": 3
         },
         {
           "x": 10,
@@ -55,7 +85,7 @@
         {
           "x": 14,
           "y": 7,
-          "licenseId": 1
+          "licenseId": 22
         },
         {
           "x": 16,
@@ -68,14 +98,14 @@
           "licenseId": 275
         },
         {
-          "x": 18,
-          "y": 7,
-          "licenseId": 21
+          "x": 4,
+          "y": 8,
+          "licenseId": 76
         },
         {
           "x": 5,
           "y": 8,
-          "licenseId": 360
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -138,6 +168,16 @@
           "licenseId": 324
         },
         {
+          "x": 18,
+          "y": 8,
+          "licenseId": 26
+        },
+        {
+          "x": 19,
+          "y": 8,
+          "licenseId": 337
+        },
+        {
           "x": 6,
           "y": 9,
           "licenseId": 180
@@ -198,9 +238,14 @@
           "licenseId": 322
         },
         {
+          "x": 4,
+          "y": 10,
+          "licenseId": 330
+        },
+        {
           "x": 5,
           "y": 10,
-          "licenseId": 22
+          "licenseId": 21
         },
         {
           "x": 6,
@@ -263,11 +308,6 @@
           "licenseId": 274
         },
         {
-          "x": 18,
-          "y": 10,
-          "licenseId": 24
-        },
-        {
           "x": 6,
           "y": 11,
           "licenseId": 177
@@ -326,11 +366,6 @@
           "x": 17,
           "y": 11,
           "licenseId": 226
-        },
-        {
-          "x": 5,
-          "y": 12,
-          "licenseId": 30
         },
         {
           "x": 6,
@@ -395,7 +430,12 @@
         {
           "x": 18,
           "y": 12,
-          "licenseId": 0
+          "licenseId": 30
+        },
+        {
+          "x": 19,
+          "y": 12,
+          "licenseId": 49
         },
         {
           "x": 6,
@@ -458,9 +498,14 @@
           "licenseId": 323
         },
         {
+          "x": 4,
+          "y": 14,
+          "licenseId": 341
+        },
+        {
           "x": 5,
           "y": 14,
-          "licenseId": 25
+          "licenseId": 27
         },
         {
           "x": 6,
@@ -513,19 +558,24 @@
           "licenseId": 23
         },
         {
+          "x": 19,
+          "y": 14,
+          "licenseId": 347
+        },
+        {
           "x": 6,
           "y": 15,
-          "licenseId": 26
+          "licenseId": 19
         },
         {
           "x": 9,
           "y": 15,
-          "licenseId": 27
+          "licenseId": 25
         },
         {
-          "x": 12,
+          "x": 11,
           "y": 15,
-          "licenseId": 28
+          "licenseId": 360
         },
         {
           "x": 16,
@@ -538,12 +588,81 @@
           "licenseId": 325
         },
         {
-          "x": 16,
+          "x": 6,
           "y": 16,
-          "licenseId": 29
+          "licenseId": 95
+        },
+        {
+          "x": 9,
+          "y": 16,
+          "licenseId": 339
+        },
+        {
+          "x": 17,
+          "y": 16,
+          "licenseId": 20
+        },
+        {
+          "x": 17,
+          "y": 17,
+          "licenseId": 335
         }
       ],
-      "previousCandidateSha256": "55430e89ff11e23213ecd0122f25f855e92ca9f046643bb71bfd6366a7221e2b"
+      "previousCandidateSha256": "1d89bb4ab216c0eb3b2736a13b45db46414a0344cfd95e455f1ae1d5b54096a8",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 1,
@@ -551,27 +670,57 @@
       "name": "Lancer",
       "key": "orderbreaker",
       "sourceSha256": "b363ed4d72eed279de1c4168006e251bf4df75eda5c83f00331a476826c35449",
-      "candidateSha256": "c449eb04a452a8e7809787858ff1e5e52d5dc5b04ee574c67c212d64ff062512",
+      "candidateSha256": "06b54495eadc0a6ec42b13a29b1120ea4a34902c34081376529049ad91c3ba6d",
       "cells": [
         {
           "x": 17,
+          "y": 4,
+          "licenseId": 52
+        },
+        {
+          "x": 10,
           "y": 5,
-          "licenseId": 0
+          "licenseId": 341
+        },
+        {
+          "x": 12,
+          "y": 5,
+          "licenseId": 331
+        },
+        {
+          "x": 17,
+          "y": 5,
+          "licenseId": 18
+        },
+        {
+          "x": 6,
+          "y": 6,
+          "licenseId": 342
         },
         {
           "x": 9,
           "y": 6,
-          "licenseId": 1
+          "licenseId": 0
+        },
+        {
+          "x": 10,
+          "y": 6,
+          "licenseId": 27
         },
         {
           "x": 11,
           "y": 6,
-          "licenseId": 26
+          "licenseId": 1
         },
         {
-          "x": 13,
+          "x": 12,
           "y": 6,
-          "licenseId": 2
+          "licenseId": 29
+        },
+        {
+          "x": 14,
+          "y": 6,
+          "licenseId": 95
         },
         {
           "x": 17,
@@ -581,22 +730,22 @@
         {
           "x": 18,
           "y": 6,
-          "licenseId": 3
+          "licenseId": 2
         },
         {
           "x": 6,
           "y": 7,
-          "licenseId": 18
+          "licenseId": 24
         },
         {
           "x": 7,
           "y": 7,
-          "licenseId": 30
+          "licenseId": 3
         },
         {
           "x": 9,
           "y": 7,
-          "licenseId": 350
+          "licenseId": 59
         },
         {
           "x": 10,
@@ -611,12 +760,12 @@
         {
           "x": 12,
           "y": 7,
-          "licenseId": 337
+          "licenseId": 350
         },
         {
-          "x": 13,
+          "x": 14,
           "y": 7,
-          "licenseId": 59
+          "licenseId": 19
         },
         {
           "x": 16,
@@ -629,9 +778,14 @@
           "licenseId": 275
         },
         {
-          "x": 5,
-          "y": 8,
-          "licenseId": 360
+          "x": 18,
+          "y": 7,
+          "licenseId": 26
+        },
+        {
+          "x": 19,
+          "y": 7,
+          "licenseId": 337
         },
         {
           "x": 6,
@@ -694,9 +848,14 @@
           "licenseId": 301
         },
         {
-          "x": 18,
-          "y": 8,
-          "licenseId": 27
+          "x": 4,
+          "y": 9,
+          "licenseId": 76
+        },
+        {
+          "x": 5,
+          "y": 9,
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -759,11 +918,6 @@
           "licenseId": 312
         },
         {
-          "x": 5,
-          "y": 10,
-          "licenseId": 19
-        },
-        {
           "x": 6,
           "y": 10,
           "licenseId": 178
@@ -822,11 +976,6 @@
           "x": 17,
           "y": 10,
           "licenseId": 310
-        },
-        {
-          "x": 18,
-          "y": 10,
-          "licenseId": 28
         },
         {
           "x": 6,
@@ -889,9 +1038,14 @@
           "licenseId": 300
         },
         {
-          "x": 5,
-          "y": 12,
-          "licenseId": 29
+          "x": 18,
+          "y": 11,
+          "licenseId": 25
+        },
+        {
+          "x": 19,
+          "y": 11,
+          "licenseId": 339
         },
         {
           "x": 6,
@@ -954,8 +1108,13 @@
           "licenseId": 311
         },
         {
-          "x": 18,
-          "y": 12,
+          "x": 4,
+          "y": 13,
+          "licenseId": 335
+        },
+        {
+          "x": 5,
+          "y": 13,
           "licenseId": 20
         },
         {
@@ -1004,9 +1163,14 @@
           "licenseId": 313
         },
         {
-          "x": 5,
-          "y": 14,
+          "x": 18,
+          "y": 13,
           "licenseId": 21
+        },
+        {
+          "x": 19,
+          "y": 13,
+          "licenseId": 330
         },
         {
           "x": 6,
@@ -1019,9 +1183,9 @@
           "licenseId": 176
         },
         {
-          "x": 10,
+          "x": 11,
           "y": 14,
-          "licenseId": 22
+          "licenseId": 360
         },
         {
           "x": 15,
@@ -1039,14 +1203,9 @@
           "licenseId": 302
         },
         {
-          "x": 18,
-          "y": 14,
-          "licenseId": 23
-        },
-        {
           "x": 6,
           "y": 15,
-          "licenseId": 25
+          "licenseId": 22
         },
         {
           "x": 16,
@@ -1059,12 +1218,86 @@
           "licenseId": 303
         },
         {
+          "x": 18,
+          "y": 15,
+          "licenseId": 30
+        },
+        {
+          "x": 19,
+          "y": 15,
+          "licenseId": 49
+        },
+        {
+          "x": 6,
+          "y": 16,
+          "licenseId": 343
+        },
+        {
           "x": 17,
           "y": 16,
-          "licenseId": 24
+          "licenseId": 23
+        },
+        {
+          "x": 17,
+          "y": 17,
+          "licenseId": 347
         }
       ],
-      "previousCandidateSha256": "2d67c26b238769b7019124d5b44cd8c48678a5137e47fa0322db33a87323c767"
+      "previousCandidateSha256": "c449eb04a452a8e7809787858ff1e5e52d5dc5b04ee574c67c212d64ff062512",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 2,
@@ -1072,32 +1305,57 @@
       "name": "Gunner",
       "key": "fusilier",
       "sourceSha256": "ebb8af58b7b641598bae31f532f38321aed9bcea632625ac2fe225906ad19e48",
-      "candidateSha256": "da9edd2c62287518b04f449cf2ab6002539fc119097fb496f77ffd5ec214d7e2",
+      "candidateSha256": "70d4b8f598ccea224e28e4ed9133f636c439c10eb6c1bd46c7f30d7571a72509",
       "cells": [
+        {
+          "x": 10,
+          "y": 5,
+          "licenseId": 335
+        },
+        {
+          "x": 12,
+          "y": 5,
+          "licenseId": 331
+        },
+        {
+          "x": 6,
+          "y": 6,
+          "licenseId": 347
+        },
         {
           "x": 9,
           "y": 6,
-          "licenseId": 18
+          "licenseId": 0
         },
         {
           "x": 10,
           "y": 6,
-          "licenseId": 26
+          "licenseId": 20
+        },
+        {
+          "x": 11,
+          "y": 6,
+          "licenseId": 1
         },
         {
           "x": 12,
           "y": 6,
-          "licenseId": 24
+          "licenseId": 29
+        },
+        {
+          "x": 15,
+          "y": 6,
+          "licenseId": 76
         },
         {
           "x": 6,
           "y": 7,
-          "licenseId": 19
+          "licenseId": 23
         },
         {
           "x": 7,
           "y": 7,
-          "licenseId": 27
+          "licenseId": 2
         },
         {
           "x": 9,
@@ -1120,19 +1378,14 @@
           "licenseId": 81
         },
         {
-          "x": 13,
+          "x": 14,
           "y": 7,
-          "licenseId": 342
+          "licenseId": 3
         },
         {
           "x": 15,
           "y": 7,
-          "licenseId": 1
-        },
-        {
-          "x": 5,
-          "y": 8,
-          "licenseId": 360
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -1183,6 +1436,16 @@
           "x": 15,
           "y": 8,
           "licenseId": 265
+        },
+        {
+          "x": 4,
+          "y": 9,
+          "licenseId": 339
+        },
+        {
+          "x": 5,
+          "y": 9,
+          "licenseId": 25
         },
         {
           "x": 6,
@@ -1242,7 +1505,12 @@
         {
           "x": 17,
           "y": 9,
-          "licenseId": 20
+          "licenseId": 26
+        },
+        {
+          "x": 18,
+          "y": 9,
+          "licenseId": 337
         },
         {
           "x": 6,
@@ -1300,9 +1568,14 @@
           "licenseId": 301
         },
         {
+          "x": 4,
+          "y": 11,
+          "licenseId": 342
+        },
+        {
           "x": 5,
           "y": 11,
-          "licenseId": 0
+          "licenseId": 24
         },
         {
           "x": 6,
@@ -1360,6 +1633,16 @@
           "licenseId": 300
         },
         {
+          "x": 17,
+          "y": 11,
+          "licenseId": 19
+        },
+        {
+          "x": 18,
+          "y": 11,
+          "licenseId": 95
+        },
+        {
           "x": 6,
           "y": 12,
           "licenseId": 179
@@ -1410,14 +1693,14 @@
           "licenseId": 302
         },
         {
-          "x": 17,
-          "y": 12,
-          "licenseId": 21
+          "x": 4,
+          "y": 13,
+          "licenseId": 330
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 22
+          "licenseId": 21
         },
         {
           "x": 6,
@@ -1435,14 +1718,9 @@
           "licenseId": 170
         },
         {
-          "x": 10,
-          "y": 13,
-          "licenseId": 23
-        },
-        {
           "x": 11,
           "y": 13,
-          "licenseId": 28
+          "licenseId": 360
         },
         {
           "x": 14,
@@ -1453,11 +1731,6 @@
           "x": 15,
           "y": 13,
           "licenseId": 273
-        },
-        {
-          "x": 5,
-          "y": 14,
-          "licenseId": 29
         },
         {
           "x": 6,
@@ -1477,25 +1750,99 @@
         {
           "x": 16,
           "y": 14,
-          "licenseId": 2
+          "licenseId": 27
+        },
+        {
+          "x": 17,
+          "y": 14,
+          "licenseId": 341
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 25
+          "licenseId": 22
         },
         {
           "x": 7,
           "y": 15,
-          "licenseId": 30
+          "licenseId": 18
+        },
+        {
+          "x": 8,
+          "y": 15,
+          "licenseId": 52
         },
         {
           "x": 15,
           "y": 15,
-          "licenseId": 3
+          "licenseId": 30
+        },
+        {
+          "x": 6,
+          "y": 16,
+          "licenseId": 343
+        },
+        {
+          "x": 15,
+          "y": 16,
+          "licenseId": 49
         }
       ],
-      "previousCandidateSha256": "c50745ac17cc7840f51b5a4e0c1cc0bbe9bd03cd852c74aa511ac9aba8de12d3"
+      "previousCandidateSha256": "da9edd2c62287518b04f449cf2ab6002539fc119097fb496f77ffd5ec214d7e2",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 3,
@@ -1503,22 +1850,47 @@
       "name": "Green Mage",
       "key": "wood_warder",
       "sourceSha256": "c0ac046eac985d6a768f87ea474b79419fc26892f378ea7e031b849ed276af97",
-      "candidateSha256": "c9a26dae67e9f5192defcba369e5cebfb0dcbbd53659617fcfbb2aecc036a2a9",
+      "candidateSha256": "d44dbf765bee075173fa0cb195785abd69cd10c4c3fe1156e43f1cbe0c1cdbed",
       "cells": [
         {
           "x": 17,
+          "y": 4,
+          "licenseId": 341
+        },
+        {
+          "x": 11,
           "y": 5,
-          "licenseId": 1
+          "licenseId": 339
+        },
+        {
+          "x": 17,
+          "y": 5,
+          "licenseId": 27
+        },
+        {
+          "x": 7,
+          "y": 6,
+          "licenseId": 347
         },
         {
           "x": 10,
           "y": 6,
-          "licenseId": 20
+          "licenseId": 0
+        },
+        {
+          "x": 11,
+          "y": 6,
+          "licenseId": 25
         },
         {
           "x": 12,
           "y": 6,
-          "licenseId": 21
+          "licenseId": 1
+        },
+        {
+          "x": 14,
+          "y": 6,
+          "licenseId": 343
         },
         {
           "x": 17,
@@ -1528,17 +1900,27 @@
         {
           "x": 18,
           "y": 6,
-          "licenseId": 22
+          "licenseId": 29
+        },
+        {
+          "x": 19,
+          "y": 6,
+          "licenseId": 331
         },
         {
           "x": 6,
+          "y": 7,
+          "licenseId": 2
+        },
+        {
+          "x": 7,
           "y": 7,
           "licenseId": 23
         },
         {
           "x": 8,
           "y": 7,
-          "licenseId": 2
+          "licenseId": 3
         },
         {
           "x": 10,
@@ -1558,7 +1940,7 @@
         {
           "x": 14,
           "y": 7,
-          "licenseId": 3
+          "licenseId": 22
         },
         {
           "x": 16,
@@ -1631,9 +2013,14 @@
           "licenseId": 324
         },
         {
+          "x": 4,
+          "y": 9,
+          "licenseId": 335
+        },
+        {
           "x": 5,
           "y": 9,
-          "licenseId": 360
+          "licenseId": 20
         },
         {
           "x": 6,
@@ -1698,7 +2085,12 @@
         {
           "x": 18,
           "y": 9,
-          "licenseId": 24
+          "licenseId": 18
+        },
+        {
+          "x": 19,
+          "y": 9,
+          "licenseId": 52
         },
         {
           "x": 6,
@@ -1759,11 +2151,6 @@
           "x": 17,
           "y": 10,
           "licenseId": 300
-        },
-        {
-          "x": 5,
-          "y": 11,
-          "licenseId": 0
         },
         {
           "x": 6,
@@ -1833,7 +2220,22 @@
         {
           "x": 19,
           "y": 11,
-          "licenseId": 18
+          "licenseId": 26
+        },
+        {
+          "x": 20,
+          "y": 11,
+          "licenseId": 337
+        },
+        {
+          "x": 4,
+          "y": 12,
+          "licenseId": 49
+        },
+        {
+          "x": 5,
+          "y": 12,
+          "licenseId": 30
         },
         {
           "x": 6,
@@ -1896,11 +2298,6 @@
           "licenseId": 321
         },
         {
-          "x": 5,
-          "y": 13,
-          "licenseId": 25
-        },
-        {
           "x": 6,
           "y": 13,
           "licenseId": 353
@@ -1956,9 +2353,14 @@
           "licenseId": 323
         },
         {
-          "x": 18,
-          "y": 13,
-          "licenseId": 26
+          "x": 4,
+          "y": 14,
+          "licenseId": 76
+        },
+        {
+          "x": 5,
+          "y": 14,
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -1973,12 +2375,12 @@
         {
           "x": 9,
           "y": 14,
-          "licenseId": 27
+          "licenseId": 21
         },
         {
-          "x": 12,
+          "x": 11,
           "y": 14,
-          "licenseId": 28
+          "licenseId": 360
         },
         {
           "x": 15,
@@ -1998,7 +2400,12 @@
         {
           "x": 6,
           "y": 15,
-          "licenseId": 29
+          "licenseId": 19
+        },
+        {
+          "x": 9,
+          "y": 15,
+          "licenseId": 330
         },
         {
           "x": 16,
@@ -2011,6 +2418,11 @@
           "licenseId": 325
         },
         {
+          "x": 6,
+          "y": 16,
+          "licenseId": 95
+        },
+        {
           "x": 17,
           "y": 16,
           "licenseId": 327
@@ -2018,15 +2430,69 @@
         {
           "x": 18,
           "y": 16,
-          "licenseId": 30
+          "licenseId": 24
         },
         {
-          "x": 17,
-          "y": 17,
-          "licenseId": 19
+          "x": 19,
+          "y": 16,
+          "licenseId": 342
         }
       ],
-      "previousCandidateSha256": "61f0068b8286b313e1937e605ec478e4f9d939fbb10449679b8be8134546d84d"
+      "previousCandidateSha256": "c9a26dae67e9f5192defcba369e5cebfb0dcbbd53659617fcfbb2aecc036a2a9",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 4,
@@ -2034,57 +2500,57 @@
       "name": "Knight",
       "key": "oathguard",
       "sourceSha256": "902b04e41c7f4d2b99469b615369f4c3142db6eaa2af7a9e7d6e4a1cef650888",
-      "candidateSha256": "3931c77fec54206dcd7e20a6f1f9b4e340607ea8dd023cf376079447fa83e461",
+      "candidateSha256": "1e8e86f5d09095c862f8abb4bc2451c15a728b21cd1205008abd976a0e560c18",
       "cells": [
         {
-          "x": 6,
-          "y": 5,
-          "licenseId": 2
+          "x": 8,
+          "y": 4,
+          "licenseId": 76
+        },
+        {
+          "x": 13,
+          "y": 4,
+          "licenseId": 341
         },
         {
           "x": 8,
-          "y": 5,
-          "licenseId": 26
-        },
-        {
-          "x": 10,
-          "y": 5,
-          "licenseId": 27
-        },
-        {
-          "x": 12,
           "y": 5,
           "licenseId": 28
         },
         {
-          "x": 15,
+          "x": 9,
           "y": 5,
-          "licenseId": 3
+          "licenseId": 0
         },
         {
-          "x": 5,
-          "y": 6,
-          "licenseId": 360
+          "x": 11,
+          "y": 5,
+          "licenseId": 1
         },
         {
-          "x": 6,
-          "y": 6,
-          "licenseId": 125
+          "x": 13,
+          "y": 5,
+          "licenseId": 27
         },
         {
-          "x": 7,
-          "y": 6,
-          "licenseId": 350
+          "x": 14,
+          "y": 5,
+          "licenseId": 2
+        },
+        {
+          "x": 16,
+          "y": 5,
+          "licenseId": 52
         },
         {
           "x": 8,
           "y": 6,
-          "licenseId": 349
+          "licenseId": 350
         },
         {
           "x": 9,
           "y": 6,
-          "licenseId": 124
+          "licenseId": 349
         },
         {
           "x": 10,
@@ -2099,27 +2565,27 @@
         {
           "x": 12,
           "y": 6,
-          "licenseId": 331
+          "licenseId": 124
         },
         {
           "x": 13,
           "y": 6,
-          "licenseId": 330
-        },
-        {
-          "x": 14,
-          "y": 6,
           "licenseId": 123
         },
         {
-          "x": 15,
+          "x": 14,
           "y": 6,
-          "licenseId": 335
+          "licenseId": 125
         },
         {
-          "x": 14,
-          "y": 5,
-          "licenseId": 23
+          "x": 16,
+          "y": 6,
+          "licenseId": 18
+        },
+        {
+          "x": 5,
+          "y": 7,
+          "licenseId": 342
         },
         {
           "x": 7,
@@ -2174,7 +2640,7 @@
         {
           "x": 5,
           "y": 8,
-          "licenseId": 18
+          "licenseId": 24
         },
         {
           "x": 6,
@@ -2239,7 +2705,22 @@
         {
           "x": 18,
           "y": 8,
-          "licenseId": 19
+          "licenseId": 22
+        },
+        {
+          "x": 19,
+          "y": 8,
+          "licenseId": 343
+        },
+        {
+          "x": 4,
+          "y": 9,
+          "licenseId": 337
+        },
+        {
+          "x": 5,
+          "y": 9,
+          "licenseId": 26
         },
         {
           "x": 6,
@@ -2302,9 +2783,9 @@
           "licenseId": 275
         },
         {
-          "x": 5,
-          "y": 10,
-          "licenseId": 29
+          "x": 18,
+          "y": 9,
+          "licenseId": 3
         },
         {
           "x": 6,
@@ -2367,9 +2848,14 @@
           "licenseId": 301
         },
         {
-          "x": 18,
-          "y": 10,
-          "licenseId": 30
+          "x": 4,
+          "y": 11,
+          "licenseId": 331
+        },
+        {
+          "x": 5,
+          "y": 11,
+          "licenseId": 29
         },
         {
           "x": 6,
@@ -2430,6 +2916,16 @@
           "x": 17,
           "y": 11,
           "licenseId": 232
+        },
+        {
+          "x": 18,
+          "y": 11,
+          "licenseId": 20
+        },
+        {
+          "x": 19,
+          "y": 11,
+          "licenseId": 335
         },
         {
           "x": 6,
@@ -2507,14 +3003,9 @@
           "licenseId": 170
         },
         {
-          "x": 10,
+          "x": 11,
           "y": 13,
-          "licenseId": 20
-        },
-        {
-          "x": 12,
-          "y": 13,
-          "licenseId": 21
+          "licenseId": 360
         },
         {
           "x": 14,
@@ -2539,12 +3030,22 @@
         {
           "x": 18,
           "y": 13,
-          "licenseId": 22
+          "licenseId": 30
+        },
+        {
+          "x": 19,
+          "y": 13,
+          "licenseId": 49
+        },
+        {
+          "x": 4,
+          "y": 14,
+          "licenseId": 330
         },
         {
           "x": 5,
           "y": 14,
-          "licenseId": 24
+          "licenseId": 21
         },
         {
           "x": 6,
@@ -2567,9 +3068,9 @@
           "licenseId": 227
         },
         {
-          "x": 6,
+          "x": 7,
           "y": 15,
-          "licenseId": 25
+          "licenseId": 19
         },
         {
           "x": 16,
@@ -2579,15 +3080,84 @@
         {
           "x": 17,
           "y": 15,
-          "licenseId": 0
+          "licenseId": 23
+        },
+        {
+          "x": 18,
+          "y": 15,
+          "licenseId": 347
+        },
+        {
+          "x": 7,
+          "y": 16,
+          "licenseId": 95
         },
         {
           "x": 16,
           "y": 16,
-          "licenseId": 1
+          "licenseId": 25
+        },
+        {
+          "x": 16,
+          "y": 17,
+          "licenseId": 339
         }
       ],
-      "previousCandidateSha256": "99e46bd49825aa35d9cb87d015cb42425e4ace64cc867ab878713e6ef54cef88"
+      "previousCandidateSha256": "3931c77fec54206dcd7e20a6f1f9b4e340607ea8dd023cf376079447fa83e461",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 5,
@@ -2595,27 +3165,57 @@
       "name": "Mystic",
       "key": "stonekeeper",
       "sourceSha256": "0bedee771d8549741febb8aa143819c837e578bb77b07dc984a9813f27fd43d5",
-      "candidateSha256": "0f4ffff2d3991a19ecd468ddd899b31ed37bf516041590f322f336bc0c29b80b",
+      "candidateSha256": "470e1b32da8055e4ef30f01ba5f73218fb199843b2789e8a6686b6005cea3700",
       "cells": [
+        {
+          "x": 10,
+          "y": 4,
+          "licenseId": 337
+        },
+        {
+          "x": 17,
+          "y": 4,
+          "licenseId": 335
+        },
+        {
+          "x": 8,
+          "y": 5,
+          "licenseId": 52
+        },
+        {
+          "x": 10,
+          "y": 5,
+          "licenseId": 26
+        },
         {
           "x": 11,
           "y": 5,
-          "licenseId": 24
+          "licenseId": 0
+        },
+        {
+          "x": 13,
+          "y": 5,
+          "licenseId": 331
+        },
+        {
+          "x": 15,
+          "y": 5,
+          "licenseId": 347
         },
         {
           "x": 17,
           "y": 5,
-          "licenseId": 1
+          "licenseId": 20
         },
         {
           "x": 7,
           "y": 6,
-          "licenseId": 3
+          "licenseId": 1
         },
         {
           "x": 8,
           "y": 6,
-          "licenseId": 28
+          "licenseId": 18
         },
         {
           "x": 10,
@@ -2628,19 +3228,19 @@
           "licenseId": 148
         },
         {
-          "x": 12,
+          "x": 13,
           "y": 6,
-          "licenseId": 339
+          "licenseId": 29
         },
         {
           "x": 14,
           "y": 6,
-          "licenseId": 18
+          "licenseId": 2
         },
         {
           "x": 15,
           "y": 6,
-          "licenseId": 29
+          "licenseId": 23
         },
         {
           "x": 17,
@@ -2650,7 +3250,7 @@
         {
           "x": 18,
           "y": 6,
-          "licenseId": 19
+          "licenseId": 3
         },
         {
           "x": 7,
@@ -2710,12 +3310,12 @@
         {
           "x": 18,
           "y": 7,
-          "licenseId": 30
+          "licenseId": 19
         },
         {
-          "x": 5,
-          "y": 8,
-          "licenseId": 360
+          "x": 19,
+          "y": 7,
+          "licenseId": 95
         },
         {
           "x": 6,
@@ -2776,6 +3376,16 @@
           "x": 17,
           "y": 8,
           "licenseId": 320
+        },
+        {
+          "x": 4,
+          "y": 9,
+          "licenseId": 76
+        },
+        {
+          "x": 5,
+          "y": 9,
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -2841,11 +3451,6 @@
           "x": 18,
           "y": 9,
           "licenseId": 303
-        },
-        {
-          "x": 19,
-          "y": 9,
-          "licenseId": 20
         },
         {
           "x": 6,
@@ -2913,9 +3518,14 @@
           "licenseId": 302
         },
         {
+          "x": 4,
+          "y": 11,
+          "licenseId": 339
+        },
+        {
           "x": 5,
           "y": 11,
-          "licenseId": 0
+          "licenseId": 25
         },
         {
           "x": 6,
@@ -2983,11 +3593,6 @@
           "licenseId": 229
         },
         {
-          "x": 19,
-          "y": 11,
-          "licenseId": 27
-        },
-        {
           "x": 6,
           "y": 12,
           "licenseId": 179
@@ -3053,9 +3658,14 @@
           "licenseId": 275
         },
         {
+          "x": 4,
+          "y": 13,
+          "licenseId": 341
+        },
+        {
           "x": 5,
           "y": 13,
-          "licenseId": 21
+          "licenseId": 27
         },
         {
           "x": 6,
@@ -3110,7 +3720,12 @@
         {
           "x": 19,
           "y": 13,
-          "licenseId": 22
+          "licenseId": 21
+        },
+        {
+          "x": 20,
+          "y": 13,
+          "licenseId": 330
         },
         {
           "x": 6,
@@ -3123,9 +3738,9 @@
           "licenseId": 176
         },
         {
-          "x": 10,
+          "x": 11,
           "y": 14,
-          "licenseId": 23
+          "licenseId": 360
         },
         {
           "x": 15,
@@ -3143,9 +3758,9 @@
           "licenseId": 265
         },
         {
-          "x": 6,
+          "x": 7,
           "y": 15,
-          "licenseId": 25
+          "licenseId": 22
         },
         {
           "x": 16,
@@ -3158,9 +3773,9 @@
           "licenseId": 274
         },
         {
-          "x": 18,
-          "y": 15,
-          "licenseId": 26
+          "x": 7,
+          "y": 16,
+          "licenseId": 343
         },
         {
           "x": 17,
@@ -3168,12 +3783,81 @@
           "licenseId": 301
         },
         {
+          "x": 18,
+          "y": 16,
+          "licenseId": 24
+        },
+        {
+          "x": 19,
+          "y": 16,
+          "licenseId": 342
+        },
+        {
           "x": 17,
           "y": 17,
-          "licenseId": 2
+          "licenseId": 30
+        },
+        {
+          "x": 17,
+          "y": 18,
+          "licenseId": 49
         }
       ],
-      "previousCandidateSha256": "bd1e09e063253a75b26f250b0b4c0299160cccb73f2ee7db29b90f3b45ea11af"
+      "previousCandidateSha256": "0f4ffff2d3991a19ecd468ddd899b31ed37bf516041590f322f336bc0c29b80b",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 6,
@@ -3181,17 +3865,47 @@
       "name": "Time Mage",
       "key": "chrono_bombardier",
       "sourceSha256": "d84a87857a634fb8e594d29bb972c519758053d4e96501ca9c1212110a2470ad",
-      "candidateSha256": "f74d391b30e6d7cee161029a721484f8bc5c1080aa7159c9fcf7c6a6f7a02c52",
+      "candidateSha256": "a206c750a86b5e5ce518655bdea6c27141215ae46a21cdba4fb7e0698a9b0818",
       "cells": [
         {
-          "x": 8,
+          "x": 9,
+          "y": 5,
+          "licenseId": 331
+        },
+        {
+          "x": 11,
+          "y": 5,
+          "licenseId": 347
+        },
+        {
+          "x": 13,
+          "y": 5,
+          "licenseId": 335
+        },
+        {
+          "x": 16,
+          "y": 5,
+          "licenseId": 337
+        },
+        {
+          "x": 9,
           "y": 6,
-          "licenseId": 19
+          "licenseId": 29
         },
         {
           "x": 10,
           "y": 6,
-          "licenseId": 28
+          "licenseId": 0
+        },
+        {
+          "x": 11,
+          "y": 6,
+          "licenseId": 23
+        },
+        {
+          "x": 12,
+          "y": 6,
+          "licenseId": 1
         },
         {
           "x": 13,
@@ -3201,17 +3915,12 @@
         {
           "x": 16,
           "y": 6,
-          "licenseId": 1
+          "licenseId": 26
         },
         {
           "x": 6,
           "y": 7,
           "licenseId": 2
-        },
-        {
-          "x": 8,
-          "y": 7,
-          "licenseId": 352
         },
         {
           "x": 9,
@@ -3236,7 +3945,7 @@
         {
           "x": 13,
           "y": 7,
-          "licenseId": 347
+          "licenseId": 352
         },
         {
           "x": 16,
@@ -3246,12 +3955,17 @@
         {
           "x": 17,
           "y": 7,
-          "licenseId": 3
+          "licenseId": 19
+        },
+        {
+          "x": 18,
+          "y": 7,
+          "licenseId": 95
         },
         {
           "x": 5,
           "y": 8,
-          "licenseId": 360
+          "licenseId": 3
         },
         {
           "x": 6,
@@ -3307,6 +4021,16 @@
           "x": 16,
           "y": 8,
           "licenseId": 273
+        },
+        {
+          "x": 4,
+          "y": 9,
+          "licenseId": 76
+        },
+        {
+          "x": 5,
+          "y": 9,
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -3369,11 +4093,6 @@
           "licenseId": 322
         },
         {
-          "x": 18,
-          "y": 9,
-          "licenseId": 21
-        },
-        {
           "x": 6,
           "y": 10,
           "licenseId": 178
@@ -3434,9 +4153,24 @@
           "licenseId": 274
         },
         {
+          "x": 18,
+          "y": 10,
+          "licenseId": 22
+        },
+        {
+          "x": 19,
+          "y": 10,
+          "licenseId": 343
+        },
+        {
+          "x": 4,
+          "y": 11,
+          "licenseId": 339
+        },
+        {
           "x": 5,
           "y": 11,
-          "licenseId": 0
+          "licenseId": 25
         },
         {
           "x": 6,
@@ -3499,11 +4233,6 @@
           "licenseId": 265
         },
         {
-          "x": 18,
-          "y": 11,
-          "licenseId": 29
-        },
-        {
           "x": 6,
           "y": 12,
           "licenseId": 179
@@ -3564,9 +4293,14 @@
           "licenseId": 321
         },
         {
+          "x": 4,
+          "y": 13,
+          "licenseId": 341
+        },
+        {
           "x": 5,
           "y": 13,
-          "licenseId": 22
+          "licenseId": 27
         },
         {
           "x": 6,
@@ -3631,12 +4365,12 @@
         {
           "x": 18,
           "y": 13,
-          "licenseId": 24
+          "licenseId": 21
         },
         {
-          "x": 5,
-          "y": 14,
-          "licenseId": 30
+          "x": 19,
+          "y": 13,
+          "licenseId": 330
         },
         {
           "x": 6,
@@ -3679,19 +4413,14 @@
           "licenseId": 318
         },
         {
-          "x": 6,
-          "y": 15,
-          "licenseId": 25
-        },
-        {
           "x": 9,
           "y": 15,
-          "licenseId": 26
+          "licenseId": 18
         },
         {
-          "x": 12,
+          "x": 11,
           "y": 15,
-          "licenseId": 27
+          "licenseId": 360
         },
         {
           "x": 16,
@@ -3701,15 +4430,84 @@
         {
           "x": 17,
           "y": 15,
-          "licenseId": 18
+          "licenseId": 30
+        },
+        {
+          "x": 18,
+          "y": 15,
+          "licenseId": 49
+        },
+        {
+          "x": 9,
+          "y": 16,
+          "licenseId": 52
         },
         {
           "x": 16,
           "y": 16,
-          "licenseId": 23
+          "licenseId": 24
+        },
+        {
+          "x": 16,
+          "y": 17,
+          "licenseId": 342
         }
       ],
-      "previousCandidateSha256": "9486cad077597eb0e35cffca7fc4142967c0c33350ebc7e5ac8f20f4ab975aca"
+      "previousCandidateSha256": "f74d391b30e6d7cee161029a721484f8bc5c1080aa7159c9fcf7c6a6f7a02c52",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 7,
@@ -3717,27 +4515,57 @@
       "name": "Warrior",
       "key": "lanista",
       "sourceSha256": "effdeab69c10e8e1179af9f6460e29417ea4e8c960fb08d3a8ff25435a4ac9de",
-      "candidateSha256": "ee1f4c313281656c49943c36bc3a84296866064e165ebc25d403e60fe6959e85",
+      "candidateSha256": "95dfc84c7d1f4d0175f8d30eda4e3bce4afb9ba0cafa9383a564e8c9792845ab",
       "cells": [
         {
           "x": 11,
+          "y": 4,
+          "licenseId": 341
+        },
+        {
+          "x": 7,
           "y": 5,
-          "licenseId": 24
+          "licenseId": 331
+        },
+        {
+          "x": 10,
+          "y": 5,
+          "licenseId": 0
+        },
+        {
+          "x": 11,
+          "y": 5,
+          "licenseId": 27
+        },
+        {
+          "x": 13,
+          "y": 5,
+          "licenseId": 343
+        },
+        {
+          "x": 15,
+          "y": 5,
+          "licenseId": 95
+        },
+        {
+          "x": 17,
+          "y": 5,
+          "licenseId": 342
         },
         {
           "x": 7,
           "y": 6,
-          "licenseId": 1
+          "licenseId": 29
         },
         {
           "x": 8,
           "y": 6,
-          "licenseId": 29
+          "licenseId": 1
         },
         {
           "x": 10,
           "y": 6,
-          "licenseId": 343
+          "licenseId": 44
         },
         {
           "x": 11,
@@ -3745,9 +4573,9 @@
           "licenseId": 43
         },
         {
-          "x": 12,
+          "x": 13,
           "y": 6,
-          "licenseId": 44
+          "licenseId": 22
         },
         {
           "x": 14,
@@ -3755,9 +4583,19 @@
           "licenseId": 2
         },
         {
-          "x": 17,
+          "x": 15,
+          "y": 6,
+          "licenseId": 19
+        },
+        {
+          "x": 16,
           "y": 6,
           "licenseId": 3
+        },
+        {
+          "x": 17,
+          "y": 6,
+          "licenseId": 24
         },
         {
           "x": 7,
@@ -3813,16 +4651,6 @@
           "x": 17,
           "y": 7,
           "licenseId": 305
-        },
-        {
-          "x": 18,
-          "y": 7,
-          "licenseId": 18
-        },
-        {
-          "x": 5,
-          "y": 8,
-          "licenseId": 360
         },
         {
           "x": 6,
@@ -3885,6 +4713,16 @@
           "licenseId": 303
         },
         {
+          "x": 18,
+          "y": 8,
+          "licenseId": 28
+        },
+        {
+          "x": 19,
+          "y": 8,
+          "licenseId": 76
+        },
+        {
           "x": 6,
           "y": 9,
           "licenseId": 180
@@ -3945,9 +4783,14 @@
           "licenseId": 302
         },
         {
-          "x": 18,
-          "y": 9,
-          "licenseId": 26
+          "x": 4,
+          "y": 10,
+          "licenseId": 335
+        },
+        {
+          "x": 5,
+          "y": 10,
+          "licenseId": 20
         },
         {
           "x": 6,
@@ -4008,11 +4851,6 @@
           "x": 17,
           "y": 10,
           "licenseId": 310
-        },
-        {
-          "x": 5,
-          "y": 11,
-          "licenseId": 0
         },
         {
           "x": 6,
@@ -4077,7 +4915,22 @@
         {
           "x": 18,
           "y": 11,
-          "licenseId": 27
+          "licenseId": 23
+        },
+        {
+          "x": 19,
+          "y": 11,
+          "licenseId": 347
+        },
+        {
+          "x": 4,
+          "y": 12,
+          "licenseId": 339
+        },
+        {
+          "x": 5,
+          "y": 12,
+          "licenseId": 25
         },
         {
           "x": 6,
@@ -4140,11 +4993,6 @@
           "licenseId": 301
         },
         {
-          "x": 5,
-          "y": 13,
-          "licenseId": 19
-        },
-        {
           "x": 6,
           "y": 13,
           "licenseId": 353
@@ -4160,14 +5008,9 @@
           "licenseId": 170
         },
         {
-          "x": 10,
+          "x": 11,
           "y": 13,
-          "licenseId": 20
-        },
-        {
-          "x": 12,
-          "y": 13,
-          "licenseId": 21
+          "licenseId": 360
         },
         {
           "x": 14,
@@ -4192,12 +5035,12 @@
         {
           "x": 18,
           "y": 13,
-          "licenseId": 28
+          "licenseId": 26
         },
         {
-          "x": 5,
-          "y": 14,
-          "licenseId": 30
+          "x": 19,
+          "y": 13,
+          "licenseId": 337
         },
         {
           "x": 6,
@@ -4227,7 +5070,7 @@
         {
           "x": 6,
           "y": 15,
-          "licenseId": 22
+          "licenseId": 30
         },
         {
           "x": 16,
@@ -4242,15 +5085,84 @@
         {
           "x": 18,
           "y": 15,
-          "licenseId": 23
+          "licenseId": 21
+        },
+        {
+          "x": 19,
+          "y": 15,
+          "licenseId": 330
+        },
+        {
+          "x": 6,
+          "y": 16,
+          "licenseId": 49
         },
         {
           "x": 16,
           "y": 16,
-          "licenseId": 25
+          "licenseId": 18
+        },
+        {
+          "x": 16,
+          "y": 17,
+          "licenseId": 52
         }
       ],
-      "previousCandidateSha256": "31baa0c0664cd7ea056c7e0b79c100c0396a603a56652f95158564e511a8fa26"
+      "previousCandidateSha256": "ee1f4c313281656c49943c36bc3a84296866064e165ebc25d403e60fe6959e85",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 8,
@@ -4258,32 +5170,47 @@
       "name": "Hunter",
       "key": "clan_tracker",
       "sourceSha256": "06bce01f6bc5b5e82fcc77cf41cbd40d308f31d842957434bc70a3e1cf86d858",
-      "candidateSha256": "9186e34ab1e14be8d2caa4478cbba31c6ee5c336ca62d2b20641f807a88f5c4a",
+      "candidateSha256": "9c487a6d35d1f83d1907eba332b031735102b22dea302802180965fdf066b440",
       "cells": [
+        {
+          "x": 11,
+          "y": 4,
+          "licenseId": 49
+        },
+        {
+          "x": 7,
+          "y": 5,
+          "licenseId": 339
+        },
         {
           "x": 10,
           "y": 5,
-          "licenseId": 24
+          "licenseId": 0
+        },
+        {
+          "x": 11,
+          "y": 5,
+          "licenseId": 30
         },
         {
           "x": 12,
           "y": 5,
-          "licenseId": 19
+          "licenseId": 1
         },
         {
-          "x": 13,
+          "x": 15,
           "y": 5,
-          "licenseId": 27
+          "licenseId": 76
         },
         {
           "x": 7,
           "y": 6,
-          "licenseId": 1
+          "licenseId": 25
         },
         {
-          "x": 9,
+          "x": 8,
           "y": 6,
-          "licenseId": 341
+          "licenseId": 2
         },
         {
           "x": 10,
@@ -4301,17 +5228,12 @@
           "licenseId": 72
         },
         {
-          "x": 13,
+          "x": 14,
           "y": 6,
-          "licenseId": 95
+          "licenseId": 3
         },
         {
           "x": 15,
-          "y": 6,
-          "licenseId": 20
-        },
-        {
-          "x": 16,
           "y": 6,
           "licenseId": 28
         },
@@ -4368,12 +5290,12 @@
         {
           "x": 17,
           "y": 7,
-          "licenseId": 2
+          "licenseId": 22
         },
         {
-          "x": 5,
-          "y": 8,
-          "licenseId": 360
+          "x": 18,
+          "y": 7,
+          "licenseId": 343
         },
         {
           "x": 6,
@@ -4429,6 +5351,16 @@
           "x": 16,
           "y": 8,
           "licenseId": 309
+        },
+        {
+          "x": 4,
+          "y": 9,
+          "licenseId": 331
+        },
+        {
+          "x": 5,
+          "y": 9,
+          "licenseId": 29
         },
         {
           "x": 6,
@@ -4491,11 +5423,6 @@
           "licenseId": 275
         },
         {
-          "x": 18,
-          "y": 9,
-          "licenseId": 21
-        },
-        {
           "x": 6,
           "y": 10,
           "licenseId": 178
@@ -4556,9 +5483,24 @@
           "licenseId": 301
         },
         {
+          "x": 18,
+          "y": 10,
+          "licenseId": 27
+        },
+        {
+          "x": 19,
+          "y": 10,
+          "licenseId": 341
+        },
+        {
+          "x": 4,
+          "y": 11,
+          "licenseId": 347
+        },
+        {
           "x": 5,
           "y": 11,
-          "licenseId": 0
+          "licenseId": 23
         },
         {
           "x": 6,
@@ -4683,12 +5625,22 @@
         {
           "x": 18,
           "y": 12,
-          "licenseId": 22
+          "licenseId": 20
+        },
+        {
+          "x": 19,
+          "y": 12,
+          "licenseId": 335
+        },
+        {
+          "x": 4,
+          "y": 13,
+          "licenseId": 330
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 23
+          "licenseId": 21
         },
         {
           "x": 6,
@@ -4726,11 +5678,6 @@
           "licenseId": 308
         },
         {
-          "x": 5,
-          "y": 14,
-          "licenseId": 29
-        },
-        {
           "x": 6,
           "y": 14,
           "licenseId": 181
@@ -4743,7 +5690,7 @@
         {
           "x": 11,
           "y": 14,
-          "licenseId": 3
+          "licenseId": 360
         },
         {
           "x": 15,
@@ -4756,19 +5703,19 @@
           "licenseId": 265
         },
         {
-          "x": 17,
-          "y": 14,
-          "licenseId": 25
+          "x": 5,
+          "y": 15,
+          "licenseId": 342
         },
         {
           "x": 6,
           "y": 15,
-          "licenseId": 26
+          "licenseId": 24
         },
         {
           "x": 7,
           "y": 15,
-          "licenseId": 30
+          "licenseId": 26
         },
         {
           "x": 16,
@@ -4776,12 +5723,86 @@
           "licenseId": 300
         },
         {
+          "x": 17,
+          "y": 15,
+          "licenseId": 19
+        },
+        {
+          "x": 18,
+          "y": 15,
+          "licenseId": 95
+        },
+        {
+          "x": 7,
+          "y": 16,
+          "licenseId": 337
+        },
+        {
           "x": 16,
           "y": 16,
           "licenseId": 18
+        },
+        {
+          "x": 16,
+          "y": 17,
+          "licenseId": 52
         }
       ],
-      "previousCandidateSha256": "838929887c3c8128b8b25aebe657a98b38993e94926cbf6e6813146eda6b6131"
+      "previousCandidateSha256": "9186e34ab1e14be8d2caa4478cbba31c6ee5c336ca62d2b20641f807a88f5c4a",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 9,
@@ -4789,22 +5810,42 @@
       "name": "Black Mage",
       "key": "imperial_arcanist",
       "sourceSha256": "b7645a98b6bb3088e27de36bff7c07ee7ffb2382da2f3bdeba38faef0fe7e02a",
-      "candidateSha256": "91556178946dfb7dd65550ea0383a83ac21eb52d13dd3fc4eb78d13e180679f5",
+      "candidateSha256": "69365c74f4ad65109c0a994cf75c76a88e21f124b5d86abca74b23db584068fe",
       "cells": [
+        {
+          "x": 11,
+          "y": 5,
+          "licenseId": 347
+        },
         {
           "x": 17,
           "y": 5,
-          "licenseId": 1
+          "licenseId": 0
+        },
+        {
+          "x": 6,
+          "y": 6,
+          "licenseId": 342
         },
         {
           "x": 9,
           "y": 6,
-          "licenseId": 21
+          "licenseId": 1
+        },
+        {
+          "x": 11,
+          "y": 6,
+          "licenseId": 23
         },
         {
           "x": 12,
           "y": 6,
-          "licenseId": 22
+          "licenseId": 2
+        },
+        {
+          "x": 14,
+          "y": 6,
+          "licenseId": 341
         },
         {
           "x": 17,
@@ -4814,12 +5855,12 @@
         {
           "x": 18,
           "y": 6,
-          "licenseId": 24
+          "licenseId": 3
         },
         {
-          "x": 7,
+          "x": 6,
           "y": 7,
-          "licenseId": 2
+          "licenseId": 24
         },
         {
           "x": 9,
@@ -4844,7 +5885,7 @@
         {
           "x": 14,
           "y": 7,
-          "licenseId": 3
+          "licenseId": 27
         },
         {
           "x": 16,
@@ -4857,9 +5898,14 @@
           "licenseId": 275
         },
         {
-          "x": 5,
-          "y": 8,
-          "licenseId": 23
+          "x": 18,
+          "y": 7,
+          "licenseId": 19
+        },
+        {
+          "x": 19,
+          "y": 7,
+          "licenseId": 95
         },
         {
           "x": 6,
@@ -4920,6 +5966,16 @@
           "x": 17,
           "y": 8,
           "licenseId": 324
+        },
+        {
+          "x": 4,
+          "y": 9,
+          "licenseId": 76
+        },
+        {
+          "x": 5,
+          "y": 9,
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -4984,7 +6040,12 @@
         {
           "x": 18,
           "y": 9,
-          "licenseId": 25
+          "licenseId": 22
+        },
+        {
+          "x": 19,
+          "y": 9,
+          "licenseId": 343
         },
         {
           "x": 6,
@@ -5047,9 +6108,14 @@
           "licenseId": 274
         },
         {
+          "x": 4,
+          "y": 11,
+          "licenseId": 339
+        },
+        {
           "x": 5,
           "y": 11,
-          "licenseId": 0
+          "licenseId": 25
         },
         {
           "x": 6,
@@ -5119,7 +6185,12 @@
         {
           "x": 19,
           "y": 11,
-          "licenseId": 18
+          "licenseId": 21
+        },
+        {
+          "x": 20,
+          "y": 11,
+          "licenseId": 330
         },
         {
           "x": 6,
@@ -5182,9 +6253,14 @@
           "licenseId": 321
         },
         {
+          "x": 4,
+          "y": 13,
+          "licenseId": 335
+        },
+        {
           "x": 5,
           "y": 13,
-          "licenseId": 360
+          "licenseId": 20
         },
         {
           "x": 6,
@@ -5252,6 +6328,11 @@
           "licenseId": 26
         },
         {
+          "x": 19,
+          "y": 13,
+          "licenseId": 337
+        },
+        {
           "x": 6,
           "y": 14,
           "licenseId": 181
@@ -5272,11 +6353,6 @@
           "licenseId": 216
         },
         {
-          "x": 13,
-          "y": 14,
-          "licenseId": 19
-        },
-        {
           "x": 15,
           "y": 14,
           "licenseId": 263
@@ -5294,17 +6370,12 @@
         {
           "x": 6,
           "y": 15,
-          "licenseId": 27
-        },
-        {
-          "x": 7,
-          "y": 15,
           "licenseId": 30
         },
         {
-          "x": 10,
+          "x": 11,
           "y": 15,
-          "licenseId": 28
+          "licenseId": 360
         },
         {
           "x": 16,
@@ -5317,6 +6388,11 @@
           "licenseId": 325
         },
         {
+          "x": 6,
+          "y": 16,
+          "licenseId": 49
+        },
+        {
           "x": 17,
           "y": 16,
           "licenseId": 327
@@ -5327,12 +6403,76 @@
           "licenseId": 29
         },
         {
+          "x": 19,
+          "y": 16,
+          "licenseId": 331
+        },
+        {
           "x": 17,
           "y": 17,
-          "licenseId": 20
+          "licenseId": 18
+        },
+        {
+          "x": 17,
+          "y": 18,
+          "licenseId": 52
         }
       ],
-      "previousCandidateSha256": "4dd02765659646e326580d54b79095682399dfd1ede6f88748a913daa4d22e6c"
+      "previousCandidateSha256": "91556178946dfb7dd65550ea0383a83ac21eb52d13dd3fc4eb78d13e180679f5",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 10,
@@ -5340,35 +6480,65 @@
       "name": "Samurai",
       "key": "mistblade",
       "sourceSha256": "7cf6838113adac31117cc9ca045a16d4f7845ed866f9061300f2aa50405c5ae8",
-      "candidateSha256": "1b9669b76586be792c8ef4caeee24105ee4e98c640cacff9db7b8ba4bf8a0d33",
+      "candidateSha256": "9d4b4f2711893f5502718722cb9d33c90bef93b9d65be2511ad9b912a3bf4d3d",
       "cells": [
         {
           "x": 17,
-          "y": 5,
-          "licenseId": 1
+          "y": 4,
+          "licenseId": 341
         },
         {
-          "x": 7,
+          "x": 8,
+          "y": 5,
+          "licenseId": 337
+        },
+        {
+          "x": 10,
+          "y": 5,
+          "licenseId": 331
+        },
+        {
+          "x": 13,
+          "y": 5,
+          "licenseId": 347
+        },
+        {
+          "x": 17,
+          "y": 5,
+          "licenseId": 27
+        },
+        {
+          "x": 6,
           "y": 6,
-          "licenseId": 19
+          "licenseId": 343
+        },
+        {
+          "x": 8,
+          "y": 6,
+          "licenseId": 26
         },
         {
           "x": 9,
           "y": 6,
-          "licenseId": 30
+          "licenseId": 0
+        },
+        {
+          "x": 10,
+          "y": 6,
+          "licenseId": 29
         },
         {
           "x": 11,
           "y": 6,
-          "licenseId": 20
+          "licenseId": 1
         },
         {
           "x": 13,
           "y": 6,
-          "licenseId": 0
+          "licenseId": 23
         },
         {
-          "x": 15,
+          "x": 14,
           "y": 6,
           "licenseId": 2
         },
@@ -5380,12 +6550,12 @@
         {
           "x": 18,
           "y": 6,
-          "licenseId": 21
+          "licenseId": 3
         },
         {
-          "x": 7,
+          "x": 6,
           "y": 7,
-          "licenseId": 52
+          "licenseId": 22
         },
         {
           "x": 8,
@@ -5420,11 +6590,6 @@
         {
           "x": 14,
           "y": 7,
-          "licenseId": 49
-        },
-        {
-          "x": 15,
-          "y": 7,
           "licenseId": 136
         },
         {
@@ -5438,9 +6603,14 @@
           "licenseId": 301
         },
         {
-          "x": 5,
-          "y": 8,
-          "licenseId": 360
+          "x": 18,
+          "y": 7,
+          "licenseId": 21
+        },
+        {
+          "x": 19,
+          "y": 7,
+          "licenseId": 330
         },
         {
           "x": 6,
@@ -5501,6 +6671,16 @@
           "x": 17,
           "y": 8,
           "licenseId": 274
+        },
+        {
+          "x": 4,
+          "y": 9,
+          "licenseId": 49
+        },
+        {
+          "x": 5,
+          "y": 9,
+          "licenseId": 30
         },
         {
           "x": 6,
@@ -5565,12 +6745,12 @@
         {
           "x": 18,
           "y": 9,
-          "licenseId": 22
+          "licenseId": 24
         },
         {
-          "x": 5,
-          "y": 10,
-          "licenseId": 24
+          "x": 19,
+          "y": 9,
+          "licenseId": 342
         },
         {
           "x": 6,
@@ -5631,6 +6811,16 @@
           "x": 17,
           "y": 10,
           "licenseId": 307
+        },
+        {
+          "x": 4,
+          "y": 11,
+          "licenseId": 52
+        },
+        {
+          "x": 5,
+          "y": 11,
+          "licenseId": 18
         },
         {
           "x": 6,
@@ -5700,7 +6890,12 @@
         {
           "x": 19,
           "y": 11,
-          "licenseId": 3
+          "licenseId": 25
+        },
+        {
+          "x": 20,
+          "y": 11,
+          "licenseId": 339
         },
         {
           "x": 6,
@@ -5773,9 +6968,9 @@
           "licenseId": 170
         },
         {
-          "x": 10,
+          "x": 11,
           "y": 13,
-          "licenseId": 25
+          "licenseId": 360
         },
         {
           "x": 14,
@@ -5800,12 +6995,22 @@
         {
           "x": 18,
           "y": 13,
-          "licenseId": 26
+          "licenseId": 20
+        },
+        {
+          "x": 19,
+          "y": 13,
+          "licenseId": 335
+        },
+        {
+          "x": 4,
+          "y": 14,
+          "licenseId": 76
         },
         {
           "x": 5,
           "y": 14,
-          "licenseId": 27
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -5835,12 +7040,7 @@
         {
           "x": 6,
           "y": 15,
-          "licenseId": 28
-        },
-        {
-          "x": 18,
-          "y": 15,
-          "licenseId": 23
+          "licenseId": 19
         },
         {
           "x": 16,
@@ -5853,22 +7053,71 @@
           "licenseId": 302
         },
         {
+          "x": 6,
+          "y": 16,
+          "licenseId": 95
+        },
+        {
           "x": 17,
           "y": 16,
           "licenseId": 303
-        },
-        {
-          "x": 18,
-          "y": 16,
-          "licenseId": 29
-        },
-        {
-          "x": 17,
-          "y": 17,
-          "licenseId": 18
         }
       ],
-      "previousCandidateSha256": "21633f00c0ff92a282673bcafa056fbeeede6a85e83ebe8638a796cdc17400f5"
+      "previousCandidateSha256": "1b9669b76586be792c8ef4caeee24105ee4e98c640cacff9db7b8ba4bf8a0d33",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     },
     {
       "nativeSlot": 11,
@@ -5876,22 +7125,32 @@
       "name": "Chemist",
       "key": "salve_maker",
       "sourceSha256": "1031ce8bfbcc45872bb030c633ec5a094623abdbc45a471fc0bb1b9678ef3881",
-      "candidateSha256": "42782c9a14992cdf5265a76875d2fec89ac75ae905363eb4aef9465ab8f4b959",
+      "candidateSha256": "9638b88452983837ba4e96384d60d2b9ab6e4cc124b95714b7a3d3dbe76c7d74",
       "cells": [
+        {
+          "x": 11,
+          "y": 5,
+          "licenseId": 52
+        },
         {
           "x": 17,
           "y": 5,
-          "licenseId": 1
+          "licenseId": 0
         },
         {
-          "x": 10,
+          "x": 9,
           "y": 6,
-          "licenseId": 18
+          "licenseId": 331
         },
         {
           "x": 11,
           "y": 6,
-          "licenseId": 29
+          "licenseId": 18
+        },
+        {
+          "x": 14,
+          "y": 6,
+          "licenseId": 337
         },
         {
           "x": 17,
@@ -5901,22 +7160,22 @@
         {
           "x": 18,
           "y": 6,
-          "licenseId": 19
+          "licenseId": 1
         },
         {
           "x": 6,
           "y": 7,
-          "licenseId": 20
+          "licenseId": 2
         },
         {
           "x": 8,
           "y": 7,
-          "licenseId": 21
+          "licenseId": 3
         },
         {
-          "x": 10,
+          "x": 9,
           "y": 7,
-          "licenseId": 76
+          "licenseId": 29
         },
         {
           "x": 11,
@@ -5924,14 +7183,9 @@
           "licenseId": 75
         },
         {
-          "x": 13,
-          "y": 7,
-          "licenseId": 22
-        },
-        {
           "x": 14,
           "y": 7,
-          "licenseId": 30
+          "licenseId": 26
         },
         {
           "x": 16,
@@ -5944,9 +7198,14 @@
           "licenseId": 244
         },
         {
-          "x": 5,
-          "y": 8,
-          "licenseId": 360
+          "x": 18,
+          "y": 7,
+          "licenseId": 19
+        },
+        {
+          "x": 19,
+          "y": 7,
+          "licenseId": 95
         },
         {
           "x": 6,
@@ -6007,6 +7266,16 @@
           "x": 17,
           "y": 8,
           "licenseId": 265
+        },
+        {
+          "x": 4,
+          "y": 9,
+          "licenseId": 76
+        },
+        {
+          "x": 5,
+          "y": 9,
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -6074,11 +7343,6 @@
           "licenseId": 275
         },
         {
-          "x": 19,
-          "y": 9,
-          "licenseId": 23
-        },
-        {
           "x": 6,
           "y": 10,
           "licenseId": 178
@@ -6144,9 +7408,24 @@
           "licenseId": 250
         },
         {
+          "x": 19,
+          "y": 10,
+          "licenseId": 24
+        },
+        {
+          "x": 20,
+          "y": 10,
+          "licenseId": 342
+        },
+        {
+          "x": 4,
+          "y": 11,
+          "licenseId": 339
+        },
+        {
           "x": 5,
           "y": 11,
-          "licenseId": 0
+          "licenseId": 25
         },
         {
           "x": 6,
@@ -6271,12 +7550,22 @@
         {
           "x": 19,
           "y": 12,
-          "licenseId": 25
+          "licenseId": 21
+        },
+        {
+          "x": 20,
+          "y": 12,
+          "licenseId": 330
+        },
+        {
+          "x": 4,
+          "y": 13,
+          "licenseId": 335
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 26
+          "licenseId": 20
         },
         {
           "x": 6,
@@ -6296,7 +7585,7 @@
         {
           "x": 11,
           "y": 13,
-          "licenseId": 2
+          "licenseId": 360
         },
         {
           "x": 14,
@@ -6346,12 +7635,17 @@
         {
           "x": 18,
           "y": 14,
-          "licenseId": 27
+          "licenseId": 23
         },
         {
-          "x": 7,
+          "x": 19,
+          "y": 14,
+          "licenseId": 347
+        },
+        {
+          "x": 6,
           "y": 15,
-          "licenseId": 24
+          "licenseId": 22
         },
         {
           "x": 16,
@@ -6364,6 +7658,11 @@
           "licenseId": 247
         },
         {
+          "x": 6,
+          "y": 16,
+          "licenseId": 343
+        },
+        {
           "x": 17,
           "y": 16,
           "licenseId": 300
@@ -6371,15 +7670,79 @@
         {
           "x": 18,
           "y": 16,
-          "licenseId": 28
+          "licenseId": 27
+        },
+        {
+          "x": 19,
+          "y": 16,
+          "licenseId": 341
         },
         {
           "x": 17,
           "y": 17,
-          "licenseId": 3
+          "licenseId": 30
+        },
+        {
+          "x": 17,
+          "y": 18,
+          "licenseId": 49
         }
       ],
-      "previousCandidateSha256": "d4e07a48ba682b33d6f303ef7d2f03c69ef160fcdb98db6d87db0a1c757d9f7f"
+      "previousCandidateSha256": "42782c9a14992cdf5265a76875d2fec89ac75ae905363eb4aef9465ab8f4b959",
+      "islands": [
+        {
+          "gateId": 18,
+          "licenseId": 52
+        },
+        {
+          "gateId": 19,
+          "licenseId": 95
+        },
+        {
+          "gateId": 20,
+          "licenseId": 335
+        },
+        {
+          "gateId": 21,
+          "licenseId": 330
+        },
+        {
+          "gateId": 22,
+          "licenseId": 343
+        },
+        {
+          "gateId": 23,
+          "licenseId": 347
+        },
+        {
+          "gateId": 24,
+          "licenseId": 342
+        },
+        {
+          "gateId": 25,
+          "licenseId": 339
+        },
+        {
+          "gateId": 26,
+          "licenseId": 337
+        },
+        {
+          "gateId": 27,
+          "licenseId": 341
+        },
+        {
+          "gateId": 28,
+          "licenseId": 76
+        },
+        {
+          "gateId": 29,
+          "licenseId": 331
+        },
+        {
+          "gateId": 30,
+          "licenseId": 49
+        }
+      ]
     }
   ],
   "labels": [
@@ -6450,11 +7813,11 @@
       ]
     }
   ],
-  "version": "0.3.0",
+  "version": "0.4.0",
   "licenseLpPatch": {
     "schemaVersion": 1,
     "sourceSha256": "665019abce04423118529e461709a1b4aa77a164176c6fdf537b4b6d3b0ac8ea",
-    "resultSha256": "32d10f2c9051b8394d07f98241b87113662e8c7f91d5f5ee744eeda8fa73343e",
+    "resultSha256": "58f9bb6f3e6a0a873335f9b000abdb6e59a0a173506ffbf06355f661bac4799b",
     "changes": [
       {
         "licenseId": 78,
@@ -6487,24 +7850,13 @@
         "afterLp": 240
       },
       {
-        "licenseId": 342,
-        "owner": "Gunner",
-        "beforeLp": 190,
-        "afterLp": 255
-      },
-      {
         "licenseId": 75,
         "owner": "Chemist",
         "beforeLp": 60,
         "afterLp": 145
-      },
-      {
-        "licenseId": 76,
-        "owner": "Chemist",
-        "beforeLp": 115,
-        "afterLp": 225
       }
-    ]
+    ],
+    "previousResultSha256": "32d10f2c9051b8394d07f98241b87113662e8c7f91d5f5ee744eeda8fa73343e"
   },
   "descriptions": {
     "archivePath": "ps2data/image/ff12/test_battle/us/binaryfile/menu_message.bin",
@@ -6608,5 +7960,123 @@
         ]
       }
     ]
+  },
+  "licenseContentPatch": {
+    "schemaVersion": 1,
+    "changes": [
+      {
+        "licenseId": 52,
+        "before": [
+          4137,
+          4267
+        ],
+        "after": [
+          4267
+        ]
+      },
+      {
+        "licenseId": 336,
+        "before": [
+          4134
+        ],
+        "after": [
+          4134,
+          4137
+        ]
+      },
+      {
+        "licenseId": 95,
+        "before": [
+          4216,
+          4268
+        ],
+        "after": [
+          4268
+        ]
+      },
+      {
+        "licenseId": 344,
+        "before": [
+          4215
+        ],
+        "after": [
+          4215,
+          4216
+        ]
+      },
+      {
+        "licenseId": 76,
+        "before": [
+          4182,
+          4272
+        ],
+        "after": [
+          4272
+        ]
+      },
+      {
+        "licenseId": 75,
+        "before": [
+          4180,
+          4181
+        ],
+        "after": [
+          4180,
+          4181,
+          4182
+        ]
+      },
+      {
+        "licenseId": 330,
+        "before": [
+          4113,
+          4290
+        ],
+        "after": [
+          4290
+        ]
+      },
+      {
+        "licenseId": 329,
+        "before": [
+          4111,
+          4112
+        ],
+        "after": [
+          4111,
+          4112,
+          4113
+        ]
+      }
+    ],
+    "resultSha256": "4f329f8a17085ed72ae55c3004646c0caaada270d5fa3cbca8605f8c5f0db950"
+  },
+  "licenseNamePatch": {
+    "schemaVersion": 1,
+    "sourceSha256": "3b1dbac27b2c433a50e09b67160fa33eee3912a2a142f35d0e00290fce914bbc",
+    "subTable": 3,
+    "changes": [
+      {
+        "licenseId": 52,
+        "beforeHex": "0000383a40524e04233a4b443b453a3d3e04a0042c3e4c3a00000000",
+        "replacement": "Mesa"
+      },
+      {
+        "licenseId": 95,
+        "beforeHex": "0000324142443a4b42042d3a403a4c3a04a0042c42473a0000000000",
+        "replacement": "Mina"
+      },
+      {
+        "licenseId": 76,
+        "beforeHex": "0000224b484c4c3b48504c048900000000000000",
+        "replacement": "Tula"
+      },
+      {
+        "licenseId": 330,
+        "beforeHex": "00003250484b3d4c048e000000000000",
+        "replacement": "Simha"
+      }
+    ],
+    "resultSha256": "db84172f515a18c1c1bc2b8fc042231e02bd819900393e170bb99d1beb736d41"
   }
 }

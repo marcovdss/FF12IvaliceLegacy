@@ -60,8 +60,8 @@ class BaseJobsTest(unittest.TestCase):
         occupied = {(c['x'], c['y']) for c in job['cells']}
         empty = next((x,y) for y in range(24) for x in range(24)
                      if all(p not in occupied for p in [(x,y),(x-1,y),(x+1,y),(x,y-1),(x,y+1)]))
-        next(c for c in job['cells'] if c['licenseId'] == 18).update(x=empty[0], y=empty[1])
-        with self.assertRaisesRegex(ValueError, 'one ordinary neighbour'):
+        next(c for c in job['cells'] if c['licenseId'] == 0).update(x=empty[0], y=empty[1])
+        with self.assertRaisesRegex(ValueError, 'one core neighbour'):
             encode_board(job)
 
     def test_special_joining_two_ordinary_cells_rejected(self):
@@ -71,8 +71,8 @@ class BaseJobsTest(unittest.TestCase):
         near = lambda x, y: [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
         spot = next((x, y) for y in range(24) for x in range(24) if (x, y) not in at
                     and len([p for p in near(x, y) if p in at and at[p]['licenseId'] not in special]) >= 2)
-        next(c for c in job['cells'] if c['licenseId'] == 19).update(x=spot[0], y=spot[1])
-        with self.assertRaisesRegex(ValueError, 'one ordinary neighbour'):
+        next(c for c in job['cells'] if c['licenseId'] == 1).update(x=spot[0], y=spot[1])
+        with self.assertRaisesRegex(ValueError, 'one core neighbour'):
             encode_board(job)
 
     def test_compact_boards_have_loops_and_second_board_stays_a_leaf(self):
@@ -84,6 +84,33 @@ class BaseJobsTest(unittest.TestCase):
                 second = next((c['x'], c['y']) for c in job['cells'] if c['licenseId'] == 360)
                 self.assertEqual(sum(p in at for p in ((second[0]-1, second[1]), (second[0]+1, second[1]),
                                                       (second[0], second[1]-1), (second[0], second[1]+1))), 1)
+
+    def test_islands_open_only_through_their_gate(self):
+        legendary = {18: 52, 19: 95, 20: 335, 21: 330, 22: 343, 23: 347, 24: 342, 25: 339, 26: 337, 27: 341,
+                     28: 76, 29: 331, 30: 49}
+        for job in self.recipe['jobs']:
+            with self.subTest(job=job['name']):
+                self.assertEqual({i['gateId']: i['licenseId'] for i in job['islands']}, legendary)
+                at = {(c['x'], c['y']): c['licenseId'] for c in job['cells']}
+                where = {v: p for p, v in at.items()}
+                for island in job['islands']:
+                    x, y = where[island['licenseId']]
+                    near = [at[p] for p in ((x-1, y), (x+1, y), (x, y-1), (x, y+1)) if p in at]
+                    self.assertEqual(near, [island['gateId']])
+
+    def test_island_touching_the_core_or_undeclared_rejected(self):
+        job = copy.deepcopy(next(j for j in self.recipe['jobs'] if j['name'] == 'Knight'))
+        job['islands'] = job['islands'][1:]
+        with self.assertRaisesRegex(ValueError, 'Islands differ'):
+            encode_board(job)
+        job = copy.deepcopy(next(j for j in self.recipe['jobs'] if j['name'] == 'Knight'))
+        at = {(c['x'], c['y']): c for c in job['cells']}
+        gate = next(c for c in job['cells'] if c['licenseId'] == job['islands'][0]['gateId'])
+        island = next(c for c in job['cells'] if c['licenseId'] == job['islands'][0]['licenseId'])
+        island.update(x=gate['x'], y=gate['y'])
+        gate.update(x=-1)
+        with self.assertRaises(ValueError):
+            encode_board(job)
 
     def test_resource_paths_cannot_escape(self):
         for value in ('../save.bin', '/absolute.bin', 'C:/save.bin', 'a\\b', 'a/../b'):
@@ -99,13 +126,13 @@ class FullBaseJobsBuildTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             archive, manifest = build(os.environ['IVALICE_LEGACY_GAME'], directory)
             with zipfile.ZipFile(archive) as packed:
-                self.assertEqual(len(packed.namelist()), 18)
+                self.assertEqual(len(packed.namelist()), 19)
                 self.assertEqual(set(packed.namelist()), set(manifest['files']))
                 for relative, digest in manifest['files'].items():
                     self.assertEqual(hashlib.sha256(packed.read(relative)).hexdigest(), digest)
                 embedded = json.loads(packed.read('IvaliceLegacy-BaseJobs/manifest.json'))
                 self.assertTrue(embedded['manifestExcludesOwnHash'])
-                self.assertEqual(len(embedded['files']), 17)
+                self.assertEqual(len(embedded['files']), 18)
                 for relative, digest in embedded['files'].items():
                     self.assertEqual(digest, manifest['files'][relative])
                 root = Path(__file__).resolve().parents[1]

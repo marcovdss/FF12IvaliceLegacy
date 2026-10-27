@@ -14,8 +14,8 @@ def apply_license_lp(raw, patch, jobs):
     require((count, stride, start) == (361, 24, 32) and start+count*stride <= len(raw),
             'Unsupported license table layout')
     changes = patch['changes']
-    require(len(changes) == 8 and len({c['licenseId'] for c in changes}) == 8,
-            'Expected eight distinct license LP changes')
+    require(changes and len({c['licenseId'] for c in changes}) == len(changes),
+            'Expected distinct license LP changes')
     result = bytearray(raw)
     offsets = set()
     for change in changes:

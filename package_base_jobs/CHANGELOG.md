@@ -1,3 +1,12 @@
+# 0.4.0 candidate
+
+- Every board carries the same thirteen islands: each Esper gates its zodiac weapon, Zodiark gates Masamune. An
+  island opens only for a character who owns that Esper (use Summons For All so anyone can license any Esper).
+- Mesa, Mina, Tula and Simha now stand alone in their licenses (renamed after them); Yagyu Darkblade, Shikari Nagasa,
+  Gastrophetes and Durandal move to Ninja Swords 3, Daggers 6, Crossbows 3 and Swords 8.
+- Mithuna and Tula return to their native LP (190, 115); the other six price increases stay.
+- Cores keep the compact regions; Quickenings are plain edge tiles.
+
 # 0.3.0 candidate
 
 - Redrew all twelve boards as compact regions: gear up, accessories left, passives right, commands down.

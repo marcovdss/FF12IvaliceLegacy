@@ -46,22 +46,32 @@ def encode_board(job):
     graph = {v: [] for v in ids}
     for (x, y), value in cells.items():
         graph[value] = [cells[p] for p in ((x-1,y), (x+1,y), (x,y-1), (x,y+1)) if p in cells]
-    for value in SPECIAL:
-        # Espers and Quickenings sit on the edge: exactly one ordinary neighbour, so they never join two parts
-        # of the curriculum. They may touch each other. The Second Board stays a plain leaf.
-        require(len([n for n in graph[value] if n not in SPECIAL]) == 1
-                and (value != 360 or len(graph[value]) == 1),
-                'Special license must be an edge tile with one ordinary neighbour')
     ordinary = ids - SPECIAL
-    visited = {31}
+    core = {31}
     pending = [31]
     for value in pending:
         for neighbor in graph[value]:
-            if neighbor in ordinary and neighbor not in visited:
-                visited.add(neighbor)
+            if neighbor in ordinary and neighbor not in core:
+                core.add(neighbor)
                 pending.append(neighbor)
-    # Compact regions have loops, as native boards do; only connectivity is required.
-    require(visited == ordinary, 'Disconnected ordinary curriculum')
+    # Compact regions have loops, as native boards do. Ordinary licenses outside the core are islands: each one
+    # touches only its own Esper or Quickening gate, so it opens only for the character who owns that gate.
+    gated = set()
+    for value in ordinary - core:
+        gates = graph[value]
+        require(len(gates) == 1 and gates[0] in SPECIAL and gates[0] != 360 and gates[0] not in gated,
+                'Island license must touch exactly one gate of its own')
+        gated.add(gates[0])
+    islands = {(graph[value][0], value) for value in ordinary - core}
+    require(islands == {(i['gateId'], i['licenseId']) for i in job.get('islands', [])},
+            'Islands differ from the recipe')
+    for value in SPECIAL:
+        # Each Esper/Quickening touches exactly one core license (plus its island, if it gates one); it never joins
+        # two parts of the core. Plain ones may touch each other. The Second Board stays a plain leaf.
+        require(len([n for n in graph[value] if n in core]) == 1
+                and len([n for n in graph[value] if n in ordinary - core]) == (value in gated)
+                and (value != 360 or len(graph[value]) == 1),
+                'Special license must be an edge tile with one core neighbour')
     grid = [65535]*576
     for (x, y), value in cells.items():
         grid[y*24+x] = value
@@ -95,7 +105,7 @@ def build(game, out):
     from .vbf import VBF
     game = Path(game)
     recipe = json.loads((ROOT/'patches/base_jobs.json').read_text(encoding='utf-8'))
-    require(recipe['version'] == '0.3.0', 'Unsupported base-job version')
+    require(recipe['version'] == '0.4.0', 'Unsupported base-job version')
     require(sha((game/'x64/FFXII_TZA.exe').read_bytes()) == recipe['gameExeSha256'],
             'Unsupported game executable')
     archive = VBF(game/'FFXII_TZA.vbf')
@@ -124,14 +134,26 @@ def build(game, out):
     packed = archive.read(pack)
     licenses = battle_pack_section(packed, 12)
     from .license_lp import apply_license_lp
-    updated_licenses = apply_license_lp(licenses, recipe['licenseLpPatch'], recipe['jobs'])
+    from .license_content import apply_license_contents, license_names, NAMES_SUBTABLE
+    # Thirteen legendary weapons sit alone on Esper islands: four bundled licenses give their partner weapon to the
+    # job's previous tier, and those four licenses are renamed after the zodiac weapon they now hold.
+    updated_licenses = apply_license_contents(apply_license_lp(licenses, recipe['licenseLpPatch'], recipe['jobs']),
+                                              recipe['licenseContentPatch'])
+    names = license_names(battle_pack_section(packed, 61), recipe['licenseNamePatch'])
+    names_path = f'{pack}.dir/section_061.bin.dir/section_{NAMES_SUBTABLE:03}.bin'
+    require(not (deploy/(pack+'.dir/section_061.bin')).exists(), 'Conflicting deployed word table')
+    loose_names = deploy/names_path
+    if loose_names.exists():
+        require(loose_names.is_file() and loose_names.read_bytes() == names, 'Conflicting deployed license names')
     full_loose = deploy/pack
     if full_loose.is_file():
         require(battle_pack_section(full_loose.read_bytes(), 12) in (licenses, updated_licenses),
                 'Conflicting deployed license table')
     loose_license = deploy/(pack+'.dir/section_012.bin')
     if loose_license.exists():
-        require(loose_license.is_file() and loose_license.read_bytes() in (licenses, updated_licenses),
+        # The previous BaseJobs version's own table is a known, replaceable winner.
+        require(loose_license.is_file() and (loose_license.read_bytes() in (licenses, updated_licenses) or
+                sha(loose_license.read_bytes()) == recipe['licenseLpPatch'].get('previousResultSha256')),
                 'Conflicting deployed license section')
     files = apply_boards(read, recipe, licenses)
     # Additional native UI resources are source-pinned by the label recipe.
@@ -140,12 +162,13 @@ def build(game, out):
     require(not set(files).intersection(labels), 'Duplicate board/label output resource')
     files.update(labels)
     files[pack+'.dir/section_012.bin'] = updated_licenses
+    files[names_path] = names
     files = {PREFIX+key: value for key, value in files.items()}
     docs = 'IvaliceLegacy-BaseJobs/'
     files[docs+'README.md'] = (ROOT/'package_base_jobs/README.md').read_bytes()
     files[docs+'CHANGELOG.md'] = (ROOT/'package_base_jobs/CHANGELOG.md').read_bytes()
     metadata = {'status': 'Offline experimental candidate; not installed or validated in-game',
-                'version': '0.3.0',
+                'version': '0.4.0',
                 'recipeSha256': sha((ROOT/'patches/base_jobs.json').read_bytes()),
                 'licenseLpChanges': recipe['licenseLpPatch']['changes'],
                 'nativeSlots': [{k: j[k] for k in ('nativeSlot','sourceName','name')} for j in recipe['jobs']],
@@ -155,5 +178,5 @@ def build(game, out):
     files[docs+'manifest.json'] = (json.dumps({**metadata, 'files': {key: sha(value) for key, value in sorted(files.items())},
                                              'manifestExcludesOwnHash': True}, indent=2)+'\n').encode()
     return write_package(files, out,
-                         'IvaliceLegacy-BaseJobs-0.3.0', 'Ivalice Legacy Base Jobs Candidate', '0.3.0',
+                         'IvaliceLegacy-BaseJobs-0.4.0', 'Ivalice Legacy Base Jobs Candidate', '0.4.0',
                          metadata)

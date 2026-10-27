@@ -1,24 +1,35 @@
-# Ivalice Legacy: twelve base jobs candidate 0.3.0
+# Ivalice Legacy: twelve base jobs candidate 0.4.0
 
 Experimental offline build for the English Steam game, version 1.0.4.0.
-Twelve custom boards, English job names and descriptions, and eight exclusive
-weapon-license LP price increases are included. No Lua scripts,
+Twelve custom boards, English job names and descriptions, six exclusive
+weapon-license LP price increases, four split weapon licenses and their new
+names are included. No Lua scripts,
 hooks, save redirection, equipment-stat changes or Together files are included.
 This candidate has not been validated in the game UI or in combat.
 
 Boards are compact regions around Essentials: gear above, accessories to the
 left, passive augments to the right and magicks/Technicks below, cheaper licenses
 nearest the centre. Espers and Quickenings sit on the outer edge, each next to one
-ordinary license. Ordinary boards cost 4,506–5,491 LP. Every board has two Swiftness licenses;
+core license. Every board carries the same thirteen legendary islands: each
+Esper gates the zodiac weapon of its sign (Belias Mesa, Mateus Mina, Adrammelech
+Kumbha, Hashmal Simha, Cuchulainn Vrscika, Famfrit Makara, Zalera Mithuna,
+Shemhazai Kanya, Chaos Vrsabha, Zeromus Dhanusha, Exodus Tula, Ultima Karkata)
+and Zodiark gates Masamune. An island opens only for a character who owns its
+Esper; play it with Summons For All so every character can license every Esper.
+Mesa, Mina, Tula and Simha now stand alone: Yagyu Darkblade joins Ninja Swords 3,
+Shikari Nagasa Daggers 6, Gastrophetes Crossbows 3 and Durandal Swords 8, and the
+four licenses are renamed after their zodiac weapon. Ordinary job boards cost
+4,251-5,316 LP; the islands add 2,140 LP. Every board has two Swiftness licenses;
 both are reachable before half the ordinary total. Connected opening license
 kits cost 70–145 LP. Acquisition still matters: licenses do not supply a weapon
 or command. Measures need later shop placement; Hornito costs 5,000 gil.
 Several signature commands are not opening shop purchases.
 
 Gunner uses light armor and guns. Chemist has eight Battle Lores and crossbows.
-Kumbha belongs to Knight; Excalibur belongs to Warrior. Native command bundles
+Excalibur belongs to Warrior. Native command bundles
 and item/action records are unchanged. The license-table override changes only
-eight LP bytes: Guns 2–6 and Mithuna, plus Crossbows 3–4. The manifest lists each
+six LP bytes: Guns 2–6 and Crossbows 3, sixteen content bytes in eight licenses and four license names (a
+separate word-table file). The manifest lists each
 before/after price. Previously owned licenses are never charged again.
 
 ## Saved slot identities
@@ -43,7 +54,8 @@ Existing job slot IDs remain unchanged. Their proposed new curricula are:
 Already owned licenses remain owned, including licenses outside the new board.
 No automatic respec, job reassignment or save migration is performed. Spell and
 Technick inventory acquisition still applies. Native Quickening, Esper and
-second-job restrictions remain in place; ordinary licenses are never gated by them.
+second-job restrictions remain in place; only island licenses are gated by them.
+Islands behind Espers or Quickenings a character already owns open at once.
 Base boards retain the native two-board interface. No hybrid class is enabled.
 
 ## Installation and rollback

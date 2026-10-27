@@ -29,7 +29,7 @@ class LicensePricesTest(unittest.TestCase):
         for c in self.patch['changes']: result[32+24*c['licenseId']+4] = c['afterLp']
         self.patch['resultSha256'] = sha(result)
 
-    def test_exactly_eight_lp_bytes_and_no_other_fields_change(self):
+    def test_only_declared_lp_bytes_change(self):
         result = apply_license_lp(self.raw,self.patch,RECIPE['jobs'])
         self.assertEqual([i for i,(a,b) in enumerate(zip(self.raw,result)) if a!=b],
                          sorted(32+24*c['licenseId']+4 for c in self.patch['changes']))
@@ -122,7 +122,7 @@ class BoardPortTest(unittest.TestCase):
         self.assertFalse(ids['Gunner'] & (set(range(126,136))|{349,350}))
         self.assertEqual(ids['Chemist'] & {251,252,253,254,255,*range(307,318)},
                          {251,252,253,254,255,307,308,309})
-        self.assertEqual([name for name,values in ids.items() if 335 in values],['Knight'])
+        self.assertTrue(all({335,49,52,95,76,330} <= values for values in ids.values()))
         self.assertTrue(all({236,237} <= values and 238 not in values for values in ids.values()))
         self.assertEqual(len([encode_board(j) for j in RECIPE['jobs']]),12)
 
@@ -145,4 +145,4 @@ class NativeResourcesTest(unittest.TestCase):
             self.assertTrue(all(len(a)<=len(b) for a,b in zip(parts,before[r['stringId']].split(b'\x02'))))
         native = battle_pack_section(archive.read('ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin'),12)
         priced = apply_license_lp(native,RECIPE['licenseLpPatch'],RECIPE['jobs'])
-        self.assertEqual(sum(a!=b for a,b in zip(native,priced)),8)
+        self.assertEqual(sum(a!=b for a,b in zip(native,priced)),6)
