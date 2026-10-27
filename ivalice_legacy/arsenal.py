@@ -2,9 +2,11 @@
 import hashlib
 import json
 
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 PACK = 'ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin'
 SECTION = PACK + '.dir/section_013.bin'
+# Equipment tables written by earlier Arsenal releases, which this build replaces.
+PREVIOUS = {'0.1.0': 'a45f3661bcd121cfbd0a334a4372d8c6361d749f2233a155bdefda55cd4a8152'}
 
 
 def sha(data):
@@ -27,11 +29,12 @@ def build(game, out):
     archive = VBF(game/'FFXII_TZA.vbf')
     files = equipment(archive.read, patch)
     result = files[SECTION]
-    # A deployed equipment table must be the native one or this package's own output.
+    # A deployed equipment table must be the native one or an Arsenal release's output.
     deploy = game/'mods/deploy/ff12data'
     loose = deploy/SECTION
     if loose.exists():
-        require(loose.is_file() and sha(loose.read_bytes()) in {patch['sourceSectionSha256'], sha(result)},
+        known = {patch['sourceSectionSha256'], sha(result), *PREVIOUS.values()}
+        require(loose.is_file() and sha(loose.read_bytes()) in known,
                 'Another mod replaces the equipment table (section 13)')
     require(not (deploy/PACK).is_file(), 'A whole battle_pack.bin replacement is deployed')
     files = {PREFIX+key: value for key, value in files.items()}

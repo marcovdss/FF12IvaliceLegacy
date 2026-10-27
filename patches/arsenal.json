@@ -1,16 +1,595 @@
 {
   "name": "Arsenal",
-  "description": "Weapon family identities: Dagger.",
+  "description": "Weapon attack and family identities: attack set per weapon for the story timing; Warrior axes and hammers and Time Mage bombs brought into line; identities (Dagger speed and combo, Katana combo, Bow critical rate, Greatsword weight) offset in attack so they change how a weapon plays, not its damage over time.",
   "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
   "section": 13,
   "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
   "sourceSectionSha256": "981d88689d4292d55db4697a06fb6105d80a62e83405d25c3422d6716936979e",
   "items": [
     {
+      "contentId": 4114,
+      "name": "Claymore",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          83,
+          91
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4115,
+      "name": "Defender",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          90,
+          99
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4116,
+      "name": "Save the Queen",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          92,
+          101
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4117,
+      "name": "Ragnarok",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          117,
+          130
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4118,
+      "name": "Ultima Blade",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          109,
+          121
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4119,
+      "name": "Excalibur",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          127,
+          141
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4120,
+      "name": "Tournesol",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          138,
+          153
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4121,
+      "name": "Kotetsu",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          16,
+          14
+        ],
+        "comboOrCrit": [
+          20,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4122,
+      "name": "Osafune",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          26,
+          23
+        ],
+        "comboOrCrit": [
+          20,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4123,
+      "name": "Kogarasumaru",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          40,
+          34
+        ],
+        "comboOrCrit": [
+          20,
+          36
+        ]
+      }
+    },
+    {
+      "contentId": 4124,
+      "name": "Magoroku",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          50,
+          42
+        ],
+        "comboOrCrit": [
+          20,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4125,
+      "name": "Murasame",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          62,
+          51
+        ],
+        "comboOrCrit": [
+          20,
+          39
+        ]
+      }
+    },
+    {
+      "contentId": 4126,
+      "name": "Kiku-ichimonji",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          71,
+          58
+        ],
+        "comboOrCrit": [
+          20,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4127,
+      "name": "Yakei",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          83,
+          66
+        ],
+        "comboOrCrit": [
+          20,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4128,
+      "name": "Ame-no-Murakumo",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          96,
+          74
+        ],
+        "comboOrCrit": [
+          20,
+          45
+        ]
+      }
+    },
+    {
+      "contentId": 4129,
+      "name": "Muramasa",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          104,
+          81
+        ],
+        "comboOrCrit": [
+          20,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4130,
+      "name": "Masamune",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          111,
+          93
+        ],
+        "comboOrCrit": [
+          30,
+          45
+        ]
+      }
+    },
+    {
+      "contentId": 4162,
+      "name": "Shortbow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          15,
+          14
+        ],
+        "comboOrCrit": [
+          5,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4163,
+      "name": "Silver Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          19,
+          17
+        ],
+        "comboOrCrit": [
+          5,
+          21
+        ]
+      }
+    },
+    {
+      "contentId": 4164,
+      "name": "Aevis Killer",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          25,
+          22
+        ],
+        "comboOrCrit": [
+          5,
+          21
+        ]
+      }
+    },
+    {
+      "contentId": 4165,
+      "name": "Killer Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          36,
+          32
+        ],
+        "comboOrCrit": [
+          5,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4166,
+      "name": "Longbow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          48,
+          35
+        ],
+        "comboOrCrit": [
+          5,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4167,
+      "name": "Elfin Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          54,
+          48
+        ],
+        "comboOrCrit": [
+          5,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4168,
+      "name": "Loxley Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          60,
+          53
+        ],
+        "comboOrCrit": [
+          5,
+          26
+        ]
+      }
+    },
+    {
+      "contentId": 4169,
+      "name": "Giant Stonebow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          73,
+          63
+        ],
+        "comboOrCrit": [
+          5,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4170,
+      "name": "Burning Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          77,
+          67
+        ],
+        "comboOrCrit": [
+          5,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4171,
+      "name": "Traitor's Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          82,
+          71
+        ],
+        "comboOrCrit": [
+          5,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4172,
+      "name": "Yoichi Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          89,
+          77
+        ],
+        "comboOrCrit": [
+          5,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4173,
+      "name": "Perseus Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          92,
+          79
+        ],
+        "comboOrCrit": [
+          5,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4174,
+      "name": "Artemis Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          94,
+          81
+        ],
+        "comboOrCrit": [
+          5,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4175,
+      "name": "Sagittarius",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          97,
+          83
+        ],
+        "comboOrCrit": [
+          5,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4194,
+      "name": "Handaxe",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          17,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4195,
+      "name": "Broadaxe",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          36,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4196,
+      "name": "Slasher",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          54,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4197,
+      "name": "Hammerhead",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          81,
+          53
+        ]
+      }
+    },
+    {
+      "contentId": 4198,
+      "name": "Francisca",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          88,
+          61
+        ]
+      }
+    },
+    {
+      "contentId": 4199,
+      "name": "Greataxe",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          110,
+          74
+        ]
+      }
+    },
+    {
+      "contentId": 4201,
+      "name": "Iron Hammer",
+      "category": "Hammer",
+      "set": {
+        "attack": [
+          24,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4202,
+      "name": "War Hammer",
+      "category": "Hammer",
+      "set": {
+        "attack": [
+          42,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4203,
+      "name": "Sledgehammer",
+      "category": "Hammer",
+      "set": {
+        "attack": [
+          66,
+          53
+        ]
+      }
+    },
+    {
+      "contentId": 4204,
+      "name": "Morning Star",
+      "category": "Hammer",
+      "set": {
+        "attack": [
+          100,
+          69
+        ]
+      }
+    },
+    {
       "contentId": 4206,
       "name": "Dagger",
       "category": "Dagger",
       "set": {
+        "attack": [
+          14,
+          11
+        ],
         "chargeTime": [
           21,
           15
@@ -26,6 +605,10 @@
       "name": "Mage Masher",
       "category": "Dagger",
       "set": {
+        "attack": [
+          18,
+          14
+        ],
         "evade": [
           5,
           6
@@ -45,6 +628,10 @@
       "name": "Assassin's Dagger",
       "category": "Dagger",
       "set": {
+        "attack": [
+          31,
+          25
+        ],
         "evade": [
           5,
           6
@@ -64,6 +651,10 @@
       "name": "Chopper",
       "category": "Dagger",
       "set": {
+        "attack": [
+          40,
+          32
+        ],
         "evade": [
           5,
           7
@@ -83,6 +674,10 @@
       "name": "Main Gauche",
       "category": "Dagger",
       "set": {
+        "attack": [
+          46,
+          38
+        ],
         "chargeTime": [
           21,
           15
@@ -94,6 +689,10 @@
       "name": "Gladius",
       "category": "Dagger",
       "set": {
+        "attack": [
+          56,
+          44
+        ],
         "evade": [
           5,
           8
@@ -113,6 +712,10 @@
       "name": "Avenger",
       "category": "Dagger",
       "set": {
+        "attack": [
+          66,
+          52
+        ],
         "evade": [
           5,
           9
@@ -132,6 +735,10 @@
       "name": "Orichalcum Dirk",
       "category": "Dagger",
       "set": {
+        "attack": [
+          79,
+          61
+        ],
         "evade": [
           5,
           9
@@ -151,6 +758,10 @@
       "name": "Platinum Dagger",
       "category": "Dagger",
       "set": {
+        "attack": [
+          83,
+          64
+        ],
         "evade": [
           5,
           9
@@ -170,6 +781,10 @@
       "name": "Zwill Crossblade",
       "category": "Dagger",
       "set": {
+        "attack": [
+          87,
+          67
+        ],
         "evade": [
           10,
           9
@@ -189,6 +804,10 @@
       "name": "Shikari Nagasa",
       "category": "Dagger",
       "set": {
+        "attack": [
+          90,
+          69
+        ],
         "evade": [
           10,
           9
@@ -204,10 +823,58 @@
       }
     },
     {
+      "contentId": 4250,
+      "name": "Hornito",
+      "category": "Hand-bomb",
+      "set": {
+        "attack": [
+          66,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4251,
+      "name": "Fumarole",
+      "category": "Hand-bomb",
+      "set": {
+        "attack": [
+          71,
+          49
+        ]
+      }
+    },
+    {
+      "contentId": 4252,
+      "name": "Tumulus",
+      "category": "Hand-bomb",
+      "set": {
+        "attack": [
+          76,
+          63
+        ]
+      }
+    },
+    {
+      "contentId": 4253,
+      "name": "Caldera",
+      "category": "Hand-bomb",
+      "set": {
+        "attack": [
+          83,
+          57
+        ]
+      }
+    },
+    {
       "contentId": 4268,
       "name": "Mina",
       "category": "Dagger",
       "set": {
+        "attack": [
+          104,
+          81
+        ],
         "evade": [
           25,
           10
@@ -221,7 +888,22 @@
           20
         ]
       }
+    },
+    {
+      "contentId": 4295,
+      "name": "Dhanusha",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          109,
+          103
+        ],
+        "comboOrCrit": [
+          20,
+          29
+        ]
+      }
     }
   ],
-  "resultSectionSha256": "a45f3661bcd121cfbd0a334a4372d8c6361d749f2233a155bdefda55cd4a8152"
+  "resultSectionSha256": "af3929a4ca16febdaa0e0359abfb743c226228c0ea786923d833a7baf0c0e1cc"
 }
