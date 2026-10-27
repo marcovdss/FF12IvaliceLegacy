@@ -23,12 +23,12 @@ M.names = names
 function M.new(deps)
   assert(type(deps)=='table' and type(deps.profile)=='function' and type(deps.emit)=='function',
     'diagnostic requires profile and log adapters')
-  local seen, count, charges, errorLogged = {}, 0, 0, false
+  local seen, count, charges, hits, errorLogged = {}, 0, 0, 0, false
   local LIMIT = 400
   local observer = {}
 
   function observer:reset()
-    seen, count, charges = {}, 0, 0
+    seen, count, charges, hits = {}, 0, 0, 0
   end
 
   -- Charge-timer samples (current/required/last/idle) for the attacker and target of a hit, to learn how
@@ -49,6 +49,29 @@ function M.new(deps)
       'Legacy charge probe: clock=%s action=%s casterType=%s caster=%d/%d/%d/%d targetType=%s target=%d/%d/%d/%d bonuses=off',
       tostring(s.clock), tostring(s.action), tostring(s.casterType), c.current, c.required, c.last, c.idle,
       tostring(s.targetType), t.current, t.required, t.last, t.idle))
+    return true
+  end
+
+  -- Base damage of each hit (Forge 113's removedHp, before crit/status factors) with the target's level and max HP,
+  -- to measure fight length and damage taken against the band targets. Read-only, capped per load.
+  local HIT_LIMIT = 300
+  function observer:hit(s)
+    if hits >= HIT_LIMIT or type(s) ~= 'table' then return false end
+    -- Forge computes damage as power * multiplier, so it is usually fractional; log it rounded down.
+    if type(s.removed) ~= 'number' or s.removed ~= s.removed or s.removed < 0 or s.removed > 0xFFFFFFFF then return false end
+    s.removed = math.floor(s.removed)
+    for _, k in ipairs({'removed', 'targetLevel', 'targetMaxHp'}) do
+      if not integer(s[k], 0, 0xFFFFFFFF) then return false end
+    end
+    local function side(kind, name)
+      if kind == 1 then return integer(name, 0, 0xFFFF) and ('foe:' .. name) or 'foe:?' end
+      return kind == 0 and 'party' or 'other'
+    end
+    hits = hits + 1
+    deps.emit(string.format('Legacy hit: story=%s action=%s caster=%s target=%s lv=%d maxHp=%d removed=%d bonuses=off',
+      integer(s.story, 0, 0xFFFF) and tostring(s.story) or '?', tostring(s.action), side(s.casterType, s.casterName),
+      side(s.targetType, s.targetName), s.targetLevel, s.targetMaxHp, s.removed))
+    if hits == HIT_LIMIT then deps.emit('Legacy hit: limit reached for this load') end
     return true
   end
 
@@ -80,6 +103,7 @@ function M.new(deps)
       -- Logging failure must never interrupt Forge or change its return values.
       local ok, err = pcall(self.observe, self, ...)
       if ok and deps.charge then ok, err = pcall(function(...) return self:charge(deps.charge(...)) end, ...) end
+      if ok and deps.hit then ok, err = pcall(function(...) return self:hit(deps.hit(...)) end, ...) end
       if not ok and not errorLogged then
         errorLogged = true
         pcall(deps.emit, 'Legacy foe profile: observer error='..tostring(err):gsub('[%z\r\n]', ' ')..' bonuses=off')

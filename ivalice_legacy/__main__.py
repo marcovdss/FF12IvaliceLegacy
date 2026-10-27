@@ -64,6 +64,18 @@ def build_rampager_pilot(game, out):
                           'conditions': patch['conditions']})
 
 
+def build_estersand_pilot(game, out):
+    from .patches import enemy_stats
+    vbf = VBF(Path(game) / 'FFXII_TZA.vbf')
+    patch = json.loads((ROOT / 'patches/estersand_numbers_pilot.json').read_text(encoding='utf-8'))
+    files = {PREFIX + rel: data for rel, data in enemy_stats(vbf.read, patch).items()}
+    return write_package(files, out, f"IvaliceLegacy-EstersandPilot-{patch['version']}",
+                         'Ivalice Legacy Estersand Numbers Pilot', patch['version'],
+                         {'source': {'file': patch['file'], 'fileSha256': patch['sourceFileSha256'],
+                                     'section': patch['section'], 'sectionSha256': patch['sourceSectionSha256']},
+                          'rows': patch['rows']})
+
+
 def write_package(files, out, stem, name, version, metadata=None):
     package = Path(out) / stem
     if package.exists():
@@ -96,6 +108,9 @@ def main(argv=None):
     bases = sub.add_parser('build-base-jobs', help='build the separate experimental twelve-base-job candidate')
     bases.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     bases.add_argument('--out', default=str(ROOT / 'dist'))
+    estersand = sub.add_parser('build-estersand-pilot', help='build only the optional Estersand enemy numbers pilot')
+    estersand.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
+    estersand.add_argument('--out', default=str(ROOT / 'dist'))
     arsenal = sub.add_parser('build-arsenal', help='build the separate experimental weapon/armour package')
     arsenal.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     arsenal.add_argument('--out', default=str(ROOT / 'dist'))
@@ -109,7 +124,8 @@ def main(argv=None):
         elif args.command == 'build-arsenal':
             from .arsenal import build as builder
         else:
-            builder = build_rampager_pilot if args.command == 'build-rampager-pilot' else build
+            builder = {'build-rampager-pilot': build_rampager_pilot,
+                       'build-estersand-pilot': build_estersand_pilot}.get(args.command, build)
         if args.command == 'build':
             archive, manifest = builder(args.game, args.out, settings_from=args.settings_from)
         else:

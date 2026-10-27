@@ -256,6 +256,56 @@ def shops(read, patches):
 APPLIERS = {'opening_stock+story_stock': shops, 'ability_chests': ability_chests, 'kings': kings}
 
 
+# Enemy stats row (AR03 section 7, 56-byte st2e rows): field -> (offset, format)
+ENEMY_STATS = {'hp': (0x20, '<I'), 'mp': (0x24, '<H'), 'strength': (0x26, 'B'), 'magick': (0x27, 'B'),
+               'vitality': (0x28, 'B'), 'speed': (0x29, 'B'), 'defense': (0x2B, 'B'), 'magickResist': (0x2C, 'B'),
+               'attack': (0x2D, 'B'), 'lp': (0x2F, 'B'), 'gil': (0x30, '<I'), 'exp': (0x34, '<I')}
+
+
+def enemy_stats(read, patch):
+    """Set fields of explicit enemy stats rows in one source-pinned area (AR03 section 7).
+
+    Every change names its row, the unit it belongs to and the value it replaces; a row shared by another unit, an
+    unexpected value or a byte outside the declared fields refuses the build."""
+    from .formats import ard_section
+    raw = read(patch['file'])
+    require(raw, patch['sourceFileSha256'], patch['file'])
+    original = ard_section(raw, patch['section'])
+    require(original, patch['sourceSectionSha256'], 'enemy stats source')
+    if patch['section'] != 7 or original[:4] != b'st2e':
+        raise ValueError('expected the enemy stats table (section 7)')
+    count, stride, base = struct.unpack_from('<III', original, 4)
+    if stride != 56 or base + count * stride > len(original):
+        raise ValueError('unexpected enemy stats layout')
+    unit_rows = ard_section(raw, 4)
+    if unit_rows[:4] != b'st2e':
+        raise ValueError('expected the enemy unit table (section 4)')
+    n_units, unit_stride, unit_base = struct.unpack_from('<III', unit_rows, 4)
+    users = Counter(struct.unpack_from('<H', unit_rows, unit_base + i * unit_stride + 34)[0] for i in range(n_units))
+    out = bytearray(original)
+    allowed, seen = set(), set()
+    for edit in patch['rows']:
+        if not 0 <= edit['row'] < count or edit['row'] in seen:
+            raise ValueError('invalid or repeated stats row')
+        seen.add(edit['row'])
+        if users[edit['row']] != edit.get('users', 1):
+            raise ValueError(f"{edit['unit']}: stats row {edit['row']} is used by {users[edit['row']]} units")
+        at = base + edit['row'] * stride
+        for field, (before, after) in edit['set'].items():
+            offset, fmt = ENEMY_STATS[field]
+            if struct.unpack_from(fmt, original, at + offset)[0] != before:
+                raise ValueError(f"{edit['unit']} {field}: unexpected value (expected {before})")
+            if not 0 <= after < 1 << 8 * struct.calcsize(fmt):
+                raise ValueError(f"{edit['unit']} {field}: {after} does not fit")
+            struct.pack_into(fmt, out, at + offset, after)
+            allowed |= set(range(at + offset, at + offset + struct.calcsize(fmt)))
+    if {i for i, (a, b) in enumerate(zip(original, out)) if a != b} - allowed:
+        raise AssertionError('undeclared enemy stats byte changed')
+    result = bytes(out)
+    require(result, patch['resultSectionSha256'], 'enemy stats result')
+    return {f"{patch['file']}.dir/section_{patch['section']:03}.bin": result}
+
+
 def enemy_ai(read, patch):
     """Apply explicit condition-ID edits to one source-pinned AR03 AI bank."""
     from .formats import ard_section, ai_rule_offset

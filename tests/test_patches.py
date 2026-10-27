@@ -119,6 +119,46 @@ class StoryStockTest(unittest.TestCase):
                                           'resultSectionSha256': '0' * 64})
 
 
+def synthetic_area(stats_rows, unit_rows):
+    """AR03 file with section 4 (units: stats row index at +34) and section 7 (56-byte stats rows)."""
+    def st2e(rows, stride):
+        return b'st2e' + struct.pack('<III', len(rows), stride, 16) + b''.join(rows)
+    units = st2e([bytes(34) + struct.pack('<H', r) + bytes(14) for r in unit_rows], 50)
+    stats = st2e([bytes(0x20) + struct.pack('<I', hp) + bytes(56 - 0x24) for hp in stats_rows], 56)
+    offsets = [0] * 10
+    offsets[4], offsets[7] = 48, 48 + len(units)
+    return b'FF12AR03' + struct.pack('<10I', *offsets) + units + stats
+
+
+class EnemyStatsTest(unittest.TestCase):
+    def apply(self, raw, rows):
+        from ivalice_legacy.formats import ard_section
+        patch = {'file': 'a.ard', 'section': 7, 'sourceFileSha256': patches.sha256(raw),
+                 'sourceSectionSha256': patches.sha256(ard_section(raw, 7)), 'rows': rows, 'resultSectionSha256': '0' * 64}
+        original = patches.require
+        patches.require = lambda data, expected, what: None
+        try:
+            data = patches.enemy_stats(lambda name: raw, patch)['a.ard.dir/section_007.bin']
+        finally:
+            patches.require = original
+        patch['resultSectionSha256'] = patches.sha256(data)
+        return patches.enemy_stats(lambda name: raw, patch)['a.ard.dir/section_007.bin']
+
+    def test_sets_hp_of_one_row(self):
+        raw = synthetic_area([72, 94], [0, 1])
+        result = self.apply(raw, [{'row': 1, 'unit': 'Wolf', 'set': {'hp': [94, 170]}}])
+        self.assertEqual(struct.unpack_from('<I', result, 16 + 56 + 0x20)[0], 170)
+        self.assertEqual(struct.unpack_from('<I', result, 16 + 0x20)[0], 72)
+
+    def test_rejects_unexpected_value_and_shared_row(self):
+        raw = synthetic_area([72, 94], [0, 1, 1])
+        with self.assertRaises(ValueError):
+            self.apply(raw, [{'row': 0, 'unit': 'Cactite', 'set': {'hp': [70, 150]}}])
+        with self.assertRaises(ValueError):
+            self.apply(raw, [{'row': 1, 'unit': 'Wolf', 'set': {'hp': [94, 170]}}])
+        self.apply(raw, [{'row': 1, 'unit': 'Wolf', 'users': 2, 'set': {'hp': [94, 170]}}])
+
+
 class AbilityChestTest(unittest.TestCase):
     def test_changes_one_byte(self):
         script = bytearray(64)

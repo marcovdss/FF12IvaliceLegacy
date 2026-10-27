@@ -142,6 +142,26 @@ All other behavior, stats, rewards and spawns are preserved. Earlier recovery ma
 its effect on difficulty remains untested. The addon replaces Estersand's complete enemy AI section and must not
 be combined with another mod editing that section. It does not include the Kings spawn changes.
 
+## Optional Estersand numbers pilot
+
+```
+python -m ivalice_legacy build-estersand-pilot --game "<game folder>"
+```
+
+A first test of enemy numbers: Dalmasca Estersand's five early regular foes take three to five ordinary hits
+instead of one to three, keeping their order of toughness. Attack, defence, rewards and behaviour are unchanged.
+
+| Foe | HP before | HP after |
+|---|---:|---:|
+| Cactite | 72 | 150 |
+| Wolf | 94 | 170 |
+| Cactoid | 100 | 175 |
+| Alpha Wolf | 113 | 185 |
+| Cockatrice | 136 | 215 |
+
+It replaces only Estersand's enemy stats table (one section) and can be combined with the Rampager pilot, which
+changes the AI section.
+
 ## Paladin pilot (separate review candidate)
 
 The experimental Paladin pilot presents native **White Mage + Knight** as one

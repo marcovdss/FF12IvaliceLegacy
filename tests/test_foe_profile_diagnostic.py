@@ -54,6 +54,20 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
           observer:reset(); assert(observer:charge(sample))
         ''')
 
+    def test_hit_line_logs_both_directions_and_is_capped(self):
+        self.lua.execute('''
+          s={story=68, action=150, casterType=0, targetType=1, targetName=16542, targetLevel=2, targetMaxHp=170, removed=46}
+          assert(observer:hit(s))
+          assert(logs[1]=='Legacy hit: story=68 action=150 caster=party target=foe:16542 lv=2 maxHp=170 removed=46 bonuses=off')
+          s2={story=68, action=429, casterType=1, casterName=16542, targetType=0, targetLevel=4, targetMaxHp=95, removed=9}
+          assert(observer:hit(s2)); assert(logs[2]:find('caster=foe:16542 target=party lv=4 maxHp=95 removed=9 '))
+          s.removed=-1; assert(not observer:hit(s)); s.removed=0/0; assert(not observer:hit(s))
+          s.removed=46.875; assert(observer:hit(s)); assert(logs[3]:find(' removed=46 bonuses=off$')); s.removed=46
+          for i=1,400 do observer:hit(s) end
+          assert(#logs==301 and logs[301]:find('limit reached'))  -- 300 hits including the fractional one
+          observer:reset(); assert(observer:hit(s))
+        ''')
+
     def test_wrap_runs_charge_probe_after_profile(self):
         self.lua.execute('''
           deps.charge=function() return {clock=1, action=2, casterType=0, targetType=1,

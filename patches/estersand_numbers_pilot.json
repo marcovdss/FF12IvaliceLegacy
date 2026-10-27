@@ -1,0 +1,62 @@
+{
+  "name": "Estersand numbers pilot",
+  "version": "0.0.1",
+  "description": "Dalmasca Estersand's five early regular foes take 3 to 5 ordinary hits instead of 1 to 3, keeping their order of toughness. Attack, defence, rewards and behaviour unchanged.",
+  "file": "ps2data/plan_master/in/plan_map/dst_a/area/dst_a.ard",
+  "section": 7,
+  "sourceFileSha256": "d1f75860df9f31e7b8ca94ed782df22b38f20ae7ecf1e013287c2b189bd90cb9",
+  "sourceSectionSha256": "61338bbc63f5bc6b0bd5fcd35e3dfd3a454e446a8b8cd8e9dadbc7d80cd70ded",
+  "rows": [
+    {
+      "row": 0,
+      "unit": "Cactite",
+      "set": {
+        "hp": [
+          72,
+          150
+        ]
+      }
+    },
+    {
+      "row": 1,
+      "unit": "Cactoid",
+      "set": {
+        "hp": [
+          100,
+          175
+        ]
+      }
+    },
+    {
+      "row": 2,
+      "unit": "Wolf",
+      "set": {
+        "hp": [
+          94,
+          170
+        ]
+      }
+    },
+    {
+      "row": 3,
+      "unit": "Alpha Wolf",
+      "set": {
+        "hp": [
+          113,
+          185
+        ]
+      }
+    },
+    {
+      "row": 4,
+      "unit": "Cockatrice",
+      "set": {
+        "hp": [
+          136,
+          215
+        ]
+      }
+    }
+  ],
+  "resultSectionSha256": "4833e64a6baa7305f5b873c24f52f1086a61cee1734e257ceeb0d76d81f92a58"
+}

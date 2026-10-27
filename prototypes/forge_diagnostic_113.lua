@@ -49,7 +49,20 @@ local function charge(formula, caster, target)
           caster = timers(formula.caster.battleUnitWork), target = timers(formula.target.battleUnitWork)}
 end
 
-local observer = Diagnostic.new({profile = profile, charge = charge, emit = function(line) print(line) end})
+-- One hit after Forge 113 ran: base damage dealt and the target's level/max HP; foe names from the area unit table.
+local function hit(formula, caster, target)
+  local function name(side, unit)
+    if unit.type ~= 1 then return nil end
+    local work = side.battleUnitWork
+    if work.address == 0 then return nil end
+    return work.ardUnit.name
+  end
+  return {story = story(), action = formula.action, casterType = caster.type, targetType = target.type,
+          casterName = name(formula.caster, caster), targetName = name(formula.target, target),
+          targetLevel = target.level, targetMaxHp = target.maxHp, removed = formula.target.removedHp}
+end
+
+local observer = Diagnostic.new({profile = profile, charge = charge, hit = hit, emit = function(line) print(line) end})
 local resetRegistered = event.registerEventSync('onSaveLoad', function()
   observer:reset()
   return true
