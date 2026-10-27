@@ -1,6 +1,7 @@
 -- Diagnostic prototype: logs each distinct foe's live level, stats and status masks once.
 -- No bonuses, no writes to game state, no save data, no loader registration.
 local M = {}
+M.version = '0.1.4'
 
 local STATUS = {'ko','stone','petrify','stop','sleep','confuse','doom','blind','poison','silence','sap','oil',
   'reverse','disable','immobilize','slow','disease','lure','protect','shell','haste','bravery','faith','reflect',
@@ -23,12 +24,12 @@ M.names = names
 function M.new(deps)
   assert(type(deps)=='table' and type(deps.profile)=='function' and type(deps.emit)=='function',
     'diagnostic requires profile and log adapters')
-  local seen, count, charges, hits, errorLogged = {}, 0, 0, 0, false
+  local seen, count, charges, hits, actions, lastClock, errorLogged = {}, 0, 0, 0, 0, nil, false
   local LIMIT = 400
   local observer = {}
 
   function observer:reset()
-    seen, count, charges, hits = {}, 0, 0, 0
+    seen, count, charges, hits, actions, lastClock = {}, 0, 0, 0, 0, nil
   end
 
   -- Charge-timer samples (current/required/last/idle) for the attacker and target of a hit, to learn how
@@ -73,6 +74,42 @@ function M.new(deps)
       side(s.targetType, s.targetName), s.targetLevel, s.targetMaxHp, s.removed))
     if hits == HIT_LIMIT then deps.emit('Legacy hit: limit reached for this load') end
     return true
+  end
+
+  -- Observations at Forge's cast boundary, including non-damaging casts. This is
+  -- not a trace of AI-rule evaluation, movement, cancelled or native-only actions.
+  local ACTION_LIMIT = 300
+  function observer:action(s)
+    if actions >= ACTION_LIMIT or type(s) ~= 'table' or s.foe ~= true then return false end
+    if not integer(s.nameId, 0, 0xFFFF) or not integer(s.action, 0, 0xFFFF) or
+       not integer(s.maxHp, 1, 0xFFFFFFFF) or not integer(s.currentHp, 0, s.maxHp) or
+       not integer(s.clock, 0, 0x7FFFFFFFFFFFFFFF) or (lastClock and s.clock < lastClock) then return false end
+    local function optional(v, hi)
+      return integer(v, 0, hi) and tostring(v) or '?'
+    end
+    local target = 'other'
+    if s.targetType == 0 then target = 'party:' .. optional(s.targetId, 0xFF)
+    elseif s.targetType == 1 then target = 'foe:' .. optional(s.targetName, 0xFFFF) end
+    actions, lastClock = actions + 1, s.clock
+    deps.emit(string.format(
+      'Legacy action: clock=%s callback=onCastEnd foe=%d unit=%s area=? location=%s action=%d target=%s hpPct=%.2f maxHp=%d bonuses=off',
+      tostring(s.clock), s.nameId, optional(s.unitId, 0xFF), optional(s.location, 0x7FFF),
+      s.action, target, 100 * s.currentHp / s.maxHp, s.maxHp))
+    if actions == ACTION_LIMIT then deps.emit('Legacy action: limit reached for this load') end
+    return true
+  end
+
+  function observer:wrap_action(original)
+    assert(type(original)=='function', 'original function required')
+    return function(...)
+      local result = table.pack(original(...))
+      local ok, err = pcall(function(...) return self:action(deps.action(...)) end, ...)
+      if not ok and not errorLogged then
+        errorLogged = true
+        pcall(deps.emit, 'Legacy action: observer error='..tostring(err):gsub('[%z\r\n]', ' ')..' bonuses=off')
+      end
+      return table.unpack(result, 1, result.n)
+    end
   end
 
   function observer:observe(formula, caster, target)

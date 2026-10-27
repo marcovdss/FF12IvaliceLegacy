@@ -89,6 +89,37 @@ persistence are not built: in this pilot every base Hunter has the line.
 
 ## Clan ledger
 
+## Foe profile diagnostic 0.1.4
+
+`foe_profile_diagnostic.lua` retains the existing profile, charge and hit observers.
+The additional `forge_diagnostic_261.lua` candidate wraps the installed original
+Forge261 at `x64/scripts/config/TheInsurgentsForgeConfig/functions/261.lua`.
+Default Forge middlewares invoke 261 at `onCastEnd`, independently of damage
+function113, so non-damaging enemy casts reaching that path can be observed.
+The original runs exactly once and its return values are preserved. Neither
+observer writes game state, modifies damage or registers save data.
+
+`Legacy action:` records the foe name ID, live unit-slot identifier (not an ARD
+row index), action ID, target, caster HP percentage/max HP and host monotonic
+clock. The raw clock is not converted to seconds: available loader documents
+disagree about its units. Backward/invalid clock samples are rejected. Location
+is the formula's numeric location when available; the area code is reported as
+unknown. The observer is capped at 300 cast observations per load/new game.
+
+This is a cast-resolution trace, not every AI decision or every action in the
+engine. Movement, idle, cancelled casts, native-only specials and actions that
+bypass Forge's cast path may be absent. One line is emitted per reachable cast
+callback; exact callback multiplicity for area effects remains a play check.
+There is no deduplication by action ID that could hide consecutive identical
+casts. The existing113 observer continues to log hits separately.
+
+Both adapters and their matching module remain excluded from ordinary builds.
+An eventual diagnostic release must separately review ownership of config261,
+preserve113 and package the matching 0.1.4 module; these source files are not
+installed by editing this repository.
+
+## Clan ledger
+
 `clan_ledger.lua` records which Clan lines each main party member (0–5) has
 unlocked for each full job identity (`"8"` for a base job, `"4:8"` for a pair),
 kept per campaign in the Lua loader's save sidecar (`event.registerSaveHandler`

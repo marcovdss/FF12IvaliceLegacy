@@ -71,5 +71,5 @@ if resetRegistered ~= true then
   print('Legacy foe profile: callback registration failed; observer disabled; bonuses=off')
   return original
 end
-print('Legacy foe profile: Forge113 observer ready; bonuses=off')
+print('Legacy foe profile: diagnostic ' .. Diagnostic.version .. ' Forge113 observer ready; bonuses=off')
 return observer:wrap(original)

@@ -112,6 +112,39 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
         self.assertIsNone(re.search(r'memory\.\w+\[[^\]]+\]\s*=(?!=)', src))
         self.assertNotIn('formula.target.removedHp =', src)
 
+    def test_action_line_logs_foe_casts_and_is_capped(self):
+        self.lua.execute('''
+          a={foe=true, nameId=16542, unitId=2, location=1450, action=82, targetType=1, targetName=16542,
+             currentHp=85, maxHp=170, clock=10}
+          assert(observer:action(a))
+          assert(logs[1]:find('^Legacy action: clock=10 callback=onCastEnd foe=16542 unit=2 '))
+          assert(logs[1]:find('action=82 target=foe:16542 hpPct=50.00 maxHp=170 bonuses=off$'))
+          a.targetType=0; a.targetId=3; a.clock=11; assert(observer:action(a))
+          assert(logs[2]:find('target=party:3 '))
+          assert(not observer:action({foe=false, nameId=1, action=1, currentHp=1, maxHp=1, clock=12}))
+          a.clock=5; assert(not observer:action(a))
+          a.currentHp=171; a.clock=12; assert(not observer:action(a)); a.currentHp=85
+          for i=1,400 do a.clock=12+i; observer:action(a) end
+          assert(#logs==301 and logs[301]=='Legacy action: limit reached for this load')
+          observer:reset(); a.clock=1; assert(observer:action(a))
+        ''')
+
+    def test_wrap_action_preserves_results_and_survives_errors(self):
+        self.lua.execute('''
+          deps.action=function() error('boom') end
+          local wrapped=observer:wrap_action(function(a,b) return a,b,nil end)
+          local x,y,z=wrapped(1,2)
+          assert(x==1 and y==2 and z==nil)
+          wrapped(1,2)
+          assert(#logs==1 and logs[1]:find('Legacy action: observer error='))
+        ''')
+
+    def test_action_adapter_wraps_unchanged_forge_261(self):
+        src = (ROOT / 'prototypes/forge_diagnostic_261.lua').read_text()
+        self.assertIn("loadfile('scripts/TheInsurgentsForge/functions/261.lua'", src)
+        self.assertIn('return observer:wrap_action(original)', src)
+        self.assertIsNone(re.search(r'memory\.\w+\[[^\]]+\]\s*=(?!=)', src))
+
 
 if __name__ == '__main__':
     unittest.main()
