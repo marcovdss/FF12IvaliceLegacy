@@ -19,7 +19,7 @@ class FormatGuardsTest(unittest.TestCase):
         for raw in (b'', struct.pack('<HH2i', 1, 0, 12, 100)):
             with self.assertRaises(ValueError): ai_rule_offset(raw, 0, 0)
     def test_pilot_is_optional(self):
-        self.assertEqual(set(APPLIERS), {'opening_stock', 'ability_chests', 'kings'})
+        self.assertEqual(set(APPLIERS), {'opening_stock+story_stock', 'ability_chests', 'kings'})
 
 @unittest.skipUnless(os.environ.get('IVALICE_LEGACY_GAME'), 'set IVALICE_LEGACY_GAME for source checks')
 class RampagerSourceTest(unittest.TestCase):

@@ -133,7 +133,127 @@ def kings(read, patch):
     return files
 
 
-APPLIERS = {'opening_stock': opening_stock, 'ability_chests': ability_chests, 'kings': kings}
+def shop_stock(shop_rows, story):
+    """Items a shop sells at a story value: the first row whose condition holds, plus every later row.
+
+    When no condition holds the game still selects the last row, so the last row is always sold.
+    Only unconditional rows (condition 0) and story rows (condition 2: story >= threshold) are modelled."""
+    for index, row in enumerate(shop_rows):
+        if row['condition'] not in (0, 2):
+            raise ValueError('only unconditional and story-gated shop rows are supported')
+        if row['condition'] == 0 or story >= row['threshold'] or index == len(shop_rows) - 1:
+            return [item for later in shop_rows[index:] for item in later['items']]
+    return []
+
+
+def story_stock(section, patch):
+    """Add items to shops at story thresholds: each item goes only in the row for the story value where it unlocks.
+
+    The game sells the first matching row plus every later row, so with rows in descending threshold order an item
+    stored in its own row is sold from that point on. Each touched shop is rewritten as rows sorted by the story
+    value at which they actually start selling (native shops sometimes interleave unconditional rows), with an
+    unconditional baseline last; its stock at every story value is otherwise unchanged. A copy of a placed item in a
+    later-unlocking row of the same shop is removed; earlier offers stay. New row and item tables are appended after
+    the existing data and the shop re-pointed; every other byte is kept.
+    """
+    require(section, patch['sourceSectionSha256'], f"{patch['file']} section {patch['section']} (opening stock)")
+    shops = shop_table(section)
+    out = bytearray(section)
+    checks = []
+    for entry in patch['shops']:
+        shop = shops[entry['shop']]
+        native = shop['rows']
+        values = sorted({0, *[r['threshold'] for r in native if r['condition'] == 2]})
+        starts = {}
+        for story in values:
+            for index, row in enumerate(native):
+                if row['condition'] == 0 or story >= row['threshold'] or index == len(native) - 1:
+                    for later in range(index, len(native)):
+                        starts.setdefault(later, story)
+                    break
+        rows = [{'condition': 2 if starts[i] else 0, 'threshold': starts[i], 'items': list(r['items'])}
+                for i, r in enumerate(native)]
+        if not any(r['condition'] == 0 for r in rows):
+            rows.append({'condition': 0, 'threshold': 0, 'items': []})
+        rows.sort(key=lambda r: -r['threshold'])
+        for story in [*values, 32767]:
+            if Counter(shop_stock(rows, story)) != Counter(shop_stock(native, story)):
+                raise AssertionError(f"shop {entry['shop']}: reordering changed its stock")
+        placed = set()
+        for add in entry['rows']:
+            for item in add['add']:
+                placed.add(item['id'])
+                for row in rows:
+                    if row['threshold'] > add['story']:
+                        row['items'] = [i for i in row['items'] if i != item['id']]
+                row = next((r for r in rows if r['threshold'] == add['story']), None)
+                if row is None:
+                    row = {'condition': 2 if add['story'] else 0, 'threshold': add['story'], 'items': []}
+                    rows.append(row)
+                    rows.sort(key=lambda r: -r['threshold'])
+                if item['id'] not in row['items']:
+                    row['items'].append(item['id'])
+        checks.append((entry, native, rows, placed))
+
+        while len(out) % 4:
+            out.append(0)
+        events = len(out)
+        out.extend(b'\x64\x01\x00\x00\x08\x00' + struct.pack('<HI', len(rows), events + 12))
+        out.extend(bytes(8 * len(rows)))
+        for index, row in enumerate(rows):
+            while len(out) % 4:
+                out.append(0)
+            header = len(out)
+            out.extend(b'\x64\x02\x00\x00\x02\x00' + struct.pack('<HI', len(row['items']), header + 12))
+            out.extend(struct.pack(f"<{len(row['items'])}H", *row['items']))
+            struct.pack_into('<BBHI', out, events + 12 + 8 * index, row['condition'], 0, row['threshold'], header)
+        struct.pack_into('<I', out, shop['offset'] + 4, events)
+    while len(out) % 4:
+        out.append(0)
+    result = bytes(out)
+    check_story_stock(section, result, checks)
+    require(result, patch['resultSectionSha256'], 'story stock result')
+    return result
+
+
+def check_story_stock(original, result, checks):
+    touched = {entry['shop'] for entry, *_ in checks}
+    pointers = {shop['offset'] + 4 + i for shop in shop_table(original) if shop['shop'] in touched for i in range(4)}
+    if any(a != b for i, (a, b) in enumerate(zip(original, result)) if i not in pointers):
+        raise AssertionError('story stock changed bytes outside the touched shop pointers')
+    after = shop_table(result)
+    for before, b in zip(shop_table(original), after):
+        if b['shop'] not in touched and [r['items'] for r in b['rows']] != [r['items'] for r in before['rows']]:
+            raise AssertionError(f"untouched shop {b['shop']} changed")
+    for entry, native, rows, placed in checks:
+        written = after[entry['shop']]['rows']
+        if [(r['condition'], r['threshold'], r['items']) for r in written] != \
+                [(r['condition'], r['threshold'], r['items']) for r in rows]:
+            raise AssertionError(f"shop {entry['shop']} was not written as planned")
+        stories = {0, 32767, *[r['threshold'] for r in native + written]}
+        for story in sorted({max(0, s + d) for s in stories for d in (-1, 0, 1)}):
+            old, new = Counter(shop_stock(native, story)), Counter(shop_stock(written, story))
+            if {i: n for i, n in old.items() if i not in placed} != {i: n for i, n in new.items() if i not in placed}:
+                raise AssertionError(f"shop {entry['shop']}: stock of an unplaced item changed at story {story}")
+            if any(n > 1 for n in Counter(i for r in written for i in r['items'] if i in placed).values()):
+                raise AssertionError(f"shop {entry['shop']}: a placed item is listed twice")
+        for add in entry['rows']:
+            for item in add['add']:
+                if item['id'] not in shop_stock(written, add['story']):
+                    raise AssertionError(f"{item['name']} not sold in shop {entry['shop']} at story {add['story']}")
+                earlier = add['story'] and item['id'] in shop_stock(written, add['story'] - 1)
+                if earlier and item['id'] not in shop_stock(native, add['story'] - 1):
+                    raise AssertionError(f"{item['name']} sold in shop {entry['shop']} before story {add['story']}")
+
+
+def shops(read, patches):
+    """Battle_pack section 39: opening stock, then story stock on top of it."""
+    files = opening_stock(read, patches['opening_stock'])
+    (name, section), = files.items()
+    return {name: story_stock(section, patches['story_stock'])}
+
+
+APPLIERS = {'opening_stock+story_stock': shops, 'ability_chests': ability_chests, 'kings': kings}
 
 
 def enemy_ai(read, patch):

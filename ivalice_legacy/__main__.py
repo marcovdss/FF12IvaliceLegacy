@@ -31,7 +31,9 @@ def build(game, out, settings_from=None):
     vbf = VBF(Path(game) / 'FFXII_TZA.vbf')
     files = {}
     for name, apply in APPLIERS.items():
-        patch = json.loads((ROOT / 'patches' / f'{name}.json').read_text(encoding='utf-8'))
+        # 'a+b': one applier that layers several patch files onto the same game file, in order.
+        parts = [json.loads((ROOT / 'patches' / f'{part}.json').read_text(encoding='utf-8')) for part in name.split('+')]
+        patch = parts[0] if len(parts) == 1 else dict(zip(name.split('+'), parts))
         for rel, data in apply(vbf.read, patch).items():
             if rel in files:
                 raise ValueError(f'two patches write {rel}')

@@ -1,0 +1,933 @@
+{
+  "name": "Story stock",
+  "description": "Shops add weapons, armour, accessories, ammunition, magicks and Technicks as the story advances. Each item is listed once, in the row for the story point where it unlocks; later story rows include it automatically. Items already sold earlier keep their earlier offer. Prices are unchanged.",
+  "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
+  "section": 39,
+  "after": "opening_stock",
+  "sourceSectionSha256": "5d6ffbf2f902ef012ca2bc2e48104397b1e200593da123d0c82bc1d4454b4e9c",
+  "resultSectionSha256": "1dd96d92678e9a051a0c0e60cbf840a98137ac85dc57f24cc11c5476937773b8",
+  "shops": [
+    {
+      "shop": 8,
+      "rows": [
+        {
+          "story": 145,
+          "add": [
+            {
+              "id": 16399,
+              "name": "Charm"
+            },
+            {
+              "id": 16393,
+              "name": "Addle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 12,
+      "rows": [
+        {
+          "story": 546,
+          "add": [
+            {
+              "id": 12347,
+              "name": "Poison"
+            },
+            {
+              "id": 16387,
+              "name": "Stamp"
+            },
+            {
+              "id": 16392,
+              "name": "Wither"
+            },
+            {
+              "id": 4485,
+              "name": "Parallel Arrows"
+            },
+            {
+              "id": 4493,
+              "name": "Long Bolts"
+            },
+            {
+              "id": 4501,
+              "name": "Silent Shot"
+            },
+            {
+              "id": 4509,
+              "name": "Poison Bombs"
+            }
+          ]
+        },
+        {
+          "story": 200,
+          "add": [
+            {
+              "id": 12325,
+              "name": "Float"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 15,
+      "rows": [
+        {
+          "story": 1330,
+          "add": [
+            {
+              "id": 4486,
+              "name": "Fiery Arrows"
+            },
+            {
+              "id": 4494,
+              "name": "Stone Bolts"
+            },
+            {
+              "id": 4502,
+              "name": "Aqua Shot"
+            },
+            {
+              "id": 4510,
+              "name": "Stun Bombs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 16,
+      "rows": [
+        {
+          "story": 3100,
+          "add": [
+            {
+              "id": 4496,
+              "name": "Black Bolts"
+            },
+            {
+              "id": 4512,
+              "name": "Chaos Bombs"
+            },
+            {
+              "id": 4488,
+              "name": "Lightning Arrows"
+            },
+            {
+              "id": 4504,
+              "name": "Mud Shot"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 17,
+      "rows": [
+        {
+          "story": 3100,
+          "add": [
+            {
+              "id": 4244,
+              "name": "Gilt Measure"
+            },
+            {
+              "id": 4114,
+              "name": "Claymore"
+            },
+            {
+              "id": 4135,
+              "name": "Iga Blade"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 18,
+      "rows": [
+        {
+          "story": 1580,
+          "add": [
+            {
+              "id": 16390,
+              "name": "Infuse"
+            },
+            {
+              "id": 16402,
+              "name": "Numerology"
+            },
+            {
+              "id": 12324,
+              "name": "Haste"
+            },
+            {
+              "id": 12314,
+              "name": "Bio"
+            }
+          ]
+        },
+        {
+          "story": 1330,
+          "add": [
+            {
+              "id": 3,
+              "name": "Ether"
+            },
+            {
+              "id": 12338,
+              "name": "Warp"
+            }
+          ]
+        },
+        {
+          "story": 1240,
+          "add": [
+            {
+              "id": 12361,
+              "name": "Drain"
+            },
+            {
+              "id": 12312,
+              "name": "Thundara"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 19,
+      "rows": [
+        {
+          "story": 1740,
+          "add": [
+            {
+              "id": 12300,
+              "name": "Dispel"
+            },
+            {
+              "id": 12356,
+              "name": "Death"
+            },
+            {
+              "id": 12357,
+              "name": "Confuse"
+            },
+            {
+              "id": 4479,
+              "name": "Cat-ear Hood"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 21,
+      "rows": [
+        {
+          "story": 2150,
+          "add": [
+            {
+              "id": 4131,
+              "name": "Ashura"
+            }
+          ]
+        },
+        {
+          "story": 1982,
+          "add": [
+            {
+              "id": 4251,
+              "name": "Fumarole"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 22,
+      "rows": [
+        {
+          "story": 3050,
+          "add": [
+            {
+              "id": 16394,
+              "name": "Bonecrusher"
+            },
+            {
+              "id": 16398,
+              "name": "Shear"
+            },
+            {
+              "id": 12342,
+              "name": "Faith"
+            },
+            {
+              "id": 12363,
+              "name": "Bubble"
+            }
+          ]
+        },
+        {
+          "story": 1982,
+          "add": [
+            {
+              "id": 12349,
+              "name": "Sleep"
+            },
+            {
+              "id": 12341,
+              "name": "Bravery"
+            },
+            {
+              "id": 16385,
+              "name": "Shades of Black"
+            },
+            {
+              "id": 16396,
+              "name": "Telekinesis"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 23,
+      "rows": [
+        {
+          "story": 3100,
+          "add": [
+            {
+              "id": 16401,
+              "name": "Sight Unseeing"
+            },
+            {
+              "id": 16397,
+              "name": "Expose"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 24,
+      "rows": [
+        {
+          "story": 3210,
+          "add": [
+            {
+              "id": 12366,
+              "name": "Darkga"
+            },
+            {
+              "id": 12297,
+              "name": "Cleanse"
+            }
+          ]
+        },
+        {
+          "story": 3100,
+          "add": [
+            {
+              "id": 4476,
+              "name": "Winged Boots"
+            },
+            {
+              "id": 12346,
+              "name": "Oil"
+            },
+            {
+              "id": 12317,
+              "name": "Thundaga"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 26,
+      "rows": [
+        {
+          "story": 4150,
+          "add": [
+            {
+              "id": 4453,
+              "name": "Gauntlets"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 37,
+      "rows": [
+        {
+          "story": 5100,
+          "add": [
+            {
+              "id": 4252,
+              "name": "Tumulus"
+            },
+            {
+              "id": 4246,
+              "name": "Multiscale"
+            },
+            {
+              "id": 4159,
+              "name": "Sweep"
+            }
+          ]
+        },
+        {
+          "story": 4150,
+          "add": [
+            {
+              "id": 4245,
+              "name": "Arc Scale"
+            },
+            {
+              "id": 4253,
+              "name": "Caldera"
+            },
+            {
+              "id": 4115,
+              "name": "Defender"
+            }
+          ]
+        },
+        {
+          "story": 3100,
+          "add": [
+            {
+              "id": 4244,
+              "name": "Gilt Measure"
+            },
+            {
+              "id": 4114,
+              "name": "Claymore"
+            },
+            {
+              "id": 4135,
+              "name": "Iga Blade"
+            }
+          ]
+        },
+        {
+          "story": 2150,
+          "add": [
+            {
+              "id": 4131,
+              "name": "Ashura"
+            }
+          ]
+        },
+        {
+          "story": 1982,
+          "add": [
+            {
+              "id": 4251,
+              "name": "Fumarole"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 38,
+      "rows": [
+        {
+          "story": 5100,
+          "add": [
+            {
+              "id": 4352,
+              "name": "Gold Hairpin"
+            },
+            {
+              "id": 4331,
+              "name": "Thief's Cap"
+            }
+          ]
+        },
+        {
+          "story": 4150,
+          "add": [
+            {
+              "id": 4453,
+              "name": "Gauntlets"
+            }
+          ]
+        },
+        {
+          "story": 3100,
+          "add": [
+            {
+              "id": 4476,
+              "name": "Winged Boots"
+            }
+          ]
+        },
+        {
+          "story": 1740,
+          "add": [
+            {
+              "id": 4479,
+              "name": "Cat-ear Hood"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 39,
+      "rows": [
+        {
+          "story": 4150,
+          "add": [
+            {
+              "id": 4506,
+              "name": "Dark Shot"
+            },
+            {
+              "id": 4490,
+              "name": "Icecloud Arrows"
+            },
+            {
+              "id": 4498,
+              "name": "Sapping Bolts"
+            },
+            {
+              "id": 4514,
+              "name": "Water Bombs"
+            }
+          ]
+        },
+        {
+          "story": 3100,
+          "add": [
+            {
+              "id": 4496,
+              "name": "Black Bolts"
+            },
+            {
+              "id": 4512,
+              "name": "Chaos Bombs"
+            },
+            {
+              "id": 4488,
+              "name": "Lightning Arrows"
+            },
+            {
+              "id": 4504,
+              "name": "Mud Shot"
+            }
+          ]
+        },
+        {
+          "story": 1740,
+          "add": [
+            {
+              "id": 4487,
+              "name": "Bamboo Arrows"
+            },
+            {
+              "id": 4495,
+              "name": "Lead Bolts"
+            },
+            {
+              "id": 4503,
+              "name": "Wyrmfire Shot"
+            },
+            {
+              "id": 4511,
+              "name": "Oil Bombs"
+            }
+          ]
+        },
+        {
+          "story": 1330,
+          "add": [
+            {
+              "id": 3,
+              "name": "Ether"
+            },
+            {
+              "id": 4486,
+              "name": "Fiery Arrows"
+            },
+            {
+              "id": 4494,
+              "name": "Stone Bolts"
+            },
+            {
+              "id": 4502,
+              "name": "Aqua Shot"
+            },
+            {
+              "id": 4510,
+              "name": "Stun Bombs"
+            }
+          ]
+        },
+        {
+          "story": 546,
+          "add": [
+            {
+              "id": 4485,
+              "name": "Parallel Arrows"
+            },
+            {
+              "id": 4493,
+              "name": "Long Bolts"
+            },
+            {
+              "id": 4501,
+              "name": "Silent Shot"
+            },
+            {
+              "id": 4509,
+              "name": "Poison Bombs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 40,
+      "rows": [
+        {
+          "story": 5350,
+          "add": [
+            {
+              "id": 12354,
+              "name": "Reverse"
+            }
+          ]
+        },
+        {
+          "story": 5100,
+          "add": [
+            {
+              "id": 12335,
+              "name": "Reflect"
+            }
+          ]
+        },
+        {
+          "story": 4150,
+          "add": [
+            {
+              "id": 12304,
+              "name": "Esunaga"
+            },
+            {
+              "id": 12321,
+              "name": "Flare"
+            }
+          ]
+        },
+        {
+          "story": 3210,
+          "add": [
+            {
+              "id": 12366,
+              "name": "Darkga"
+            },
+            {
+              "id": 12297,
+              "name": "Cleanse"
+            }
+          ]
+        },
+        {
+          "story": 3100,
+          "add": [
+            {
+              "id": 12346,
+              "name": "Oil"
+            },
+            {
+              "id": 12317,
+              "name": "Thundaga"
+            }
+          ]
+        },
+        {
+          "story": 3050,
+          "add": [
+            {
+              "id": 12342,
+              "name": "Faith"
+            },
+            {
+              "id": 12363,
+              "name": "Bubble"
+            }
+          ]
+        },
+        {
+          "story": 1982,
+          "add": [
+            {
+              "id": 12349,
+              "name": "Sleep"
+            },
+            {
+              "id": 12341,
+              "name": "Bravery"
+            }
+          ]
+        },
+        {
+          "story": 1740,
+          "add": [
+            {
+              "id": 12300,
+              "name": "Dispel"
+            },
+            {
+              "id": 12356,
+              "name": "Death"
+            },
+            {
+              "id": 12357,
+              "name": "Confuse"
+            }
+          ]
+        },
+        {
+          "story": 1580,
+          "add": [
+            {
+              "id": 12324,
+              "name": "Haste"
+            },
+            {
+              "id": 12314,
+              "name": "Bio"
+            }
+          ]
+        },
+        {
+          "story": 1330,
+          "add": [
+            {
+              "id": 12338,
+              "name": "Warp"
+            }
+          ]
+        },
+        {
+          "story": 1240,
+          "add": [
+            {
+              "id": 12361,
+              "name": "Drain"
+            },
+            {
+              "id": 12312,
+              "name": "Thundara"
+            }
+          ]
+        },
+        {
+          "story": 680,
+          "add": [
+            {
+              "id": 12334,
+              "name": "Countdown"
+            }
+          ]
+        },
+        {
+          "story": 546,
+          "add": [
+            {
+              "id": 12347,
+              "name": "Poison"
+            }
+          ]
+        },
+        {
+          "story": 200,
+          "add": [
+            {
+              "id": 12325,
+              "name": "Float"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 41,
+      "rows": [
+        {
+          "story": 3100,
+          "add": [
+            {
+              "id": 16401,
+              "name": "Sight Unseeing"
+            },
+            {
+              "id": 16397,
+              "name": "Expose"
+            }
+          ]
+        },
+        {
+          "story": 3050,
+          "add": [
+            {
+              "id": 16394,
+              "name": "Bonecrusher"
+            },
+            {
+              "id": 16398,
+              "name": "Shear"
+            }
+          ]
+        },
+        {
+          "story": 1982,
+          "add": [
+            {
+              "id": 16385,
+              "name": "Shades of Black"
+            },
+            {
+              "id": 16396,
+              "name": "Telekinesis"
+            }
+          ]
+        },
+        {
+          "story": 1580,
+          "add": [
+            {
+              "id": 16390,
+              "name": "Infuse"
+            },
+            {
+              "id": 16402,
+              "name": "Numerology"
+            }
+          ]
+        },
+        {
+          "story": 680,
+          "add": [
+            {
+              "id": 16400,
+              "name": "Revive"
+            },
+            {
+              "id": 16391,
+              "name": "Souleater"
+            }
+          ]
+        },
+        {
+          "story": 546,
+          "add": [
+            {
+              "id": 16387,
+              "name": "Stamp"
+            },
+            {
+              "id": 16392,
+              "name": "Wither"
+            }
+          ]
+        },
+        {
+          "story": 145,
+          "add": [
+            {
+              "id": 16399,
+              "name": "Charm"
+            },
+            {
+              "id": 16393,
+              "name": "Addle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 45,
+      "rows": [
+        {
+          "story": 680,
+          "add": [
+            {
+              "id": 12334,
+              "name": "Countdown"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 46,
+      "rows": [
+        {
+          "story": 680,
+          "add": [
+            {
+              "id": 16400,
+              "name": "Revive"
+            },
+            {
+              "id": 16391,
+              "name": "Souleater"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 51,
+      "rows": [
+        {
+          "story": 4150,
+          "add": [
+            {
+              "id": 12304,
+              "name": "Esunaga"
+            },
+            {
+              "id": 12321,
+              "name": "Flare"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "shop": 54,
+      "rows": [
+        {
+          "story": 4150,
+          "add": [
+            {
+              "id": 4245,
+              "name": "Arc Scale"
+            },
+            {
+              "id": 4253,
+              "name": "Caldera"
+            },
+            {
+              "id": 4115,
+              "name": "Defender"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

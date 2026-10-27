@@ -7,7 +7,7 @@ The goal is an Ivalice where preparation wins: jobs that combine instead of over
 play, enemies that act instead of just hitting harder, rare monsters that rule their zones, a Clan worth climbing,
 and progression you can't steamroll.
 
-> **Status: early development (0.0.8).** Only the first modules exist so far. Expect large changes between
+> **Status: early development (0.0.9).** Only the first modules exist so far. Expect large changes between
 > versions. Incremental updates are intended to continue your existing Legacy campaign. Save compatibility will
 > be checked for each change; any migration or restart requirement will be stated before installation.
 
@@ -23,6 +23,14 @@ already stocked later in the story move to the start instead of appearing twice.
 | Migelo's Sundries | Phoenix Down, Antidote, Onion Bolts, Onion Bombs |
 | Yugri's Magicks | Thunder, Blizzard, Blind, Silence |
 | Batahn's Technicks | First Aid, Steal |
+
+**Story stock.** As the story advances, shops add the gear, ammunition, magicks and Technicks of that stage, so
+the shop shelf grows with the journey instead of all at once. Rabanastre's merchants carry every addition from its
+story point on; the region's own shop carries it too once you reach it. Timing follows the item progression of
+established overhauls, and items that replace a consumable come after it (Phoenix Down before Raise, Gold Needle
+before Stona). Examples: the first element and status ammunition before Bhujerba, Ether around Raithwall, ninja swords
+and greatswords in the second half of the story, Flare and Esunaga late. Items already sold earlier keep their earlier
+offer. Prices are unchanged.
 
 **Reliable ability chests.** Three chests holding abilities that are easy to miss now always appear: Cleanse
 (Cerobi Steppe, The Terraced Bank), Addle (Henne Mines, Special Charter Shaft) and Wither (Pharos, Subterra -

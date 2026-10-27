@@ -66,6 +66,59 @@ class OpeningStockTest(unittest.TestCase):
             patches.opening_stock(lambda name: pack, patch)
 
 
+class StoryStockTest(unittest.TestCase):
+    def apply(self, section, shops):
+        patch = {'file': 'battle_pack.bin', 'section': 0, 'sourceSectionSha256': patches.sha256(section), 'shops': shops,
+                 'resultSectionSha256': '0' * 64}
+        patch['resultSectionSha256'] = patches.sha256(self.unchecked(section, patch))
+        return patches.story_stock(section, patch)
+
+    def unchecked(self, section, patch):
+        original = patches.require
+        patches.require = lambda data, expected, what: None
+        try:
+            return patches.story_stock(section, patch)
+        finally:
+            patches.require = original
+
+    def sold(self, result, shop, story):
+        return patches.shop_stock(shop_table(result)[shop]['rows'], story)
+
+    def test_item_unlocks_at_its_row_only(self):
+        section = synthetic_shops([[(2, 500, [20]), (0, 0, [1])], [(0, 0, [5])]])
+        result = self.apply(section, [{'shop': 0, 'rows': [{'story': 200, 'add': [{'id': 7, 'name': 'X'}]}]}])
+        self.assertEqual([(r['condition'], r['threshold'], r['items']) for r in shop_table(result)[0]['rows']],
+                         [(2, 500, [20]), (2, 200, [7]), (0, 0, [1])])
+        self.assertNotIn(7, self.sold(result, 0, 199))
+        self.assertIn(7, self.sold(result, 0, 200))
+        self.assertIn(7, self.sold(result, 0, 900))
+        self.assertEqual(shop_table(result)[1], shop_table(section)[1])
+
+    def test_moves_a_later_copy(self):
+        section = synthetic_shops([[(2, 900, [7, 8]), (0, 0, [9])]])
+        result = self.apply(section, [{'shop': 0, 'rows': [{'story': 200, 'add': [{'id': 7, 'name': 'X'}]}]}])
+        self.assertEqual([r['items'] for r in shop_table(result)[0]['rows']], [[8], [7], [9]])
+
+    def test_rejects_a_second_offer_of_an_item_sold_earlier(self):
+        section = synthetic_shops([[(2, 900, [8]), (0, 0, [9])]])
+        with self.assertRaises(AssertionError):
+            self.apply(section, [{'shop': 0, 'rows': [{'story': 200, 'add': [{'id': 9, 'name': 'Y'}]}]}])
+
+    def test_last_row_is_always_sold(self):
+        # No unconditional row: the game falls through to the last row, so it sells from story 0.
+        section = synthetic_shops([[(2, 900, [8]), (2, 300, [9])]])
+        result = self.apply(section, [{'shop': 0, 'rows': [{'story': 500, 'add': [{'id': 7, 'name': 'X'}]}]}])
+        self.assertEqual([(r['condition'], r['threshold'], r['items']) for r in shop_table(result)[0]['rows']],
+                         [(2, 900, [8]), (2, 500, [7]), (0, 0, [9])])
+        self.assertEqual(self.sold(result, 0, 0), [9])
+
+    def test_rejects_other_source(self):
+        section = synthetic_shops([[(0, 0, [1])]])
+        with self.assertRaises(ValueError):
+            patches.story_stock(section, {'file': 'x', 'section': 0, 'sourceSectionSha256': '0' * 64, 'shops': [],
+                                          'resultSectionSha256': '0' * 64})
+
+
 class AbilityChestTest(unittest.TestCase):
     def test_changes_one_byte(self):
         script = bytearray(64)
@@ -124,7 +177,7 @@ class FullBuildTest(unittest.TestCase):
             archive, manifest = build(os.environ['IVALICE_LEGACY_GAME'], out)
             self.assertTrue(archive.is_file())
             root = Path(__file__).resolve().parents[1] / 'patches'
-            expected = {json.loads((root / 'opening_stock.json').read_text())['resultSectionSha256']}
+            expected = {json.loads((root / 'story_stock.json').read_text())['resultSectionSha256']}
             expected |= {c['resultSectionSha256'] for c in json.loads((root / 'ability_chests.json').read_text())['chests']}
             self.assertTrue(expected <= set(manifest['files'].values()))
             package_files = [p for p in (root.parent / 'package').rglob('*') if p.is_file()]
