@@ -1,4 +1,4 @@
-# Ivalice Legacy: Arsenal 0.2.0 (experimental)
+# Ivalice Legacy: Arsenal 0.2.1 (experimental)
 
 Weapon attack and weapon family identities for the English Steam game, version 1.0.4.0.
 
@@ -15,10 +15,11 @@ slower one a little harder.
 - **Greatswords** (slow and heavy): charge time 35 → 40, attack raised to match.
 - **Axes and hammers** hit about twice as hard as other weapons of their time; their attack is brought into line.
   Axes and hammers share one curve, one new weapon per stage of the story.
-- **Hand-bombs**: attack brought into line (Hornito, sold from the start, 66 → 15).
+- **Hand-bombs**: attack brought into line (Hornito, sold from the start, 66 → 15). Hornito, the Time Mage opening
+  hand-bomb, costs 500 gil (was 5,000) like the other opening weapons.
 - **Longbow** 48 → 35 (a large jump over the Killer Bow sold just before it).
 
-Story and joke weapons, Seitengrat and Wyrmhero Blade keep their native stats. Prices are unchanged.
+Story and joke weapons, Seitengrat and Wyrmhero Blade keep their native stats. Other prices are unchanged.
 
 | Family | Attack |
 |---|---|

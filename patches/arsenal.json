@@ -1,6 +1,6 @@
 {
   "name": "Arsenal",
-  "description": "Weapon attack and family identities: attack set per weapon for the story timing; Warrior axes and hammers and Time Mage bombs brought into line; identities (Dagger speed and combo, Katana combo, Bow critical rate, Greatsword weight) offset in attack so they change how a weapon plays, not its damage over time.",
+  "description": "Weapon attack and family identities: attack set per weapon for the story timing; Warrior axes and hammers and Time Mage bombs brought into line; identities (Dagger speed and combo, Katana combo, Bow critical rate, Greatsword weight) offset in attack so they change how a weapon plays, not its damage over time. Hornito, the Time Mage opening hand-bomb, is priced like the other opening weapons.",
   "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
   "section": 13,
   "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
@@ -827,6 +827,10 @@
       "name": "Hornito",
       "category": "Hand-bomb",
       "set": {
+        "gil": [
+          5000,
+          500
+        ],
         "attack": [
           66,
           15
@@ -905,5 +909,5 @@
       }
     }
   ],
-  "resultSectionSha256": "af3929a4ca16febdaa0e0359abfb743c226228c0ea786923d833a7baf0c0e1cc"
+  "resultSectionSha256": "2dc7970c6d1edb49e3d38f536fa79fcbf2b5dbfcc5ab93216650b3bebd5ee857"
 }

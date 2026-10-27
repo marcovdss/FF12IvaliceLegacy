@@ -1,3 +1,8 @@
+# 0.2.1 candidate
+
+- Hornito, the Time Mage opening hand-bomb sold from the start, costs 500 gil (was 5,000; its attack is now 15).
+- Builds over an installed Arsenal 0.1.0 or 0.2.0.
+
 # 0.2.0 candidate
 
 - Attack set per weapon for the story timing: Warrior axes and hammers and Time Mage hand-bombs brought into line,
