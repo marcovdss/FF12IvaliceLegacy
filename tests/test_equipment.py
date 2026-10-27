@@ -73,6 +73,14 @@ class EquipmentTest(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(ValueError):
                 self.apply(items=[item])
 
+    def test_weapon_family_change_touches_only_the_category_byte(self):
+        out = self.apply(items=[{'contentId': 0x1000, 'category': 'Dagger', 'set': {'category': ['Dagger', 'Katana']}}])
+        self.assertEqual(out[32 + eq.CATEGORY_AT], eq.CATEGORIES.index('Katana'))
+        self.assertEqual([i for i, (a, b) in enumerate(zip(self.section, out)) if a != b], [32 + eq.CATEGORY_AT])
+        for change in (['Sword', 'Katana'], ['Dagger', 'Shield'], ['Dagger', 'Nope']):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.apply(items=[{'contentId': 0x1000, 'category': 'Dagger', 'set': {'category': change}}])
+
     def test_rejects_item_twice(self):
         item = {'contentId': 0x1000, 'category': 'Dagger', 'set': {'attack': [22, 20]}}
         with self.assertRaises(ValueError):

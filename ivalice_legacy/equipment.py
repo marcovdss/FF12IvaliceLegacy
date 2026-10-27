@@ -115,7 +115,14 @@ def equipment(read, patch):
             raise ValueError(f'{what} is not a {item["category"]}')
         spec = fields_for(category)
         for field, change in item['set'].items():
-            if field == 'hitsFlying':
+            if field == 'category':
+                # Weapon family only (e.g. Kumbha already swings as a katana); equip, offhand and license fields stay.
+                if (not isinstance(change, list) or len(change) != 2 or change[0] != item['category']
+                        or change[1] not in CATEGORIES[1:18] or category > 17):
+                    raise ValueError(f'{what} category: weapons only, [current, new weapon family]')
+                out[at + CATEGORY_AT] = CATEGORIES.index(change[1])
+                changed.add(at + CATEGORY_AT)
+            elif field == 'hitsFlying':
                 if category > 17 or [type(v) for v in change] != [bool, bool]:
                     raise ValueError(f'{what} hitsFlying: weapons only, [before, after] booleans')
                 if bool(original[at + FLAGS_AT] & HITS_FLYING) != change[0]:

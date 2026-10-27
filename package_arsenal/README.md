@@ -1,4 +1,4 @@
-# Ivalice Legacy: Arsenal 0.3.0 (experimental)
+# Ivalice Legacy: Arsenal 0.3.1 (experimental)
 
 Weapon attack and weapon family identities for the English Steam game, version 1.0.4.0.
 
@@ -29,7 +29,12 @@ Families with an effect identity gain it on every weapon (a weapon's own native 
 - **Ninja swords** (unseen): a 10% chance to Blind on hit.
 - **Spears** (pierce): reach 25.
 
-Story and joke weapons, Seitengrat and Wyrmhero Blade keep their native stats. Other prices are unchanged.
+Story and joke weapons and Wyrmhero Blade keep their native stats. Other prices are unchanged.
+
+**Legendary weapons** (the twelve zodiac weapons and Masamune) are the strongest of their family; each job's
+Proficiency unlocks their real potential. Karkata 92 → 100. Great Trango 153 → 95 at normal sword speed, Zodiac
+Spear 141 → 104 and Seitengrat 224 → 90 at normal bow speed, so they sit under the legendaries. Kumbha already swung
+as a katana (damage formula and model) and now counts as one.
 
 | Family | Attack |
 |---|---|
