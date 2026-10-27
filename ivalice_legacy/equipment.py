@@ -115,7 +115,17 @@ def equipment(read, patch):
             raise ValueError(f'{what} is not a {item["category"]}')
         spec = fields_for(category)
         for field, change in item['set'].items():
-            if field == 'category':
+            if field == 'attributeBlock':
+                # Move the item to another attribute block (e.g. a spare one whose only users are unused rows), so
+                # it gains effects without changing the block it shared with other items.
+                if (not isinstance(change, list) or len(change) != 2 or any(type(v) is not int or v < 0 for v in change)
+                        or attributes + 24 * change[1] + 24 > len(original)):
+                    raise ValueError(f'{what} attributeBlock: expected [current, new] block indexes')
+                if struct.unpack_from('<I', original, at + LINK_AT)[0] != 24 * change[0]:
+                    raise ValueError(f'{what} attributeBlock: unexpected current block')
+                struct.pack_into('<I', out, at + LINK_AT, 24 * change[1])
+                changed |= set(range(at + LINK_AT, at + LINK_AT + 4))
+            elif field == 'category':
                 # Weapon family only (e.g. Kumbha already swings as a katana); equip, offhand and license fields stay.
                 if (not isinstance(change, list) or len(change) != 2 or change[0] != item['category']
                         or change[1] not in CATEGORIES[1:18] or category > 17):
@@ -136,7 +146,8 @@ def equipment(read, patch):
 
     users = {}
     for index in range(count):
-        link = struct.unpack_from('<I', original, entry + index * size + LINK_AT)[0]
+        # Users after any attributeBlock moves: a block edit must name every item that will use it.
+        link = struct.unpack_from('<I', out, entry + index * size + LINK_AT)[0]
         users.setdefault(link, set()).add(FIRST_ID + index)
     blocks = set()
     for block in patch.get('attributes', []):

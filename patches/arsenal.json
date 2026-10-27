@@ -1745,7 +1745,1027 @@
           "Katana"
         ]
       }
+    },
+    {
+      "contentId": 4436,
+      "name": "Opal Ring",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          2,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4438,
+      "name": "Tourmaline Ring",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          255,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4440,
+      "name": "Ring of Renewal",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          6,
+          0
+        ],
+        "magickResist": [
+          5,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4441,
+      "name": "Agate Ring",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          16,
+          48
+        ]
+      }
+    },
+    {
+      "contentId": 4443,
+      "name": "Orrachea Armlet",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "magickResist": [
+          1,
+          0
+        ],
+        "augment": [
+          114,
+          255
+        ]
+      }
+    },
+    {
+      "contentId": 4447,
+      "name": "Amber Armlet",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          3,
+          0
+        ],
+        "augment": [
+          9,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4448,
+      "name": "Berserker Bracers",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          2,
+          0
+        ],
+        "augment": [
+          255,
+          58
+        ]
+      }
+    },
+    {
+      "contentId": 4449,
+      "name": "Magick Gloves",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          103,
+          255
+        ]
+      }
+    },
+    {
+      "contentId": 4451,
+      "name": "Blazer Gloves",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          11,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4452,
+      "name": "Genji Gloves",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          13,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4453,
+      "name": "Gauntlets",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "augment": [
+          5,
+          1
+        ]
+      }
+    },
+    {
+      "contentId": 4457,
+      "name": "Leather Gorget",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "augment": [
+          8,
+          255
+        ]
+      }
+    },
+    {
+      "contentId": 4458,
+      "name": "Jade Collar",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          4,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4459,
+      "name": "Steel Gorget",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "augment": [
+          10,
+          255
+        ],
+        "attributeBlock": [
+          0,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4460,
+      "name": "Rose Corsage",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          2,
+          0
+        ],
+        "augment": [
+          255,
+          27
+        ]
+      }
+    },
+    {
+      "contentId": 4470,
+      "name": "Black Belt",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4471,
+      "name": "Battle Harness",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          6,
+          1
+        ]
+      }
+    },
+    {
+      "contentId": 4480,
+      "name": "Fuzzy Miter",
+      "category": "Accessory (special)",
+      "set": {
+        "defense": [
+          0,
+          10
+        ],
+        "magickResist": [
+          0,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4481,
+      "name": "Ribbon",
+      "category": "Accessory (special)",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "magickResist": [
+          1,
+          0
+        ],
+        "augment": [
+          255,
+          1
+        ]
+      }
     }
   ],
-  "resultSectionSha256": "831f5a180df7637b77d906e3df913513a4f6e0999e0ca4d5317305507f6fe179"
+  "resultSectionSha256": "eb10ed5edfd46dd89797e1e18ba9ef92e009c9816ad44928b063243920c1ea8b",
+  "attributes": [
+    {
+      "attributeIndex": 142,
+      "users": [
+        4436
+      ],
+      "set": {
+        "magick": [
+          5,
+          0
+        ],
+        "speed": [
+          0,
+          3
+        ],
+        "boost": [
+          [],
+          [
+            "Ice",
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 143,
+      "users": [
+        4437
+      ],
+      "set": {
+        "magick": [
+          0,
+          5
+        ],
+        "boost": [
+          [],
+          [
+            "Fire",
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 144,
+      "users": [
+        4438
+      ],
+      "set": {
+        "vitality": [
+          0,
+          4
+        ],
+        "half": [
+          [
+            "Ice"
+          ],
+          []
+        ],
+        "boost": [
+          [],
+          [
+            "Lightning",
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 145,
+      "users": [
+        4439
+      ],
+      "set": {
+        "strength": [
+          0,
+          4
+        ],
+        "boost": [
+          [],
+          [
+            "Earth",
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 146,
+      "users": [
+        4440
+      ],
+      "set": {
+        "mp": [
+          0,
+          30
+        ],
+        "immune": [
+          [],
+          [
+            "Silence"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 147,
+      "users": [
+        4441
+      ],
+      "set": {
+        "vitality": [
+          20,
+          2
+        ],
+        "half": [
+          [
+            "Wind"
+          ],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 148,
+      "users": [
+        4442
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 149,
+      "users": [
+        4443
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Sleep",
+            "Confuse"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 150,
+      "users": [
+        4444
+      ],
+      "set": {
+        "immune": [
+          [
+            "Stop"
+          ],
+          [
+            "Stop",
+            "Slow"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 152,
+      "users": [
+        4447
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Berserk"
+          ]
+        ],
+        "half": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 153,
+      "users": [
+        4448
+      ],
+      "set": {
+        "magick": [
+          0,
+          1
+        ],
+        "vitality": [
+          0,
+          2
+        ],
+        "status": [
+          [
+            "Berserk"
+          ],
+          [
+            "Reflect"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 154,
+      "users": [
+        4449
+      ],
+      "set": {
+        "hp": [
+          100,
+          0
+        ],
+        "magick": [
+          0,
+          4
+        ],
+        "status": [
+          [],
+          [
+            "Faith"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 155,
+      "users": [
+        4453
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Disease"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 156,
+      "users": [
+        4454
+      ],
+      "set": {
+        "speed": [
+          3,
+          0
+        ],
+        "immune": [
+          [],
+          [
+            "Silence"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 157,
+      "users": [
+        4457
+      ],
+      "set": {
+        "mp": [
+          30,
+          20
+        ],
+        "magick": [
+          0,
+          1
+        ],
+        "vitality": [
+          0,
+          1
+        ],
+        "status": [
+          [],
+          [
+            "Shell"
+          ]
+        ],
+        "immune": [
+          [],
+          [
+            "Silence"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 158,
+      "users": [
+        4458
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 159,
+      "users": [
+        4460
+      ],
+      "set": {
+        "mp": [
+          0,
+          15
+        ],
+        "magick": [
+          1,
+          2
+        ],
+        "speed": [
+          0,
+          2
+        ]
+      }
+    },
+    {
+      "attributeIndex": 161,
+      "users": [
+        4464
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Sap"
+          ]
+        ],
+        "absorb": [
+          [],
+          [
+            "Dark"
+          ]
+        ],
+        "weak": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 164,
+      "users": [
+        4467
+      ],
+      "set": {
+        "vitality": [
+          0,
+          3
+        ],
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 166,
+      "users": [
+        4470
+      ],
+      "set": {
+        "immune": [
+          [
+            "Disable",
+            "Immobilize"
+          ],
+          [
+            "Disable",
+            "Immobilize",
+            "Petrify"
+          ]
+        ],
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 167,
+      "users": [
+        4472
+      ],
+      "set": {
+        "vitality": [
+          20,
+          0
+        ],
+        "speed": [
+          50,
+          0
+        ],
+        "status": [
+          [],
+          [
+            "Invisible",
+            "Libra"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 168,
+      "users": [
+        4473
+      ],
+      "set": {
+        "strength": [
+          5,
+          0
+        ],
+        "speed": [
+          0,
+          2
+        ],
+        "immune": [
+          [],
+          [
+            "Stop"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 170,
+      "users": [
+        4476
+      ],
+      "set": {
+        "magick": [
+          0,
+          1
+        ],
+        "speed": [
+          5,
+          0
+        ],
+        "immune": [
+          [],
+          [
+            "Confuse"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 171,
+      "users": [
+        4477
+      ],
+      "set": {
+        "hp": [
+          500,
+          90
+        ],
+        "mp": [
+          0,
+          30
+        ],
+        "status": [
+          [],
+          [
+            "Protect",
+            "Shell"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 174,
+      "users": [
+        4480
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire",
+            "Ice",
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 175,
+      "users": [
+        4481
+      ],
+      "set": {
+        "hp": [
+          0,
+          35
+        ],
+        "mp": [
+          0,
+          25
+        ],
+        "status": [
+          [
+            "Regen",
+            "Libra"
+          ],
+          []
+        ],
+        "immune": [
+          [
+            "Petrify",
+            "Stop",
+            "Sleep",
+            "Confuse",
+            "Doom",
+            "Blind",
+            "Poison",
+            "Silence",
+            "Sap",
+            "Oil",
+            "Disable",
+            "Immobilize",
+            "Slow",
+            "Disease"
+          ],
+          [
+            "Stone",
+            "Petrify",
+            "Stop",
+            "Sleep",
+            "Confuse",
+            "Doom",
+            "Blind",
+            "Poison",
+            "Silence",
+            "Sap",
+            "Oil",
+            "Disable",
+            "Immobilize",
+            "Slow",
+            "Disease",
+            "X-Zone"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 25,
+      "users": [
+        4282,
+        4459
+      ],
+      "set": {
+        "weak": [
+          [
+            "Fire"
+          ],
+          []
+        ],
+        "status": [
+          [],
+          [
+            "Protect"
+          ]
+        ]
+      }
+    }
+  ],
+  "equipmentNames": {
+    "sourceSha256": "3b1dbac27b2c433a50e09b67160fa33eee3912a2a142f35d0e00290fce914bbc",
+    "subTable": 1,
+    "changes": [
+      {
+        "index": 340,
+        "contentId": 4436,
+        "before": "Opal Ring",
+        "replacement": "Cagnazzo Ring",
+        "beforeHex": "00002e493a45043142474000094c003a47040000"
+      },
+      {
+        "index": 341,
+        "contentId": 4437,
+        "before": "Ruby Ring",
+        "replacement": "Rubicante Ring",
+        "beforeHex": "0000314e3b52043142474000094c003a04000000"
+      },
+      {
+        "index": 342,
+        "contentId": 4438,
+        "before": "Tourmaline Ring",
+        "replacement": "Barbariccia Ring",
+        "beforeHex": "000033484e4b463a4542473e043142474000094c003a040000000000"
+      },
+      {
+        "index": 343,
+        "contentId": 4439,
+        "before": "Sage's Ring",
+        "replacement": "Scarmiglione Ring",
+        "beforeHex": "0000323a403eac4c043142474000094c003a040000000000"
+      },
+      {
+        "index": 344,
+        "contentId": 4440,
+        "before": "Ring of Renewal",
+        "replacement": "Mistflow Ring",
+        "beforeHex": "00003142474004483f04313e473e503a45000804804c04483f04313e473e503a45003a0400000000"
+      },
+      {
+        "index": 345,
+        "contentId": 4441,
+        "before": "Agate Ring",
+        "replacement": "Dampening Ring",
+        "beforeHex": "000020403a4d3e043142474000094c003a47040000000000"
+      },
+      {
+        "index": 346,
+        "contentId": 4442,
+        "before": "Bangle",
+        "replacement": "Scholar Bangle",
+        "beforeHex": "0000213a4740453e00094c003a040000"
+      },
+      {
+        "index": 347,
+        "contentId": 4443,
+        "before": "Orrachea Armlet",
+        "replacement": "Cachusha",
+        "beforeHex": "00002e4b4b3a3c413e3a04204b46453e4d00094c003a470400000000"
+      },
+      {
+        "index": 348,
+        "contentId": 4444,
+        "before": "Power Armlet",
+        "replacement": "Hyper Wrist",
+        "beforeHex": "00002f48503e4b04204b46453e4d00094c003a0400000000"
+      },
+      {
+        "index": 351,
+        "contentId": 4447,
+        "before": "Amber Armlet",
+        "replacement": "Rancor Bracelet",
+        "beforeHex": "000020463b3e4b04204b46453e4d00094c003a4704000000"
+      },
+      {
+        "index": 352,
+        "contentId": 4448,
+        "before": "Berserker Bracers",
+        "replacement": "Reflect Bracers",
+        "beforeHex": "0000213e4b4c3e4b443e4b04214b3a3c3e4b4c00493a424b4c04483f0409003a04493a424b04483f04000000"
+      },
+      {
+        "index": 353,
+        "contentId": 4449,
+        "before": "Magick Gloves",
+        "replacement": "Magnus Gloves",
+        "beforeHex": "00002c3a40423c44042645484f3e4c00493a424b4c04483f0409003a04493a424b04483f04000000"
+      },
+      {
+        "index": 355,
+        "contentId": 4451,
+        "before": "Blazer Gloves",
+        "replacement": "Braver Gloves",
+        "beforeHex": "000021453a533e4b042645484f3e4c00493a424b4c04483f0409003a04493a424b04483f04000000"
+      },
+      {
+        "index": 357,
+        "contentId": 4453,
+        "before": "Gauntlets",
+        "replacement": "Hale Gauntlets",
+        "beforeHex": "0000263a4e474d453e4d4c00493a424b4c04483f0409003a04493a424b04483f04000000"
+      },
+      {
+        "index": 361,
+        "contentId": 4457,
+        "before": "Leather Gorget",
+        "replacement": "Shell Gorget",
+        "beforeHex": "00002b3e3a4d413e4b0426484b403e4d00094c003a040000"
+      },
+      {
+        "index": 362,
+        "contentId": 4458,
+        "before": "Jade Collar",
+        "replacement": "Zephyr Collar",
+        "beforeHex": "0000293a3d3e04224845453a4b00094c003a040000000000"
+      },
+      {
+        "index": 363,
+        "contentId": 4459,
+        "before": "Steel Gorget",
+        "replacement": "Protect Gorget",
+        "beforeHex": "0000324d3e3e450426484b403e4d00094c003a0400000000"
+      },
+      {
+        "index": 364,
+        "contentId": 4460,
+        "before": "Rose Corsage",
+        "replacement": "Moonsilver Amulet",
+        "beforeHex": "000031484c3e0422484b4c3a403e00094c003a0400000000"
+      },
+      {
+        "index": 368,
+        "contentId": 4464,
+        "before": "Bowline Sash",
+        "replacement": "Elmdore Fang",
+        "beforeHex": "00002148504542473e04323a4c4100093e4c003a04000000"
+      },
+      {
+        "index": 376,
+        "contentId": 4472,
+        "before": "Germinas Boots",
+        "replacement": "Shinobi Tabi",
+        "beforeHex": "0000263e4b4642473a4c042148484d4c00493a424b4c04483f0409003a04493a424b04483f040000"
+      },
+      {
+        "index": 380,
+        "contentId": 4476,
+        "before": "Winged Boots",
+        "replacement": "Pixie Shoes",
+        "beforeHex": "0000364247403e3d042148484d4c00493a424b4c04483f0409003a04493a424b04483f0400000000"
+      },
+      {
+        "index": 381,
+        "contentId": 4477,
+        "before": "Quasimodo Boots",
+        "replacement": "Miracle Shoes",
+        "beforeHex": "0000304e3a4c4246483d48042148484d4c00493a424b4c04483f0409003a04493a424b04483f040000000000"
+      },
+      {
+        "index": 384,
+        "contentId": 4480,
+        "before": "Fuzzy Miter",
+        "replacement": "Iron Duke",
+        "beforeHex": "0000254e535352042c424d3e4b00094c003a040000000000"
+      }
+    ],
+    "resultSha256": "defcb6bcd59e3d538a5146e8f8c2a2bfa8f9d021a0450ba48faabba8eea6394e"
+  }
 }

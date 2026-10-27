@@ -1,4 +1,4 @@
-# Ivalice Legacy: Arsenal 0.3.1 (experimental)
+# Ivalice Legacy: Arsenal 0.4.0 (experimental)
 
 Weapon attack and weapon family identities for the English Steam game, version 1.0.4.0.
 
@@ -54,3 +54,20 @@ version or another mod (other than an earlier Arsenal release) replaces it. No L
 files are included. Removing the package restores native weapons.
 
 Item descriptions that list weapon stats may show the new values only after one restart.
+
+## Accessories (0.4.0)
+
+Accessories are each character's wildcard edge: offence, defence or utility. They take their identity from The
+Planetary Age where it adds a new answer, and never copy a job's signature passive. Renamed (owned copies rename
+too): Cagnazzo Ring (Magicks ignore Reflect; boosts Ice, Water), Rubicante Ring (Auto-Reflect; boosts Fire, Holy),
+Barbariccia Ring (Weatherproof; Poison and Sap ward; boosts Lightning, Wind), Scarmiglione Ring (halves MP costs;
+absorbs Holy; boosts Earth, Dark), Mistflow Ring (Regen; Silence ward), Dampening Ring (30% less damage; half
+Fire), Scholar Bangle (Libra; half Dark), Cachusha (Sleep and Confuse ward), Hyper Wrist (Stop and Slow ward),
+Rancor Bracelet (Berserk, no knockback; half Ice), Reflect Bracers (Reflect, returns some damage), Magnus Gloves
+(Faith), Braver Gloves (Weatherproof), Hale Gauntlets (instant-KO and Disease ward), Shell Gorget (Shell; Silence
+ward), Zephyr Collar (Anti-Libra; half Wind), Protect Gorget (Protect), Moonsilver Amulet (double EXP; Silence
+ward), Elmdore Fang (Sap, absorbs Dark, weak to Holy; Confuse ward), Shinobi Tabi (Invisible, Libra; Immobilize
+ward), Pixie Shoes (Float; Confuse ward), Miracle Shoes (Protect, Shell; Sap ward), Iron Duke (Petrify ward; half
+Fire, Ice, Lightning). Reworked under their names: Genji Gloves, Turtleshell Choker, Bubble Belt, Black Belt,
+Battle Harness, Hermes Sandals, Ribbon (every status and instant KO). Prices and where they are found are unchanged.
+

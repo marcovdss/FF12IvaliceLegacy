@@ -1,3 +1,10 @@
+# 0.4.0 candidate
+
+- Accessories: TPA identities merged where they add a new answer (23 renamed, 7 reworked under their name); no
+  accessory copies a job's signature passive any more. Protect Gorget gets its own effect block (Auto-Protect).
+- Equipment names: new word-table sub-table 1 (accessory names only).
+- Builds over an installed Arsenal 0.1.0 to 0.3.1.
+
 # 0.3.1 candidate
 
 - Legendary weapons lead their family: Karkata 92 → 100; Great Trango 153 → 95 at normal sword speed (charge 25 → 32);

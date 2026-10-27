@@ -86,6 +86,16 @@ class EquipmentTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.apply(items=[item, item])
 
+    def test_moving_to_another_block_names_its_new_users(self):
+        move = {'contentId': 0x1000, 'category': 'Dagger', 'set': {'attributeBlock': [0, 1]}}
+        effect = {'attributeIndex': 1, 'users': [0x1000, 0x1002], 'set': {'status': [[], ['Protect']]}}
+        out = self.apply(items=[move], attributes=[effect])
+        self.assertEqual(struct.unpack_from('<I', out, 32 + eq.LINK_AT)[0], 24)
+        with self.assertRaises(ValueError):  # the moved item must be declared as a user of its new block
+            self.apply(items=[move], attributes=[dict(effect, users=[0x1002])])
+        with self.assertRaises(ValueError):  # the current block must match
+            self.apply(items=[dict(move, set={'attributeBlock': [1, 0]})])
+
     def test_shared_attribute_block_needs_every_user(self):
         change = {'immune': [[], ['Oil']]}
         with self.assertRaises(ValueError):
@@ -124,9 +134,12 @@ class RealTableTest(unittest.TestCase):
         vbf = VBF(Path(os.environ['IVALICE_LEGACY_GAME']) / 'FFXII_TZA.vbf')
         result = eq.equipment(vbf.read, patch)[patch['file'] + '.dir/section_013.bin']
         source = battle_pack_section(vbf.read(patch['file']), 13)
-        count, size, entry, _ = eq.layout(source)
-        rows = {(i - entry) // size for i, (a, b) in enumerate(zip(source, result)) if a != b}
+        count, size, entry, attributes = eq.layout(source)
+        changed = [i for i, (a, b) in enumerate(zip(source, result)) if a != b]
+        rows = {(i - entry) // size for i in changed if i < attributes}
         self.assertEqual({eq.FIRST_ID + r for r in rows}, {i['contentId'] for i in patch['items']})
+        blocks = {(i - attributes) // 24 for i in changed if i >= attributes}
+        self.assertEqual(blocks, {b['attributeIndex'] for b in patch.get('attributes', [])})
         daggers = [i['contentId'] - eq.FIRST_ID for i in patch['items'] if i['category'] == 'Dagger']
         self.assertEqual(len(daggers), 12)  # every sold dagger; the unused 0x11CE row stays native
         self.assertTrue(all(result[entry + r * size + 39] == 15 for r in daggers))
