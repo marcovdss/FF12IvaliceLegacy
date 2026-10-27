@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "Offline candidate 0.4.0: thirteen legendary weapons on Esper islands on every board",
+  "status": "Offline candidate 0.4.1: legendary islands + shared basic tools",
   "gameExeSha256": "73461d0896204b1c259c52f61aef4efbc95a2ffc388cadb36493d5d1d89721f8",
   "licenseTableSha256": "665019abce04423118529e461709a1b4aa77a164176c6fdf537b4b6d3b0ac8ea",
   "jobs": [
@@ -10,62 +10,57 @@
       "name": "White Mage",
       "key": "kiltian_hierophant",
       "sourceSha256": "5a220b2d8e3cc2c78042cd5bd5161407f7f4dbadb811b7c1380b573e39fb380d",
-      "candidateSha256": "d663f3340282c5cfa5cadc0283a8b618051a30bf1ff6a7c986736165811769d0",
+      "candidateSha256": "f1d8694545e33e7674a0ecf89fb8f6a6036e151673e60b22089bb73bdeda44d1",
       "cells": [
         {
-          "x": 10,
-          "y": 5,
-          "licenseId": 342
-        },
-        {
-          "x": 16,
+          "x": 12,
           "y": 5,
           "licenseId": 52
         },
         {
-          "x": 7,
+          "x": 17,
+          "y": 5,
+          "licenseId": 339
+        },
+        {
+          "x": 6,
           "y": 6,
-          "licenseId": 331
+          "licenseId": 342
         },
         {
           "x": 10,
           "y": 6,
-          "licenseId": 24
-        },
-        {
-          "x": 11,
-          "y": 6,
           "licenseId": 0
         },
         {
-          "x": 14,
-          "y": 6,
-          "licenseId": 343
-        },
-        {
-          "x": 16,
+          "x": 12,
           "y": 6,
           "licenseId": 18
         },
         {
-          "x": 17,
+          "x": 14,
+          "y": 6,
+          "licenseId": 76
+        },
+        {
+          "x": 16,
           "y": 6,
           "licenseId": 1
         },
         {
+          "x": 17,
+          "y": 6,
+          "licenseId": 25
+        },
+        {
           "x": 6,
           "y": 7,
-          "licenseId": 2
+          "licenseId": 24
         },
         {
           "x": 7,
           "y": 7,
-          "licenseId": 29
-        },
-        {
-          "x": 8,
-          "y": 7,
-          "licenseId": 3
+          "licenseId": 2
         },
         {
           "x": 10,
@@ -85,7 +80,7 @@
         {
           "x": 14,
           "y": 7,
-          "licenseId": 22
+          "licenseId": 28
         },
         {
           "x": 16,
@@ -98,14 +93,9 @@
           "licenseId": 275
         },
         {
-          "x": 4,
-          "y": 8,
-          "licenseId": 76
-        },
-        {
-          "x": 5,
-          "y": 8,
-          "licenseId": 28
+          "x": 18,
+          "y": 7,
+          "licenseId": 3
         },
         {
           "x": 6,
@@ -170,12 +160,12 @@
         {
           "x": 18,
           "y": 8,
-          "licenseId": 26
+          "licenseId": 27
         },
         {
           "x": 19,
           "y": 8,
-          "licenseId": 337
+          "licenseId": 341
         },
         {
           "x": 6,
@@ -368,6 +358,16 @@
           "licenseId": 226
         },
         {
+          "x": 18,
+          "y": 11,
+          "licenseId": 30
+        },
+        {
+          "x": 19,
+          "y": 11,
+          "licenseId": 49
+        },
+        {
           "x": 6,
           "y": 12,
           "licenseId": 179
@@ -400,7 +400,7 @@
         {
           "x": 12,
           "y": 12,
-          "licenseId": 185
+          "licenseId": 184
         },
         {
           "x": 13,
@@ -428,14 +428,14 @@
           "licenseId": 321
         },
         {
-          "x": 18,
-          "y": 12,
-          "licenseId": 30
+          "x": 4,
+          "y": 13,
+          "licenseId": 343
         },
         {
-          "x": 19,
-          "y": 12,
-          "licenseId": 49
+          "x": 5,
+          "y": 13,
+          "licenseId": 22
         },
         {
           "x": 6,
@@ -455,27 +455,27 @@
         {
           "x": 9,
           "y": 13,
-          "licenseId": 188
+          "licenseId": 187
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 186
+          "licenseId": 280
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 280
+          "licenseId": 185
         },
         {
           "x": 12,
           "y": 13,
-          "licenseId": 187
+          "licenseId": 186
         },
         {
           "x": 13,
           "y": 13,
-          "licenseId": 189
+          "licenseId": 188
         },
         {
           "x": 14,
@@ -498,16 +498,6 @@
           "licenseId": 323
         },
         {
-          "x": 4,
-          "y": 14,
-          "licenseId": 341
-        },
-        {
-          "x": 5,
-          "y": 14,
-          "licenseId": 27
-        },
-        {
           "x": 6,
           "y": 14,
           "licenseId": 181
@@ -520,22 +510,27 @@
         {
           "x": 9,
           "y": 14,
-          "licenseId": 211
+          "licenseId": 209
         },
         {
           "x": 10,
           "y": 14,
-          "licenseId": 208
+          "licenseId": 355
         },
         {
           "x": 11,
           "y": 14,
-          "licenseId": 355
+          "licenseId": 189
         },
         {
           "x": 12,
           "y": 14,
-          "licenseId": 209
+          "licenseId": 208
+        },
+        {
+          "x": 13,
+          "y": 14,
+          "licenseId": 211
         },
         {
           "x": 15,
@@ -555,27 +550,32 @@
         {
           "x": 18,
           "y": 14,
-          "licenseId": 23
+          "licenseId": 20
         },
         {
           "x": 19,
           "y": 14,
-          "licenseId": 347
+          "licenseId": 335
         },
         {
-          "x": 6,
+          "x": 7,
           "y": 15,
-          "licenseId": 19
+          "licenseId": 29
         },
         {
           "x": 9,
           "y": 15,
-          "licenseId": 25
+          "licenseId": 23
         },
         {
           "x": 11,
           "y": 15,
           "licenseId": 360
+        },
+        {
+          "x": 13,
+          "y": 15,
+          "licenseId": 19
         },
         {
           "x": 16,
@@ -588,27 +588,32 @@
           "licenseId": 325
         },
         {
-          "x": 6,
+          "x": 7,
           "y": 16,
-          "licenseId": 95
+          "licenseId": 331
         },
         {
           "x": 9,
           "y": 16,
-          "licenseId": 339
+          "licenseId": 347
+        },
+        {
+          "x": 13,
+          "y": 16,
+          "licenseId": 95
         },
         {
           "x": 17,
           "y": 16,
-          "licenseId": 20
+          "licenseId": 26
         },
         {
           "x": 17,
           "y": 17,
-          "licenseId": 335
+          "licenseId": 337
         }
       ],
-      "previousCandidateSha256": "1d89bb4ab216c0eb3b2736a13b45db46414a0344cfd95e455f1ae1d5b54096a8",
+      "previousCandidateSha256": "d663f3340282c5cfa5cadc0283a8b618051a30bf1ff6a7c986736165811769d0",
       "islands": [
         {
           "gateId": 18,
@@ -670,7 +675,7 @@
       "name": "Lancer",
       "key": "orderbreaker",
       "sourceSha256": "b363ed4d72eed279de1c4168006e251bf4df75eda5c83f00331a476826c35449",
-      "candidateSha256": "06b54495eadc0a6ec42b13a29b1120ea4a34902c34081376529049ad91c3ba6d",
+      "candidateSha256": "ca4a5f2645f5c270372127056d61a8ff2de2aa44ab2ca3fe973b227c2eac9434",
       "cells": [
         {
           "x": 17,
@@ -1070,7 +1075,7 @@
         {
           "x": 10,
           "y": 12,
-          "licenseId": 285
+          "licenseId": 186
         },
         {
           "x": 11,
@@ -1080,7 +1085,7 @@
         {
           "x": 12,
           "y": 12,
-          "licenseId": 291
+          "licenseId": 285
         },
         {
           "x": 13,
@@ -1135,12 +1140,17 @@
         {
           "x": 10,
           "y": 13,
-          "licenseId": 298
+          "licenseId": 295
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 295
+          "licenseId": 291
+        },
+        {
+          "x": 12,
+          "y": 13,
+          "licenseId": 298
         },
         {
           "x": 14,
@@ -1243,7 +1253,7 @@
           "licenseId": 347
         }
       ],
-      "previousCandidateSha256": "c449eb04a452a8e7809787858ff1e5e52d5dc5b04ee574c67c212d64ff062512",
+      "previousCandidateSha256": "06b54495eadc0a6ec42b13a29b1120ea4a34902c34081376529049ad91c3ba6d",
       "islands": [
         {
           "gateId": 18,
@@ -1305,7 +1315,7 @@
       "name": "Gunner",
       "key": "fusilier",
       "sourceSha256": "ebb8af58b7b641598bae31f532f38321aed9bcea632625ac2fe225906ad19e48",
-      "candidateSha256": "70d4b8f598ccea224e28e4ed9133f636c439c10eb6c1bd46c7f30d7571a72509",
+      "candidateSha256": "ff95605dfbac3250874150b9914a285769cd5919f3affd6935b57a0208639778",
       "cells": [
         {
           "x": 10,
@@ -1665,12 +1675,17 @@
         {
           "x": 10,
           "y": 12,
-          "licenseId": 287
+          "licenseId": 277
         },
         {
           "x": 11,
           "y": 12,
           "licenseId": 297
+        },
+        {
+          "x": 12,
+          "y": 12,
+          "licenseId": 287
         },
         {
           "x": 13,
@@ -1788,7 +1803,7 @@
           "licenseId": 49
         }
       ],
-      "previousCandidateSha256": "da9edd2c62287518b04f449cf2ab6002539fc119097fb496f77ffd5ec214d7e2",
+      "previousCandidateSha256": "70d4b8f598ccea224e28e4ed9133f636c439c10eb6c1bd46c7f30d7571a72509",
       "islands": [
         {
           "gateId": 18,
@@ -1850,47 +1865,52 @@
       "name": "Green Mage",
       "key": "wood_warder",
       "sourceSha256": "c0ac046eac985d6a768f87ea474b79419fc26892f378ea7e031b849ed276af97",
-      "candidateSha256": "d44dbf765bee075173fa0cb195785abd69cd10c4c3fe1156e43f1cbe0c1cdbed",
+      "candidateSha256": "a349eac1fd4d27f2bff64a21f0ea4e402d094cd9dd5dd583f02af63acbed0945",
       "cells": [
         {
           "x": 17,
           "y": 4,
-          "licenseId": 341
+          "licenseId": 49
         },
         {
-          "x": 11,
+          "x": 10,
           "y": 5,
-          "licenseId": 339
+          "licenseId": 337
+        },
+        {
+          "x": 12,
+          "y": 5,
+          "licenseId": 347
         },
         {
           "x": 17,
           "y": 5,
-          "licenseId": 27
+          "licenseId": 30
         },
         {
           "x": 7,
           "y": 6,
-          "licenseId": 347
+          "licenseId": 331
         },
         {
           "x": 10,
           "y": 6,
-          "licenseId": 0
+          "licenseId": 26
         },
         {
           "x": 11,
           "y": 6,
-          "licenseId": 25
+          "licenseId": 0
         },
         {
           "x": 12,
           "y": 6,
-          "licenseId": 1
+          "licenseId": 23
         },
         {
           "x": 14,
           "y": 6,
-          "licenseId": 343
+          "licenseId": 335
         },
         {
           "x": 17,
@@ -1900,12 +1920,7 @@
         {
           "x": 18,
           "y": 6,
-          "licenseId": 29
-        },
-        {
-          "x": 19,
-          "y": 6,
-          "licenseId": 331
+          "licenseId": 1
         },
         {
           "x": 6,
@@ -1915,7 +1930,7 @@
         {
           "x": 7,
           "y": 7,
-          "licenseId": 23
+          "licenseId": 29
         },
         {
           "x": 8,
@@ -1940,7 +1955,7 @@
         {
           "x": 14,
           "y": 7,
-          "licenseId": 22
+          "licenseId": 20
         },
         {
           "x": 16,
@@ -1951,6 +1966,16 @@
           "x": 17,
           "y": 7,
           "licenseId": 275
+        },
+        {
+          "x": 4,
+          "y": 8,
+          "licenseId": 342
+        },
+        {
+          "x": 5,
+          "y": 8,
+          "licenseId": 24
         },
         {
           "x": 6,
@@ -2013,14 +2038,14 @@
           "licenseId": 324
         },
         {
-          "x": 4,
-          "y": 9,
-          "licenseId": 335
+          "x": 18,
+          "y": 8,
+          "licenseId": 21
         },
         {
-          "x": 5,
-          "y": 9,
-          "licenseId": 20
+          "x": 19,
+          "y": 8,
+          "licenseId": 330
         },
         {
           "x": 6,
@@ -2083,16 +2108,6 @@
           "licenseId": 322
         },
         {
-          "x": 18,
-          "y": 9,
-          "licenseId": 18
-        },
-        {
-          "x": 19,
-          "y": 9,
-          "licenseId": 52
-        },
-        {
           "x": 6,
           "y": 10,
           "licenseId": 178
@@ -2151,6 +2166,16 @@
           "x": 17,
           "y": 10,
           "licenseId": 300
+        },
+        {
+          "x": 4,
+          "y": 11,
+          "licenseId": 339
+        },
+        {
+          "x": 5,
+          "y": 11,
+          "licenseId": 25
         },
         {
           "x": 6,
@@ -2218,26 +2243,6 @@
           "licenseId": 328
         },
         {
-          "x": 19,
-          "y": 11,
-          "licenseId": 26
-        },
-        {
-          "x": 20,
-          "y": 11,
-          "licenseId": 337
-        },
-        {
-          "x": 4,
-          "y": 12,
-          "licenseId": 49
-        },
-        {
-          "x": 5,
-          "y": 12,
-          "licenseId": 30
-        },
-        {
           "x": 6,
           "y": 12,
           "licenseId": 179
@@ -2260,7 +2265,7 @@
         {
           "x": 10,
           "y": 12,
-          "licenseId": 193
+          "licenseId": 277
         },
         {
           "x": 11,
@@ -2270,7 +2275,7 @@
         {
           "x": 12,
           "y": 12,
-          "licenseId": 288
+          "licenseId": 193
         },
         {
           "x": 13,
@@ -2298,6 +2303,16 @@
           "licenseId": 321
         },
         {
+          "x": 4,
+          "y": 13,
+          "licenseId": 343
+        },
+        {
+          "x": 5,
+          "y": 13,
+          "licenseId": 22
+        },
+        {
           "x": 6,
           "y": 13,
           "licenseId": 353
@@ -2315,22 +2330,27 @@
         {
           "x": 9,
           "y": 13,
-          "licenseId": 207
+          "licenseId": 206
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 294
+          "licenseId": 205
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 205
+          "licenseId": 288
         },
         {
           "x": 12,
           "y": 13,
-          "licenseId": 206
+          "licenseId": 294
+        },
+        {
+          "x": 13,
+          "y": 13,
+          "licenseId": 207
         },
         {
           "x": 14,
@@ -2353,14 +2373,14 @@
           "licenseId": 323
         },
         {
-          "x": 4,
-          "y": 14,
-          "licenseId": 76
+          "x": 18,
+          "y": 13,
+          "licenseId": 18
         },
         {
-          "x": 5,
-          "y": 14,
-          "licenseId": 28
+          "x": 19,
+          "y": 13,
+          "licenseId": 52
         },
         {
           "x": 6,
@@ -2375,7 +2395,7 @@
         {
           "x": 9,
           "y": 14,
-          "licenseId": 21
+          "licenseId": 28
         },
         {
           "x": 11,
@@ -2405,7 +2425,7 @@
         {
           "x": 9,
           "y": 15,
-          "licenseId": 330
+          "licenseId": 76
         },
         {
           "x": 16,
@@ -2430,15 +2450,15 @@
         {
           "x": 18,
           "y": 16,
-          "licenseId": 24
+          "licenseId": 27
         },
         {
           "x": 19,
           "y": 16,
-          "licenseId": 342
+          "licenseId": 341
         }
       ],
-      "previousCandidateSha256": "c9a26dae67e9f5192defcba369e5cebfb0dcbbd53659617fcfbb2aecc036a2a9",
+      "previousCandidateSha256": "d44dbf765bee075173fa0cb195785abd69cd10c4c3fe1156e43f1cbe0c1cdbed",
       "islands": [
         {
           "gateId": 18,
@@ -2500,7 +2520,7 @@
       "name": "Knight",
       "key": "oathguard",
       "sourceSha256": "902b04e41c7f4d2b99469b615369f4c3142db6eaa2af7a9e7d6e4a1cef650888",
-      "candidateSha256": "1e8e86f5d09095c862f8abb4bc2451c15a728b21cd1205008abd976a0e560c18",
+      "candidateSha256": "066fe48075bd7e8d0353e3ddaf690453b7f2e531bc0a822e715630f5598263b9",
       "cells": [
         {
           "x": 8,
@@ -2950,7 +2970,7 @@
         {
           "x": 10,
           "y": 12,
-          "licenseId": 299
+          "licenseId": 182
         },
         {
           "x": 11,
@@ -2960,7 +2980,7 @@
         {
           "x": 12,
           "y": 12,
-          "licenseId": 210
+          "licenseId": 205
         },
         {
           "x": 13,
@@ -3003,9 +3023,14 @@
           "licenseId": 170
         },
         {
+          "x": 10,
+          "y": 13,
+          "licenseId": 210
+        },
+        {
           "x": 11,
           "y": 13,
-          "licenseId": 360
+          "licenseId": 299
         },
         {
           "x": 14,
@@ -3058,6 +3083,11 @@
           "licenseId": 176
         },
         {
+          "x": 11,
+          "y": 14,
+          "licenseId": 360
+        },
+        {
           "x": 15,
           "y": 14,
           "licenseId": 263
@@ -3103,7 +3133,7 @@
           "licenseId": 339
         }
       ],
-      "previousCandidateSha256": "3931c77fec54206dcd7e20a6f1f9b4e340607ea8dd023cf376079447fa83e461",
+      "previousCandidateSha256": "1e8e86f5d09095c862f8abb4bc2451c15a728b21cd1205008abd976a0e560c18",
       "islands": [
         {
           "gateId": 18,
@@ -3165,7 +3195,7 @@
       "name": "Mystic",
       "key": "stonekeeper",
       "sourceSha256": "0bedee771d8549741febb8aa143819c837e578bb77b07dc984a9813f27fd43d5",
-      "candidateSha256": "470e1b32da8055e4ef30f01ba5f73218fb199843b2789e8a6686b6005cea3700",
+      "candidateSha256": "750538e1bb86941931740eb3bf73c88efe9cb34770fdbc5d63d883cbeb2a467c",
       "cells": [
         {
           "x": 10,
@@ -3615,7 +3645,7 @@
         {
           "x": 10,
           "y": 12,
-          "licenseId": 286
+          "licenseId": 277
         },
         {
           "x": 11,
@@ -3625,7 +3655,7 @@
         {
           "x": 12,
           "y": 12,
-          "licenseId": 213
+          "licenseId": 286
         },
         {
           "x": 13,
@@ -3685,12 +3715,17 @@
         {
           "x": 10,
           "y": 13,
-          "licenseId": 214
+          "licenseId": 283
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 283
+          "licenseId": 213
+        },
+        {
+          "x": 12,
+          "y": 13,
+          "licenseId": 214
         },
         {
           "x": 14,
@@ -3803,7 +3838,7 @@
           "licenseId": 49
         }
       ],
-      "previousCandidateSha256": "0f4ffff2d3991a19ecd468ddd899b31ed37bf516041590f322f336bc0c29b80b",
+      "previousCandidateSha256": "470e1b32da8055e4ef30f01ba5f73218fb199843b2789e8a6686b6005cea3700",
       "islands": [
         {
           "gateId": 18,
@@ -3865,62 +3900,67 @@
       "name": "Time Mage",
       "key": "chrono_bombardier",
       "sourceSha256": "d84a87857a634fb8e594d29bb972c519758053d4e96501ca9c1212110a2470ad",
-      "candidateSha256": "a206c750a86b5e5ce518655bdea6c27141215ae46a21cdba4fb7e0698a9b0818",
+      "candidateSha256": "141528cc8c9a3620440f6bdbd952ab15683b3ae58c3d53783d6f9dd0dfd643fa",
       "cells": [
         {
-          "x": 9,
+          "x": 10,
           "y": 5,
-          "licenseId": 331
+          "licenseId": 343
         },
         {
-          "x": 11,
-          "y": 5,
-          "licenseId": 347
-        },
-        {
-          "x": 13,
+          "x": 12,
           "y": 5,
           "licenseId": 335
         },
         {
           "x": 16,
           "y": 5,
-          "licenseId": 337
+          "licenseId": 52
+        },
+        {
+          "x": 7,
+          "y": 6,
+          "licenseId": 331
         },
         {
           "x": 9,
           "y": 6,
-          "licenseId": 29
+          "licenseId": 0
         },
         {
           "x": 10,
           "y": 6,
-          "licenseId": 0
+          "licenseId": 22
         },
         {
           "x": 11,
           "y": 6,
-          "licenseId": 23
+          "licenseId": 1
         },
         {
           "x": 12,
           "y": 6,
-          "licenseId": 1
+          "licenseId": 20
         },
         {
           "x": 13,
           "y": 6,
-          "licenseId": 20
+          "licenseId": 2
         },
         {
           "x": 16,
           "y": 6,
-          "licenseId": 26
+          "licenseId": 18
         },
         {
           "x": 6,
           "y": 7,
-          "licenseId": 2
+          "licenseId": 3
+        },
+        {
+          "x": 7,
+          "y": 7,
+          "licenseId": 29
         },
         {
           "x": 9,
@@ -3955,17 +3995,12 @@
         {
           "x": 17,
           "y": 7,
-          "licenseId": 19
+          "licenseId": 26
         },
         {
           "x": 18,
           "y": 7,
-          "licenseId": 95
-        },
-        {
-          "x": 5,
-          "y": 8,
-          "licenseId": 3
+          "licenseId": 337
         },
         {
           "x": 6,
@@ -4021,16 +4056,6 @@
           "x": 16,
           "y": 8,
           "licenseId": 273
-        },
-        {
-          "x": 4,
-          "y": 9,
-          "licenseId": 76
-        },
-        {
-          "x": 5,
-          "y": 9,
-          "licenseId": 28
         },
         {
           "x": 6,
@@ -4093,6 +4118,16 @@
           "licenseId": 322
         },
         {
+          "x": 4,
+          "y": 10,
+          "licenseId": 339
+        },
+        {
+          "x": 5,
+          "y": 10,
+          "licenseId": 25
+        },
+        {
           "x": 6,
           "y": 10,
           "licenseId": 178
@@ -4151,26 +4186,6 @@
           "x": 17,
           "y": 10,
           "licenseId": 274
-        },
-        {
-          "x": 18,
-          "y": 10,
-          "licenseId": 22
-        },
-        {
-          "x": 19,
-          "y": 10,
-          "licenseId": 343
-        },
-        {
-          "x": 4,
-          "y": 11,
-          "licenseId": 339
-        },
-        {
-          "x": 5,
-          "y": 11,
-          "licenseId": 25
         },
         {
           "x": 6,
@@ -4233,6 +4248,26 @@
           "licenseId": 265
         },
         {
+          "x": 18,
+          "y": 11,
+          "licenseId": 30
+        },
+        {
+          "x": 19,
+          "y": 11,
+          "licenseId": 49
+        },
+        {
+          "x": 4,
+          "y": 12,
+          "licenseId": 330
+        },
+        {
+          "x": 5,
+          "y": 12,
+          "licenseId": 21
+        },
+        {
           "x": 6,
           "y": 12,
           "licenseId": 179
@@ -4265,7 +4300,7 @@
         {
           "x": 12,
           "y": 12,
-          "licenseId": 200
+          "licenseId": 280
         },
         {
           "x": 13,
@@ -4293,16 +4328,6 @@
           "licenseId": 321
         },
         {
-          "x": 4,
-          "y": 13,
-          "licenseId": 341
-        },
-        {
-          "x": 5,
-          "y": 13,
-          "licenseId": 27
-        },
-        {
           "x": 6,
           "y": 13,
           "licenseId": 353
@@ -4320,27 +4345,27 @@
         {
           "x": 9,
           "y": 13,
-          "licenseId": 202
+          "licenseId": 281
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 201
+          "licenseId": 284
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 284
+          "licenseId": 200
         },
         {
           "x": 12,
           "y": 13,
-          "licenseId": 281
+          "licenseId": 201
         },
         {
           "x": 13,
           "y": 13,
-          "licenseId": 203
+          "licenseId": 202
         },
         {
           "x": 14,
@@ -4365,12 +4390,22 @@
         {
           "x": 18,
           "y": 13,
-          "licenseId": 21
+          "licenseId": 28
         },
         {
           "x": 19,
           "y": 13,
-          "licenseId": 330
+          "licenseId": 76
+        },
+        {
+          "x": 4,
+          "y": 14,
+          "licenseId": 342
+        },
+        {
+          "x": 5,
+          "y": 14,
+          "licenseId": 24
         },
         {
           "x": 6,
@@ -4385,22 +4420,27 @@
         {
           "x": 9,
           "y": 14,
-          "licenseId": 359
+          "licenseId": 218
         },
         {
           "x": 10,
           "y": 14,
-          "licenseId": 357
+          "licenseId": 204
         },
         {
           "x": 11,
           "y": 14,
-          "licenseId": 204
+          "licenseId": 203
         },
         {
           "x": 12,
           "y": 14,
-          "licenseId": 218
+          "licenseId": 357
+        },
+        {
+          "x": 13,
+          "y": 14,
+          "licenseId": 359
         },
         {
           "x": 15,
@@ -4413,9 +4453,14 @@
           "licenseId": 318
         },
         {
+          "x": 6,
+          "y": 15,
+          "licenseId": 19
+        },
+        {
           "x": 9,
           "y": 15,
-          "licenseId": 18
+          "licenseId": 23
         },
         {
           "x": 11,
@@ -4430,30 +4475,25 @@
         {
           "x": 17,
           "y": 15,
-          "licenseId": 30
+          "licenseId": 27
         },
         {
           "x": 18,
           "y": 15,
-          "licenseId": 49
+          "licenseId": 341
+        },
+        {
+          "x": 6,
+          "y": 16,
+          "licenseId": 95
         },
         {
           "x": 9,
           "y": 16,
-          "licenseId": 52
-        },
-        {
-          "x": 16,
-          "y": 16,
-          "licenseId": 24
-        },
-        {
-          "x": 16,
-          "y": 17,
-          "licenseId": 342
+          "licenseId": 347
         }
       ],
-      "previousCandidateSha256": "f74d391b30e6d7cee161029a721484f8bc5c1080aa7159c9fcf7c6a6f7a02c52",
+      "previousCandidateSha256": "a206c750a86b5e5ce518655bdea6c27141215ae46a21cdba4fb7e0698a9b0818",
       "islands": [
         {
           "gateId": 18,
@@ -4515,7 +4555,7 @@
       "name": "Warrior",
       "key": "lanista",
       "sourceSha256": "effdeab69c10e8e1179af9f6460e29417ea4e8c960fb08d3a8ff25435a4ac9de",
-      "candidateSha256": "95dfc84c7d1f4d0175f8d30eda4e3bce4afb9ba0cafa9383a564e8c9792845ab",
+      "candidateSha256": "c8dcfdffb74b770f6cac2cea89799fd9683f5e72faf1b37a2606bed87cb7bf65",
       "cells": [
         {
           "x": 11,
@@ -4955,7 +4995,7 @@
         {
           "x": 10,
           "y": 12,
-          "licenseId": 292
+          "licenseId": 278
         },
         {
           "x": 11,
@@ -4965,7 +5005,7 @@
         {
           "x": 12,
           "y": 12,
-          "licenseId": 296
+          "licenseId": 292
         },
         {
           "x": 13,
@@ -5008,9 +5048,14 @@
           "licenseId": 170
         },
         {
+          "x": 10,
+          "y": 13,
+          "licenseId": 296
+        },
+        {
           "x": 11,
           "y": 13,
-          "licenseId": 360
+          "licenseId": 205
         },
         {
           "x": 14,
@@ -5051,6 +5096,11 @@
           "x": 7,
           "y": 14,
           "licenseId": 176
+        },
+        {
+          "x": 11,
+          "y": 14,
+          "licenseId": 360
         },
         {
           "x": 15,
@@ -5108,7 +5158,7 @@
           "licenseId": 52
         }
       ],
-      "previousCandidateSha256": "ee1f4c313281656c49943c36bc3a84296866064e165ebc25d403e60fe6959e85",
+      "previousCandidateSha256": "95dfc84c7d1f4d0175f8d30eda4e3bce4afb9ba0cafa9383a564e8c9792845ab",
       "islands": [
         {
           "gateId": 18,
@@ -5170,7 +5220,7 @@
       "name": "Hunter",
       "key": "clan_tracker",
       "sourceSha256": "06bce01f6bc5b5e82fcc77cf41cbd40d308f31d842957434bc70a3e1cf86d858",
-      "candidateSha256": "9c487a6d35d1f83d1907eba332b031735102b22dea302802180965fdf066b440",
+      "candidateSha256": "3cf6f910ee4764aca8b3ac11e777d08eff5e7e95bcd52b705481a7ac1f0d711f",
       "cells": [
         {
           "x": 11,
@@ -5595,7 +5645,7 @@
         {
           "x": 12,
           "y": 12,
-          "licenseId": 279
+          "licenseId": 278
         },
         {
           "x": 13,
@@ -5658,9 +5708,14 @@
           "licenseId": 170
         },
         {
-          "x": 11,
+          "x": 10,
           "y": 13,
           "licenseId": 289
+        },
+        {
+          "x": 11,
+          "y": 13,
+          "licenseId": 279
         },
         {
           "x": 14,
@@ -5748,7 +5803,7 @@
           "licenseId": 52
         }
       ],
-      "previousCandidateSha256": "9186e34ab1e14be8d2caa4478cbba31c6ee5c336ca62d2b20641f807a88f5c4a",
+      "previousCandidateSha256": "9c487a6d35d1f83d1907eba332b031735102b22dea302802180965fdf066b440",
       "islands": [
         {
           "gateId": 18,
@@ -5810,7 +5865,7 @@
       "name": "Black Mage",
       "key": "imperial_arcanist",
       "sourceSha256": "b7645a98b6bb3088e27de36bff7c07ee7ffb2382da2f3bdeba38faef0fe7e02a",
-      "candidateSha256": "69365c74f4ad65109c0a994cf75c76a88e21f124b5d86abca74b23db584068fe",
+      "candidateSha256": "62f07b341b2f1d26e5132fd6c6bc446f62ae2571644974e7988bb08141c15f28",
       "cells": [
         {
           "x": 11,
@@ -6215,7 +6270,7 @@
         {
           "x": 10,
           "y": 12,
-          "licenseId": 194
+          "licenseId": 280
         },
         {
           "x": 11,
@@ -6225,7 +6280,7 @@
         {
           "x": 12,
           "y": 12,
-          "licenseId": 195
+          "licenseId": 194
         },
         {
           "x": 13,
@@ -6280,27 +6335,27 @@
         {
           "x": 9,
           "y": 13,
-          "licenseId": 358
+          "licenseId": 356
         },
         {
           "x": 10,
           "y": 13,
-          "licenseId": 197
+          "licenseId": 196
         },
         {
           "x": 11,
           "y": 13,
-          "licenseId": 196
+          "licenseId": 195
         },
         {
           "x": 12,
           "y": 13,
-          "licenseId": 356
+          "licenseId": 197
         },
         {
           "x": 13,
           "y": 13,
-          "licenseId": 215
+          "licenseId": 358
         },
         {
           "x": 14,
@@ -6345,12 +6400,17 @@
         {
           "x": 10,
           "y": 14,
-          "licenseId": 217
+          "licenseId": 216
         },
         {
           "x": 11,
           "y": 14,
-          "licenseId": 216
+          "licenseId": 215
+        },
+        {
+          "x": 12,
+          "y": 14,
+          "licenseId": 217
         },
         {
           "x": 15,
@@ -6418,7 +6478,7 @@
           "licenseId": 52
         }
       ],
-      "previousCandidateSha256": "91556178946dfb7dd65550ea0383a83ac21eb52d13dd3fc4eb78d13e180679f5",
+      "previousCandidateSha256": "69365c74f4ad65109c0a994cf75c76a88e21f124b5d86abca74b23db584068fe",
       "islands": [
         {
           "gateId": 18,
@@ -6480,7 +6540,7 @@
       "name": "Samurai",
       "key": "mistblade",
       "sourceSha256": "7cf6838113adac31117cc9ca045a16d4f7845ed866f9061300f2aa50405c5ae8",
-      "candidateSha256": "9d4b4f2711893f5502718722cb9d33c90bef93b9d65be2511ad9b912a3bf4d3d",
+      "candidateSha256": "21ed23dddc71b998635f5ece5c1da76d57aaba85141e5f361a99e3834252d424",
       "cells": [
         {
           "x": 17,
@@ -6920,12 +6980,17 @@
         {
           "x": 10,
           "y": 12,
-          "licenseId": 293
+          "licenseId": 278
         },
         {
           "x": 11,
           "y": 12,
           "licenseId": 290
+        },
+        {
+          "x": 12,
+          "y": 12,
+          "licenseId": 293
         },
         {
           "x": 13,
@@ -7063,7 +7128,7 @@
           "licenseId": 303
         }
       ],
-      "previousCandidateSha256": "1b9669b76586be792c8ef4caeee24105ee4e98c640cacff9db7b8ba4bf8a0d33",
+      "previousCandidateSha256": "9d4b4f2711893f5502718722cb9d33c90bef93b9d65be2511ad9b912a3bf4d3d",
       "islands": [
         {
           "gateId": 18,
@@ -7125,7 +7190,7 @@
       "name": "Chemist",
       "key": "salve_maker",
       "sourceSha256": "1031ce8bfbcc45872bb030c633ec5a094623abdbc45a471fc0bb1b9678ef3881",
-      "candidateSha256": "9638b88452983837ba4e96384d60d2b9ab6e4cc124b95714b7a3d3dbe76c7d74",
+      "candidateSha256": "3e0b61610e405a86c6ee0f21b5109b63c510a8ce0c53321939d687595be63778",
       "cells": [
         {
           "x": 11,
@@ -7513,6 +7578,11 @@
           "licenseId": 169
         },
         {
+          "x": 10,
+          "y": 12,
+          "licenseId": 183
+        },
+        {
           "x": 11,
           "y": 12,
           "licenseId": 278
@@ -7688,7 +7758,7 @@
           "licenseId": 49
         }
       ],
-      "previousCandidateSha256": "42782c9a14992cdf5265a76875d2fec89ac75ae905363eb4aef9465ab8f4b959",
+      "previousCandidateSha256": "9638b88452983837ba4e96384d60d2b9ab6e4cc124b95714b7a3d3dbe76c7d74",
       "islands": [
         {
           "gateId": 18,
@@ -7813,7 +7883,7 @@
       ]
     }
   ],
-  "version": "0.4.0",
+  "version": "0.4.1",
   "licenseLpPatch": {
     "schemaVersion": 1,
     "sourceSha256": "665019abce04423118529e461709a1b4aa77a164176c6fdf537b4b6d3b0ac8ea",

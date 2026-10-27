@@ -123,6 +123,10 @@ class BoardPortTest(unittest.TestCase):
         self.assertEqual(ids['Chemist'] & {251,252,253,254,255,*range(307,318)},
                          {251,252,253,254,255,307,308,309})
         self.assertTrue(all({335,49,52,95,76,330} <= values for values in ids.values()))
+        shared = {205: {'Green Mage', 'Knight', 'Warrior'}, 277: {'Hunter', 'Gunner', 'Green Mage', 'Mystic'},
+                  278: {'Chemist', 'Warrior', 'Samurai', 'Hunter'}, 280: {'White Mage', 'Black Mage', 'Time Mage'}}
+        for lid, owners in shared.items():
+            self.assertEqual({name for name, values in ids.items() if lid in values}, owners)
         self.assertTrue(all({236,237} <= values and 238 not in values for values in ids.values()))
         self.assertEqual(len([encode_board(j) for j in RECIPE['jobs']]),12)
 

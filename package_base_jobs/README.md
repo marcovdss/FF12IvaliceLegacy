@@ -1,4 +1,4 @@
-# Ivalice Legacy: twelve base jobs candidate 0.4.0
+# Ivalice Legacy: twelve base jobs candidate 0.4.1
 
 Experimental offline build for the English Steam game, version 1.0.4.0.
 Twelve custom boards, English job names and descriptions, six exclusive
@@ -19,11 +19,17 @@ Esper; play it with Summons For All so every character can license every Esper.
 Mesa, Mina, Tula and Simha now stand alone: Yagyu Darkblade joins Ninja Swords 3,
 Shikari Nagasa Daggers 6, Gastrophetes Crossbows 3 and Durandal Swords 8, and the
 four licenses are renamed after their zodiac weapon. Ordinary job boards cost
-4,251-5,316 LP; the islands add 2,140 LP. Every board has two Swiftness licenses;
+4,276-5,376 LP; the islands add 2,140 LP. Every board has two Swiftness licenses;
 both are reachable before half the ordinary total. Connected opening license
 kits cost 70–145 LP. Acquisition still matters: licenses do not supply a weapon
 or command. Measures need later shop placement; Hornito costs 5,000 gil.
 Several signature commands are not opening shop purchases.
+
+Basic tools are shared where another role needs them: Decoy and Oil for Knight and
+Warrior, Cure and Blindna for Knight, Protect and Shell for White Mage, Vox and Poisona
+for Chemist, Dispel and Stona for Lancer, Charge for Black and Time Mage, Libra for
+Gunner, Green Mage and Mystic, First Aid for Warrior, Samurai and Hunter. Schools and
+signature Technicks stay with their job.
 
 Gunner uses light armor and guns. Chemist has eight Battle Lores and crossbows.
 Excalibur belongs to Warrior. Native command bundles

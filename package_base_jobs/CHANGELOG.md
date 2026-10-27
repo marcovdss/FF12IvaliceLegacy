@@ -1,3 +1,10 @@
+# 0.4.1 candidate
+
+- Shared basic tools where another role needs them: Decoy + Oil (Knight, Warrior), Cure + Blindna (Knight), Protect +
+  Shell (White Mage), Vox + Poisona (Chemist), Dispel + Stona (Lancer), Charge (Black Mage, Time Mage), Libra
+  (Gunner, Green Mage, Mystic), First Aid (Warrior, Samurai, Hunter). Every job gains at least one tool.
+- Same legendary islands, names, contents and prices as 0.4.0.
+
 # 0.4.0 candidate
 
 - Every board carries the same thirteen islands: each Esper gates its zodiac weapon, Zodiark gates Masamune. An
