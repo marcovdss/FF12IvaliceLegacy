@@ -1,6 +1,6 @@
 {
   "name": "Arsenal",
-  "description": "Weapon attack and family identities. Attack set per weapon for the story timing; Warrior axes and hammers and Time Mage bombs brought into line. Identities that change speed, combo or critical rate are offset in attack (damage-neutral); identities that add an effect: sword evade, hammer Disable and knockback, greatsword knockback, hand-bomb Slow/Oil, ninja-sword Blind, spear reach. Hornito, the Time Mage opening hand-bomb, is priced like the other opening weapons.",
+  "description": "Weapon attack and family identities. Attack set per weapon for the story timing on a gentle climb (opening weapons native, every later weapon lower); Warrior axes and hammers and Time Mage bombs brought into line. Identities that change speed, combo or critical rate are offset in attack (damage-neutral); identities that add an effect: sword evade, hammer Disable and knockback, greatsword knockback, hand-bomb Slow/Oil, ninja-sword Blind, spear reach. Hornito, the Time Mage opening hand-bomb, is priced like the other opening weapons.",
   "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
   "section": 13,
   "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
@@ -26,6 +26,10 @@
         "evade": [
           5,
           22
+        ],
+        "attack": [
+          20,
+          18
         ]
       }
     },
@@ -37,6 +41,10 @@
         "evade": [
           5,
           22
+        ],
+        "attack": [
+          25,
+          23
         ]
       }
     },
@@ -48,6 +56,10 @@
         "evade": [
           5,
           25
+        ],
+        "attack": [
+          30,
+          26
         ]
       }
     },
@@ -59,6 +71,10 @@
         "evade": [
           5,
           28
+        ],
+        "attack": [
+          35,
+          30
         ]
       }
     },
@@ -70,6 +86,10 @@
         "evade": [
           5,
           28
+        ],
+        "attack": [
+          38,
+          32
         ]
       }
     },
@@ -81,6 +101,10 @@
         "evade": [
           5,
           28
+        ],
+        "attack": [
+          40,
+          33
         ]
       }
     },
@@ -92,6 +116,10 @@
         "evade": [
           5,
           30
+        ],
+        "attack": [
+          45,
+          36
         ]
       }
     },
@@ -103,6 +131,10 @@
         "evade": [
           5,
           30
+        ],
+        "attack": [
+          51,
+          39
         ]
       }
     },
@@ -114,6 +146,10 @@
         "evade": [
           5,
           32
+        ],
+        "attack": [
+          55,
+          41
         ]
       }
     },
@@ -125,6 +161,10 @@
         "evade": [
           5,
           32
+        ],
+        "attack": [
+          61,
+          43
         ]
       }
     },
@@ -136,6 +176,10 @@
         "evade": [
           5,
           35
+        ],
+        "attack": [
+          67,
+          50
         ]
       }
     },
@@ -147,6 +191,10 @@
         "evade": [
           5,
           35
+        ],
+        "attack": [
+          73,
+          53
         ]
       }
     },
@@ -158,6 +206,10 @@
         "evade": [
           5,
           38
+        ],
+        "attack": [
+          78,
+          57
         ]
       }
     },
@@ -169,6 +221,10 @@
         "evade": [
           5,
           38
+        ],
+        "attack": [
+          83,
+          59
         ]
       }
     },
@@ -180,6 +236,10 @@
         "evade": [
           5,
           38
+        ],
+        "attack": [
+          95,
+          74
         ]
       }
     },
@@ -191,6 +251,10 @@
         "evade": [
           5,
           38
+        ],
+        "attack": [
+          99,
+          65
         ]
       }
     },
@@ -201,7 +265,7 @@
       "set": {
         "attack": [
           83,
-          91
+          61
         ],
         "knockback": [
           10,
@@ -224,7 +288,7 @@
       "set": {
         "attack": [
           90,
-          99
+          66
         ],
         "knockback": [
           10,
@@ -243,7 +307,7 @@
       "set": {
         "attack": [
           92,
-          101
+          72
         ],
         "knockback": [
           10,
@@ -262,7 +326,7 @@
       "set": {
         "attack": [
           117,
-          130
+          91
         ],
         "knockback": [
           10,
@@ -281,7 +345,7 @@
       "set": {
         "attack": [
           109,
-          121
+          76
         ],
         "knockback": [
           10,
@@ -300,7 +364,7 @@
       "set": {
         "attack": [
           127,
-          141
+          91
         ],
         "knockback": [
           10,
@@ -319,7 +383,7 @@
       "set": {
         "attack": [
           138,
-          153
+          102
         ],
         "knockback": [
           10,
@@ -353,7 +417,7 @@
       "set": {
         "attack": [
           26,
-          23
+          21
         ],
         "comboOrCrit": [
           20,
@@ -368,7 +432,7 @@
       "set": {
         "attack": [
           40,
-          34
+          29
         ],
         "comboOrCrit": [
           20,
@@ -383,7 +447,7 @@
       "set": {
         "attack": [
           50,
-          42
+          35
         ],
         "comboOrCrit": [
           20,
@@ -398,7 +462,7 @@
       "set": {
         "attack": [
           62,
-          51
+          40
         ],
         "comboOrCrit": [
           20,
@@ -413,7 +477,7 @@
       "set": {
         "attack": [
           71,
-          58
+          46
         ],
         "comboOrCrit": [
           20,
@@ -428,7 +492,7 @@
       "set": {
         "attack": [
           83,
-          66
+          52
         ],
         "comboOrCrit": [
           20,
@@ -443,7 +507,7 @@
       "set": {
         "attack": [
           96,
-          74
+          60
         ],
         "comboOrCrit": [
           20,
@@ -458,7 +522,7 @@
       "set": {
         "attack": [
           104,
-          81
+          63
         ],
         "comboOrCrit": [
           20,
@@ -473,7 +537,7 @@
       "set": {
         "attack": [
           111,
-          93
+          73
         ],
         "comboOrCrit": [
           30,
@@ -495,6 +559,10 @@
         "onHitRate": [
           0,
           10
+        ],
+        "attack": [
+          87,
+          59
         ]
       }
     },
@@ -512,6 +580,10 @@
         "onHitRate": [
           0,
           10
+        ],
+        "attack": [
+          87,
+          59
         ]
       }
     },
@@ -534,6 +606,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          26,
+          23
         ]
       }
     },
@@ -545,6 +621,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          34,
+          29
         ]
       }
     },
@@ -556,6 +636,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          42,
+          35
         ]
       }
     },
@@ -567,6 +651,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          53,
+          41
         ]
       }
     },
@@ -578,6 +666,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          68,
+          46
         ]
       }
     },
@@ -589,6 +681,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          75,
+          54
         ]
       }
     },
@@ -600,6 +696,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          85,
+          60
         ]
       }
     },
@@ -611,6 +711,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          91,
+          67
         ]
       }
     },
@@ -622,6 +726,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          95,
+          69
         ]
       }
     },
@@ -633,6 +741,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          100,
+          76
         ]
       }
     },
@@ -647,7 +759,7 @@
         ],
         "attack": [
           141,
-          104
+          78
         ]
       }
     },
@@ -670,6 +782,10 @@
         "evade": [
           30,
           11
+        ],
+        "attack": [
+          22,
+          20
         ]
       }
     },
@@ -681,6 +797,10 @@
         "evade": [
           30,
           11
+        ],
+        "attack": [
+          34,
+          29
         ]
       }
     },
@@ -692,6 +812,10 @@
         "evade": [
           30,
           12
+        ],
+        "attack": [
+          39,
+          33
         ]
       }
     },
@@ -703,6 +827,10 @@
         "evade": [
           30,
           12
+        ],
+        "attack": [
+          46,
+          37
         ]
       }
     },
@@ -714,6 +842,10 @@
         "evade": [
           30,
           13
+        ],
+        "attack": [
+          59,
+          43
         ]
       }
     },
@@ -725,6 +857,10 @@
         "evade": [
           30,
           14
+        ],
+        "attack": [
+          72,
+          52
         ]
       }
     },
@@ -736,6 +872,10 @@
         "evade": [
           30,
           14
+        ],
+        "attack": [
+          77,
+          57
         ]
       }
     },
@@ -747,6 +887,10 @@
         "evade": [
           30,
           14
+        ],
+        "attack": [
+          83,
+          59
         ]
       }
     },
@@ -758,6 +902,10 @@
         "evade": [
           30,
           15
+        ],
+        "attack": [
+          88,
+          66
         ]
       }
     },
@@ -769,6 +917,10 @@
         "evade": [
           30,
           14
+        ],
+        "attack": [
+          91,
+          61
         ]
       }
     },
@@ -780,6 +932,10 @@
         "evade": [
           30,
           14
+        ],
+        "attack": [
+          108,
+          80
         ]
       }
     },
@@ -805,7 +961,7 @@
       "set": {
         "attack": [
           19,
-          17
+          16
         ],
         "comboOrCrit": [
           5,
@@ -820,7 +976,7 @@
       "set": {
         "attack": [
           25,
-          22
+          20
         ],
         "comboOrCrit": [
           5,
@@ -835,7 +991,7 @@
       "set": {
         "attack": [
           36,
-          32
+          28
         ],
         "comboOrCrit": [
           5,
@@ -850,7 +1006,7 @@
       "set": {
         "attack": [
           48,
-          35
+          30
         ],
         "comboOrCrit": [
           5,
@@ -865,7 +1021,7 @@
       "set": {
         "attack": [
           54,
-          48
+          38
         ],
         "comboOrCrit": [
           5,
@@ -880,7 +1036,7 @@
       "set": {
         "attack": [
           60,
-          53
+          40
         ],
         "comboOrCrit": [
           5,
@@ -895,7 +1051,7 @@
       "set": {
         "attack": [
           73,
-          63
+          48
         ],
         "comboOrCrit": [
           5,
@@ -910,7 +1066,7 @@
       "set": {
         "attack": [
           77,
-          67
+          53
         ],
         "comboOrCrit": [
           5,
@@ -925,7 +1081,7 @@
       "set": {
         "attack": [
           82,
-          71
+          54
         ],
         "comboOrCrit": [
           5,
@@ -940,7 +1096,7 @@
       "set": {
         "attack": [
           89,
-          77
+          61
         ],
         "comboOrCrit": [
           5,
@@ -955,7 +1111,7 @@
       "set": {
         "attack": [
           92,
-          79
+          62
         ],
         "comboOrCrit": [
           5,
@@ -970,7 +1126,7 @@
       "set": {
         "attack": [
           94,
-          81
+          63
         ],
         "comboOrCrit": [
           5,
@@ -985,7 +1141,7 @@
       "set": {
         "attack": [
           97,
-          83
+          64
         ],
         "comboOrCrit": [
           5,
@@ -1011,7 +1167,7 @@
       "set": {
         "attack": [
           36,
-          24
+          22
         ]
       }
     },
@@ -1022,7 +1178,7 @@
       "set": {
         "attack": [
           54,
-          43
+          35
         ]
       }
     },
@@ -1033,7 +1189,7 @@
       "set": {
         "attack": [
           81,
-          53
+          40
         ]
       }
     },
@@ -1044,7 +1200,7 @@
       "set": {
         "attack": [
           88,
-          61
+          48
         ]
       }
     },
@@ -1055,7 +1211,7 @@
       "set": {
         "attack": [
           110,
-          74
+          60
         ]
       }
     },
@@ -1091,7 +1247,7 @@
       "set": {
         "attack": [
           42,
-          35
+          30
         ],
         "knockback": [
           10,
@@ -1116,7 +1272,7 @@
       "set": {
         "attack": [
           66,
-          53
+          40
         ],
         "knockback": [
           10,
@@ -1131,7 +1287,7 @@
       "set": {
         "attack": [
           100,
-          69
+          53
         ],
         "knockback": [
           10,
@@ -1167,6 +1323,10 @@
         "onHitRate": [
           0,
           15
+        ],
+        "attack": [
+          124,
+          88
         ]
       }
     },
@@ -1219,7 +1379,7 @@
       "set": {
         "attack": [
           31,
-          25
+          23
         ],
         "evade": [
           5,
@@ -1242,7 +1402,7 @@
       "set": {
         "attack": [
           40,
-          32
+          28
         ],
         "evade": [
           5,
@@ -1265,7 +1425,7 @@
       "set": {
         "attack": [
           46,
-          38
+          33
         ],
         "chargeTime": [
           21,
@@ -1280,7 +1440,7 @@
       "set": {
         "attack": [
           56,
-          44
+          37
         ],
         "evade": [
           5,
@@ -1303,7 +1463,7 @@
       "set": {
         "attack": [
           66,
-          52
+          44
         ],
         "evade": [
           5,
@@ -1326,7 +1486,7 @@
       "set": {
         "attack": [
           79,
-          61
+          50
         ],
         "evade": [
           5,
@@ -1349,7 +1509,7 @@
       "set": {
         "attack": [
           83,
-          64
+          52
         ],
         "evade": [
           5,
@@ -1372,7 +1532,7 @@
       "set": {
         "attack": [
           87,
-          67
+          46
         ],
         "evade": [
           10,
@@ -1395,7 +1555,7 @@
       "set": {
         "attack": [
           90,
-          69
+          58
         ],
         "evade": [
           10,
@@ -1419,6 +1579,10 @@
         "evade": [
           35,
           10
+        ],
+        "attack": [
+          5,
+          4
         ]
       }
     },
@@ -1430,6 +1594,10 @@
         "evade": [
           35,
           10
+        ],
+        "attack": [
+          10,
+          7
         ]
       }
     },
@@ -1441,6 +1609,10 @@
         "evade": [
           35,
           10
+        ],
+        "attack": [
+          13,
+          9
         ]
       }
     },
@@ -1452,6 +1624,10 @@
         "evade": [
           35,
           10
+        ],
+        "attack": [
+          16,
+          12
         ]
       }
     },
@@ -1463,6 +1639,10 @@
         "evade": [
           35,
           10
+        ],
+        "attack": [
+          19,
+          14
         ]
       }
     },
@@ -1474,6 +1654,10 @@
         "evade": [
           35,
           10
+        ],
+        "attack": [
+          24,
+          18
         ]
       }
     },
@@ -1509,7 +1693,7 @@
       "set": {
         "attack": [
           71,
-          49
+          39
         ],
         "statusEffects": [
           [],
@@ -1530,7 +1714,7 @@
       "set": {
         "attack": [
           76,
-          63
+          56
         ],
         "statusEffects": [
           [],
@@ -1551,7 +1735,7 @@
       "set": {
         "attack": [
           83,
-          57
+          49
         ],
         "statusEffects": [
           [],
@@ -1579,6 +1763,10 @@
         "onHitRate": [
           0,
           20
+        ],
+        "attack": [
+          90,
+          72
         ]
       }
     },
@@ -1589,7 +1777,7 @@
       "set": {
         "attack": [
           104,
-          81
+          63
         ],
         "evade": [
           25,
@@ -1613,6 +1801,10 @@
         "range": [
           10,
           25
+        ],
+        "attack": [
+          108,
+          80
         ]
       }
     },
@@ -1627,7 +1819,7 @@
         ],
         "attack": [
           153,
-          95
+          74
         ],
         "chargeTime": [
           25,
@@ -1646,7 +1838,7 @@
         ],
         "attack": [
           92,
-          100
+          76
         ]
       }
     },
@@ -1658,6 +1850,10 @@
         "evade": [
           15,
           38
+        ],
+        "attack": [
+          103,
+          78
         ]
       }
     },
@@ -1675,6 +1871,10 @@
         "onHitRate": [
           0,
           20
+        ],
+        "attack": [
+          96,
+          75
         ]
       }
     },
@@ -1696,6 +1896,10 @@
         "onHitRate": [
           0,
           15
+        ],
+        "attack": [
+          133,
+          92
         ]
       }
     },
@@ -1707,6 +1911,10 @@
         "evade": [
           35,
           15
+        ],
+        "attack": [
+          112,
+          82
         ]
       }
     },
@@ -1717,7 +1925,7 @@
       "set": {
         "attack": [
           109,
-          103
+          78
         ],
         "comboOrCrit": [
           20,
@@ -1732,7 +1940,7 @@
       "set": {
         "attack": [
           224,
-          90
+          72
         ],
         "chargeTime": [
           10,
@@ -1748,6 +1956,10 @@
         "category": [
           "Sword",
           "Katana"
+        ],
+        "attack": [
+          117,
+          84
         ]
       }
     },
@@ -2011,9 +2223,548 @@
           1
         ]
       }
+    },
+    {
+      "contentId": 4131,
+      "name": "Ashura",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          72,
+          48
+        ]
+      }
+    },
+    {
+      "contentId": 4132,
+      "name": "Sakura-saezuri",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          77,
+          55
+        ]
+      }
+    },
+    {
+      "contentId": 4133,
+      "name": "Kagenui",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          81,
+          56
+        ]
+      }
+    },
+    {
+      "contentId": 4136,
+      "name": "Orochi",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          94,
+          74
+        ]
+      }
+    },
+    {
+      "contentId": 4137,
+      "name": "Yagyu Darkblade",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          98,
+          65
+        ]
+      }
+    },
+    {
+      "contentId": 4177,
+      "name": "Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          31,
+          27
+        ]
+      }
+    },
+    {
+      "contentId": 4178,
+      "name": "Paramina Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          42,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4179,
+      "name": "Recurve Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          57,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4180,
+      "name": "Hunting Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          70,
+          47
+        ]
+      }
+    },
+    {
+      "contentId": 4181,
+      "name": "Penetrator Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          79,
+          58
+        ]
+      }
+    },
+    {
+      "contentId": 4182,
+      "name": "Gastrophetes",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          84,
+          64
+        ]
+      }
+    },
+    {
+      "contentId": 4184,
+      "name": "Capella",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          8,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4185,
+      "name": "Vega",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          13,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4186,
+      "name": "Sirius",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          17,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4187,
+      "name": "Betelgeuse",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          22,
+          17
+        ]
+      }
+    },
+    {
+      "contentId": 4188,
+      "name": "Ras Algethi",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          29,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4189,
+      "name": "Aldebaran",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          33,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4190,
+      "name": "Spica",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          38,
+          27
+        ]
+      }
+    },
+    {
+      "contentId": 4191,
+      "name": "Antares",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          41,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4192,
+      "name": "Arcturus",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          45,
+          33
+        ]
+      }
+    },
+    {
+      "contentId": 4193,
+      "name": "Fomalhaut",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          52,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4200,
+      "name": "Golden Axe",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          120,
+          86
+        ]
+      }
+    },
+    {
+      "contentId": 4218,
+      "name": "Serpent Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          25,
+          23
+        ]
+      }
+    },
+    {
+      "contentId": 4220,
+      "name": "Gaia Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          43,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4221,
+      "name": "Power Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          56,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4222,
+      "name": "Empyrean Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          60,
+          47
+        ]
+      }
+    },
+    {
+      "contentId": 4223,
+      "name": "Holy Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          63,
+          56
+        ]
+      }
+    },
+    {
+      "contentId": 4224,
+      "name": "Rod of Faith",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          21,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4226,
+      "name": "Cherry Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          20,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4227,
+      "name": "Wizard's Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          26,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4228,
+      "name": "Flame Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          34,
+          31
+        ]
+      }
+    },
+    {
+      "contentId": 4229,
+      "name": "Storm Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          36,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4230,
+      "name": "Glacial Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          38,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4231,
+      "name": "Golden Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          42,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4232,
+      "name": "Judicer's Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          48,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4233,
+      "name": "Cloud Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          49,
+          36
+        ]
+      }
+    },
+    {
+      "contentId": 4236,
+      "name": "Bronze Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          24,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4237,
+      "name": "Bhuj",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          34,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4238,
+      "name": "Miter",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          42,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4239,
+      "name": "Thorned Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          53,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4240,
+      "name": "Chaos Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          69,
+          51
+        ]
+      }
+    },
+    {
+      "contentId": 4241,
+      "name": "Doom Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          75,
+          56
+        ]
+      }
+    },
+    {
+      "contentId": 4242,
+      "name": "Zeus Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          81,
+          63
+        ]
+      }
+    },
+    {
+      "contentId": 4243,
+      "name": "Grand Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          88,
+          71
+        ]
+      }
+    },
+    {
+      "contentId": 4267,
+      "name": "Mesa",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          102,
+          77
+        ]
+      }
+    },
+    {
+      "contentId": 4269,
+      "name": "Wyrmhero Blade",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          131,
+          91
+        ]
+      }
+    },
+    {
+      "contentId": 4271,
+      "name": "Bone of Byblos",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          100,
+          71
+        ]
+      }
+    },
+    {
+      "contentId": 4272,
+      "name": "Tula",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          91,
+          67
+        ]
+      }
+    },
+    {
+      "contentId": 4293,
+      "name": "Mithuna",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          66,
+          48
+        ]
+      }
     }
   ],
-  "resultSectionSha256": "ba071b0b3a3c52a99882565166c945219d70c8e82552a3fef3f47ef8c0bf931a",
+  "resultSectionSha256": "5ffe73748b17764a8564d9386c433cc1d44dd9371b621c3b6aeb3d762d05e8bd",
   "attributes": [
     {
       "attributeIndex": 142,

@@ -1,3 +1,12 @@
+# 0.5.0 candidate
+
+- Weapon damage follows a gentler climb: the opening weapons are unchanged, and every later weapon has lower attack, so
+  a typical hit grows from ~47 at the start to ~830 by the last shops instead of ~1,375. Each weapon keeps its place
+  in its band (role, identity, tier); rewards are set for where they're found; the 13 legendary weapons still lead
+  their families; story and guest weapons are unchanged. 157 weapons change.
+- Still a test build: the Claymore keeps its 800-gil test price.
+- Builds over an installed Arsenal 0.1.0 to 0.4.2.
+
 # 0.4.2 candidate
 
 - Test price: Claymore costs 800 gil (was 12,500) so the greatsword can be bought early for the Attack area

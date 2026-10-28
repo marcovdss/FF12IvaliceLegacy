@@ -7,7 +7,7 @@ Weapon attack and weapon family identities for the English Steam game, version 1
 **Test build:** the Claymore costs 800 gil instead of 12,500, so it can be bought early for the Attack area
 experiment. This price is for testing only.
 
-Attack follows the story: modest at the start, growing toward a powerful endgame. Each family's identity changes how
+Attack follows the story: modest at the start, growing toward a powerful endgame. The climb is gentle: the opening weapons keep their attack and every later weapon is lower than native, so a typical hit grows from about 47 at the start to about 830 by the last shops (native: about 1,375). Rewards are set for where they are found, and the 13 legendary weapons still lead their families. Each family's identity changes how
 its weapons play, not how much damage they deal over time: a faster or more critical weapon hits a little softer, a
 slower one a little harder.
 
@@ -32,22 +32,30 @@ Families with an effect identity gain it on every weapon (a weapon's own native 
 - **Ninja swords** (unseen): a 10% chance to Blind on hit.
 - **Spears** (pierce): reach 25.
 
-Story and joke weapons and Wyrmhero Blade keep their native stats. Other prices are unchanged.
+Story and joke weapons keep their native stats. Other prices are unchanged.
 
 **Legendary weapons** (the twelve zodiac weapons and Masamune) are the strongest of their family; each job's
-Proficiency unlocks their real potential. Karkata 92 → 100. Great Trango 153 → 95 at normal sword speed, Zodiac
-Spear 141 → 104 and Seitengrat 224 → 90 at normal bow speed, so they sit under the legendaries. Kumbha already swung
-as a katana (damage formula and model) and now counts as one.
+Proficiency unlocks their real potential. At base power each still leads its family: Great Trango and Seitengrat swing at normal sword and bow speed (charge 32 and 36), and Kumbha already swung as a katana (damage formula and model) and now counts as one. Their attack is in the table below.
 
-| Family | Attack |
+| Family | Attack (native → Arsenal) |
 |---|---|
-| Dagger | Dagger 14 → 11, Mage Masher 18 → 14, Assassin's Dagger 31 → 25, Chopper 40 → 32, Main Gauche 46 → 38, Gladius 56 → 44, Avenger 66 → 52, Orichalcum Dirk 79 → 61, Platinum Dagger 83 → 64, Zwill Crossblade 87 → 67, Shikari Nagasa 90 → 69, Mina 104 → 81 |
-| Katana | Kotetsu 16 → 14, Osafune 26 → 23, Kogarasumaru 40 → 34, Magoroku 50 → 42, Murasame 62 → 51, Kiku-ichimonji 71 → 58, Yakei 83 → 66, Ame-no-Murakumo 96 → 74, Muramasa 104 → 81, Masamune 111 → 93 |
-| Bow | Shortbow 15 → 14, Silver Bow 19 → 17, Aevis Killer 25 → 22, Killer Bow 36 → 32, Longbow 48 → 35, Elfin Bow 54 → 48, Loxley Bow 60 → 53, Giant Stonebow 73 → 63, Burning Bow 77 → 67, Traitor's Bow 82 → 71, Yoichi Bow 89 → 77, Perseus Bow 92 → 79, Artemis Bow 94 → 81, Sagittarius 97 → 83, Dhanusha 109 → 103 |
-| Greatsword | Claymore 83 → 91, Defender 90 → 99, Save the Queen 92 → 101, Ragnarok 117 → 130, Ultima Blade 109 → 121, Excalibur 127 → 141, Tournesol 138 → 153 |
-| Axe | Handaxe 17 → 15, Broadaxe 36 → 24, Slasher 54 → 43, Hammerhead 81 → 53, Francisca 88 → 61, Greataxe 110 → 74 |
-| Hammer | Iron Hammer 24 → 15, War Hammer 42 → 35, Sledgehammer 66 → 53, Morning Star 100 → 69 |
-| Hand-bomb | Hornito 66 → 15, Fumarole 71 → 49, Tumulus 76 → 63, Caldera 83 → 57 |
+| Sword | Longsword 20 → 18, Iron Sword 25 → 23, Zwill Blade 30 → 26, Ancient Sword 35 → 30, Blood Sword 38 → 32, Lohengrin 40 → 33, Flametongue 45 → 36, Demonsbane 51 → 39, Icebrand 55 → 41, Platinum Sword 61 → 43, Bastard Sword 67 → 50, Diamond Sword 73 → 53, Runeblade 78 → 57, Deathbringer 83 → 59, Durandal 99 → 65, Great Trango 153 → 74, Stoneblade 95 → 74, Karkata 92 → 76, Simha 103 → 78, Kumbha 117 → 84 |
+| Greatsword | Claymore 83 → 61, Defender 90 → 66, Save the Queen 92 → 72, Ultima Blade 109 → 76, Excalibur 127 → 91, Ragnarok 117 → 91, Wyrmhero Blade 131 → 91, Tournesol 138 → 102 |
+| Katana | Kotetsu 16 → 14, Osafune 26 → 21, Kogarasumaru 40 → 29, Magoroku 50 → 35, Murasame 62 → 40, Kiku-ichimonji 71 → 46, Yakei 83 → 52, Ame-no-Murakumo 96 → 60, Muramasa 104 → 63, Masamune 111 → 73 |
+| Ninja sword | Ashura 72 → 48, Sakura-saezuri 77 → 55, Kagenui 81 → 56, Iga Blade 87 → 59, Koga Blade 87 → 59, Yagyu Darkblade 98 → 65, Orochi 94 → 74, Mesa 102 → 77 |
+| Spear | Spear 26 → 23, Partisan 34 → 29, Heavy Lance 42 → 35, Storm Spear 53 → 41, Obelisk 68 → 46, Halberd 75 → 54, Trident 85 → 60, Holy Lance 91 → 67, Gungnir 95 → 69, Dragon Whisker 100 → 76, Zodiac Spear 141 → 78, Vrsabha 108 → 80 |
+| Pole | Cypress Pole 22 → 20, Battle Bamboo 34 → 29, Musk Stick 39 → 33, Iron Pole 46 → 37, Six-fluted Pole 59 → 43, Gokuu Pole 72 → 52, Zephyr Pole 77 → 57, Ivory Pole 83 → 59, Eight-fluted Pole 91 → 61, Sweep 88 → 66, Whale Whisker 108 → 80, Kanya 112 → 82 |
+| Bow | Shortbow 15 → 14, Silver Bow 19 → 16, Aevis Killer 25 → 20, Killer Bow 36 → 28, Longbow 48 → 30, Elfin Bow 54 → 38, Loxley Bow 60 → 40, Giant Stonebow 73 → 48, Burning Bow 77 → 53, Traitor's Bow 82 → 54, Yoichi Bow 89 → 61, Perseus Bow 92 → 62, Artemis Bow 94 → 63, Sagittarius 97 → 64, Seitengrat 224 → 72, Dhanusha 109 → 78 |
+| Crossbow | Crossbow 31 → 27, Paramina Crossbow 42 → 35, Recurve Crossbow 57 → 43, Hunting Crossbow 70 → 47, Penetrator Crossbow 79 → 58, Gastrophetes 84 → 64, Tula 91 → 67 |
+| Gun | Capella 8 → 7, Vega 13 → 11, Sirius 17 → 14, Betelgeuse 22 → 17, Ras Algethi 29 → 20, Aldebaran 33 → 24, Spica 38 → 27, Antares 41 → 29, Arcturus 45 → 33, Fomalhaut 52 → 38, Mithuna 66 → 48 |
+| Axe | Handaxe 17 → 15, Broadaxe 36 → 22, Slasher 54 → 35, Hammerhead 81 → 40, Francisca 88 → 48, Greataxe 110 → 60, Golden Axe 120 → 86 |
+| Hammer | Iron Hammer 24 → 15, War Hammer 42 → 30, Sledgehammer 66 → 40, Morning Star 100 → 53, Scorpion Tail 124 → 88, Vrscika 133 → 92 |
+| Dagger | Dagger 14 → 11, Mage Masher 18 → 14, Assassin's Dagger 31 → 23, Chopper 40 → 28, Main Gauche 46 → 33, Gladius 56 → 37, Avenger 66 → 44, Zwill Crossblade 87 → 46, Orichalcum Dirk 79 → 50, Platinum Dagger 83 → 52, Shikari Nagasa 90 → 58, Mina 104 → 63 |
+| Rod | Rod of Faith 21 → 18, Serpent Rod 25 → 23, Gaia Rod 43 → 35, Power Rod 56 → 41, Empyrean Rod 60 → 47, Holy Rod 63 → 56 |
+| Staff | Cherry Staff 20 → 18, Wizard's Staff 26 → 25, Flame Staff 34 → 31, Storm Staff 36 → 32, Glacial Staff 38 → 35, Cloud Staff 49 → 36, Golden Staff 42 → 41, Judicer's Staff 48 → 43 |
+| Mace | Bronze Mace 24 → 22, Bhuj 34 → 29, Miter 42 → 35, Thorned Mace 53 → 40, Chaos Mace 69 → 51, Doom Mace 75 → 56, Zeus Mace 81 → 63, Bone of Byblos 100 → 71, Grand Mace 88 → 71 |
+| Measure | Gilt Measure 5 → 4, Arc Scale 10 → 7, Multiscale 13 → 9, Cross Scale 16 → 12, Caliper 19 → 14, Euclid's Sextant 24 → 18 |
+| Hand-bomb | Hornito 66 → 15, Fumarole 71 → 39, Caldera 83 → 49, Tumulus 76 → 56, Volcano 90 → 72, Makara 96 → 75 |
 
 ## Package
 
