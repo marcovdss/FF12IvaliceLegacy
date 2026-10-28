@@ -76,6 +76,10 @@ def build_estersand_pilot(game, out):
                           'rows': patch['rows']})
 
 
+ATTACK_AREA_SCRIPTS = {'forge_filter_228.lua': 'x64/scripts/config/TheInsurgentsForgeConfig/functions/228.lua',
+                       'attack_area_filter.lua': 'x64/scripts/IvaliceLegacy/attack_area_filter.lua'}
+
+
 def build_attack_area_experiment(game, out):
     from .actions import action_fields
     vbf = VBF(Path(game) / 'FFXII_TZA.vbf')
@@ -90,8 +94,15 @@ def build_attack_area_experiment(game, out):
     if (deploy / patch['file']).is_file():
         raise ValueError('A whole battle_pack.bin replacement is deployed')
     files = {PREFIX + rel: data for rel, data in files.items()}
-    return write_package(files, out, 'IvaliceLegacy-AttackAreaExperiment-0.0.1',
-                         'Ivalice Legacy Attack Area Experiment', '0.0.1',
+    # The cleave filter keeps the sweep for party greatswords only, through Forge's supported config/functions path.
+    for source, rel in ATTACK_AREA_SCRIPTS.items():
+        files[rel] = (ROOT / 'prototypes' / source).read_bytes()
+        live = Path(game) / rel
+        if live.exists() and live.read_bytes() != files[rel]:
+            raise ValueError(f'Another mod ships {rel}')
+    version = patch['version']
+    return write_package(files, out, f'IvaliceLegacy-AttackAreaExperiment-{version}',
+                         'Ivalice Legacy Attack Area Experiment', version,
                          {'status': 'Experiment', 'description': patch['description'],
                           'source': {'file': patch['file'], 'fileSha256': patch['sourceFileSha256'],
                                      'section': patch['section'], 'sectionSha256': patch['sourceSectionSha256']},

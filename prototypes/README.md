@@ -89,6 +89,18 @@ persistence are not built: in this pilot every base Hunter has the line.
 
 ## Clan ledger
 
+## Attack area experiment 0.0.2: greatsword-only cleave
+
+Unlike the rest of this folder, these two files ship in the Attack area experiment package.
+- `forge_filter_228.lua` is Forge's `config/functions/228.lua`: 228 is the onCastPre/onHitPre check that silently skips
+  units an action can't touch (skip state 1, outcome 9, no "Miss"). It runs the original 228 unchanged, then applies
+  the same skip to Attack bystanders the filter rejects.
+- `attack_area_filter.lua` decides per Attack hit. A bystander is any unit other than the formula's initial target.
+  A party member's greatsword (category 2) keeps the sweep. Every other Attack, foes' included, skips bystanders.
+- When the initial target is unknown (0), the hit is left alone. When the filter module is missing, the adapter
+  falls back to single-target Attack. A filter error leaves the hit as native 228 left it.
+- Logging is capped at 100 `Legacy cleave:` lines per load.
+
 ## Foe profile diagnostic 0.1.5: charge pushback and Attack area probes
 
 0.1.5 keeps the 0.1.4 observers unchanged and adds two probes to the same Forge113 adapter, each run after the

@@ -83,6 +83,15 @@ class ActionFieldsTests(unittest.TestCase):
         self.assertEqual(recipe['actions'], [{'id': 150, 'name': 'Attack',
                                               'set': {'aoeRange': [0, 4], 'aoePositioningRange': [0, 180]}}])
 
+    def test_experiment_ships_the_cleave_filter_on_forge_228(self):
+        from ivalice_legacy.__main__ import ATTACK_AREA_SCRIPTS
+        self.assertEqual(ATTACK_AREA_SCRIPTS, {
+            'forge_filter_228.lua': 'x64/scripts/config/TheInsurgentsForgeConfig/functions/228.lua',
+            'attack_area_filter.lua': 'x64/scripts/IvaliceLegacy/attack_area_filter.lua'})
+        adapter = (ROOT / 'prototypes/forge_filter_228.lua').read_text(encoding='utf-8')
+        self.assertIn("loadfile('scripts/TheInsurgentsForge/functions/228.lua'", adapter)
+        self.assertIn("loadfile('scripts/IvaliceLegacy/attack_area_filter.lua'", adapter)
+
 
 if __name__ == '__main__':
     unittest.main()
