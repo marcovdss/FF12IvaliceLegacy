@@ -1,7 +1,17 @@
 -- Offline candidate for Forge's supported config/functions/113.lua path (damage result, every physical and
--- magick hit). Wraps the unchanged Forge function; it only reads the target and prints one line per new foe.
+-- magick hit). Wraps the unchanged Forge function; the observer only reads the target and prints one line per new
+-- foe. The charge pushback probe is the one write: a bounded mechanism test (charge_pushback_probe.lua).
 local original = assert(loadfile('scripts/TheInsurgentsForge/functions/113.lua', 't', _ENV))()
 local Diagnostic = assert(loadfile('scripts/IvaliceLegacy/foe_profile_diagnostic.lua', 't', _ENV))()
+-- The two test probes are optional: if a file is missing or fails to load, that probe is off and damage is untouched.
+local function optional(path)
+  local chunk = loadfile(path, 't', _ENV)
+  if not chunk then return nil end
+  local ok, module = pcall(chunk)
+  return ok and type(module) == 'table' and module or nil
+end
+local Pushback = optional('scripts/IvaliceLegacy/charge_pushback_probe.lua')
+local Area = optional('scripts/IvaliceLegacy/attack_area_probe.lua')
 
 -- Story progress: the word variable shop rows test (group 3, index 0). Mirrors the native reader 0x264640:
 -- valid only while the flag byte's bit 0 is set and the table pointer is non-null.
@@ -62,9 +72,41 @@ local function hit(formula, caster, target)
           targetLevel = target.level, targetMaxHp = target.maxHp, removed = formula.target.removedHp}
 end
 
+-- Charge pushback mechanism test: the target's current charge, its address and a setter. Runs after the
+-- read-only observer, so the charge probe line still shows the native value before any write.
+local function pushback(formula, caster, target)
+  local work = formula.target.battleUnitWork
+  if type(work) ~= 'table' and type(work) ~= 'userdata' then return nil end
+  return {action = formula.action, casterType = caster.type, targetType = target.type,
+          clock = event.getClock and event.getClock() or nil, unit = work.address,
+          current = work.currentChargeTime, required = work.requiredChargeTime, last = work.lastChargeTime,
+          set = function(value) work.currentChargeTime = value end,
+          get = function() return work.currentChargeTime end}
+end
+
+-- Attack area experiment evidence: the caster's weapon category (section 13, as the Pursuit pilot reads it) and its
+-- current target focus, to tell the targeted unit from bystanders caught by the area. Read-only.
+local function area(formula, caster, target)
+  local weapon, category = caster.weapon, nil
+  if type(weapon) == 'number' and weapon >= 0x1000 and weapon < 0xFFFF then
+    local record = bpack.section13[weapon - 0x1000]
+    category = record and record.category
+  end
+  local work = formula.caster.battleUnitWork
+  local focus = (type(work) == 'table' or type(work) == 'userdata') and work.address ~= 0
+    and work.currentTargetFocusIdentifier or nil
+  return {action = formula.action, clock = event.getClock and event.getClock() or nil,
+          casterType = caster.type, casterId = caster.identifier, weapon = weapon, category = category, focus = focus,
+          targetType = target.type, targetId = formula.target.identifier, removed = formula.target.removedHp}
+end
+
 local observer = Diagnostic.new({profile = profile, charge = charge, hit = hit, emit = function(line) print(line) end})
+local probe = Pushback and Pushback.new({emit = function(line) print(line) end})
+local areaProbe = Area and Area.new({emit = function(line) print(line) end})
 local resetRegistered = event.registerEventSync('onSaveLoad', function()
   observer:reset()
+  if probe then probe:reset() end
+  if areaProbe then areaProbe:reset() end
   return true
 end)
 if resetRegistered ~= true then
@@ -72,4 +114,30 @@ if resetRegistered ~= true then
   return original
 end
 print('Legacy foe profile: diagnostic ' .. Diagnostic.version .. ' Forge113 observer ready; bonuses=off')
-return observer:wrap(original)
+print(probe and ('Legacy charge pushback: probe ' .. Pushback.version ..
+  ' armed (party Attack on a mid-charge foe, every 2nd hit, -1/4 of required, max 12 per load); bonuses=charge-test')
+  or 'Legacy charge pushback: probe not loaded; off')
+print(areaProbe and ('Legacy attack area: probe ' .. Area.version ..
+  ' ready (Attack hits: weapon category, targeted or bystander); bonuses=area-test')
+  or 'Legacy attack area: probe not loaded; off')
+local observed = observer:wrap(original)
+-- Each probe runs in its own pcall, so a failure in one never stops the other or interrupts Forge.
+local errorLogged = {}
+local function guarded(name, f, ...)
+  local ok, err = pcall(f, ...)
+  if not ok and not errorLogged[name] then
+    errorLogged[name] = true
+    pcall(print, 'Legacy '..name..': probe error='..tostring(err):gsub('[%z\r\n]', ' ')..' bonuses=test')
+  end
+end
+return function(...)
+  local result = table.pack(observed(...))
+  if probe then
+    guarded('charge pushback', function(...)
+      local s = pushback(...)
+      if s then probe:hit(s) end
+    end, ...)
+  end
+  if areaProbe then guarded('attack area', function(...) areaProbe:hit(area(...)) end, ...) end
+  return table.unpack(result, 1, result.n)
+end

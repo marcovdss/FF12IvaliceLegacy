@@ -107,10 +107,14 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
     def test_adapter_wraps_unchanged_forge_function(self):
         src = (ROOT / 'prototypes/forge_diagnostic_113.lua').read_text()
         self.assertIn("loadfile('scripts/TheInsurgentsForge/functions/113.lua'", src)
-        self.assertIn('return observer:wrap(original)', src)
-        # Read-only: no assignment to game memory or to Forge's pending results.
+        self.assertIn('local observed = observer:wrap(original)', src)
+        self.assertIn('table.pack(observed(...))', src)
+        # The observer is read-only: no assignment to game memory or to Forge's pending results. The one write in
+        # the adapter is the charge pushback probe's setter for the target's current charge time.
         self.assertIsNone(re.search(r'memory\.\w+\[[^\]]+\]\s*=(?!=)', src))
         self.assertNotIn('formula.target.removedHp =', src)
+        writes = re.findall(r'\b\w+\.\w+\s*=(?!=)\s*\S+', src)
+        self.assertEqual(writes, ['work.currentChargeTime = value'])
 
     def test_action_line_logs_foe_casts_and_is_capped(self):
         self.lua.execute('''

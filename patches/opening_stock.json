@@ -1,11 +1,11 @@
 {
   "name": "Opening stock",
-  "description": "Rabanastre merchants sell the opening tools from the start of the game. Items already sold later by the same merchant move to the start instead of appearing twice. Prices are unchanged.",
+  "description": "Rabanastre merchants sell the opening tools from the start of the game. Items already sold later by the same merchant move to the start instead of appearing twice. Prices are unchanged. Test build: Amal's Weaponry also sells the Claymore from the start, for the Attack area experiment.",
   "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
   "section": 39,
   "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
   "sourceSectionSha256": "552e8abe5627de754125fe52e524e5da321af4c13f81531b70fc9a75c40e2be7",
-  "resultSectionSha256": "5d6ffbf2f902ef012ca2bc2e48104397b1e200593da123d0c82bc1d4454b4e9c",
+  "resultSectionSha256": "d3e38e1b6731900bf123f9830e8d802b7d64445d9a41fc6fc4f9cc7239a946ba",
   "shops": [
     {
       "shop": 37,
@@ -34,6 +34,10 @@
         {
           "id": 4250,
           "name": "Hornito"
+        },
+        {
+          "id": 4114,
+          "name": "Claymore"
         }
       ]
     },

@@ -76,6 +76,28 @@ def build_estersand_pilot(game, out):
                           'rows': patch['rows']})
 
 
+def build_attack_area_experiment(game, out):
+    from .actions import action_fields
+    vbf = VBF(Path(game) / 'FFXII_TZA.vbf')
+    patch = json.loads((ROOT / 'patches/attack_area_experiment.json').read_text(encoding='utf-8'))
+    files = action_fields(vbf.read, patch)
+    # The experiment owns the whole action table while installed; refuse to build over another mod's copy.
+    deploy = Path(game) / 'mods/deploy/ff12data'
+    for rel, data in files.items():
+        loose = deploy / rel
+        if loose.exists() and sha256(loose.read_bytes()) not in (patch['sourceSectionSha256'], sha256(data)):
+            raise ValueError('Another mod replaces the action table (section 14)')
+    if (deploy / patch['file']).is_file():
+        raise ValueError('A whole battle_pack.bin replacement is deployed')
+    files = {PREFIX + rel: data for rel, data in files.items()}
+    return write_package(files, out, 'IvaliceLegacy-AttackAreaExperiment-0.0.1',
+                         'Ivalice Legacy Attack Area Experiment', '0.0.1',
+                         {'status': 'Experiment', 'description': patch['description'],
+                          'source': {'file': patch['file'], 'fileSha256': patch['sourceFileSha256'],
+                                     'section': patch['section'], 'sectionSha256': patch['sourceSectionSha256']},
+                          'actions': patch['actions']})
+
+
 def write_package(files, out, stem, name, version, metadata=None):
     package = Path(out) / stem
     if package.exists():
@@ -111,6 +133,9 @@ def main(argv=None):
     estersand = sub.add_parser('build-estersand-pilot', help='build only the optional Estersand enemy numbers pilot')
     estersand.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     estersand.add_argument('--out', default=str(ROOT / 'dist'))
+    area = sub.add_parser('build-attack-area-experiment', help='build only the optional Attack area experiment')
+    area.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
+    area.add_argument('--out', default=str(ROOT / 'dist'))
     arsenal = sub.add_parser('build-arsenal', help='build the separate experimental weapon/armour package')
     arsenal.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     arsenal.add_argument('--out', default=str(ROOT / 'dist'))
@@ -125,7 +150,8 @@ def main(argv=None):
             from .arsenal import build as builder
         else:
             builder = {'build-rampager-pilot': build_rampager_pilot,
-                       'build-estersand-pilot': build_estersand_pilot}.get(args.command, build)
+                       'build-estersand-pilot': build_estersand_pilot,
+                       'build-attack-area-experiment': build_attack_area_experiment}.get(args.command, build)
         if args.command == 'build':
             archive, manifest = builder(args.game, args.out, settings_from=args.settings_from)
         else:

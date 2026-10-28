@@ -1,0 +1,25 @@
+{
+  "name": "Attack area experiment",
+  "description": "Experiment, not a design: the basic Attack (action 150) gets the area and arc of Spiral Cut (action 394, an enemy sweep): radius 4 around the target, 180-degree arc. Native AoE targeting decides who is caught. Every weapon and every unit that uses Attack 150 is affected, and Ivalice Together's private catalogue still lists Attack as single-target, so co-op menus won't show the area.",
+  "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
+  "section": 14,
+  "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
+  "sourceSectionSha256": "ba136e0f9ff4de0db08ab5397edd1b413cad1d4ded461e8cd377e00a19e52782",
+  "actions": [
+    {
+      "id": 150,
+      "name": "Attack",
+      "set": {
+        "aoeRange": [
+          0,
+          4
+        ],
+        "aoePositioningRange": [
+          0,
+          180
+        ]
+      }
+    }
+  ],
+  "resultSectionSha256": "f26184305e141a456f03ca5881766047f32629bd980e4cf08cf6c1673042ffe9"
+}

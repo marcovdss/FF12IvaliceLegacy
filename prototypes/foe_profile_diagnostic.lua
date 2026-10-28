@@ -1,7 +1,7 @@
 -- Diagnostic prototype: logs each distinct foe's live level, stats and status masks once.
 -- No bonuses, no writes to game state, no save data, no loader registration.
 local M = {}
-M.version = '0.1.4'
+M.version = '0.1.5'
 
 local STATUS = {'ko','stone','petrify','stop','sleep','confuse','doom','blind','poison','silence','sap','oil',
   'reverse','disable','immobilize','slow','disease','lure','protect','shell','haste','bravery','faith','reflect',

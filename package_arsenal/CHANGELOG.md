@@ -1,3 +1,9 @@
+# 0.4.2 candidate
+
+- Test price: Claymore costs 800 gil (was 12,500) so the greatsword can be bought early for the Attack area
+  experiment. Revert before any release that isn't a test.
+- Builds over an installed Arsenal 0.1.0 to 0.4.1.
+
 # 0.4.1 candidate
 
 - Fix: Shemhazai summoned with permanent Protect and no Fire weakness. 0.4.0 gave Protect Gorget an effect block

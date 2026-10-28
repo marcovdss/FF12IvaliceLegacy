@@ -4,8 +4,8 @@
   "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
   "section": 39,
   "after": "opening_stock",
-  "sourceSectionSha256": "5d6ffbf2f902ef012ca2bc2e48104397b1e200593da123d0c82bc1d4454b4e9c",
-  "resultSectionSha256": "1dd96d92678e9a051a0c0e60cbf840a98137ac85dc57f24cc11c5476937773b8",
+  "sourceSectionSha256": "d3e38e1b6731900bf123f9830e8d802b7d64445d9a41fc6fc4f9cc7239a946ba",
+  "resultSectionSha256": "503ef439471538c4618e275454f29a8b371fd1f163fc9295c2b96fb7884021b7",
   "shops": [
     {
       "shop": 8,
@@ -404,10 +404,6 @@
             {
               "id": 4244,
               "name": "Gilt Measure"
-            },
-            {
-              "id": 4114,
-              "name": "Claymore"
             },
             {
               "id": 4135,

@@ -89,6 +89,20 @@ persistence are not built: in this pilot every base Hunter has the line.
 
 ## Clan ledger
 
+## Foe profile diagnostic 0.1.5: charge pushback and Attack area probes
+
+0.1.5 keeps the 0.1.4 observers unchanged and adds two probes to the same Forge113 adapter, each run after the
+original and the read-only observer, each in its own pcall:
+
+- `charge_pushback_probe.lua` is the adapter's one write: a mechanism test of whether lowering a foe's current
+  charge time (battle unit work +0x768) persists. It acts only on party Attack (action 150) hitting a mid-charge foe,
+  alternates control/write within a load, lowers current by 1/4 of required (never to 0), at most 12 writes and
+  60 lines per load. Lines: `Legacy charge pushback: n=… arm=control|write … unit=0x… before=cur/req written=…
+  readback=…`.
+- `attack_area_probe.lua` is read-only: one `Legacy attack area:` line per Attack hit with the caster's weapon
+  category and whether the target is the caster's current target focus or a bystander caught by the area. It goes
+  with the separate Attack area experiment (`patches/attack_area_experiment.json`, section 14).
+
 ## Foe profile diagnostic 0.1.4
 
 `foe_profile_diagnostic.lua` retains the existing profile, charge and hit observers.

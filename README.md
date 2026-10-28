@@ -7,7 +7,7 @@ The goal is an Ivalice where preparation wins: jobs that combine instead of over
 play, enemies that act instead of just hitting harder, rare monsters that rule their zones, a Clan worth climbing,
 and progression you can't steamroll.
 
-> **Status: early development (0.0.9).** Only the first modules exist so far. Expect large changes between
+> **Status: early development (0.0.10).** Only the first modules exist so far. Expect large changes between
 > versions. Incremental updates are intended to continue your existing Legacy campaign. Save compatibility will
 > be checked for each change; any migration or restart requirement will be stated before installation.
 
@@ -18,7 +18,7 @@ already stocked later in the story move to the start instead of appearing twice.
 
 | Merchant | New from the start |
 |---|---|
-| Amal's Weaponry | Bowgun, Iron Hammer, Rod, Oak Staff, Mace, Hornito |
+| Amal's Weaponry | Bowgun, Iron Hammer, Rod, Oak Staff, Mace, Hornito, Claymore (test build, for the Attack area experiment) |
 | Panamis's Protectives | Bangle, Orrachea Armlet |
 | Migelo's Sundries | Phoenix Down, Antidote, Onion Bolts, Onion Bombs |
 | Yugri's Magicks | Thunder, Blizzard, Blind, Silence |
