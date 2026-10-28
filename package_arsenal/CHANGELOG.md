@@ -1,3 +1,9 @@
+# 0.4.1 candidate
+
+- Fix: Shemhazai summoned with permanent Protect and no Fire weakness. 0.4.0 gave Protect Gorget an effect block
+  that is Shemhazai's own Esper gear; Protect Gorget now has a new block of its own and Shemhazai's is native again.
+- The equipment table can grow: new effect blocks are appended after the native ones.
+
 # 0.4.0 candidate
 
 - Accessories: TPA identities merged where they add a new answer (23 renamed, 7 reworked under their name); no

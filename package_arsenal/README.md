@@ -1,4 +1,4 @@
-# Ivalice Legacy: Arsenal 0.4.0 (experimental)
+# Ivalice Legacy: Arsenal 0.4.1 (experimental)
 
 Weapon attack and weapon family identities for the English Steam game, version 1.0.4.0.
 

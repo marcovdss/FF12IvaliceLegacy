@@ -4,7 +4,8 @@ Section 13 is an ST2E table: u32 row count at +4, u16 row size at +8, u32 first-
 the start of the 24-byte attribute blocks (stat bonuses, granted/immune statuses, element affinities) that rows
 address by byte offset. Every edit states the value it expects to find; a different game version, another mod's
 data or a typo is rejected instead of patched. Attribute blocks can be shared by several items, so a block edit
-must name every item that uses it.
+must name every item that uses it. `appendAttributeBlocks` adds empty blocks after the last one for items that need
+their own effects; the game finds blocks by offset, so the table may grow.
 """
 import hashlib
 import struct
@@ -94,8 +95,20 @@ def equipment(read, patch):
     if sha256(original) != patch['sourceSectionSha256']:
         raise ValueError(f"{patch['file']} section {patch['section']} differs from the supported game version")
     count, size, entry, attributes = layout(original)
+    # New attribute blocks go after the last one, before the zero padding that keeps the table 8-byte aligned. Every
+    # native block is in use (some only by Esper and guest gear), so an item that needs its own effects gets a new one.
+    blocks_end = attributes + (len(original) - attributes) // 24 * 24
+    append = patch.get('appendAttributeBlocks', 0)
+    if type(append) is not int or append < 0:
+        raise ValueError('appendAttributeBlocks: expected a block count')
+    if any(original[blocks_end:]):
+        raise ValueError('unexpected data after the attribute blocks')
+    if append:
+        original = original[:blocks_end] + bytes(24 * append)
+        original += bytes(-len(original) % 8)
     out = bytearray(original)
     changed = set()
+    new_blocks = set(range((blocks_end - attributes) // 24, (blocks_end - attributes) // 24 + append))
 
     def row_at(content_id):
         index = content_id - FIRST_ID
@@ -116,8 +129,8 @@ def equipment(read, patch):
         spec = fields_for(category)
         for field, change in item['set'].items():
             if field == 'attributeBlock':
-                # Move the item to another attribute block (e.g. a spare one whose only users are unused rows), so
-                # it gains effects without changing the block it shared with other items.
+                # Move the item to another attribute block (normally an appended one), so it gains effects without
+                # changing the block it shared with other items.
                 if (not isinstance(change, list) or len(change) != 2 or any(type(v) is not int or v < 0 for v in change)
                         or attributes + 24 * change[1] + 24 > len(original)):
                     raise ValueError(f'{what} attributeBlock: expected [current, new] block indexes')
@@ -158,11 +171,15 @@ def equipment(read, patch):
         blocks.add(index)
         if set(block['users']) != users.get(24 * index, set()):
             raise ValueError(f'attribute block {index}: declared users differ from the items that use it')
+        if index in new_blocks and not block['users']:
+            raise ValueError(f'attribute block {index}: a new block needs at least one user')
         for field, change in block['set'].items():
             if field not in ATTRIBUTE:
                 raise ValueError(f'attribute block {index}: unknown field {field}')
             changed |= edit(out, original, at, ATTRIBUTE, field, change, f'attribute block {index}')
 
+    if new_blocks - blocks:
+        raise ValueError(f'appended attribute blocks {sorted(new_blocks - blocks)} are not declared')
     if {i for i, (a, b) in enumerate(zip(original, out)) if a != b} - changed:
         raise AssertionError('undeclared equipment byte changed')
     result = bytes(out)

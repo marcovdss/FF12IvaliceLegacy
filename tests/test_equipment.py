@@ -105,6 +105,33 @@ class EquipmentTest(unittest.TestCase):
         self.assertEqual(struct.unpack_from('<I', out, at + 12)[0], 1 << eq.STATUS.index('Oil'))
         self.assertEqual(out[at + 24:], self.section[at + 24:])
 
+    def test_appended_block_keeps_shared_blocks_and_alignment(self):
+        move = {'contentId': 0x1002, 'category': 'Bow', 'set': {'attributeBlock': [1, 2]}}
+        effect = {'attributeIndex': 2, 'users': [0x1002], 'set': {'status': [[], ['Protect']]}}
+        out = self.apply(appendAttributeBlocks=1, items=[move], attributes=[effect])
+        at = len(self.section)
+        self.assertEqual((len(out) % 8, out[at + 24:]), (0, bytes(len(out) - at - 24)))
+        self.assertEqual(struct.unpack_from('<I', out, 32 + 2 * SIZE + eq.LINK_AT)[0], 48)
+        self.assertEqual(struct.unpack_from('<I', out, at + 8)[0], 1 << eq.STATUS.index('Protect'))
+        changed = [i for i, (a, b) in enumerate(zip(self.section, out)) if a != b]
+        self.assertEqual(changed, [32 + 2 * SIZE + eq.LINK_AT])  # rows and old blocks otherwise unchanged
+        with self.assertRaises(ValueError):  # an appended block must be declared
+            self.apply(appendAttributeBlocks=1)
+        with self.assertRaises(ValueError):  # ... and used
+            self.apply(appendAttributeBlocks=1, attributes=[dict(effect, users=[])])
+        with self.assertRaises(ValueError):  # items can only move to blocks that exist
+            self.apply(items=[dict(move, set={'attributeBlock': [1, 3]})], appendAttributeBlocks=1, attributes=[effect])
+
+    def test_append_pads_to_eight_bytes(self):
+        self.section += bytes(4)  # native tables end in zero padding
+        move = {'contentId': 0x1002, 'category': 'Bow', 'set': {'attributeBlock': [1, 2]}}
+        effect = {'attributeIndex': 2, 'users': [0x1002], 'set': {'weak': [[], ['Fire']]}}
+        out = self.apply(appendAttributeBlocks=1, items=[move], attributes=[effect])
+        self.assertEqual((len(out) % 8, len(out)), (0, len(self.section) - 4 + 24 + 4))
+        self.section = self.section[:-4] + b'\x01\x00\x00\x00'
+        with self.assertRaises(ValueError):  # data after the blocks is not padding
+            self.apply(appendAttributeBlocks=1, items=[move], attributes=[effect])
+
     def test_rejects_changed_source(self):
         p, patch = patch_for(self.section, items=[])
         patch['sourceSectionSha256'] = '0' * 64
@@ -139,7 +166,11 @@ class RealTableTest(unittest.TestCase):
         rows = {(i - entry) // size for i in changed if i < attributes}
         self.assertEqual({eq.FIRST_ID + r for r in rows}, {i['contentId'] for i in patch['items']})
         blocks = {(i - attributes) // 24 for i in changed if i >= attributes}
+        native = (len(source) - attributes) // 24
+        blocks |= set(range(native, native + patch.get('appendAttributeBlocks', 0)))
         self.assertEqual(blocks, {b['attributeIndex'] for b in patch.get('attributes', [])})
+        # Blocks 18-28 are the Espers' own weapons (party members 27-39): Arsenal never edits them.
+        self.assertFalse(blocks & set(range(18, 29)))
         daggers = [i['contentId'] - eq.FIRST_ID for i in patch['items'] if i['category'] == 'Dagger']
         self.assertEqual(len(daggers), 12)  # every sold dagger; the unused 0x11CE row stays native
         self.assertTrue(all(result[entry + r * size + 39] == 15 for r in daggers))

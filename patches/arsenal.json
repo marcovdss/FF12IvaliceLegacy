@@ -5,6 +5,7 @@
   "section": 13,
   "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
   "sourceSectionSha256": "981d88689d4292d55db4697a06fb6105d80a62e83405d25c3422d6716936979e",
+  "appendAttributeBlocks": 1,
   "items": [
     {
       "contentId": 4097,
@@ -1932,7 +1933,7 @@
         ],
         "attributeBlock": [
           0,
-          25
+          176
         ]
       }
     },
@@ -2008,7 +2009,7 @@
       }
     }
   ],
-  "resultSectionSha256": "eb10ed5edfd46dd89797e1e18ba9ef92e009c9816ad44928b063243920c1ea8b",
+  "resultSectionSha256": "06e25902ed56a41b2edfc63e096d90aee127776bce49d26a66374436235ef5b1",
   "attributes": [
     {
       "attributeIndex": 142,
@@ -2579,18 +2580,11 @@
       }
     },
     {
-      "attributeIndex": 25,
+      "attributeIndex": 176,
       "users": [
-        4282,
         4459
       ],
       "set": {
-        "weak": [
-          [
-            "Fire"
-          ],
-          []
-        ],
         "status": [
           [],
           [
