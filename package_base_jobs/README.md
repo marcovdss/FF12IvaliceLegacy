@@ -1,4 +1,4 @@
-# Ivalice Legacy: twelve base jobs candidate 0.4.1
+# Ivalice Legacy: twelve base jobs candidate 0.5.0
 
 Experimental offline build for the English Steam game, version 1.0.4.0.
 Twelve custom boards, English job names and descriptions, six exclusive
@@ -31,11 +31,35 @@ for Chemist, Dispel and Stona for Lancer, Charge for Black and Time Mage, Libra 
 Gunner, Green Mage and Mystic, First Aid for Warrior, Samurai and Hunter. Schools and
 signature Technicks stay with their job.
 
-Gunner uses light armor and guns. Chemist has eight Battle Lores and crossbows.
+**Job stat trainings.** Every job keeps the shared basics (HP Lore 1–10, Battle Lore 1–4, Magick Lore 1–4) and
+holds one training of its own instead of the deep shared Battle and Magick Lores: two licenses (I at 50 LP, II at 100
+LP; Warrior's are its HP Lore 11 and 12 at their native prices) that raise the stats its weapons and role use. The
+package carries a config for The Insurgent's Stat Lores (required) that gives these licenses their effects; let it win
+over Stat Lores' own config. Totals stay close to the base game's; what changes is which stats grow.
+
+| Job | Training | I | II |
+|---|---|---|---|
+| Knight | Bulwark | Defence +3, shield evasion +5 | Defence +4, magick shield evasion +5 |
+| Lancer | Dragoon | Strength +3, Magick Resist +3 | Strength +4, Magick Resist +4 |
+| Warrior | Juggernaut | HP +435, Strength +2, Vitality +4 | HP +500, Strength +3, Vitality +6 |
+| Samurai | Bushido | Strength +2, MP +40 | Strength +2, Magick +1, MP +60 |
+| Hunter | Fleetfoot | Strength +2, Speed +2 | Strength +3, Speed +3 |
+| Gunner | Deadeye | Speed +2, Attack +1 | Speed +2, Attack +1 |
+| Chemist | Field Medic | Vitality +3, Magick Resist +3, Strength +2 | Vitality +4, Magick Resist +4, Strength +2 |
+| Green Mage | Hexcraft | Magick +5, MP +30 | Magick +7, MP +50 |
+| Time Mage | Chronomancy | Magick +2, Speed +2 | Magick +4, Speed +2 |
+| Mystic | Mysticism | Strength +2, Magick +2 | Strength +2, Magick +2 |
+| White Mage | Devotion | Magick +4, Magick Resist +3 | Magick +5, Magick Resist +4 |
+| Black Mage | Sorcery | Magick +6 | Magick +8 |
+
+Magick Lore 13 keeps its effect and leaves the boards (guests still carry it); Magick Lore 16 is unused. Boards hold
+171 stat tiles instead of 223.
+
+Gunner uses light armor and guns. Chemist has crossbows.
 Excalibur belongs to Warrior. Native command bundles
 and item/action records are unchanged. The license-table override changes only
-six LP bytes: Guns 2–6 and Crossbows 3, sixteen content bytes in eight licenses and four license names (a
-separate word-table file). The manifest lists each
+LP bytes (Guns 2–6, Crossbows 3 and the training prices), sixteen content bytes in eight licenses and license
+names (the four split weapon licenses and the 24 trainings, a separate word-table file). The manifest lists each
 before/after price. Previously owned licenses are never charged again.
 
 ## Saved slot identities

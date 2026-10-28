@@ -21,7 +21,7 @@ def apply_license_lp(raw, patch, jobs):
     for change in changes:
         lid, before, after = (change[k] for k in ('licenseId', 'beforeLp', 'afterLp'))
         require(all(type(v) is int for v in (lid, before, after)) and 0 <= lid < count
-                and 0 <= before < after <= 255, 'Invalid license LP increase')
+                and 0 <= before <= 255 and 0 < after <= 255 and before != after, 'Invalid license LP change')
         owners = [j['name'] for j in jobs if any(c['licenseId'] == lid for c in j['cells'])]
         require(owners == [change['owner']], 'License LP change must have its sole declared owner')
         offset = start+stride*lid+4

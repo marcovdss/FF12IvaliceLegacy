@@ -120,8 +120,12 @@ class BoardPortTest(unittest.TestCase):
     def test_round_two_role_constraints(self):
         ids = {j['name']:{c['licenseId'] for c in j['cells']} for j in RECIPE['jobs']}
         self.assertFalse(ids['Gunner'] & (set(range(126,136))|{349,350}))
-        self.assertEqual(ids['Chemist'] & {251,252,253,254,255,*range(307,318)},
-                         {251,252,253,254,255,307,308,309})
+        # Job stat trainings (0.5.0): deep Battle/Magick Lores and HP Lore 11/12 only as each job's own two.
+        training = json.loads((Path(__file__).resolve().parents[1]/'patches/stat_training.json').read_text(encoding='utf-8'))
+        own = {t['job']: {s['licenseId'] for s in t['steps']} for t in training['trainings']}
+        for name, values in ids.items():
+            self.assertEqual(values & {255, 260, *range(305, 329)}, own[name], name)
+        self.assertEqual(ids['Chemist'] & {251,252,253,254}, {251,252,253,254})
         self.assertTrue(all({335,49,52,95,76,330} <= values for values in ids.values()))
         shared = {205: {'Green Mage', 'Knight', 'Warrior'}, 277: {'Hunter', 'Gunner', 'Green Mage', 'Mystic'},
                   278: {'Chemist', 'Warrior', 'Samurai', 'Hunter'}, 280: {'White Mage', 'Black Mage', 'Time Mage'}}
@@ -149,4 +153,4 @@ class NativeResourcesTest(unittest.TestCase):
             self.assertTrue(all(len(a)<=len(b) for a,b in zip(parts,before[r['stringId']].split(b'\x02'))))
         native = battle_pack_section(archive.read('ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin'),12)
         priced = apply_license_lp(native,RECIPE['licenseLpPatch'],RECIPE['jobs'])
-        self.assertEqual(sum(a!=b for a,b in zip(native,priced)),6)
+        self.assertEqual(sum(a!=b for a,b in zip(native,priced)),len(RECIPE['licenseLpPatch']['changes']))

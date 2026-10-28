@@ -105,7 +105,7 @@ def build(game, out):
     from .vbf import VBF
     game = Path(game)
     recipe = json.loads((ROOT/'patches/base_jobs.json').read_text(encoding='utf-8'))
-    require(recipe['version'] == '0.4.1', 'Unsupported base-job version')
+    require(recipe['version'] == '0.5.0', 'Unsupported base-job version')
     require(sha((game/'x64/FFXII_TZA.exe').read_bytes()) == recipe['gameExeSha256'],
             'Unsupported game executable')
     archive = VBF(game/'FFXII_TZA.vbf')
@@ -144,7 +144,9 @@ def build(game, out):
     require(not (deploy/(pack+'.dir/section_061.bin')).exists(), 'Conflicting deployed word table')
     loose_names = deploy/names_path
     if loose_names.exists():
-        require(loose_names.is_file() and loose_names.read_bytes() == names, 'Conflicting deployed license names')
+        # The previous BaseJobs version's own names are a known, replaceable winner.
+        require(loose_names.is_file() and (loose_names.read_bytes() == names or sha(loose_names.read_bytes()) ==
+                recipe['licenseNamePatch'].get('previousResultSha256')), 'Conflicting deployed license names')
     full_loose = deploy/pack
     if full_loose.is_file():
         require(battle_pack_section(full_loose.read_bytes(), 12) in (licenses, updated_licenses),
@@ -153,7 +155,8 @@ def build(game, out):
     if loose_license.exists():
         # The previous BaseJobs version's own table is a known, replaceable winner.
         require(loose_license.is_file() and (loose_license.read_bytes() in (licenses, updated_licenses) or
-                sha(loose_license.read_bytes()) == recipe['licenseLpPatch'].get('previousResultSha256')),
+                sha(loose_license.read_bytes()) in {recipe['licenseLpPatch'].get('previousResultSha256'),
+                                                    recipe['licenseContentPatch'].get('previousResultSha256')}),
                 'Conflicting deployed license section')
     files = apply_boards(read, recipe, licenses)
     # Additional native UI resources are source-pinned by the label recipe.
@@ -164,11 +167,16 @@ def build(game, out):
     files[pack+'.dir/section_012.bin'] = updated_licenses
     files[names_path] = names
     files = {PREFIX+key: value for key, value in files.items()}
+    # Job stat trainings: The Insurgent's Stat Lores config (wins over Stat Lores' own config by a load-order rule).
+    from .stat_training import CONFIG, check_licenses, render
+    training = json.loads((ROOT/'patches/stat_training.json').read_text(encoding='utf-8'))
+    check_licenses(licenses, training)
+    files[CONFIG] = render(training)
     docs = 'IvaliceLegacy-BaseJobs/'
     files[docs+'README.md'] = (ROOT/'package_base_jobs/README.md').read_bytes()
     files[docs+'CHANGELOG.md'] = (ROOT/'package_base_jobs/CHANGELOG.md').read_bytes()
     metadata = {'status': 'Offline experimental candidate; not installed or validated in-game',
-                'version': '0.4.1',
+                'version': '0.5.0',
                 'recipeSha256': sha((ROOT/'patches/base_jobs.json').read_bytes()),
                 'licenseLpChanges': recipe['licenseLpPatch']['changes'],
                 'nativeSlots': [{k: j[k] for k in ('nativeSlot','sourceName','name')} for j in recipe['jobs']],
@@ -178,5 +186,5 @@ def build(game, out):
     files[docs+'manifest.json'] = (json.dumps({**metadata, 'files': {key: sha(value) for key, value in sorted(files.items())},
                                              'manifestExcludesOwnHash': True}, indent=2)+'\n').encode()
     return write_package(files, out,
-                         'IvaliceLegacy-BaseJobs-0.4.1', 'Ivalice Legacy Base Jobs Candidate', '0.4.1',
+                         'IvaliceLegacy-BaseJobs-0.5.0', 'Ivalice Legacy Base Jobs Candidate', '0.5.0',
                          metadata)

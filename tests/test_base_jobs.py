@@ -126,13 +126,14 @@ class FullBaseJobsBuildTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             archive, manifest = build(os.environ['IVALICE_LEGACY_GAME'], directory)
             with zipfile.ZipFile(archive) as packed:
-                self.assertEqual(len(packed.namelist()), 19)
+                self.assertEqual(len(packed.namelist()), 20)  # 12 boards, 2 text, 2 tables, Stat Lores config, 3 docs
                 self.assertEqual(set(packed.namelist()), set(manifest['files']))
                 for relative, digest in manifest['files'].items():
                     self.assertEqual(hashlib.sha256(packed.read(relative)).hexdigest(), digest)
                 embedded = json.loads(packed.read('IvaliceLegacy-BaseJobs/manifest.json'))
                 self.assertTrue(embedded['manifestExcludesOwnHash'])
-                self.assertEqual(len(embedded['files']), 18)
+                self.assertEqual(len(embedded['files']), 19)
+                self.assertIn('x64/scripts/config/TheInsurgentsStatLoresConfig.lua', manifest['files'])
                 for relative, digest in embedded['files'].items():
                     self.assertEqual(digest, manifest['files'][relative])
                 root = Path(__file__).resolve().parents[1]

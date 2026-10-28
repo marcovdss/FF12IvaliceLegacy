@@ -1,3 +1,10 @@
+# 0.5.0 candidate
+
+- Job stat trainings: each job's deep shared Battle/Magick Lores become two licenses of its own (e.g. Hunter
+  Fleetfoot I/II: Strength and Speed), with effects from an included The Insurgent's Stat Lores config. Shared basics
+  unchanged. Boards: 223 → 171 stat tiles, re-laid out with the same rules, islands and shared tools as 0.4.1.
+- Builds over an installed 0.4.1.
+
 # 0.4.1 candidate
 
 - Shared basic tools where another role needs them: Decoy + Oil (Knight, Warrior), Cure + Blindna (Knight), Protect +
