@@ -2,42 +2,328 @@
   "schemaVersion": 1,
   "description": "Job stat trainings: each job's deep stat licenses become two licenses of its own (I and II) that raise the stats its weapons and role use. Written as The Insurgent's Stat Lores config: the shared basics (HP Lore 1-12 rows other than the trainings, Battle Lore 1-4, Magick Lore 1-4, 13 and 16) keep their native values.",
   "trainings": [
-    {"job": "Knight", "name": "Bulwark", "steps": [
-      {"licenseId": 314, "augment": "battleLore13", "lp": 50, "stats": {"defense": 3, "evadeShield": 5}},
-      {"licenseId": 315, "augment": "battleLore14", "lp": 100, "stats": {"defense": 4, "magickEvadeShield": 5}}]},
-    {"job": "Lancer", "name": "Dragoon", "steps": [
-      {"licenseId": 312, "augment": "battleLore11", "lp": 50, "stats": {"strength": 3, "magickResist": 3}},
-      {"licenseId": 313, "augment": "battleLore12", "lp": 100, "stats": {"strength": 4, "magickResist": 4}}]},
-    {"job": "Warrior", "name": "Juggernaut", "steps": [
-      {"licenseId": 305, "augment": "hpLore11", "lp": 130, "stats": {"hp": 435, "strength": 2, "vitality": 4}},
-      {"licenseId": 306, "augment": "hpLore12", "lp": 220, "stats": {"hp": 500, "strength": 3, "vitality": 6}}]},
-    {"job": "Samurai", "name": "Bushido", "steps": [
-      {"licenseId": 255, "augment": "battleLore5", "lp": 50, "stats": {"strength": 2, "mp": 40}},
-      {"licenseId": 307, "augment": "battleLore6", "lp": 100, "stats": {"strength": 2, "magickPower": 1, "mp": 60}}]},
-    {"job": "Hunter", "name": "Fleetfoot", "steps": [
-      {"licenseId": 316, "augment": "battleLore15", "lp": 50, "stats": {"strength": 2, "speed": 2}},
-      {"licenseId": 317, "augment": "battleLore16", "lp": 100, "stats": {"strength": 3, "speed": 3}}]},
-    {"job": "Gunner", "name": "Deadeye", "steps": [
-      {"licenseId": 308, "augment": "battleLore7", "lp": 50, "stats": {"speed": 2, "attackPower": 1}},
-      {"licenseId": 309, "augment": "battleLore8", "lp": 100, "stats": {"speed": 2, "attackPower": 1}}]},
-    {"job": "Chemist", "name": "Field Medic", "steps": [
-      {"licenseId": 310, "augment": "battleLore9", "lp": 50, "stats": {"vitality": 3, "magickResist": 3, "strength": 2}},
-      {"licenseId": 311, "augment": "battleLore10", "lp": 100, "stats": {"vitality": 4, "magickResist": 4, "strength": 2}}]},
-    {"job": "Green Mage", "name": "Hexcraft", "steps": [
-      {"licenseId": 323, "augment": "magickLore11", "lp": 50, "stats": {"magickPower": 5, "mp": 30}},
-      {"licenseId": 324, "augment": "magickLore12", "lp": 100, "stats": {"magickPower": 7, "mp": 50}}]},
-    {"job": "Time Mage", "name": "Chronomancy", "steps": [
-      {"licenseId": 319, "augment": "magickLore7", "lp": 50, "stats": {"magickPower": 2, "speed": 2}},
-      {"licenseId": 320, "augment": "magickLore8", "lp": 100, "stats": {"magickPower": 4, "speed": 2}}]},
-    {"job": "Mystic", "name": "Mysticism", "steps": [
-      {"licenseId": 260, "augment": "magickLore5", "lp": 50, "stats": {"strength": 2, "magickPower": 2}},
-      {"licenseId": 318, "augment": "magickLore6", "lp": 100, "stats": {"strength": 2, "magickPower": 2}}]},
-    {"job": "White Mage", "name": "Devotion", "steps": [
-      {"licenseId": 321, "augment": "magickLore9", "lp": 50, "stats": {"magickPower": 4, "magickResist": 3}},
-      {"licenseId": 322, "augment": "magickLore10", "lp": 100, "stats": {"magickPower": 5, "magickResist": 4}}]},
-    {"job": "Black Mage", "name": "Sorcery", "steps": [
-      {"licenseId": 326, "augment": "magickLore14", "lp": 50, "stats": {"magickPower": 6}},
-      {"licenseId": 327, "augment": "magickLore15", "lp": 100, "stats": {"magickPower": 8}}]}
+    {
+      "job": "Knight",
+      "name": "Bulwark",
+      "steps": [
+        {
+          "licenseId": 314,
+          "augment": "battleLore13",
+          "lp": 50,
+          "stats": {
+            "defense": 3,
+            "evadeShield": 5
+          },
+          "help": "Defense +3, Shield Evade +5."
+        },
+        {
+          "licenseId": 315,
+          "augment": "battleLore14",
+          "lp": 100,
+          "stats": {
+            "defense": 4,
+            "magickEvadeShield": 5
+          },
+          "help": "Defense +4, Magick Shield Evade +5."
+        }
+      ]
+    },
+    {
+      "job": "Lancer",
+      "name": "Dragoon",
+      "steps": [
+        {
+          "licenseId": 312,
+          "augment": "battleLore11",
+          "lp": 50,
+          "stats": {
+            "strength": 3,
+            "magickResist": 3
+          },
+          "help": "Strength +3, Magick Resist +3."
+        },
+        {
+          "licenseId": 313,
+          "augment": "battleLore12",
+          "lp": 100,
+          "stats": {
+            "strength": 4,
+            "magickResist": 4
+          },
+          "help": "Strength +4, Magick Resist +4."
+        }
+      ]
+    },
+    {
+      "job": "Warrior",
+      "name": "Juggernaut",
+      "steps": [
+        {
+          "licenseId": 305,
+          "augment": "hpLore11",
+          "lp": 130,
+          "stats": {
+            "hp": 435,
+            "strength": 2,
+            "vitality": 4
+          },
+          "help": "HP +435, Strength +2, Vit +4."
+        },
+        {
+          "licenseId": 306,
+          "augment": "hpLore12",
+          "lp": 220,
+          "stats": {
+            "hp": 500,
+            "strength": 3,
+            "vitality": 6
+          },
+          "help": "HP +500, Strength +3, Vit +6."
+        }
+      ]
+    },
+    {
+      "job": "Samurai",
+      "name": "Bushido",
+      "steps": [
+        {
+          "licenseId": 255,
+          "augment": "battleLore5",
+          "lp": 50,
+          "stats": {
+            "strength": 2,
+            "mp": 40
+          },
+          "help": "Strength +2, MP +40."
+        },
+        {
+          "licenseId": 307,
+          "augment": "battleLore6",
+          "lp": 100,
+          "stats": {
+            "strength": 2,
+            "magickPower": 1,
+            "mp": 60
+          },
+          "help": "Strength +2, Magick +1, MP +60."
+        }
+      ]
+    },
+    {
+      "job": "Hunter",
+      "name": "Fleetfoot",
+      "steps": [
+        {
+          "licenseId": 316,
+          "augment": "battleLore15",
+          "lp": 50,
+          "stats": {
+            "strength": 2,
+            "speed": 2
+          },
+          "help": "Strength +2, Speed +2."
+        },
+        {
+          "licenseId": 317,
+          "augment": "battleLore16",
+          "lp": 100,
+          "stats": {
+            "strength": 3,
+            "speed": 3
+          },
+          "help": "Strength +3, Speed +3."
+        }
+      ]
+    },
+    {
+      "job": "Gunner",
+      "name": "Deadeye",
+      "steps": [
+        {
+          "licenseId": 308,
+          "augment": "battleLore7",
+          "lp": 50,
+          "stats": {
+            "speed": 2,
+            "attackPower": 1
+          },
+          "help": "Speed +2, Attack +1."
+        },
+        {
+          "licenseId": 309,
+          "augment": "battleLore8",
+          "lp": 100,
+          "stats": {
+            "speed": 2,
+            "attackPower": 1
+          },
+          "help": "Speed +2, Attack +1."
+        }
+      ]
+    },
+    {
+      "job": "Chemist",
+      "name": "Field Medic",
+      "steps": [
+        {
+          "licenseId": 310,
+          "augment": "battleLore9",
+          "lp": 50,
+          "stats": {
+            "vitality": 3,
+            "magickResist": 3,
+            "strength": 2
+          },
+          "help": "Vit +3, Magick Resist +3, Str +2."
+        },
+        {
+          "licenseId": 311,
+          "augment": "battleLore10",
+          "lp": 100,
+          "stats": {
+            "vitality": 4,
+            "magickResist": 4,
+            "strength": 2
+          },
+          "help": "Vit +4, Magick Resist +4, Str +2."
+        }
+      ]
+    },
+    {
+      "job": "Green Mage",
+      "name": "Hexcraft",
+      "steps": [
+        {
+          "licenseId": 323,
+          "augment": "magickLore11",
+          "lp": 50,
+          "stats": {
+            "magickPower": 5,
+            "mp": 30
+          },
+          "help": "Magick +5, MP +30."
+        },
+        {
+          "licenseId": 324,
+          "augment": "magickLore12",
+          "lp": 100,
+          "stats": {
+            "magickPower": 7,
+            "mp": 50
+          },
+          "help": "Magick +7, MP +50."
+        }
+      ]
+    },
+    {
+      "job": "Time Mage",
+      "name": "Chronomancy",
+      "steps": [
+        {
+          "licenseId": 319,
+          "augment": "magickLore7",
+          "lp": 50,
+          "stats": {
+            "magickPower": 2,
+            "speed": 2
+          },
+          "help": "Magick +2, Speed +2."
+        },
+        {
+          "licenseId": 320,
+          "augment": "magickLore8",
+          "lp": 100,
+          "stats": {
+            "magickPower": 4,
+            "speed": 2
+          },
+          "help": "Magick +4, Speed +2."
+        }
+      ]
+    },
+    {
+      "job": "Mystic",
+      "name": "Mysticism",
+      "steps": [
+        {
+          "licenseId": 260,
+          "augment": "magickLore5",
+          "lp": 50,
+          "stats": {
+            "strength": 2,
+            "magickPower": 2
+          },
+          "help": "Strength +2, Magick +2."
+        },
+        {
+          "licenseId": 318,
+          "augment": "magickLore6",
+          "lp": 100,
+          "stats": {
+            "strength": 2,
+            "magickPower": 2
+          },
+          "help": "Strength +2, Magick +2."
+        }
+      ]
+    },
+    {
+      "job": "White Mage",
+      "name": "Devotion",
+      "steps": [
+        {
+          "licenseId": 321,
+          "augment": "magickLore9",
+          "lp": 50,
+          "stats": {
+            "magickPower": 4,
+            "magickResist": 3
+          },
+          "help": "Magick +4, Magick Resist +3."
+        },
+        {
+          "licenseId": 322,
+          "augment": "magickLore10",
+          "lp": 100,
+          "stats": {
+            "magickPower": 5,
+            "magickResist": 4
+          },
+          "help": "Magick +5, Magick Resist +4."
+        }
+      ]
+    },
+    {
+      "job": "Black Mage",
+      "name": "Sorcery",
+      "steps": [
+        {
+          "licenseId": 326,
+          "augment": "magickLore14",
+          "lp": 50,
+          "stats": {
+            "magickPower": 6
+          },
+          "help": "Magick +6."
+        },
+        {
+          "licenseId": 327,
+          "augment": "magickLore15",
+          "lp": 100,
+          "stats": {
+            "magickPower": 8
+          },
+          "help": "Magick +8."
+        }
+      ]
+    }
   ],
-  "offBoards": [325, 328]
+  "offBoards": [
+    325,
+    328
+  ],
+  "help": {
+    "sourceSha256": "3b1dbac27b2c433a50e09b67160fa33eee3912a2a142f35d0e00290fce914bbc",
+    "resultSha256": "1fdbc82b410f8102e865d26d60756f32e0cb97f37f11cff1e5c9691123b74188"
+  }
 }

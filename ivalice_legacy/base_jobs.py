@@ -166,10 +166,18 @@ def build(game, out):
     files.update(labels)
     files[pack+'.dir/section_012.bin'] = updated_licenses
     files[names_path] = names
+    # Board help for the job stat trainings (word-table help sub-table, rewritten in place).
+    from .license_help import license_help, HELP_SUBTABLE
+    from .stat_training import steps
+    training = json.loads((ROOT/'patches/stat_training.json').read_text(encoding='utf-8'))
+    help_path = f'{pack}.dir/section_061.bin.dir/section_{HELP_SUBTABLE:03}.bin'
+    files[help_path] = license_help(battle_pack_section(packed, 58), battle_pack_section(packed, 61),
+                                    training['help'], steps(training))
+    if (deploy/help_path).exists():
+        require((deploy/help_path).read_bytes() == files[help_path], 'Conflicting deployed license help')
     files = {PREFIX+key: value for key, value in files.items()}
     # Job stat trainings: The Insurgent's Stat Lores config (wins over Stat Lores' own config by a load-order rule).
     from .stat_training import CONFIG, check_licenses, render
-    training = json.loads((ROOT/'patches/stat_training.json').read_text(encoding='utf-8'))
     check_licenses(licenses, training)
     files[CONFIG] = render(training)
     docs = 'IvaliceLegacy-BaseJobs/'

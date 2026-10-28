@@ -37,7 +37,8 @@ def steps(patch):
             require(step['stats'] and all(k in TYPES and type(v) is int and 0 < v <= 999
                                           for k, v in step['stats'].items()), f"{t['job']}: invalid stats")
             require(type(step['lp']) is int and 0 < step['lp'] <= 255, f"{t['job']}: invalid LP")
-            out.append({**step, 'job': t['job'], 'name': f"{t['name']} {'I' * n}"})
+            require(isinstance(step.get('help'), str) and step['help'], f"{t['job']}: missing help text")
+            out.append({**step, 'job': t['job'], 'name': f"{t['name']} {'I' * n}", 'augmentBit': AUGMENT_BITS[step['augment']]})
     require(len({s['licenseId'] for s in out}) == len({s['augment'] for s in out}) == 24, 'Duplicate training')
     return out
 

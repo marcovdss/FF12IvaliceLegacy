@@ -48,5 +48,33 @@ class StatTrainingTest(unittest.TestCase):
         self.assertEqual(len(AUGMENT_BITS), 44)
 
 
+@unittest.skipUnless(__import__('os').environ.get('IVALICE_LEGACY_GAME'), 'set IVALICE_LEGACY_GAME for source integration')
+class LicenseHelpTest(unittest.TestCase):
+    def test_help_records_change_in_place_and_decode(self):
+        import os, struct
+        from ivalice_legacy.vbf import VBF
+        from ivalice_legacy.formats import battle_pack_section
+        from ivalice_legacy.license_help import license_help, help_record, encode, HELP_SUBTABLE
+        pack = VBF(Path(os.environ['IVALICE_LEGACY_GAME'])/'FFXII_TZA.vbf').read(
+            'ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin')
+        s58, s61 = battle_pack_section(pack, 58), battle_pack_section(pack, 61)
+        out = license_help(s58, s61, PATCH['help'], steps(PATCH))
+        bounds = [struct.unpack_from('<I', s61, 4 + 4 * i)[0] for i in range(16)]
+        native = s61[bounds[HELP_SUBTABLE]:bounds[HELP_SUBTABLE + 1]]
+        self.assertEqual(len(out), len(native))
+        self.assertEqual(out[:4 + 4 * 130], native[:4 + 4 * 130])  # offsets unchanged
+        slots = [struct.unpack_from('<I', out, 4 + 4 * i)[0] for i in range(129)] + [len(out)]
+        trained = {help_record(s58, s['augmentBit']): s['help'] for s in steps(PATCH)}
+        for i in range(129):
+            a, b = slots[i], slots[i + 1]
+            if i in trained:
+                self.assertEqual(out[a + 2:a + 2 + len(encode(trained[i])) + 1], encode(trained[i]) + b'\0')
+            else:
+                self.assertEqual(out[a:b], native[a:b])
+        bad = json.loads(json.dumps(PATCH)); bad['trainings'][0]['steps'][0]['help'] = 'x' * 60
+        with self.assertRaisesRegex(ValueError, 'does not fit'):
+            license_help(s58, s61, bad['help'], steps(bad))
+
+
 if __name__ == '__main__':
     unittest.main()
