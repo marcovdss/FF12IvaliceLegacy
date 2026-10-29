@@ -89,6 +89,20 @@ persistence are not built: in this pilot every base Hunter has the line.
 
 ## Clan ledger
 
+## Proficiency 0.1.0 (ships as its own package)
+
+- `proficiency.lua` decides each job's Clan line: 12 Clan ranks = 3 stages x 4 levels (ranks 1-4 stage I, 5-8 II,
+  9-12 III), applied by the character's current job to whatever they wield. 0.1.0 builds stage I for Hunter
+  (Pursuit, any weapon), Warrior (Cleave), Lancer (Grounding), Samurai (Zanshin), Gunner (Suppression), Time Mage
+  (Detonate) and Green Mage (Mana Leech). It also writes Montblanc's lines for each new rank.
+- `forge_proficiency_165.lua` is Forge's `config/functions/165.lua` (every physical hit, after the damage is known).
+  It runs the original first. Effects go through Forge's own end-of-hit step (statuses, durations, HP/MP) or the
+  target's charge time.
+- Legacy saves only (LEGCY_ddd + executable pins). The rewarded rank is stored beside the save
+  (`IvaliceLegacyProficiency`). Leaving the Clan hall (location 302) with an unrewarded rank makes Montblanc speak
+  in native dialogue windows and claims it.
+- `clan_rank.lua` reads the rank without side effects.
+
 ## Attack area experiment 0.0.2: greatsword-only cleave
 
 Unlike the rest of this folder, these two files ship in the Attack area experiment package.
