@@ -7,11 +7,19 @@ The goal is an Ivalice where preparation wins: jobs that combine instead of over
 play, enemies that act instead of just hitting harder, rare monsters that rule their zones, a Clan worth climbing,
 and progression you can't steamroll.
 
-> **Status: early development (0.0.10).** Only the first modules exist so far. Expect large changes between
-> versions. Incremental updates are intended to continue your existing Legacy campaign. Save compatibility will
-> be checked for each change; any migration or restart requirement will be stated before installation.
+> **Status: early development.** Ivalice Legacy ships as several packages that are developed and tested together.
+> Expect large changes between versions. Updates are intended to continue your existing Legacy campaign; any
+> migration or restart requirement will be stated before installation.
 
-## What's in this version
+| Package | Version | What it is | Tested in game |
+|---|---|---|---|
+| Ivalice Legacy (main) | 0.0.10 | Shops, story stock, ability chests, Kings, separate save files | Yes (earlier versions; 0.0.10 adds a test shop slot) |
+| Base Jobs | 0.5.0 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.0 not yet |
+| Arsenal | 0.5.0 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.0 not yet |
+| Proficiency | 0.2.0 | Clan-rank job lines handed out by Montblanc | Not yet |
+| Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
+
+## Main package (0.0.10)
 
 **Opening stock.** Rabanastre's merchants sell a wider set of opening tools from the very start. Items they
 already stocked later in the story move to the start instead of appearing twice. Prices are unchanged.
@@ -25,267 +33,202 @@ already stocked later in the story move to the start instead of appearing twice.
 | Batahn's Technicks | First Aid, Steal |
 
 **Story stock.** As the story advances, shops add the gear, ammunition, magicks and Technicks of that stage, so
-the shop shelf grows with the journey instead of all at once. Rabanastre's merchants carry every addition from its
-story point on; the region's own shop carries it too once you reach it. Timing follows the item progression of
-established overhauls, and items that replace a consumable come after it (Phoenix Down before Raise, Gold Needle
-before Stona). Examples: the first element and status ammunition before Bhujerba, Ether around Raithwall, ninja swords
-and greatswords in the second half of the story, Flare and Esunaga late. Items already sold earlier keep their earlier
-offer. Prices are unchanged.
+the shop shelf grows with the journey instead of all at once. Timing follows the item progression of established
+overhauls, and items that replace a consumable come after it (Phoenix Down before Raise, Gold Needle before Stona).
+Prices are unchanged.
 
-**Reliable ability chests.** Three chests holding abilities that are easy to miss now always appear: Cleanse
-(Cerobi Steppe, The Terraced Bank), Addle (Henne Mines, Special Charter Shaft) and Wither (Pharos, Subterra -
-Abyssal - North). Contents and one-time collection are unchanged.
+**Reliable ability chests.** Cleanse (Cerobi Steppe), Addle (Henne Mines) and Wither (Pharos) always appear.
 
-**Kings of the zone.** Each area's rare monster becomes the ruler of its zone and is always there:
+**Kings of the zone.** Ripe Rampager always appears in Yardang Labyrinth; Rain Dancer always appears in Giza
+Plains' rainy season, and only then. More Kings, each with its own fight and reward, are planned.
 
-- **Ripe Rampager** always appears in Yardang Labyrinth (Dalmasca Estersand), instead of a one-in-three chance.
-- **Rain Dancer** always appears in Warrior's Wash, Toam Hills and Giza's South Bank during Giza Plains' rainy
-  season, and only then.
+**Separate save files.** An early-init script (`x64/scripts/init/IvaliceLegacySaves.lua`, FF12 LUA Loader 2.0.1)
+makes the game list and write `LEGCY_000`, `LEGCY_001`, ... instead of `FFXII_###`. Normal saves are left alone.
+Disabling the main package and restarting restores the normal namespace. The script never copies, renames or
+converts saves. If activation fails it logs **FATAL** and restores its own changes: stop before loading or saving.
 
-More Kings, each with its own fight and reward, are planned.
+## Base Jobs (0.5.0)
 
-**Separate save files.** The main package includes an early-init save redirect at
-`x64/scripts/init/IvaliceLegacySaves.lua`, requiring FF12 LUA Loader **2.0.1**. On the supported build it patches
-the native listing prefix and filename format to `LEGCY_`, before game startup continues. Legacy therefore lists
-and addresses its own `LEGCY_000`, `LEGCY_001`, ... namespace. Normal `FFXII_000`, `FFXII_001`, ... files are
-left in place. Disabling the main package and restarting the game restores the normal namespace. A restart is
-required when switching; this is not an in-session toggle.
+Twelve standalone jobs, each with a compact board: Knight, Lancer, Warrior, Samurai, Hunter, Gunner, Chemist,
+Green Mage, Time Mage, Mystic, White Mage and Black Mage.
 
-The script does not copy, rename or convert saves. An intentionally imported `LEGCY_` campaign stays available;
-without Legacy files, an empty Legacy load list is expected. Filenames separate namespaces, not creation provenance.
+- **Boards** are compact regions around Essentials: gear above, accessories to the left, passive augments to the
+  right, magicks and Technicks below, cheaper licenses nearest the centre.
+- **Legendary islands.** Every board carries the same thirteen islands: each Esper gates the zodiac weapon of its
+  sign, and Zodiark gates Masamune. An island opens only for a character who owns that Esper (use
+  [Summons For All](https://www.nexusmods.com/finalfantasy12/mods/381) so anyone can license any Esper).
+- **Shared basic tools** where another role needs them (Decoy and Oil for Knight and Warrior, Libra for Gunner,
+  Green Mage and Mystic, and so on). Schools and signature Technicks stay with their job.
+- **Job stat trainings.** The deep, repeated Battle and Magick Lores become two licenses of each job's own
+  (I at 50 LP, II at 100 LP) that raise the stats its weapons and role use. Totals stay close to the base game's;
+  what changes is which stats grow. The board help states each training's effect. Requires
+  [The Insurgent's Stat Lores](https://www.nexusmods.com/finalfantasy12/mods/299); the package's Stat Lores config
+  must win over Stat Lores' own.
 
-The build checks the exact supported executable and Lua-loader bytes. Startup verifies both patched strings
-and logs `Ivalice Legacy: using separate save files (LEGCY_###); early-init readback verified.` (or
-`separate save files already active`). On activation failure it reports **FATAL** and attempts to restore only
-its own changes to their exact initial bytes. This does **not** block the whole game: stop before loading or saving
-if activation fails. Native filename/wildcard instructions and synthetic-memory transaction tests are checked;
-the save-list switch has also been checked in-game with Legacy enabled and disabled. Actual save writing,
-sidecars and Steam Cloud still require in-game validation.
+| Job | Training | I | II |
+|---|---|---|---|
+| Knight | Bulwark | Defense +3, shield evasion +5 | Defense +4, magick shield evasion +5 |
+| Lancer | Dragoon | Strength +3, Magick Resist +3 | Strength +4, Magick Resist +4 |
+| Warrior | Juggernaut | HP +435, Strength +2, Vitality +4 | HP +500, Strength +3, Vitality +6 |
+| Samurai | Bushido | Strength +2, MP +40 | Strength +2, Magick +1, MP +60 |
+| Hunter | Fleetfoot | Strength +2, Speed +2 | Strength +3, Speed +3 |
+| Gunner | Deadeye | Speed +2, Attack +1 | Speed +2, Attack +1 |
+| Chemist | Field Medic | Vitality +3, Magick Resist +3, Strength +2 | Vitality +4, Magick Resist +4, Strength +2 |
+| Green Mage | Hexcraft | Magick +5, MP +30 | Magick +7, MP +50 |
+| Time Mage | Chronomancy | Magick +2, Speed +2 | Magick +4, Speed +2 |
+| Mystic | Mysticism | Strength +2, Magick +2 | Strength +2, Magick +2 |
+| White Mage | Devotion | Magick +4, Magick Resist +3 | Magick +5, Magick Resist +4 |
+| Black Mage | Sorcery | Magick +6 | Magick +8 |
+
+Existing saved slot IDs and acquired licenses persist; there is no automatic respec. Hybrid jobs (66 combinations)
+are being designed and are not part of this package.
+
+## Arsenal (0.5.0)
+
+- **A gentle damage climb.** The opening weapons keep their attack; every later weapon is lower than native, so a
+  typical hit grows from about 47 at the start to about 830 by the last shops (native: about 1,375). Each weapon
+  keeps its place in its stage of the story; rewards are set for where they're found; the legendary weapons still
+  lead their families; story and guest weapons are unchanged.
+- **Family identities** change how weapons play, not their damage over time: daggers fastest, katana longest
+  chains, bows the highest critical rate, greatswords slow and heavy, swords the best evade, hammers knockback and
+  Disable, hand-bombs Slow or Oil, ninja swords Blind, spears reach. Speed, combo and critical identities are offset
+  in attack.
+- **Accessory identities** borrowed from established overhauls where they add a new answer, with renamed items.
+- **Test build:** the Claymore costs 800 gil so it can be bought early for the Attack area experiment.
+
+See [package_arsenal/README.md](package_arsenal/README.md) for every weapon's numbers.
+
+## Proficiency (0.2.0)
+
+Each job's Clan line, earned from **Montblanc** and applied to whatever the character wields.
+
+- **12 Clan ranks = 3 stages x 4 levels.** Ranks 1-4 raise stage I, 5-8 stage II, 9-12 stage III, so every new
+  rank is a reward. Montblanc gives an Apprentice's, Journeyman's and Master's Writ at ranks 1, 5 and 9, and stamps
+  it at every other rank.
+- **It follows the job.** A character uses the line of the job they have now, at the levels the Clan has earned;
+  changing jobs never loses progress.
+- **Montblanc speaks.** When the party leaves the Clan hall with a rank he hasn't rewarded yet, he speaks in the
+  game's own dialogue windows. Saves that were already ranked catch up once. The rewarded rank is stored beside
+  each Legacy save.
+
+| Job | Line | Stage I in short |
+|---|---|---|
+| Knight | Bulwark | A parry or block draws the attacker to the Knight |
+| Lancer | Grounding | Hits strip Float, then Haste, Faith and Regen |
+| Warrior | Cleave | A kill grants Bravery |
+| Samurai | Zanshin | Hits in a row on one target grant Haste |
+| Hunter | Pursuit | More damage to targets hindered by an ailment |
+| Gunner | Suppression | Hits push back the target's next action |
+| Chemist | Contagion | Statuses it lands spread to another foe |
+| Green Mage | Mana Leech | Hits drain MP to her |
+| Time Mage | Detonate | Hits can briefly Stop a Slowed target |
+| Mystic | Ki Flow | Counterattacks heal the Mystic |
+| White Mage | Overflow | Healing past full HP becomes Regen |
+| Black Mage | Resonance | Casting the same element twice charges faster |
+
+Stages II and III add new facets of the same idea. A few levels whose mechanism is not yet proven are inert for now
+(listed in `prototypes/proficiency.lua`). Requires [The Insurgent's Forge](https://www.nexusmods.com/finalfantasy12/mods/386)
+and FF12 LUA Loader 2.0.1 with its dialog plugin. The package is six Forge `config/functions` adapters (110, 165,
+170, 182, 22, 240), a shared runtime, the rules and a Clan rank reader; each adapter runs Forge's original function
+first.
+
+## Attack Area Experiment (0.0.2)
+
+The basic Attack gets an area (a half circle around the target). A Forge filter keeps the sweep for a party member's
+greatsword only; every other Attack, foes' included, hits just the unit it was aimed at. Tested in game: the
+Claymore hits the foes next to its target and other weapons don't. Disable the package to restore the native
+single-target Attack. Ivalice Together's co-op menus still list Attack as single-target.
 
 ## Planned
 
-- Twelve standalone base jobs, followed by derived hybrid classes for their combinations.
-- Gear with real trade-offs and effects, a second accessory slot for deeper builds.
+- Hybrid jobs for the 66 job combinations, stronger than base jobs, with their own Proficiency and armour lines.
+- Armour lines, gear with real trade-offs, and legendary weapons at full power for a Clan master of their job.
 - Enemy behavior: roles in every group, reactions to what the party does, boss phases.
-- Kings of the zone: each area's rare monster is always present, with its own fight and reward.
-- A reworked Clan Centurio, hunts and rewards.
+- More Kings of the zone, a reworked Clan Centurio, hunts and rewards.
 - Progression paced so preparation matters more than grinding.
 
 ## Requirements
 
 - FINAL FANTASY XII THE ZODIAC AGE, Steam version 1.0.4.0, **English** game language.
 - [FF12 External File Loader](https://www.nexusmods.com/finalfantasy12/mods/170) and
-  [FF12 LUA Loader](https://www.nexusmods.com/finalfantasy12/mods/171).
+  [FF12 LUA Loader](https://www.nexusmods.com/finalfantasy12/mods/171) (2.0.1).
+- Base Jobs: [The Insurgent's Stat Lores](https://www.nexusmods.com/finalfantasy12/mods/299). Proficiency and the
+  Attack Area Experiment: [The Insurgent's Forge](https://www.nexusmods.com/finalfantasy12/mods/386).
 - Optional: [Ivalice Together](https://www.nexusmods.com/finalfantasy12/mods/548) for local co-op. Ivalice Legacy
   does not change Ivalice Together's files or settings.
 - Recommended: [The Insurgent's Companions](https://www.nexusmods.com/finalfantasy12/mods/217) for a party of four,
-  which Ivalice Legacy is being balanced around, plus [Second Accessory](https://www.nexusmods.com/finalfantasy12/mods/436)
-  and [Gambit Rework](https://www.nexusmods.com/finalfantasy12/mods/471).
+  which Ivalice Legacy is being balanced around, plus [Second Accessory](https://www.nexusmods.com/finalfantasy12/mods/436),
+  [Gambit Rework](https://www.nexusmods.com/finalfantasy12/mods/471) and
+  [Summons For All](https://www.nexusmods.com/finalfantasy12/mods/381).
 - Do not combine with other content overhauls (Struggle for Freedom, The Planetary Age, Horizontal Progression
   Overhaul and similar). They replace the same game data.
 
 ## Building
 
-This repository contains only the overhaul's own code and patch definitions. No game files are included: the mod
-is built from your own installed game.
+This repository contains only the overhaul's own code and patch definitions. No game files are included: the
+packages are built from your own installed game. Python 3.10 or newer, no other packages.
 
 ```
-python -m ivalice_legacy build --game "C:\Program Files (x86)\Steam\steamapps\common\FINAL FANTASY XII THE ZODIAC AGE"
+python -m ivalice_legacy build --game "<game folder>"                        # main package
+python -m ivalice_legacy build-base-jobs --game "<game folder>"              # Base Jobs
+python -m ivalice_legacy build-arsenal --game "<game folder>"                # Arsenal
+python -m ivalice_legacy build-attack-area-experiment --game "<game folder>" # Attack Area Experiment
 ```
 
-Python 3.10 or newer, no other packages. The result is `dist/IvaliceLegacy-<version>.zip` plus a manifest of file
-hashes. The build stops with an error if your game files differ from the supported version, for example if another
-mod has replaced them inside the archive.
+Each command writes a zip plus a manifest of file hashes to `dist/`. A build stops with an error if your game files
+differ from the supported version, or if another mod already replaces the same data. Proficiency is plain Lua: copy
+`prototypes/forge_proficiency_<n>.lua` to `x64/scripts/config/TheInsurgentsForgeConfig/functions/<n>.lua` and
+`proficiency.lua`, `proficiency_runtime.lua` and `clan_rank.lua` to `x64/scripts/IvaliceLegacy/`.
 
-Run the tests with `python -m unittest discover -s tests` (set `IVALICE_LEGACY_GAME` to your game folder to include
-the full build test).
-
-## Experimental twelve-base-job candidate
-
-```
-python -m ivalice_legacy build-base-jobs --game "<game folder>"
-```
-
-This builds a separate `IvaliceLegacy-BaseJobs-0.1.0.zip` containing twelve authored
-boards, English native job names, package hashes and rollback documentation. It
-does not include the normal modules or the Paladin pilot. The regular `build`
-command is unchanged.
-
-The bases are Knight, Lancer, Warrior, Samurai, Hunter, Gunner, Chemist, Green Mage,
-Time Mage, Mystic, White Mage and Black Mage. Existing saved slot IDs and acquired
-licenses persist; each slot receives the curriculum listed in the candidate's
-README. No automatic respec or job reassignment occurs. Native special-license
-restrictions remain in place, with no ordinary node gated behind a special choice.
-
-These are offline candidates. Source hashes, geometry, LP routes and native text
-records were checked; game rendering, saved-campaign behavior and combat balance
-remain unverified. Do not combine with other board/English menu-command replacements
-or the experimental Paladin pilot. Together's files and settings are untouched.
-
-## Optional Rampager pilot
-
-Build the separate recovery-phase experiment with:
-
-```
-python -m ivalice_legacy build-rampager-pilot --game "<game folder>"
-```
-
-This produces `IvaliceLegacy-RampagerPilot-0.0.1.zip`: one enemy AI section, without a save redirect or other
-modules. The normal build remains unchanged. This is an offline experimental addon awaiting in-game validation.
-
-| Ripe Rampager condition | Original | Pilot |
-|---|---|---|
-| Enter existing recovery phase | HP < 50% | HP < 60% |
-| Leave recovery (two rules) | HP >= 60% | HP >= 70% |
-
-All other behavior, stats, rewards and spawns are preserved. Earlier recovery may lengthen the fight;
-its effect on difficulty remains untested. The addon replaces Estersand's complete enemy AI section and must not
-be combined with another mod editing that section. It does not include the Kings spawn changes.
-
-## Optional Estersand numbers pilot
-
-```
-python -m ivalice_legacy build-estersand-pilot --game "<game folder>"
-```
-
-A first test of enemy numbers: Dalmasca Estersand's five early regular foes take three to five ordinary hits
-instead of one to three, keeping their order of toughness. Attack, defence, rewards and behaviour are unchanged.
-
-| Foe | HP before | HP after |
-|---|---:|---:|
-| Cactite | 72 | 150 |
-| Wolf | 94 | 170 |
-| Cactoid | 100 | 175 |
-| Alpha Wolf | 113 | 185 |
-| Cockatrice | 136 | 215 |
-
-It replaces only Estersand's enemy stats table (one section) and can be combined with the Rampager pilot, which
-changes the AI section.
-
-## Paladin pilot (separate review candidate)
-
-The experimental Paladin pilot presents native **White Mage + Knight** as one
-authored board, in either job order. It retains all198 unique licenses from the
-source pair, native ownership, LP prices, Espers and Quickenings. Other pairs keep
-their normal boards. This is one pilot, not66 completed hybrid jobs.
-
-The new paths change progression: unchanged node prices do not mean identical
-LP investment to reach each ability. The layout remains a design candidate;
-actual UI, installed-loader behavior and campaign play await in-game validation.
-It is excluded from the normal build and introduces no save redirect.
-
-Build the pinned Windows x64 adapter and the separate candidate:
-
-```powershell
-python native/hybrid_boards/adapterbuild.py
-python -m ivalice_legacy.hybrid_pilot --game "<game folder>" --recipe patches/paladin_pilot.json --gate native/hybrid_boards/pilot-gate.json --out dist
-```
-
-The build refuses changed source boards, license definitions, incomplete hook
-plans or a gate that no longer matches the image/layout/loader bytes. Install
-only after reviewing the candidate on the intended Legacy profile, with the
-game closed. Do not hot-reload or hot-unload its process-lifetime native hooks.
-
-## Clan progression prototype
-
-`ivalice_legacy/clan_progression.py` defines an offline contract for character-specific
-equipment training. Each campaign supplies its own schema-1 ledger, keyed by stable
-character ID and either one job or a canonical unordered pair. Switching class or
-equipment selects only matching owned rules; base-job training is not added to a
-hybrid's line. Weapons, actual shields, head armor and body armor are eligible.
-Both accessory slots are excluded.
-
-Rank and completed quests determine availability separately from ownership. Missing
-ledger data starts empty; malformed data is rejected; unknown owned rule IDs are
-preserved but grant nothing. The module does not read saves, charge costs, apply
-combat effects or hook the game, and contains no production upgrade catalogue.
-Synthetic tests cover all 66 pairs and isolation between characters and classes.
-This prototype is excluded from installable game payloads.
-
-The separate [status prototype](prototypes/README.md) explores different utility
-for two owners of the same Dagger through caller-supplied class rules. It remains
-offline and excluded from builds; no production status chance or Clan effect is
-enabled by its presence in this repository.
-
-## QoL integration
-
-The selected QoL foundation uses separately obtained Manifesto **1.5.2** for
-Smart Stealing Gambits, Dynamic Description **1.1.14**, and Descriptive Inventory
-**1.2.2**. The checked loader versions are External File Loader **1.6.1** and
-Lua Loader **2.0.1**. These dependencies and their assets are not included in the
-main Legacy ZIP. Use Manifesto as the sole Smart Steal provider.
-
-Keep the integration's writable configuration in a separate Legacy-only provider:
-DD's `customAttributes.json` and all nine generated TIDI language files must
-belong to that provider. English-only isolation would still allow another game
-language to overwrite a shared preset. Preserve autosaves, automatic pause and
-crash diagnostics; the selected preset leaves optional changes other than
-Smart Stealing disabled.
-
-Offline checks cover the twelve boards' ordinary licensed gear/command selection
-and the generated-description buffer path. Native text rendering and gameplay
-acceptance require an existing-save observation. Esper descriptions remain outside
-the selected DD action range. Native DD/TIDI descriptions do not update Together's
-private overlay catalogue.
+Run the tests with `python -m unittest discover -s tests`. Set `IVALICE_LEGACY_GAME` to your game folder to include
+the full build tests; the Lua tests need [Lupa](https://pypi.org/project/lupa/).
 
 ## Installing
 
-### Separate personal settings while Legacy is enabled
-
-For the four selected mods, build a personalized MAIN package from your current
-settings. The source directory must contain the normal `x64/scripts/config/`
-structure:
-
-```powershell
-python -m ivalice_legacy build --game "<game folder>" --settings-from "<settings source folder>" --out dist
-```
-
-This adds exact copies of Bountiful Bundle's JSON, Global Gameplay Settings' Lua
-config, Vision's JSON and `Orderkeeper/modMenu.json` to the main Legacy package.
-Install that package with Legacy winning those four paths over their original
-providers. With MAIN enabled, reads and writes follow the deployed links into
-Legacy's private staging files. Disable MAIN and redeploy to restore the normal
-providers; enable and redeploy to resume the retained Legacy copies. Restart the
-game after switching. This isolates settings by enabled mod, not by individual save.
-
-The builder preserves bytes and chosen values, and requires all four files. It
-does not edit the source files or include these personal configs in this repository.
-Before a later upgrade, back up and carry forward the existing Legacy-owned
-copies, including changes saved through mod menus. A replacement package must
-not reset them to the other profile's settings. Without `--settings-from`, the
-build contains only the nine core Legacy files and does not provide this settings
-isolation. The four external mods remain separate dependencies.
-
-Use mod-manager deployment for this personalized package, with regular config
-files in Legacy's own staging directory. Manually copying over existing deployed
-links can overwrite another provider's settings and does not establish separate
-storage. The manual procedure below applies to the core-only build.
-
-- **Vortex:** install the built zip as a mod and deploy. Using a separate Vortex profile keeps other mod
-  collections intact.
-- **Manually:** copy both the zip's `mods` and `x64` folders into the game folder, merging them with the existing
-  folders. The save-isolation script must be at `x64/scripts/init/IvaliceLegacySaves.lua`.
+- **Vortex:** install each built zip as a mod and deploy. A separate Vortex profile keeps other mod collections
+  intact. Let Base Jobs win `TheInsurgentsStatLoresConfig.lua` over The Insurgent's Stat Lores.
+- **Manually:** copy the zip's `mods` and `x64` folders into the game folder, merging them with the existing ones.
 
 Ivalice Legacy keeps its own save files (see above). To continue a Legacy game started before 0.0.6, copy its
 `FFXII_###` file (and its `FFXII_###.dir` folder, if present) to `LEGCY_###` in the same save folder.
 
-To uninstall, disable or remove the mod in Vortex, or delete only the files copied from this package, including
-`x64/scripts/init/IvaliceLegacySaves.lua`. Preserve the existing `mods` and `x64` folders and their other contents.
+To uninstall, disable or remove the mods in Vortex, or delete only the files copied from these packages. Preserve
+the existing `mods` and `x64` folders and their other contents.
+
+### Separate personal settings while Legacy is enabled
+
+`python -m ivalice_legacy build --game "<game folder>" --settings-from "<settings source folder>"` adds exact copies
+of Bountiful Bundle's JSON, Global Gameplay Settings' Lua config, Vision's JSON and `Orderkeeper/modMenu.json` to the
+main package, so those mods keep separate settings while Legacy is enabled. Install it with Legacy winning those
+four paths, and carry the Legacy-owned copies forward before any later upgrade.
+
+## Experimental addons
+
+These build separately and are not part of the normal packages:
+
+- **Rampager pilot** (`build-rampager-pilot`): Ripe Rampager enters its recovery phase at 60% HP instead of 50%.
+- **Estersand numbers pilot** (`build-estersand-pilot`): Dalmasca Estersand's five early foes take three to five
+  hits instead of one to three.
+- **Paladin pilot** (`python -m ivalice_legacy.hybrid_pilot`): native White Mage + Knight shown as one authored
+  board, with a pinned native adapter in `native/hybrid_boards/`. A design candidate awaiting in-game validation.
+- **Clan progression and status prototypes** (`ivalice_legacy/clan_progression.py`, `prototypes/`): offline
+  contracts, excluded from installable packages unless a package section above says otherwise.
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
-| `patches/` | Readable patch definitions (opening stock, ability chests, Kings): what changes, plus hashes of the expected source and result |
-| `ivalice_legacy/` | Archive reader, file formats, patch appliers and the build command |
-| `package/` | Files shipped as they are, such as the separate-saves script |
-| `tests/` | Tests for the patch appliers and the full build |
+| `patches/` | Readable patch definitions (shops, chests, Kings, jobs, weapons, trainings): what changes, plus hashes of the expected source and result |
+| `ivalice_legacy/` | Archive reader, file formats, writers and the build commands |
+| `package/`, `package_base_jobs/`, `package_arsenal/` | Files and documentation shipped with each package |
+| `prototypes/` | Lua for Proficiency, the Attack area filter and diagnostics, plus offline prototypes |
+| `tests/` | Tests for the writers, the Lua modules and the full builds |
 | `native/hybrid_boards/` | Experimental C++ hybrid-board core and build tools, excluded from installable packages |
 
 ## Credits
 
 File formats build on the FFXII modding community's work, including The Insurgent's Workshop and Toolkit (Xeavin),
-the FF12 External File Loader and VM script tools (ffgriever) and VBFTool (topher-au).
+the FF12 External File Loader and Lua Loader (ffgriever), FehDead's dialog system, and VBFTool (topher-au).
 
 FINAL FANTASY XII is a trademark of Square Enix. This is an unofficial fan project; no game files are distributed
 here.

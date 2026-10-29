@@ -1,10 +1,11 @@
 # Ivalice Legacy: twelve base jobs candidate 0.5.0
 
 Experimental offline build for the English Steam game, version 1.0.4.0.
-Twelve custom boards, English job names and descriptions, six exclusive
-weapon-license LP price increases, four split weapon licenses and their new
-names are included. No Lua scripts,
-hooks, save redirection, equipment-stat changes or Together files are included.
+Twelve custom boards, English job names and descriptions, the job stat trainings
+(license prices, names, board help and a config for The Insurgent's Stat Lores),
+six exclusive weapon-license LP price increases, four split weapon licenses and
+their new names are included. No hooks, save redirection, equipment-stat changes
+or Together files are included.
 This candidate has not been validated in the game UI or in combat.
 
 Boards are compact regions around Essentials: gear above, accessories to the
