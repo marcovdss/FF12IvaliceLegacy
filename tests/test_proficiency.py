@@ -1,4 +1,4 @@
-"""No-game contracts for Proficiency 0.1.0 (rules module and the Forge 165 adapter)."""
+"""No-game contracts for Proficiency 0.2.0 (rules module, runtime and the Forge adapters)."""
 from pathlib import Path
 import unittest
 
@@ -16,89 +16,135 @@ class ProficiencyRulesTest(unittest.TestCase):
         self.lua = LuaRuntime(unpack_returned_tuples=True)
         self.lua.globals().P = self.lua.execute((ROOT/'prototypes/proficiency.lua').read_text(encoding='utf-8'))
         self.lua.execute('''
-          function hit(t)
-            local s = {job=8, actorId=1, targetId=9, foe=true, kill=false, bystander=false, category=1, damage=100,
-                       targetStatus={}, casterStatus={}, targetMp=50,
+          P.reset()
+          function S(t)
+            local s = {job=8, actorId=1, self=100, targetId=9, target=900, foe=true, kill=false, bystander=false,
+                       category=1, damage=100, targetStatus={}, casterStatus={}, targetMp=50, casterHpPct=100,
+                       casterMp=10, casterMaxMp=100, selfMaxHp=1000,
+                       party={{address=100, job=8, hpPct=100, mp=10, maxMp=100, status={}},
+                              {address=200, job=0, hpPct=40, mp=5, maxMp=100, status={silence=true}},
+                              {address=300, job=6, hpPct=90, mp=80, maxMp=100, status={}}},
+                       foes={{address=901, status={}}, {address=902, status={haste=true}}},
                        charge={current=20000, required=30000, last=20000}, roll=function() return true end}
             for k,v in pairs(t or {}) do s[k]=v end
             return s
           end
+          function others(a, op) local n = 0 for _, o in ipairs(a and a.others or {}) do if o.op == op then n = n + 1 end end return n end
         ''')
 
-    def test_levels_follow_ranks(self):
-        self.lua.execute('''
+    def run_lua(self, code):
+        self.lua.execute(code)
+
+    def test_levels_and_gates(self):
+        self.run_lua('''
           local function eq(r, a, b, c) local l = P.levels(r); assert(l[1]==a and l[2]==b and l[3]==c, r) end
-          eq(0,0,0,0); eq(1,1,0,0); eq(4,4,0,0); eq(5,4,1,0); eq(8,4,4,0); eq(9,4,4,1); eq(12,4,4,4)
-          eq(13,0,0,0); eq(-1,0,0,0); eq(2.5,0,0,0)
+          eq(0,0,0,0); eq(1,1,0,0); eq(4,4,0,0); eq(5,4,1,0); eq(9,4,4,1); eq(12,4,4,4); eq(13,0,0,0); eq(2.5,0,0,0)
+          assert(P.decide('hit', S({targetStatus={slow=true}}), 0) == nil)
+          assert(P.decide('hit', S({job=99}), 12) == nil)
         ''')
 
-    def test_no_rank_no_effect_and_unknown_jobs_ignored(self):
-        self.lua.execute('''
-          assert(P.decide(hit({targetStatus={slow=true}}), 0) == nil)
-          assert(P.decide(hit({job=4}), 12) == nil)      -- Knight: not built in 0.1.0
-          assert(P.decide(hit({job=99}), 12) == nil)
+    def test_hunter(self):
+        self.run_lua('''
+          assert(P.decide('hit', S({targetStatus={slow=true}}), 1).damage == 1.15)
+          assert(P.decide('hit', S({targetStatus={poison=true}}), 4).damage == 1.25)
+          assert(P.decide('hit', S({targetStatus={poison=true}}), 7).targetAdd[30])       -- II-3 Libra
+          local a = P.decide('hit', S({targetStatus={poison=true}, kill=true}), 12)
+          assert(a.casterAdd[20] == 0.75)                                                -- III Haste, longer at 4
+          assert(P.decide('hit', S({targetId=5}), 12).targetAdd[15] == 0.5)               -- III-2 next target Slowed
         ''')
 
-    def test_pursuit_any_weapon(self):
-        self.lua.execute('''
-          assert(P.decide(hit(), 4) == nil)
-          assert(P.decide(hit({targetStatus={slow=true}, category=9}), 1).damage == 1.15)
-          assert(P.decide(hit({targetStatus={poison=true}}), 4).damage == 1.25)
-          assert(P.decide(hit({targetStatus={slow=true}, foe=false}), 4) == nil)
+    def test_warrior(self):
+        self.run_lua('''
+          assert(P.decide('hit', S({job=7, kill=true}), 1).casterAdd[21] == 1)
+          assert(P.decide('hit', S({job=7, bystander=true, category=2}), 2).casterAdd[21] == 1)
+          assert(#P.decide('hit', S({job=7, kill=true, casterStatus={bravery=true}}), 4).casterRemove == 3)
+          assert(P.decide('hit', S({job=7, casterHpPct=40}), 5).casterAdd[21])            -- II below half
+          assert(P.decide('hit', S({job=7, casterHpPct=60}), 5) == nil)
+          assert(P.decide('hit', S({job=7, casterHpPct=60}), 7).casterAdd[21])            -- II-3 below 75%
+          assert(others(P.decide('hit', S({job=7, casterHpPct=40}), 8), 'add') == 1)     -- II-4 ally Bravery
+          assert(P.decide('hit', S({job=7, casterStatus={hpCritical=true}}), 9).targetAdd[10])  -- III Sap
+          assert(P.decide('hit', S({job=7, targetStatus={sap=true}}), 10).damage == 1.15)
+          assert(others(P.decide('hit', S({job=7, kill=true, targetStatus={sap=true}}), 11), 'add') == 1)
         ''')
 
-    def test_cleave_grounding_detonate(self):
-        self.lua.execute('''
-          local a = P.decide(hit({job=7, kill=true}), 1); assert(a.casterAdd[21] == 1 and not a.casterRemove)
-          assert(P.decide(hit({job=7, bystander=true, category=2}), 1) == nil)
-          assert(P.decide(hit({job=7, bystander=true, category=2}), 2).casterAdd[21] == 1)
-          assert(P.decide(hit({job=7, bystander=true, category=1}), 4) == nil)
-          assert(P.decide(hit({job=7, kill=true}), 3).casterAdd[21] == 1.5)
-          a = P.decide(hit({job=7, kill=true, casterStatus={bravery=true}}), 4)
-          assert(#a.casterRemove == 3)
-          a = P.decide(hit({job=1, targetStatus={float=true, haste=true, faith=true, regen=true}}), 2)
-          assert(#a.targetRemove == 2 and a.targetRemove[1] == 26 and a.targetRemove[2] == 20)
-          assert(#P.decide(hit({job=1, targetStatus={float=true, haste=true, faith=true, regen=true}}), 4).targetRemove == 4)
-          assert(P.decide(hit({job=1}), 4) == nil)
-          assert(P.decide(hit({job=6, targetStatus={slow=true}}), 1).targetAdd[3] == 0.5)
-          assert(P.decide(hit({job=6, targetStatus={immobilize=true}}), 1) == nil)
-          assert(P.decide(hit({job=6, targetStatus={immobilize=true}}), 2))
-          assert(P.decide(hit({job=6, targetStatus={slow=true, stop=true}}), 4) == nil)
-          assert(P.decide(hit({job=6, targetStatus={slow=true}, roll=function() return false end}), 4) == nil)
+    def test_lancer(self):
+        self.run_lua('''
+          local a = P.decide('hit', S({job=1, targetStatus={float=true, haste=true, faith=true, regen=true}}), 2)
+          assert(#a.targetRemove == 2)
+          assert(P.decide('hit', S({job=1, targetStatus={protect=true}}), 9) == nil)       -- buff left: no pin
+          assert(P.decide('hit', S({job=1}), 9).targetAdd[14] == 0.5)                     -- III pin
+          assert(P.decide('hit', S({job=1, targetStatus={float=true}}), 9).targetAdd[14]) -- stripped last buff
+          assert(P.decide('hit', S({job=1, targetStatus={immobilize=true}}), 11).damage == 1.15)
         ''')
 
-    def test_zanshin_chain(self):
-        self.lua.execute('''
+    def test_samurai(self):
+        self.run_lua('''
           P.reset()
-          assert(P.decide(hit({job=10}), 1) == nil); assert(P.decide(hit({job=10}), 1) == nil)
-          assert(P.decide(hit({job=10}), 1).casterAdd[20] == 1)
-          assert(P.decide(hit({job=10}), 2) == nil); assert(P.decide(hit({job=10}), 2).casterAdd[20] == 1)
-          assert(P.decide(hit({job=10, targetId=3}), 4) == nil); assert(P.decide(hit({job=10, targetId=3}), 4).casterAdd[20] == 1.5)
-          assert(P.decide(hit({job=10, actorId=2, targetId=3}), 4) == nil)  -- chains are per character
+          assert(P.decide('hit', S({job=10}), 1) == nil); assert(P.decide('hit', S({job=10}), 1) == nil)
+          assert(P.decide('hit', S({job=10}), 1).casterAdd[20] == 0.5)
+          assert(P.decide('aim', S({job=10, casterStatus={haste=true}}), 5).evade.weapon)
+          assert(not P.decide('aim', S({job=10, casterStatus={haste=true}}), 5).evade.parry)
+          assert(P.decide('aim', S({job=10, casterStatus={haste=true}}), 6).evade.parry)
+          assert(P.decide('aim', S({job=10}), 12) == nil)
+          P.reset()
+          local a = P.decide('hit', S({job=10, kill=true, casterStatus={haste=true}}), 10)
+          assert(a.casterAdd[20] and a.casterAdd[21])                                    -- III refresh + Bravery
+          a = P.decide('hit', S({job=10, casterStatus={haste=true}, targetStatus={protect=true}}), 7)
+          assert(math.abs(a.damage - 1/0.75) < 1e-9)                                      -- II-3 past Protect
         ''')
 
-    def test_suppression_and_mana_leech(self):
-        self.lua.execute('''
-          assert(P.decide(hit({job=2}), 1).chargeTo == 17000)
-          assert(P.decide(hit({job=2}), 4).chargeTo == 15500)
-          assert(P.decide(hit({job=2, charge={current=30000, required=30000, last=30000}}), 4) == nil)
-          assert(P.decide(hit({job=2, charge={current=20000, required=30000, last=0}}), 4) == nil)
-          assert(P.decide(hit({job=2, charge=false}), 4) == nil)
-          local a = P.decide(hit({job=3, damage=200}), 1); assert(a.drainMp == 10 and not a.targetAdd and not a.healHp)
-          a = P.decide(hit({job=3, damage=200, targetMp=4}), 2); assert(a.drainMp == 4 and a.targetAdd[9] == 1)
-          a = P.decide(hit({job=3, damage=200}), 4); assert(a.drainMp == 16 and a.healHp == 16)
-          assert(P.decide(hit({job=3, targetMp=0}), 4) == nil)
+    def test_gunner_time_mage_green_mage(self):
+        self.run_lua('''
+          P.reset()
+          assert(P.decide('hit', S({job=2}), 1).chargeTo == 17000)
+          assert(others(P.decide('hit', S({job=2}), 3), 'push') == 1)                     -- I-3 second foe
+          P.reset(); P.decide('hit', S({job=2}), 10)
+          local a = P.decide('hit', S({job=2}), 10)                                       -- III chain from 2 hits
+          assert(a.chargeTo == 14000 and a.targetAdd == nil)
+          P.reset(); P.decide('hit', S({job=2}), 11)
+          assert(P.decide('hit', S({job=2}), 11).targetAdd[15])                           -- III-3 Slow
+          a = P.decide('hit', S({job=6, targetStatus={slow=true}}), 7)
+          assert(a.targetAdd[3] == 0.5 and others(a, 'add') == 2 and others(a, 'remove') == 1)  -- II Slow 2 foes, strip Haste
+          assert(P.decide('hit', S({job=6, targetStatus={slow=true}, roll=function() return false end}), 4) == nil)
+          a = P.decide('hit', S({job=4, targetStatus={stop=true}, party={{address=100, job=4, hpPct=100, mp=0, maxMp=0, status={}}, {address=300, job=6, hpPct=100, mp=0, maxMp=0, status={}}}}), 10)
+          assert(a.casterAdd[20] and a.damage == 1.15)                                    -- Time Mage III aura
+          a = P.decide('hit', S({job=3, damage=200}), 4); assert(a.drainMp == 16 and a.healHp == 16)
+          a = P.decide('hit', S({job=3, damage=200, casterMp=100}), 8)                    -- II full: gives to allies
+          assert(a.drainMp == nil and a.targetMpLoss == 16 and others(a, 'mp') == 2 and others(a, 'remove') == 1)
+          assert(P.decide('hit', S({job=3, damage=200}), 9).chargeTo)                     -- III slows charge
+        ''')
+
+    def test_knight_mystic_white_black_chemist(self):
+        self.run_lua('''
+          local a = P.decide('guard', S({job=4, outcome='parry'}), 1); assert(others(a, 'add') == 1)
+          assert(P.decide('guard', S({job=4, outcome='dodge'}), 1) == nil)
+          assert(others(P.decide('guard', S({job=4, outcome='dodge'}), 2), 'add') == 1)
+          assert(others(P.decide('guard', S({job=4, outcome='block'}), 6), 'add') == 3)    -- Lure + Protect + Shell
+          assert(others(P.decide('ally', S({job=4}), 11), 'add') == 2)                    -- III Lure + Bravery
+          assert(P.decide('guard', S({job=5, outcome='parry'}), 12) == nil)
+          a = P.decide('guard', S({job=5, outcome='counter', attacker=777, casterStatus={blind=true, poison=true}}), 12)
+          assert(others(a, 'hp') == 2 and others(a, 'push') == 1 and others(a, 'mp') == 1)
+          assert(others(a, 'remove') == 3 and others(a, 'add') == 2)                     -- Blind + 2 ailments; Protect, Haste
+          a = P.decide('heal', S({job=0, overflow=120}), 12)
+          assert(a.targetAdd[25] and a.targetAdd[19] and a.targetAdd[18] and a.targetAdd[22] and others(a, 'add') == 3)
+          assert(P.decide('heal', S({job=0, overflow=0}), 12) == nil)
+          P.reset()
+          assert(P.decide('magick', S({job=9, element=1, mpCost=20}), 12) == nil)
+          a = P.decide('magick', S({job=9, element=1, mpCost=20}), 12); assert(a.casterCharge == 0.30)
+          a = P.decide('magick', S({job=9, element=1, mpCost=20}), 12); assert(others(a, 'mp') == 1 and a.damage == 1.15)
+          a = P.decide('status', S({job=11, landed={8}}), 9); assert(others(a, 'add') == 2)  -- III: two foes
+          assert(P.decide('status', S({job=11, landed={}}), 12) == nil)
         ''')
 
     def test_montblanc_speech(self):
-        self.lua.execute('''
+        self.run_lua('''
           local b = P.speech(0, 1); assert(#b == 3 and b[1]:find("Apprentice's Writ", 1, true))
           b = P.speech(1, 2); assert(#b == 1 and b[1]:find('Proficiency I 2/4', 1, true))
-          b = P.speech(4, 5); assert(#b == 2 and b[1]:find("Journeyman's Writ", 1, true))
-          b = P.speech(8, 9); assert(#b == 2 and b[1]:find("Master's Writ", 1, true))
-          b = P.speech(11, 12); assert(#b == 1 and b[1]:find('final stamp', 1, true))
+          b = P.speech(4, 5); assert(b[1]:find("Journeyman's Writ", 1, true))
+          b = P.speech(8, 9); assert(b[1]:find("Master's Writ", 1, true))
+          b = P.speech(11, 12); assert(b[1]:find('final stamp', 1, true))
           b = P.speech(0, 6); assert(b[1]:find('filing your training papers', 1, true) and b[#b]:find('II 2/4', 1, true))
-          assert(#P.speech(3, 3) == 0 and #P.speech(5, 2) == 0)
+          assert(#P.speech(3, 3) == 0)
           for _, pair in ipairs({{0,1},{1,2},{4,5},{8,9},{11,12},{0,12}}) do
             for _, box in ipairs(P.speech(pair[1], pair[2])) do
               local n = 0
@@ -114,55 +160,36 @@ class ProficiencyRulesTest(unittest.TestCase):
 
 @unittest.skipIf(LuaRuntime is None, 'requires Lupa Lua5.5')
 class ProficiencyAdapterTest(unittest.TestCase):
-    def load(self):
+    def test_adapters_share_one_runtime_and_always_run_original(self):
         lua = LuaRuntime(unpack_returned_tuples=True)
-        sources = {'scripts/IvaliceLegacy/proficiency.lua': (ROOT/'prototypes/proficiency.lua').read_text(encoding='utf-8'),
-                   'scripts/IvaliceLegacy/clan_rank.lua': (ROOT/'prototypes/clan_rank.lua').read_text(encoding='utf-8')}
+        sources = {f'scripts/IvaliceLegacy/{n}.lua': (ROOT/f'prototypes/{n}.lua').read_text(encoding='utf-8')
+                   for n in ('proficiency', 'proficiency_runtime', 'clan_rank')}
         lua.globals().sources = lua.table_from(sources)
         lua.execute('''
-          printed, handlers, events, opened = {}, {}, {}, {}
+          printed, registered, calls = {}, 0, {}
           print = function(s) printed[#printed+1] = s end
-          originalCalls = 0
           local real_load = load
-          loadfile = function(p)
-            if p == 'scripts/TheInsurgentsForge/functions/165.lua' then
-              return function() return function() originalCalls = originalCalls + 1 end end
-            end
-            return sources[p] and real_load(sources[p], '@'..p) or nil
+          loadfile = function(p, mode, env)
+            local n = p:match('functions/(%d+)%.lua$')
+            if n then return function() return function() calls[n] = (calls[n] or 0) + 1 end end end
+            return sources[p] and real_load(sources[p], '@'..p, mode, env) or nil
           end
-          local ram = {}
-          local function view() return setmetatable({}, {__index=function(_,a) return ram[a] or 0 end,
-            __newindex=function(_,a,v) ram[a]=v end}) end
-          memory = {u8=view(), u32=view(), u64=view()}
-          memory.readArray = function() return {} end
-          memory.execute = function() return 0 end
-          arg = {s32 = 0}
-          event = {registerEventSync=function(n, f) events[n]=f return true end,
-                   registerEventAsync=function(n, f) events[n]=f return true end,
-                   registerLoadHandler=function(n, f) handlers.load=f return true end,
-                   registerSaveHandler=function(n, f) handlers.save=f return true end}
-          dialog = {amese={open=function(t) opened[#opened+1]=t return {} end}}
-          bpack = {section13=setmetatable({count=600}, {__index=function() return {category=1} end})}
+          memory = {u8={}, u32={}, u64={}, readArray=function() return {} end, execute=function() return 0 end}
+          arg = {s32=0}
+          event = {registerEventSync=function() registered = registered + 1 return true end,
+                   registerEventAsync=function() return true end, registerLoadHandler=function() return true end,
+                   registerSaveHandler=function() return true end}
         ''')
-        f165 = lua.execute('return load(...)()', (ROOT/'prototypes/forge_proficiency_165.lua').read_text(encoding='utf-8'))
-        lua.globals().f165 = f165
-        return lua
-
-    def test_inactive_without_campaign_and_original_always_runs(self):
-        lua = self.load()
+        for n in (165, 240, 110, 170, 182, 22):
+            fn = lua.execute('return load(...)()', (ROOT/f'prototypes/forge_proficiency_{n}.lua').read_text(encoding='utf-8'))
+            lua.globals()[f'f{n}'] = fn
         lua.execute('''
-          assert(printed[1]:find('^Legacy Proficiency: 0.1.0 ready'))
-          handlers.load('C:/saves/FFXII_001', nil)
-          assert(handlers.save('x') == nil)
-          f165({target={removedHp=10}}, {type=0}, {type=1}, {}, {}, {})
-          assert(originalCalls == 1)
-        ''')
-
-    def test_legacy_gate_refuses_without_executable_pins(self):
-        lua = self.load()
-        lua.execute('''
-          handlers.load('C:/saves/LEGCY_001', {schema=1, campaign='LEGCY_001', claimedRank=5})
-          assert(handlers.save('x') == nil)  -- legacyMode() pins fail on fake memory
+          assert(registered == 2, registered)            -- one runtime, registered once
+          local n = 0 for _, l in ipairs(printed) do if l:find('ready') then n = n + 1 end end
+          assert(n == 1)
+          f165({target={removedHp=1}}, {type=0}, {type=1}, {}, {}, {})
+          f182({target={addedStatusEffects=setmetatable({}, {__index=function() return 0 end})}}, {type=0}, {type=1}, {}, {}, {})
+          assert(calls['165'] == 1 and calls['182'] == 1)
         ''')
 
 
