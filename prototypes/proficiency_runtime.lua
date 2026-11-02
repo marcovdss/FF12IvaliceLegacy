@@ -197,6 +197,10 @@ legacy_prof_code:
   mov [r12+0x04],eax
   mov [r12+0x08],rsi
   inc dword ptr [r12+0x10]
+  mov [r12+0x18],r14
+  mov [r12+0x20],rdi
+  mov rax,[rsi+0x60]
+  mov [r12+0x28],rax
 legacy_prof_probed:
   mov r12,[legacy_prof_bits]
   test r12,r12
@@ -334,8 +338,8 @@ local function installGear()
   memory.u64[slots[2]] = table_
   memory.u64[slots[3]] = buffer
   -- Measurement (0.3.5): which description kind / panel the Equipment menu uses, to restrict the text to it.
-  local probe = memory.alloc(0x20)
-  memory.writeArray(probe, {string.rep('\0', 0x20):byte(1, -1)})
+  local probe = memory.alloc(0x40)
+  memory.writeArray(probe, {string.rep('\0', 0x40):byte(1, -1)})
   if slots[4] and slots[4] ~= 0 then memory.u64[slots[4]] = probe; gear.probe = probe end
   gear.table = table_
   ok, err = pcall(memory.assemble, GEAR_PATCH, GEAR_SITE)
@@ -364,21 +368,32 @@ local function setSuffix(member, text)
   memory.u64[at] = buf
 end
 
--- Logs each new (kind, panel) the description window reports, with the menu root's candidate fields.
+-- Logs each newly hovered item with the description event's pointers (list entry r14, target rdi, panel owner
+-- [rsi+0x60]) and the menu root around the character slot, to find what marks the Equipment menu.
 local function probeTick()
   local at = gear.probe
   if not at then return end
-  local kind, item, panel = memory.u32[at], memory.u32[at + 4], memory.u64[at + 8]
-  if type(kind) ~= 'number' or memory.u32[at + 0x10] == 0 then return end
-  local key = kind .. ':' .. tostring(panel)
+  local calls = memory.u32[at + 0x10]
+  if type(calls) ~= 'number' or calls == 0 or calls == gear.lastCalls then return end
+  gear.lastCalls = calls
+  local kind, item = memory.u32[at], (memory.u32[at + 4] or 0) & 0xFFFF
+  local entry, target, owner = memory.u64[at + 0x18] or 0, memory.u64[at + 0x20] or 0, memory.u64[at + 0x28] or 0
+  local key = tostring(kind) .. ':' .. item .. ':' .. (entry >> 12)
   gear.seen = gear.seen or {}
-  if gear.seen[key] or (gear.probeLogs or 0) >= 40 then return end
+  if gear.seen[key] or (gear.probeLogs or 0) >= 60 then return end
   gear.seen[key] = true
   gear.probeLogs = (gear.probeLogs or 0) + 1
   local root = memory.u64[MENU_ROOT] or 0
-  local function q(o) return root > 0 and memory.u64[root + o] or 0 end
-  log(string.format('gear probe: kind=0x%X item=0x%04X panel=0x%X slot=%d root+2F8=0x%X root+300=0x%X',
-    kind, item & 0xFFFF, panel or 0, root > 0 and memory.u16[root + 0xDE0] or -1, q(0x2F8), q(0x300)))
+  local hex = {}
+  if root > 0 then
+    local raw = memory.readArray(root + 0xD80, 0x80)
+    for i = 1, 0x80 do
+      local b = type(raw) == 'string' and raw:byte(i) or (type(raw) == 'table' and raw[i]) or nil
+      hex[i] = b and string.format('%02X', b) or '??'
+    end
+  end
+  log(string.format('gear probe: kind=0x%X item=0x%04X entry=0x%X target=0x%X owner=0x%X slot=%d root+D80=%s',
+    kind or 0, item, entry, target, owner, root > 0 and memory.u16[root + 0xDE0] or -1, table.concat(hex)))
 end
 
 local function gearTick()

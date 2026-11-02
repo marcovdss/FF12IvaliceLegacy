@@ -57,15 +57,17 @@ class GearHookTest(unittest.TestCase):
         uc.mem_write(0x0031C4C0, bytes([0x8D, 0x41, 0x02, 0xC3]))               # lea eax,[rcx+2] ; ret
         uc.mem_write(0x00292672, b'\xf4')                                       # return target: hlt
         rsp = STACK_AT + 0x8000
+        panel_at = DATA_AT + 0x8000
+        uc.mem_write(panel_at + 0x60, struct.pack('<Q', 0xABCD))
         rdi = DATA_AT + 0x6000
         for reg, value in ((X.UC_X86_REG_RSP, rsp), (X.UC_X86_REG_RBX, text_at), (X.UC_X86_REG_R14, entry),
-                           (X.UC_X86_REG_RDI, rdi), (X.UC_X86_REG_RSI, 0x1234), (X.UC_X86_REG_R12, 0x5555),
+                           (X.UC_X86_REG_RDI, rdi), (X.UC_X86_REG_RSI, panel_at), (X.UC_X86_REG_R12, 0x5555),
                            (X.UC_X86_REG_R13, 0x6666), (X.UC_X86_REG_RCX, 0x7777)):
             uc.reg_write(reg, value)
         uc.emu_start(CODE_AT, 0x00292672 + 1, count=20000)
         self.assertEqual(uc.reg_read(X.UC_X86_REG_RIP), 0x00292673)              # reached the original continuation
         self.assertEqual(uc.reg_read(X.UC_X86_REG_RSP), rsp)                      # stack balanced
-        for reg, value in ((X.UC_X86_REG_R12, 0x5555), (X.UC_X86_REG_R13, 0x6666), (X.UC_X86_REG_RSI, 0x1234),
+        for reg, value in ((X.UC_X86_REG_R12, 0x5555), (X.UC_X86_REG_R13, 0x6666), (X.UC_X86_REG_RSI, panel_at),
                            (X.UC_X86_REG_RDI, rdi), (X.UC_X86_REG_R14, entry)):
             self.assertEqual(uc.reg_read(reg), value)
         self.assertEqual(uc.reg_read(X.UC_X86_REG_RCX), 0)                        # xor ecx,ecx still runs
@@ -73,7 +75,9 @@ class GearHookTest(unittest.TestCase):
         self.assertEqual(struct.unpack('<Q', bytes(uc.mem_read(rdi + 0x18, 8)))[0], shown)
         out = bytes(uc.mem_read(shown, 0x40))
         kind, item, panel, calls = struct.unpack('<IIQI', bytes(uc.mem_read(probe, 0x14)))
-        self.assertEqual((kind, item, panel, calls), (0x2B, item_id, 0x1234, 1))    # measurement recorded
+        self.assertEqual((kind, item, panel, calls), (0x2B, item_id, panel_at, 1))  # measurement recorded
+        e, t, o = struct.unpack('<QQQ', bytes(uc.mem_read(probe + 0x18, 24)))
+        self.assertEqual((e, t, o), (entry, rdi, 0xABCD))
         return shown, out[:out.index(b'\0')], buffer, text_at
 
     def test_eligible_equipment_gets_the_suffix(self):
