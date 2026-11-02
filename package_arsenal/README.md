@@ -1,11 +1,8 @@
-# Ivalice Legacy: Arsenal 0.5.0 (experimental)
+# Ivalice Legacy: Arsenal 0.5.1 (experimental)
 
 Weapon attack and weapon family identities for the English Steam game, version 1.0.4.0.
 
 ## What changes
-
-**Test build:** the Claymore costs 800 gil instead of 12,500, so it can be bought early for the Attack area
-experiment. This price is for testing only.
 
 Attack follows the story: modest at the start, growing toward a powerful endgame. The climb is gentle: the opening weapons keep their attack and every later weapon is lower than native, so a typical hit grows from about 47 at the start to about 830 by the last shops (native: about 1,375). Rewards are set for where they are found, and the 13 legendary weapons still lead their families. Each family's identity changes how
 its weapons play, not how much damage they deal over time: a faster or more critical weapon hits a little softer, a

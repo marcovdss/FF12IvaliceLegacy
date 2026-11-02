@@ -219,6 +219,8 @@ class FullBuildTest(unittest.TestCase):
             root = Path(__file__).resolve().parents[1] / 'patches'
             expected = {json.loads((root / 'story_stock.json').read_text())['resultSectionSha256']}
             expected |= {c['resultSectionSha256'] for c in json.loads((root / 'ability_chests.json').read_text())['chests']}
+            expected |= set(json.loads((root / 'loot_moves.json').read_text(encoding='utf-8'))['resultSha256'].values())
+            expected |= {a['resultSectionSha256'] for a in json.loads((root / 'area_ai.json').read_text())['areas']}
             self.assertTrue(expected <= set(manifest['files'].values()))
             package_files = [p for p in (root.parent / 'package').rglob('*') if p.is_file()]
             self.assertEqual(len(manifest['files']), len(expected) + len(json.loads((root / 'kings.json').read_text())['kings'])
@@ -229,3 +231,62 @@ class FullBuildTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class LootMovesTest(unittest.TestCase):
+    """Synthetic EBP chest section and AR03 unit table."""
+
+    def ebp(self):
+        record = struct.pack('<Ihh4B6H', 7, 0, 0, 0, 0, 100, 0, 4211, 1, 4274, 4274, 0, 0)
+        section = bytes(40) + record + bytes(8)
+        header = b'EBP2' + bytes(12) + struct.pack('<20I', 96, *([0] * 19)) + bytes(96 - 96)
+        return header + section, section
+
+    def ard(self):
+        row = bytearray(88)
+        struct.pack_into('<H', row, 46, 4170)
+        struct.pack_into('<H', row, 54, 4211)
+        table = b'st2e' + struct.pack('<III', 2, 88, 16) + bytes(88) + bytes(row)
+        offsets = [0, 0, 0, 0, 48, 0, 0, 0, 0, 0]
+        return b'FF12AR03' + struct.pack('<10I', *offsets) + bytes(48 - 48) + table, table
+
+    def chest(self, raw, section, **kw):
+        edit = {'item': 'X', 'file': 'a.ebp', 'section': 0, 'sourceFileSha256': patches.sha256(raw),
+                'sourceSectionSha256': patches.sha256(section), 'sectionByteOffset': 40, 'field': 'diamond1',
+                'before': 4274, 'after': 4180}
+        edit.update(kw)
+        return edit
+
+    def test_swaps_declared_chest_slot_only(self):
+        raw, section = self.ebp()
+        out = patches.loot_sections(lambda n: raw, {'chests': [self.chest(raw, section)]})['a.ebp.dir/section_000.bin']
+        self.assertEqual(struct.unpack_from('<4H', out, 52), (4211, 1, 4180, 4274))
+        self.assertTrue({i for i, (a, b) in enumerate(zip(section, out)) if a != b} <= {56, 57})
+
+    def test_swaps_unit_loot(self):
+        raw, table = self.ard()
+        edit = {'item': 'Y', 'file': 'b.ard', 'section': 4, 'sourceFileSha256': patches.sha256(raw),
+                'sourceSectionSha256': patches.sha256(table), 'row': 1, 'field': 'Steal rare',
+                'before': 4211, 'after': 4100}
+        out = patches.loot_sections(lambda n: raw, {'units': [edit]})['b.ard.dir/section_004.bin']
+        self.assertEqual(struct.unpack_from('<H', out, 16 + 88 + 54)[0], 4100)
+        self.assertEqual(struct.unpack_from('<H', out, 16 + 88 + 46)[0], 4170)
+
+    def test_refuses_wrong_before_repeat_and_empty(self):
+        raw, section = self.ebp()
+        for bad in ([self.chest(raw, section, before=1)],
+                    [self.chest(raw, section), self.chest(raw, section, after=4181)],
+                    [self.chest(raw, section, after=0xFFFF)]):
+            with self.assertRaises(ValueError):
+                patches.loot_sections(lambda n: raw, {'chests': bad})
+
+    def test_result_pins_are_enforced(self):
+        raw, section = self.ebp()
+        patch = {'chests': [self.chest(raw, section)]}
+        good = patches.loot_sections(lambda n: raw, patch)
+        patch['resultSha256'] = {k: patches.sha256(v) for k, v in good.items()}
+        self.assertEqual(patches.loot_moves(lambda n: raw, patch), good)
+        for pins in ({k: '0' * 64 for k in good}, {}):
+            patch['resultSha256'] = pins
+            with self.assertRaises(ValueError):
+                patches.loot_moves(lambda n: raw, patch)

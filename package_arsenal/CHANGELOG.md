@@ -1,3 +1,9 @@
+# 0.5.1 candidate
+
+- The Claymore's test price ends: it costs 12,500 gil again (native). The greatsword cleave it was bought early for
+  has been tested in game.
+- Builds over an installed Arsenal 0.1.0 to 0.5.0.
+
 # 0.5.0 candidate
 
 - Weapon damage follows a gentler climb: the opening weapons are unchanged, and every later weapon has lower attack, so

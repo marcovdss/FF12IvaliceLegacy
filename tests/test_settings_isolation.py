@@ -78,8 +78,8 @@ class SettingsIsolationTests(unittest.TestCase):
         out = Path(self.temp.name) / 'output'
         _, core = build(os.environ['IVALICE_LEGACY_GAME'], out)
         archive, personalized = build(os.environ['IVALICE_LEGACY_GAME'], out, settings_from=self.root)
-        self.assertEqual(len(core['files']), 9)
-        self.assertEqual(len(personalized['files']), 13)
+        self.assertEqual(len(core['files']), 18)
+        self.assertEqual(len(personalized['files']), 22)
         self.assertEqual({p: personalized['files'][p] for p in core['files']}, core['files'])
         self.assertEqual(personalized['settingsIsolation'], metadata(self.raw))
         with zipfile.ZipFile(archive) as packed:

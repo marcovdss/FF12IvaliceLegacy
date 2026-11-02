@@ -13,20 +13,20 @@ and progression you can't steamroll.
 
 | Package | Version | What it is | Tested in game |
 |---|---|---|---|
-| Ivalice Legacy (main) | 0.0.10 | Shops, story stock, ability chests, Kings, separate save files | Yes (earlier versions; 0.0.10 adds a test shop slot) |
+| Ivalice Legacy (main) | 0.0.11 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | Earlier versions; 0.0.11 not yet |
 | Base Jobs | 0.5.0 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.0 not yet |
-| Arsenal | 0.5.0 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.0 not yet |
+| Arsenal | 0.5.1 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.1 not yet |
 | Proficiency | 0.2.0 | Clan-rank job lines handed out by Montblanc | Not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
 
-## Main package (0.0.10)
+## Main package (0.0.11)
 
 **Opening stock.** Rabanastre's merchants sell a wider set of opening tools from the very start. Items they
 already stocked later in the story move to the start instead of appearing twice. Prices are unchanged.
 
 | Merchant | New from the start |
 |---|---|
-| Amal's Weaponry | Bowgun, Iron Hammer, Rod, Oak Staff, Mace, Hornito, Claymore (test build, for the Attack area experiment) |
+| Amal's Weaponry | Bowgun, Iron Hammer, Rod, Oak Staff, Mace, Hornito |
 | Panamis's Protectives | Bangle, Orrachea Armlet |
 | Migelo's Sundries | Phoenix Down, Antidote, Onion Bolts, Onion Bombs |
 | Yugri's Magicks | Thunder, Blizzard, Blind, Silence |
@@ -39,8 +39,17 @@ Prices are unchanged.
 
 **Reliable ability chests.** Cleanse (Cerobi Steppe), Addle (Henne Mines) and Wither (Pharos) always appear.
 
+**Early loot moves.** Three weapons that could be found far ahead of their time now wait later in the journey. Seitengrat
+moves from the Skyferry to a Pharos at Ridorana chest (Diamond Armlet branch), Burning Bow from the desert Dive Talons to
+the Cerobi Steppe Bellwyvern, and Gladius from two early chests (Estersand, Barheim) and the Westersand Lindbur Wolf to
+a steal from the Paramina Rift Feral Retriever. Every early slot they leave keeps a weapon of its own tier: Aevis Killer, Silver Bow, Mage Masher or Dagger.
+
 **Kings of the zone.** Ripe Rampager always appears in Yardang Labyrinth; Rain Dancer always appears in Giza
 Plains' rainy season, and only then. More Kings, each with its own fight and reward, are planned.
+
+**Estersand hunts.** Flowering Cactoid no longer uses 1000 Needles (an ordinary attack takes its place) and casts
+Cure at most once per stage of the fight; its two Potions were already once-only. Ripe Rampager starts recovering
+below 60% HP (was 50%) and stops at 70% (was 60%). Enemy AI lives in `patches/area_ai.json`, one entry per area.
 
 **Separate save files.** An early-init script (`x64/scripts/init/IvaliceLegacySaves.lua`, FF12 LUA Loader 2.0.1)
 makes the game list and write `LEGCY_000`, `LEGCY_001`, ... instead of `FFXII_###`. Normal saves are left alone.
@@ -83,7 +92,7 @@ Green Mage, Time Mage, Mystic, White Mage and Black Mage.
 Existing saved slot IDs and acquired licenses persist; there is no automatic respec. Hybrid jobs (66 combinations)
 are being designed and are not part of this package.
 
-## Arsenal (0.5.0)
+## Arsenal (0.5.1)
 
 - **A gentle damage climb.** The opening weapons keep their attack; every later weapon is lower than native, so a
   typical hit grows from about 47 at the start to about 830 by the last shops (native: about 1,375). Each weapon
@@ -94,7 +103,6 @@ are being designed and are not part of this package.
   Disable, hand-bombs Slow or Oil, ninja swords Blind, spears reach. Speed, combo and critical identities are offset
   in attack.
 - **Accessory identities** borrowed from established overhauls where they add a new answer, with renamed items.
-- **Test build:** the Claymore costs 800 gil so it can be bought early for the Attack area experiment.
 
 See [package_arsenal/README.md](package_arsenal/README.md) for every weapon's numbers.
 
@@ -206,7 +214,8 @@ four paths, and carry the Legacy-owned copies forward before any later upgrade.
 
 These build separately and are not part of the normal packages:
 
-- **Rampager pilot** (`build-rampager-pilot`): Ripe Rampager enters its recovery phase at 60% HP instead of 50%.
+- **Rampager pilot** (`build-rampager-pilot`): retired; its change is part of the main package from 0.0.11 (Estersand
+  hunts). Do not enable it together with 0.0.11: both write the same Estersand AI section.
 - **Estersand numbers pilot** (`build-estersand-pilot`): Dalmasca Estersand's five early foes take three to five
   hits instead of one to three.
 - **Paladin pilot** (`python -m ivalice_legacy.hybrid_pilot`): native White Mage + Knight shown as one authored

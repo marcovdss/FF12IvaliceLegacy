@@ -100,6 +100,80 @@ def ability_chests(read, patch):
     return files
 
 
+# Treasure record (24 bytes in EBP section 0): u32 id, i16 x, i16 y, u8 ?, u8 respawn slot, u8 spawn %, u8 gil %,
+# then u16 contents: two normal, two Diamond Armlet, then the two gil amounts.
+CHEST_CONTENTS = {'normal1': 12, 'normal2': 14, 'diamond1': 16, 'diamond2': 18}
+# Enemy unit row (AR03 section 4, 88-byte st2e rows): loot field -> u16 offset
+UNIT_LOOT = {'Drop common': 40, 'Drop uncommon': 42, 'Drop rare': 44, 'Drop very rare': 46, 'Drop guaranteed': 48,
+             'Steal common': 50, 'Steal uncommon': 52, 'Steal rare': 54, 'Poach common': 68, 'Poach uncommon': 70,
+             'Monograph': 74, 'Canopic Jar': 78}
+
+
+def loot_moves(read, patch):
+    """Swap single u16 contents of explicit treasure records and enemy loot slots.
+
+    Every edit names the value it replaces; a changed source file, an unexpected value, a repeated slot, an empty
+    result, a byte outside the declared fields or a written section that differs from its pin refuses the build."""
+    files = loot_sections(read, patch)
+    if set(files) != set(patch['resultSha256']):
+        raise ValueError('loot result pins do not match the written sections')
+    for rel, data in files.items():
+        require(data, patch['resultSha256'][rel], f'{rel} result')
+    return files
+
+
+def loot_sections(read, patch):
+    """The unpinned sections of loot_moves (used to compute the result pins)."""
+    from .formats import ard_section
+    groups = {}
+    for kind in ('chests', 'units'):
+        for edit in patch.get(kind, []):
+            groups.setdefault((kind, edit['file'], edit['section']), []).append(edit)
+    files = {}
+    for (kind, name, index), edits in groups.items():
+        raw = read(name)
+        for edit in edits:
+            require(raw, edit['sourceFileSha256'], name)
+        if kind == 'chests':
+            original = ebp_section(raw, index)
+        else:
+            if index != 4:
+                raise ValueError('enemy loot lives in AR03 section 4')
+            original = ard_section(raw, index)
+            if original[:4] != b'st2e' or struct.unpack_from('<III', original, 4)[1] != 88:
+                raise ValueError('unexpected enemy unit table layout')
+            count, _, base = struct.unpack_from('<III', original, 4)
+        for edit in edits:
+            require(original, edit['sourceSectionSha256'], f'{name} section {index}')
+        out = bytearray(original)
+        allowed = set()
+        for edit in edits:
+            if kind == 'chests':
+                record = edit['sectionByteOffset']
+                if not 0 <= record <= len(original) - 24:
+                    raise ValueError(f"{edit['item']}: chest record outside section")
+                spawn, gil = original[record + 10], original[record + 11]
+                if spawn > 100 or gil > 100:
+                    raise ValueError(f"{edit['item']}: not a treasure record at {record}")
+                at = record + CHEST_CONTENTS[edit['field']]
+            else:
+                if not 0 <= edit['row'] < count:
+                    raise ValueError(f"{edit['item']}: unit row out of range")
+                at = base + edit['row'] * 88 + UNIT_LOOT[edit['field']]
+            if at in allowed:
+                raise ValueError(f"{edit['item']}: slot edited twice")
+            if struct.unpack_from('<H', original, at)[0] != edit['before']:
+                raise ValueError(f"{edit['item']} {edit['field']}: unexpected value (expected {edit['before']})")
+            if edit['after'] in (edit['before'], 0xFFFF) or not 0 <= edit['after'] < 0xFFFF:
+                raise ValueError(f"{edit['item']}: invalid replacement {edit['after']}")
+            struct.pack_into('<H', out, at, edit['after'])
+            allowed |= {at, at + 1}
+        if {i for i, (a, b) in enumerate(zip(original, out)) if a != b} - allowed:
+            raise AssertionError('undeclared loot byte changed')
+        files[f'{name}.dir/section_{index:03}.bin'] = bytes(out)
+    return files
+
+
 PUSH_IMM16 = 0x4F  # field-script VM: push signed 16-bit immediate (opcode byte + little-endian operand)
 
 
@@ -253,7 +327,20 @@ def shops(read, patches):
     return {name: story_stock(section, patches['story_stock'])}
 
 
-APPLIERS = {'opening_stock+story_stock': shops, 'ability_chests': ability_chests, 'kings': kings}
+def area_ai(read, patch):
+    """Battle-logic overlays, one fully pinned enemy_ai_bank entry per area file (never two for one file)."""
+    from .enemy_ai_bank import enemy_ai_bank
+    files = {}
+    for entry in patch['areas']:
+        for rel, data in enemy_ai_bank(read, entry).items():
+            if rel in files:
+                raise ValueError(f'two area AI entries write {rel}')
+            files[rel] = data
+    return files
+
+
+APPLIERS = {'opening_stock+story_stock': shops, 'ability_chests': ability_chests, 'kings': kings,
+            'loot_moves': loot_moves, 'area_ai': area_ai}
 
 
 # Enemy stats row (AR03 section 7, 56-byte st2e rows): field -> (offset, format)

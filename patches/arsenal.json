@@ -274,10 +274,6 @@
         "chargeTime": [
           35,
           40
-        ],
-        "gil": [
-          12500,
-          800
         ]
       }
     },
@@ -2764,7 +2760,7 @@
       }
     }
   ],
-  "resultSectionSha256": "5ffe73748b17764a8564d9386c433cc1d44dd9371b621c3b6aeb3d762d05e8bd",
+  "resultSectionSha256": "abd2ea83e0776455cabb87eed08a5d4673c01c33d629ba67ccb9ea48f151956e",
   "attributes": [
     {
       "attributeIndex": 142,
