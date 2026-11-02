@@ -4,7 +4,7 @@
 -- through Forge's own end-of-hit step (statuses, durations, HP/MP), the charge time, or helpers on other units.
 -- Levels whose mechanism isn't proven yet return nothing (listed in M.PENDING).
 local M = {}
-M.version = '0.3.2'
+M.version = '0.3.4'
 
 M.NO_JOB = 255
 M.JOB = {whiteMage = 0, lancer = 1, gunner = 2, greenMage = 3, knight = 4, mystic = 5, timeMage = 6, warrior = 7,

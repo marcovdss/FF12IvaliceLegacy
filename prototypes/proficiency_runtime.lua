@@ -170,85 +170,195 @@ local function claim()
 end
 
 -- ---------- gear descriptions ----------
--- The Equipment menu shows the selected character's Proficiency on every weapon, shield and armour piece (not
--- accessories or ammunition), through Dynamic Description's custom attributes. Selected character: i16 slot at
--- [0x209AC30]+0xDE0 -> 0x282EA0(slot) menu index -> 0x31C4C0(index) party member -> 0x320A40(member) battle unit
--- (job1 at +0x1C3, the job Proficiency uses). The lines are rewritten only when job or effective rank change.
--- DD merges entries on refresh and never deletes them, so a line is hidden by setting its value to 0.
-local MENU_ROOT, MENU_SLOT = 0x0209AC30, 0xDE0
-local SLOT_TO_INDEX, INDEX_TO_MEMBER, MEMBER_KEEP, KEEP_JOB1 = 0x282EA0, 0x31C4C0, 0x320A40, 0x1C3
-local GEAR_IDS = {'legacyProficiency', 'legacyProficiencyI', 'legacyProficiencyII', 'legacyProficiencyIII'}
-local GEAR_LABELS = {'Proficiency', 'I', 'II', 'III'}
-local GEAR_POLL_MS = 300
-local ddApi, gearItems, gearKey, gearLogged = nil, nil, nil, false
+-- The Equipment menu shows the selected character's Proficiency under each weapon, shield and armour description
+-- (not accessories or ammunition). It is added when the description is shown, so it always matches the character
+-- on screen: the help-window updater copies the hovered item's description and stores the text pointer at
+-- 0x29266C (mov [rdi+0x18], rbx; The Insurgent's Descriptive Inventory swaps rbx just before, at 0x292667). The
+-- patch there appends a ready-made suffix for the selected party member (menu slot [0x209AC30]+0xDE0 -> 0x282EA0
+-- -> 0x31C4C0) to a copy of that text. Lua keeps one native-encoded suffix per party member, rebuilt only when a
+-- member's job or the effective rank changes.
+local GEAR_SITE = 0x0029266C
+local GEAR_ORIGINAL = {0x33, 0xC9, 0x48, 0x89, 0x5F, 0x18}  -- xor ecx,ecx ; mov [rdi+0x18],rbx
+local GEAR_PATCH = [[
+  jmp %legacy_prof_code%
+  nop
+]]
+local GEAR_CODE = [[
+legacy_prof_code:
+  push r12
+  push r13
+  sub rsp,0x20
+  mov r12,[legacy_prof_bits]
+  test r12,r12
+  je legacy_prof_done
+  movzx eax,word ptr [r14-0x0A]
+  sub eax,0x1000
+  jb legacy_prof_done
+  cmp eax,0x400
+  jae legacy_prof_done
+  bt dword ptr [r12],eax
+  jnc legacy_prof_done
+  mov rax,[0x0209AC30]
+  test rax,rax
+  je legacy_prof_done
+  movzx ecx,word ptr [rax+0x00000DE0]
+  cmp ecx,0x08
+  ja legacy_prof_done
+  call 0x00282EA0
+  cmp eax,0x08
+  ja legacy_prof_done
+  mov ecx,eax
+  call 0x0031C4C0
+  movzx eax,al
+  cmp eax,0x40
+  jae legacy_prof_done
+  mov r12,[legacy_prof_table]
+  test r12,r12
+  je legacy_prof_done
+  mov r13,[r12+rax*8]
+  test r13,r13
+  je legacy_prof_done
+  mov r12,[legacy_prof_buffer]
+  test r12,r12
+  je legacy_prof_done
+  xor ecx,ecx
+legacy_prof_text:
+  mov al,[rbx+rcx]
+  test al,al
+  je legacy_prof_suffix
+  mov [r12+rcx],al
+  inc ecx
+  cmp ecx,0x00000600
+  jb legacy_prof_text
+  jmp legacy_prof_done
+legacy_prof_suffix:
+  xor edx,edx
+legacy_prof_append:
+  mov al,[r13+rdx]
+  mov [r12+rcx],al
+  test al,al
+  je legacy_prof_use
+  inc ecx
+  inc edx
+  cmp edx,0x000001F0
+  jb legacy_prof_append
+  mov byte ptr [r12+rcx],0x00
+legacy_prof_use:
+  mov rbx,r12
+legacy_prof_done:
+  add rsp,0x20
+  pop r13
+  pop r12
+  xor ecx,ecx
+  mov [rdi+0x18],rbx
+  jmp 0x00292672
 
-local function dd()
-  if ddApi == nil then
-    local chunk = loadfile('scripts/DynamicDescription/dd_api.lua', 't', _ENV)
-    local ok, api = pcall(function() return chunk and chunk() end)
-    ddApi = (ok and type(api) == 'table' and type(api.customAttribute) == 'table' and type(api.refresh) == 'function')
-      and api or false
-  end
-  return ddApi or nil
+  .align 0x10
+legacy_prof_bits:
+  .dq 0x00
+legacy_prof_table:
+  .dq 0x00
+legacy_prof_buffer:
+  .dq 0x00
+]]
+local GEAR_SYMBOLS = {'legacy_prof_code', 'legacy_prof_bits', 'legacy_prof_table', 'legacy_prof_buffer'}
+local MEMBERS, SUFFIX_SIZE, GEAR_POLL_MS = 16, 0x200, 500
+local MEMBER_KEEP, KEEP_JOB1 = 0x320A40, 0x1C3
+local gear = {installed = false, failed = false, keys = {}, slots = {}, flip = {}}
+
+local function label(name, value)
+  return '\n{scale:82}{rgb:90,90,90}' .. name .. ':{lowspace}{rgb:255,255,255}' .. value
 end
-
--- Equipment content IDs (0x1000 + record) that take the line: categories 0-20 (weapons, shield, helm, armour).
-local function eligibleGear()
-  if gearItems then return gearItems end
-  gearItems = {}
-  if type(bpack) ~= 'table' then return gearItems end
-  for i = 0, 1023 do
-    local ok, category = pcall(function() local r = bpack.section13[i]; return r and r.category end)
-    if not ok or type(category) ~= 'number' then break end
-    if category <= 20 then gearItems[#gearItems + 1] = 0x1000 + i end
-  end
-  return gearItems
-end
-
-local function selectedJob()
-  local root = memory.u64[MENU_ROOT]
-  if type(root) ~= 'number' or root <= 0 then return nil end
-  local slot = memory.u16[root + MENU_SLOT]
-  if type(slot) ~= 'number' or slot > 8 then return nil end           -- 0xFFFF (none) and anything odd
-  local ok, index = pcall(memory.execute, SLOT_TO_INDEX, memory.arg.s32, memory.arg.s32, slot)
-  if not ok or type(index) ~= 'number' or index < 0 or index > 8 then return nil end
-  local ok2, member = pcall(memory.execute, INDEX_TO_MEMBER, memory.arg.u32, memory.arg.s32, index)
-  if not ok2 or type(member) ~= 'number' then return nil end
-  member = member & 0xFF
-  if member >= 0xFF then return nil end
-  local ok3, keep = pcall(memory.execute, MEMBER_KEEP, memory.arg.pointer, memory.arg.s32, member)
-  if not ok3 or type(keep) ~= 'number' or keep <= 0 then return nil end
-  local job = memory.u8[keep + KEEP_JOB1]
-  if type(job) ~= 'number' or not P.GEAR[job] then return nil end
-  return job, member
-end
-
-local function writeGear(job, rank)
-  local api = dd()
-  if not api then return false end
+function R.gearSuffix(job, rank)
   local lines = P.gearLines(job, rank)
-  if not lines then return false end
-  for _, id in ipairs(eligibleGear()) do
-    for k = 1, 4 do api.customAttribute.create(id, GEAR_IDS[k], GEAR_LABELS[k], lines[k] or 0, false) end
+  if not lines then return nil end
+  local out = label('Proficiency', lines[1])
+  for k, name in ipairs({'I', 'II', 'III'}) do
+    if lines[k + 1] then out = out .. label(name, lines[k + 1]) end
   end
-  return api.refresh()
+  return out
+end
+
+local function installGear()
+  if gear.installed or gear.failed then return gear.installed end
+  local raw = memory.readArray(GEAR_SITE, #GEAR_ORIGINAL)
+  local same = type(raw) == 'table' or type(raw) == 'string'
+  for i = 1, #GEAR_ORIGINAL do
+    local b = type(raw) == 'string' and raw:byte(i) or (type(raw) == 'table' and raw[i]) or nil
+    if b ~= GEAR_ORIGINAL[i] then same = false end
+  end
+  if not same then
+    gear.failed = true
+    log('gear text not installed: unexpected code at 0x29266C (another mod patches it?)')
+    return false
+  end
+  local bits = memory.alloc(0x80)
+  local table_ = memory.alloc(0x40 * 8)
+  local buffer = memory.alloc(0x800)
+  memory.writeArray(bits, {string.rep('\0', 0x80):byte(1, -1)})
+  memory.writeArray(table_, {string.rep('\0', 0x200):byte(1, -1)})
+  -- Weapons, shields, helms and armour: equipment categories 0-20 (accessories 21+, ammunition 23+ excluded).
+  local count = 0
+  if type(bpack) == 'table' then
+    for i = 0, 0x3FF do
+      local ok, category = pcall(function() local r = bpack.section13[i]; return r and r.category end)
+      if not ok or type(category) ~= 'number' then break end
+      if category <= 20 then
+        memory.u8[bits + (i >> 3)] = memory.u8[bits + (i >> 3)] | (1 << (i & 7))
+        count = count + 1
+      end
+    end
+  end
+  -- The code block first; the site is patched only once the block and its data are in place.
+  local ok, err = pcall(memory.assemble, GEAR_CODE, GEAR_SYMBOLS)
+  local slots = ok and {memory.getSymbol('legacy_prof_bits'), memory.getSymbol('legacy_prof_table'),
+    memory.getSymbol('legacy_prof_buffer')} or {}
+  if not ok or not (slots[1] and slots[1] ~= 0 and slots[2] and slots[2] ~= 0 and slots[3] and slots[3] ~= 0) then
+    gear.failed = true
+    log('gear text not installed: code block rejected (' .. tostring(err) .. ')')
+    return false
+  end
+  memory.u64[slots[1]] = bits
+  memory.u64[slots[2]] = table_
+  memory.u64[slots[3]] = buffer
+  gear.table = table_
+  ok, err = pcall(memory.assemble, GEAR_PATCH, GEAR_SITE)
+  if not ok then
+    gear.failed = true
+    log('gear text not installed: site patch rejected (' .. tostring(err) .. ')')
+    return false
+  end
+  gear.installed = true
+  log(string.format('gear text hook installed (%d items)', count))
+  return true
+end
+
+-- One suffix per party member; two buffers each so the hook never reads a half-written text.
+local function setSuffix(member, text)
+  local at = gear.table + member * 8
+  if not text then memory.u64[at] = 0; return end
+  local bytes = message.convert(text)
+  if type(bytes) ~= 'string' or #bytes + 1 > SUFFIX_SIZE then memory.u64[at] = 0; return end
+  gear.slots[member] = gear.slots[member] or {memory.alloc(SUFFIX_SIZE), memory.alloc(SUFFIX_SIZE)}
+  gear.flip[member] = 3 - (gear.flip[member] or 2)
+  local buf = gear.slots[member][gear.flip[member]]
+  local arr = {bytes:byte(1, -1)}
+  arr[#arr + 1] = 0
+  memory.writeArray(buf, arr)
+  memory.u64[at] = buf
 end
 
 local function gearTick()
-  if campaign and legacyMode() then
-    local job, member = selectedJob()
-    if job then
-      local rank = effective()
-      local key = job .. ':' .. rank
-      if key ~= gearKey then
-        gearKey = key
-        local ok, refreshed = pcall(writeGear, job, rank)
-        if not gearLogged or not ok then
-          gearLogged = true
-          log(string.format('campaign=%s gear text for member %d job %d rank %d: %s (%d items)', campaign, member, job,
-            rank, ok and (refreshed and 'written' or 'no Dynamic Description') or ('error ' .. tostring(refreshed)),
-            #eligibleGear()))
-        end
+  if campaign and legacyMode() and installGear() then
+    local rank = effective()
+    for member = 0, MEMBERS - 1 do
+      local ok, keep = pcall(memory.execute, MEMBER_KEEP, memory.arg.pointer, memory.arg.s32, member)
+      local job = ok and type(keep) == 'number' and keep > 0 and memory.u8[keep + KEEP_JOB1] or nil
+      if type(job) ~= 'number' or not P.GEAR[job] then job = nil end
+      local key = job and (job .. ':' .. rank) or 'none'
+      if gear.keys[member] ~= key then
+        gear.keys[member] = key
+        setSuffix(member, job and R.gearSuffix(job, rank) or nil)
       end
     end
   end
@@ -258,7 +368,7 @@ end
 local function reset()
   campaign, claimed, logged, rankLogged, foes = nil, 0, 0, false, {}
   writs, writsKnown, flagsLogged = {false, false, false}, false, false
-  gearKey, gearLogged = nil, false
+  gear.keys = {}
   P.reset()
 end
 

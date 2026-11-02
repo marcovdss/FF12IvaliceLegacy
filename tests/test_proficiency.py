@@ -344,47 +344,68 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(P.gearLines(P.JOB.knight, 0)[1]:find('no Writ yet'))
         ''')
 
-    def test_gear_descriptions_follow_the_selected_character(self):
+    def test_gear_hook_keeps_one_suffix_per_member(self):
         self.lua.execute(r'''
-          sources['scripts/DynamicDescription/dd_api.lua'] = [[
-            local api = {customAttribute = {}}
-            DD = {attrs = {}, refreshes = 0}
-            function api.customAttribute.create(id, key, label, value) DD.attrs[id .. ':' .. key] = {label, value} return true end
-            function api.refresh() DD.refreshes = DD.refreshes + 1 return true end
-            return api
-          ]]
           local tick
           event.executeAfterMs = function(ms, fn) tick = fn end
-          R2 = load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime2', 't', _ENV)()
-          assert(R2.register() and tick)
-          handlers.load('C:/saves/LEGCY_000', {schema = 1, campaign = 'LEGCY_000', claimedRank = 2})
-          keys[0x81F0] = true
-          -- equipment: 0 dagger, 1 accessory, 2 armour, 3 arrows
-          local cats = {[0] = 12, 21, 20, 23}
-          bpack = {section13 = setmetatable({}, {__index = function(_, i) return cats[i] and {category = cats[i]} or nil end})}
-          local root, keep, slot, job = 0x7000, 0x9000, 1, 8
-          memory.u64 = {[0x020927C0] = 0, [0x0209AC30] = root}
-          memory.u16 = setmetatable({}, {__index = function(_, a) return a == root + 0xDE0 and slot or 0 end})
-          memory.u8 = setmetatable({}, {__index = function(_, a) return a == keep + 0x1C3 and job or 0 end})
-          local base = memory.execute
-          memory.execute = function(fn, ret, t1, a1, ...)
-            if fn == 0x282EA0 then return a1 end
-            if fn == 0x31C4C0 then return 0x500 + a1 end                      -- only the low byte is the member
-            if fn == 0x320A40 then return keep end
-            return base(fn, ret, t1, a1, ...)
+          local mem, nextAlloc, assembled, symbols = {}, 0x100000, {}, {}
+          local site = {0x33, 0xC9, 0x48, 0x89, 0x5F, 0x18}
+          memory.alloc = function(n) local a = nextAlloc; nextAlloc = nextAlloc + n + 0x10; return a end
+          memory.writeArray = function(a, arr) for i, b in ipairs(arr) do mem[a + i - 1] = b end end
+          memory.u8 = setmetatable({}, {__index = function(_, a) return mem[a] or 0 end,
+                                        __newindex = function(_, a, v) mem[a] = v end})
+          memory.u64 = setmetatable({}, {__index = function(_, a) return mem['q' .. a] or 0 end,
+                                         __newindex = function(_, a, v) mem['q' .. a] = v end})
+          local baseRead = memory.readArray
+          memory.readArray = function(a, n) if a == 0x29266C then return site end return baseRead(a, n) end
+          memory.assemble = function(code, where)
+            assembled[#assembled + 1] = where
+            if type(where) == 'table' then for i, name in ipairs(where) do symbols[name] = 0x900000 + i * 8 end end
           end
+          memory.getSymbol = function(name) return symbols[name] end
+          message = {convert = function(s) return 'N:' .. s end}
+          local cats = {[0] = 12, 21, 20}
+          bpack = {section13 = setmetatable({}, {__index = function(_, i) return cats[i] and {category = cats[i]} or nil end})}
+          local jobs = {[0] = 8, [1] = 4}                                    -- member 0 Hunter, member 1 Knight
+          local baseExec = memory.execute
+          memory.execute = function(fn, ret, t1, a1, ...)
+            if fn == 0x320A40 then return jobs[a1] and (0x500000 + a1 * 0x1000) or 0 end
+            return baseExec(fn, ret, t1, a1, ...)
+          end
+          local baseU8 = getmetatable(memory.u8).__index
+          getmetatable(memory.u8).__index = function(t, a)
+            for m, j in pairs(jobs) do if a == 0x500000 + m * 0x1000 + 0x1C3 then return j end end
+            return baseU8(t, a)
+          end
+          R3 = load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime3', 't', _ENV)()
+          assert(R3.register() and tick)
+          handlers.load('C:/saves/LEGCY_000', {schema = 1, campaign = 'LEGCY_000', claimedRank = 1})
+          keys[0x81F0] = true
           tick()
-          assert(DD.refreshes == 1)
-          assert(DD.attrs['4096:legacyProficiency'][2] == 'Pursuit  I 2/4  II 0/4  III 0/4')
-          assert(DD.attrs['4096:legacyProficiencyI'][2]:find('15%%'))
-          assert(DD.attrs['4096:legacyProficiencyII'][2] == 0)                 -- hidden stage = 0
-          assert(DD.attrs['4098:legacyProficiency'] and not DD.attrs['4097:legacyProficiency']
-                 and not DD.attrs['4099:legacyProficiency'])                   -- armour yes; accessory, arrows no
-          tick(); assert(DD.refreshes == 1)                                     -- nothing changed: no rewrite
-          job = 4; tick()
-          assert(DD.refreshes == 2 and DD.attrs['4096:legacyProficiency'][2]:find('^Bulwark'))
-          slot = 0xFFFF; tick(); assert(DD.refreshes == 2)                      -- no character selected: untouched
-          assert(logged('gear text for member 1 job 8 rank 2: written (2 items)'))
+          assert(#assembled == 2 and type(assembled[1]) == 'table' and assembled[2] == 0x29266C)  -- block, then site
+          assert(logged('gear text hook installed (2 items)'))                                   -- dagger, armour
+          local bits = memory.u64[symbols.legacy_prof_bits]
+          assert(memory.u8[bits] == 0x05)                                                        -- records 0 and 2
+          local tbl = memory.u64[symbols.legacy_prof_table]
+          local function suffix(m)
+            local at, out = memory.u64[tbl + m * 8], {}
+            if at == 0 then return nil end
+            local i = 0
+            while memory.u8[at + i] ~= 0 do out[#out + 1] = string.char(memory.u8[at + i]); i = i + 1 end
+            return table.concat(out)
+          end
+          assert(suffix(0):find('^N:\nProficiency:') == nil and suffix(0):find('Pursuit  I 1/4', 1, true))
+          assert(suffix(1):find('Bulwark  I 1/4', 1, true) and suffix(2) == nil)
+          local first = memory.u64[tbl]
+          tick(); assert(memory.u64[tbl] == first)                            -- nothing changed: same buffer
+          jobs[0] = 11; tick()
+          assert(memory.u64[tbl] ~= first and suffix(0):find('Contagion', 1, true))   -- other buffer, new text
+          assert(R3.gearSuffix(8, 1):find('{rgb:90,90,90}Proficiency:{lowspace}{rgb:255,255,255}Pursuit', 1, true))
+          site = {0xE9, 0, 0, 0, 0, 0x90}                                      -- someone else patched the site
+          R4 = load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime4', 't', _ENV)()
+          assembled = {}
+          assert(R4.register()); handlers.load('C:/saves/LEGCY_000', {schema = 1, campaign = 'LEGCY_000', claimedRank = 1})
+          tick(); assert(#assembled == 0 and logged('unexpected code at 0x29266C'))
         ''')
 
     def test_lost_writ_caps_the_stage(self):
