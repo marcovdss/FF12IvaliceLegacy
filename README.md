@@ -16,7 +16,7 @@ and progression you can't steamroll.
 | Ivalice Legacy (main) | 0.0.11 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | Earlier versions; 0.0.11 not yet |
 | Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.x not yet |
 | Arsenal | 0.5.1 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.1 not yet |
-| Proficiency | 0.3.0 | Clan-rank job lines handed out by Montblanc, with the Writs as key items | 0.2.0 rank reward yes; 0.3.0 not yet |
+| Proficiency | 0.3.1 | Clan-rank job lines handed out by Montblanc, with the Writs as key items and a Clan Primer tip | 0.2.0 rank reward yes; 0.3.x not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
 
 ## Main package (0.0.11)
@@ -106,7 +106,7 @@ are being designed and are not part of this package.
 
 See [package_arsenal/README.md](package_arsenal/README.md) for every weapon's numbers.
 
-## Proficiency (0.3.0)
+## Proficiency (0.3.1)
 
 Each job's Clan line, earned from **Montblanc** and applied to whatever the character wields.
 
@@ -120,6 +120,8 @@ Each job's Clan line, earned from **Montblanc** and applied to whatever the char
   each Legacy save.
 - **The Writs are key items.** Montblanc hands the Writ over first, and a stage only works while its Writ is in
   Key Items. A rank rewarded before the Writs existed gets its Writ on the next visit to the Clan hall.
+- **A Clan Primer tip.** "Clan Proficiency" joins the Traveler's Tips (The Ways of Strength) once the Apprentice's
+  Writ is in Key Items.
 
 | Job | Line | Stage I in short |
 |---|---|---|
@@ -188,7 +190,8 @@ python -m ivalice_legacy build-proficiency --game "<game folder>"            # P
 
 Each command writes a zip plus a manifest of file hashes to `dist/`. A build stops with an error if your game files
 differ from the supported version, or if another mod already replaces the same data. The Proficiency package holds
-its Lua and the three Writ key-item resources (names, item rows and Key Items descriptions).
+its Lua, the three Writ key-item resources (names, item rows and Key Items descriptions) and the four Clan Primer
+files of its tip.
 
 Run the tests with `python -m unittest discover -s tests`. Set `IVALICE_LEGACY_GAME` to your game folder to include
 the full build tests; the Lua tests need [Lupa](https://pypi.org/project/lupa/).

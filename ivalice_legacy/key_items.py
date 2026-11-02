@@ -97,39 +97,44 @@ def key_item_rows(section35, patch):
     return result
 
 
-def key_item_help(raw, patch):
-    """listhelp_daijinamono.bin with the Writ descriptions.
+def set_strings(raw, rows, strings, what):
+    """An ST2E file whose rows are followed by a one-sub-table text block (listhelp_*.bin, penelosdiary.bin):
+    point the given (empty) records at new zero-terminated strings appended after the last string.
 
-    Records are offsets to zero-terminated strings, and strings are shared (every empty record points at one empty
-    string; some texts are reused). The Writ texts are appended after the last string and only records 496-498 are
-    pointed at them, so every existing byte and offset stays as it is.
+    Records are offsets to zero-terminated strings and strings may be shared (empty records point at an empty
+    string; some texts are reused), so only the changed records' offsets, the end fields and the appended bytes
+    differ from the source.
     """
-    require(sha(raw) == patch['listhelpSha256'], 'Key-item help source hash mismatch')
-    require(raw[:4] == b'st2e', 'Expected ST2E key-item help')
+    require(raw[:4] == b'st2e', f'Expected ST2E {what}')
     count, stride, start, zero, text = struct.unpack_from('<IIIII', raw, 4)
-    require((count, stride, start, zero) == (512, 4, 32, 0) and text == start + count * stride, 'Unsupported key-item help')
+    require((count, stride, start, zero) == (rows, 4, 32, 0) and text == start + count * stride, f'Unsupported {what}')
     tables, first, end = struct.unpack_from('<III', raw, text)
-    require((tables, first) == (1, 12), 'Unsupported key-item help text block')
+    require((tables, first) == (1, 12), f'Unsupported {what} text block')
     sub_at = text + first
     n = struct.unpack_from('<I', raw, sub_at)[0]
     offsets = [struct.unpack_from('<I', raw, sub_at + 4 + 4 * i)[0] for i in range(n + 1)]
     data_end = offsets[-1]
-    require(n == 512 and offsets[0] == 4 + 4 * (n + 1) and end == first + data_end, 'Unsupported key-item help records')
-    require(all(offsets[0] <= o < data_end for o in offsets[:-1]), 'Key-item help offset outside its strings')
-    require(len(raw) == sub_at + data_end + (-data_end) % 4 and not any(raw[sub_at + data_end:]), 'Unexpected key-item help tail')
-    empty = offsets[0]
-    require(raw[sub_at + empty] == 0, 'Expected the shared empty string first')
+    require(n == rows and offsets[0] == 4 + 4 * (n + 1) and end == first + data_end, f'Unsupported {what} records')
+    require(all(offsets[0] <= o < data_end for o in offsets[:-1]), f'{what} offset outside its strings')
+    require(len(raw) == sub_at + data_end + (-data_end) % 4 and not any(raw[sub_at + data_end:]), f'Unexpected {what} tail')
     sub = bytearray(raw[sub_at:sub_at + data_end])
-    for item in check_writs(patch):
-        i = item['index']
-        require(offsets[i] == empty, f"Key-item help record {i} is not empty")
+    for i, data in sorted(strings.items()):
+        require(0 <= i < n and raw[sub_at + offsets[i]] == 0, f'{what} record {i} is not empty')
+        require(data and 0 not in data, f'Bad {what} string for record {i}')
         struct.pack_into('<I', sub, 4 + 4 * i, len(sub))
-        sub += encode(item['description']) + b'\0'
+        sub += data + b'\0'
     struct.pack_into('<I', sub, 4 + 4 * n, len(sub))
     out = bytearray(raw[:sub_at])
     struct.pack_into('<I', out, text + 8, first + len(sub))
     out += sub + bytes((-len(sub)) % 4)
-    result = bytes(out)
+    return bytes(out)
+
+
+def key_item_help(raw, patch):
+    """listhelp_daijinamono.bin with the Writ descriptions appended (see set_strings)."""
+    require(sha(raw) == patch['listhelpSha256'], 'Key-item help source hash mismatch')
+    strings = {item['index']: encode(item['description']) for item in check_writs(patch)}
+    result = set_strings(raw, 512, strings, 'key-item help')
     require(sha(result) == patch['resultSha256']['listhelp'], 'Key-item help result hash mismatch')
     return result
 
@@ -145,7 +150,7 @@ def build_files(archive, patch, pack_section):
     }
 
 
-PROFICIENCY_VERSION = '0.3.0'
+PROFICIENCY_VERSION = '0.3.1'
 PROFICIENCY_LUA = {
     'x64/scripts/config/TheInsurgentsForgeConfig/functions/165.lua': 'prototypes/forge_proficiency_165.lua',
     'x64/scripts/IvaliceLegacy/proficiency.lua': 'prototypes/proficiency.lua',
@@ -157,7 +162,8 @@ PROFICIENCY_LUA = {
 
 
 def build(game, out):
-    """Proficiency package: the runtime and Forge adapters, plus the three Writ key-item resources."""
+    """Proficiency package: the runtime and Forge adapters, the three Writ key-item resources and the Clan Primer
+    tip (four handbook/title files)."""
     import json
     from pathlib import Path
     from .__main__ import ROOT, write_package
@@ -167,6 +173,9 @@ def build(game, out):
     archive = VBF(Path(game)/'FFXII_TZA.vbf')
     files = {rel: (ROOT/src).read_bytes() for rel, src in PROFICIENCY_LUA.items()}
     files.update(build_files(archive, patch, battle_pack_section))
+    from . import clan_primer
+    tip = json.loads((ROOT/'patches/proficiency_tip.json').read_text(encoding='utf-8'))
+    files.update(clan_primer.build_files(archive, tip))
     stem = f'IvaliceLegacy-Proficiency-{PROFICIENCY_VERSION}'
     return write_package(files, out, stem, 'Ivalice Legacy Proficiency', PROFICIENCY_VERSION,
                          {'writs': [{k: i[k] for k in ('contentId', 'name')} for i in patch['items']]})

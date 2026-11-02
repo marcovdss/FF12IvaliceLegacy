@@ -76,6 +76,38 @@ function R.active() return effective() >= 1 end
 function R.claimed() return claimed end
 function R.effective() return effective() end
 
+-- The Clan Primer tip "Clan Proficiency" (Traveler's Tips) waits on one flag bit of the menu-info block
+-- ([0x20927C0] + 0x334C, 256 bits, read by the tip check 0x575E80 through 0x315620). No native tip check uses these
+-- bits; the bit follows the Apprentice's Writ through the native setter 0x315A20(index, on).
+local MENU_INFO, TIP_FLAGS, SET_TIP_FLAG = 0x020927C0, 0x334C, 0x315A20
+R.TIP_FLAG = 255
+local flagsLogged = false
+local function syncTip()
+  if campaign == nil then return end
+  local state = memory.u64[MENU_INFO]
+  if type(state) ~= 'number' or state <= 0 then return end
+  local at = state + TIP_FLAGS
+  if not flagsLogged then
+    flagsLogged = true
+    local raw = memory.readArray(at, 32)
+    local hex = {}
+    for i = 1, 32 do
+      local b = type(raw) == 'string' and raw:byte(i) or (type(raw) == 'table' and raw[i]) or nil
+      hex[i] = b and string.format('%02X', b) or '??'
+    end
+    log('campaign=' .. campaign .. ' menu flags before Proficiency: ' .. table.concat(hex))
+  end
+  local byte = memory.u8[at + (R.TIP_FLAG >> 3)]
+  if type(byte) ~= 'number' then return end
+  local now = (byte >> (R.TIP_FLAG & 7)) & 1 == 1
+  local want = writs[1] == true
+  if now ~= want then
+    local ok = pcall(memory.execute, SET_TIP_FLAG, memory.arg.void, memory.arg.u32, R.TIP_FLAG, memory.arg.s32, want and 1 or 0)
+    log(string.format('campaign=%s Proficiency tip %s (flag %d)%s', campaign, want and 'shown' or 'hidden', R.TIP_FLAG,
+      ok and '' or ': setter failed'))
+  end
+end
+
 local function clanRank()
   local ok, clan = pcall(ClanRank.read, {
     u8 = function(a) return memory.u8[a] end, u32 = function(a) return memory.u32[a] end,
@@ -126,12 +158,13 @@ local function claim()
     for _, b in ipairs(P.speech(from, to)) do boxes[#boxes + 1] = b end
   end
   refreshWrits()
+  syncTip()
   if #boxes > 0 then speak(boxes) end
 end
 
 local function reset()
   campaign, claimed, logged, rankLogged, foes = nil, 0, 0, false, {}
-  writs, writsKnown = {false, false, false}, false
+  writs, writsKnown, flagsLogged = {false, false, false}, false, false
   P.reset()
 end
 
@@ -166,6 +199,7 @@ function R.register()
       log(string.format('campaign=%s clan rank %s (claimed %d), location %d', campaign, tostring(clanRank()), claimed, to))
     end
     if from == CLAN_HALL and to ~= CLAN_HALL then claim() end
+    if campaign and legacyMode() then effective(); refreshWrits(); syncTip() end
   end) == true and ok
   return ok
 end

@@ -293,6 +293,35 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(handlers.save().claimedRank == 0)
         ''')
 
+    def test_tip_flag_follows_the_apprentice_writ(self):
+        self.lua.execute('''
+          local state, bits, calls = 0x5000, setmetatable({}, {__index=function() return 0 end}), 0
+          memory.u64 = {[0x020927C0] = state}
+          memory.u8 = bits
+          local readArray, execute = memory.readArray, memory.execute
+          memory.readArray = function(a, n) if a == state + 0x334C then return string.rep('\\0', n) end return readArray(a, n) end
+          memory.execute = function(fn, ret, t1, a1, t2, a2, ...)
+            if fn == 0x315A20 then
+              calls = calls + 1
+              local at = state + 0x334C + (a1 >> 3)
+              bits[at] = a2 == 1 and (bits[at] | (1 << (a1 & 7))) or (bits[at] & ~(1 << (a1 & 7)))
+              return nil
+            end
+            return execute(fn, ret, t1, a1, t2, a2, ...)
+          end
+          local function shown() return (bits[state + 0x334C + 31] >> 7) & 1 == 1 end
+          RANK = 1
+          loadCampaign(1)
+          handlers.onMapJump(50)
+          assert(not shown() and calls == 0)                      -- no Writ yet: nothing written
+          assert(logged('menu flags before Proficiency: ' .. string.rep('00', 32)))
+          leaveHall()
+          assert(keys[0x81F0] and shown() and calls == 1 and logged('Proficiency tip shown (flag 255)'))
+          handlers.onMapJump(60); assert(calls == 1)              -- already set: no second write
+          keys[0x81F0] = nil; handlers.onMapJump(70)
+          assert(not shown() and calls == 2)                      -- Writ gone: tip hidden again
+        ''')
+
     def test_lost_writ_caps_the_stage(self):
         self.lua.execute('''
           RANK = 6; keys[0x81F0] = true; keys[0x81F1] = true
