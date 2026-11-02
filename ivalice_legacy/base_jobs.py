@@ -105,7 +105,7 @@ def build(game, out):
     from .vbf import VBF
     game = Path(game)
     recipe = json.loads((ROOT/'patches/base_jobs.json').read_text(encoding='utf-8'))
-    require(recipe['version'] == '0.5.0', 'Unsupported base-job version')
+    require(recipe['version'] == '0.5.1', 'Unsupported base-job version')
     require(sha((game/'x64/FFXII_TZA.exe').read_bytes()) == recipe['gameExeSha256'],
             'Unsupported game executable')
     archive = VBF(game/'FFXII_TZA.vbf')
@@ -174,7 +174,10 @@ def build(game, out):
     files[help_path] = license_help(battle_pack_section(packed, 58), battle_pack_section(packed, 61),
                                     training['help'], steps(training))
     if (deploy/help_path).exists():
-        require((deploy/help_path).read_bytes() == files[help_path], 'Conflicting deployed license help')
+        # The previous BaseJobs version's own help is a known, replaceable winner.
+        live = (deploy/help_path).read_bytes()
+        require(live == files[help_path] or sha(live) == training['help'].get('previousResultSha256'),
+                'Conflicting deployed license help')
     files = {PREFIX+key: value for key, value in files.items()}
     # Job stat trainings: The Insurgent's Stat Lores config (wins over Stat Lores' own config by a load-order rule).
     from .stat_training import CONFIG, check_licenses, render
@@ -184,7 +187,7 @@ def build(game, out):
     files[docs+'README.md'] = (ROOT/'package_base_jobs/README.md').read_bytes()
     files[docs+'CHANGELOG.md'] = (ROOT/'package_base_jobs/CHANGELOG.md').read_bytes()
     metadata = {'status': 'Offline experimental candidate; not installed or validated in-game',
-                'version': '0.5.0',
+                'version': '0.5.1',
                 'recipeSha256': sha((ROOT/'patches/base_jobs.json').read_bytes()),
                 'licenseLpChanges': recipe['licenseLpPatch']['changes'],
                 'nativeSlots': [{k: j[k] for k in ('nativeSlot','sourceName','name')} for j in recipe['jobs']],
@@ -194,5 +197,5 @@ def build(game, out):
     files[docs+'manifest.json'] = (json.dumps({**metadata, 'files': {key: sha(value) for key, value in sorted(files.items())},
                                              'manifestExcludesOwnHash': True}, indent=2)+'\n').encode()
     return write_package(files, out,
-                         'IvaliceLegacy-BaseJobs-0.5.0', 'Ivalice Legacy Base Jobs Candidate', '0.5.0',
+                         'IvaliceLegacy-BaseJobs-0.5.1', 'Ivalice Legacy Base Jobs Candidate', '0.5.1',
                          metadata)

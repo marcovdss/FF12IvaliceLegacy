@@ -1,4 +1,4 @@
-"""Source-pinned moves of equipment between license nodes, and in-place license name changes."""
+"""Source-pinned moves of equipment between license nodes, and license name changes."""
 import hashlib
 import struct
 
@@ -44,27 +44,46 @@ def apply_license_contents(raw, patch):
     return result
 
 
+def name_entry(name):
+    """A license-name entry as the game lays them out: two zero bytes, the name and its terminator, then at least
+    three zero bytes so the next entry starts on four bytes."""
+    from .job_labels import encode_label
+    body = b'\0\0' + encode_label(name) + b'\0\0\0'
+    return body + bytes(-len(body) % 4)
+
+
 def license_names(section61, patch):
-    """Return the license-name sub-table of the word table with names replaced in their existing slots."""
+    """Return the license-name sub-table of the word table with names replaced.
+
+    The sub-table is rebuilt with new offsets, so a name may be longer than the one it replaces (as the equipment-name
+    sub-table already is); every other entry keeps its exact bytes.
+    """
     require(sha(section61) == patch['sourceSha256'], 'Word table source hash mismatch')
     tables = struct.unpack_from('<I', section61, 0)[0]
     bounds = [struct.unpack_from('<I', section61, 4 + 4 * i)[0] for i in range(tables)] + [len(section61)]
-    table = bytearray(section61[bounds[NAMES_SUBTABLE]:bounds[NAMES_SUBTABLE + 1]])
+    table = section61[bounds[NAMES_SUBTABLE]:bounds[NAMES_SUBTABLE + 1]]
     entries = struct.unpack_from('<I', table, 0)[0]
     require(entries == 362, 'Unsupported license-name table')
-    slots = [struct.unpack_from('<I', table, 4 + 4 * i)[0] for i in range(entries)] + [len(table)]
-    from .job_labels import encode_label
-    changed = set()
+    # Header: count, one offset per entry, then the end offset (the sub-table's total length).
+    slots = [struct.unpack_from('<I', table, 4 + 4 * i)[0] for i in range(entries + 1)]
+    require(slots[0] == 4 + 4 * (entries + 1) and slots[-1] == len(table), 'Unsupported name header')
+    require(all(a < b and a % 4 == 0 for a, b in zip(slots, slots[1:])), 'Unsupported name offsets')
+    bodies = [table[slots[i]:slots[i + 1]] for i in range(entries)]
+    seen = set()
     for change in patch['changes']:
         lid = change['licenseId']
-        start, end = slots[lid], slots[lid + 1]
-        require(table[start:end].hex() == change['beforeHex'], f'Unexpected name slot for license {lid}')
-        text = b'\0\0' + encode_label(change['replacement'])
-        require(len(text) <= end - start, 'Replacement name does not fit its slot')
-        table[start:end] = text + bytes(end - start - len(text))
-        changed |= set(range(start, end))
-    original = section61[bounds[NAMES_SUBTABLE]:bounds[NAMES_SUBTABLE + 1]]
-    require({i for i, (a, b) in enumerate(zip(original, table)) if a != b} <= changed, 'Undeclared name byte changed')
-    result = bytes(table)
+        require(type(lid) is int and 0 <= lid < entries and lid not in seen, 'Invalid or repeated license name')
+        seen.add(lid)
+        require(bodies[lid].hex() == change['beforeHex'], f'Unexpected name slot for license {lid}')
+        require(isinstance(change['replacement'], str) and 0 < len(change['replacement']) <= 24,
+                f'License name for {lid} must be 1-24 characters')
+        bodies[lid] = name_entry(change['replacement'])
+    out = bytearray(table[:slots[0]])
+    offsets = []
+    for body in bodies:
+        offsets.append(len(out))
+        out += body
+    struct.pack_into(f'<{entries + 1}I', out, 4, *offsets, len(out))
+    result = bytes(out)
     require(sha(result) == patch['resultSha256'], 'License name result hash mismatch')
     return result

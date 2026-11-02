@@ -165,5 +165,8 @@ class GameBankTest(unittest.TestCase):
         path = self.game / 'mods/deploy/ff12data' / (old['file'] + '.dir/section_003.bin')
         if not path.is_file():self.skipTest('Rampager pilot is not deployed')
         source = path.read_bytes()
-        self.assertEqual(digest(source), old['resultSectionSha256'])
+        # Since MAIN 0.0.11 the area file is owned by patches/area_ai.json (it carries the pilot's edits).
+        owners = {old['resultSectionSha256']} | {a['resultSectionSha256'] for a in json.loads(
+            (ROOT / 'patches/area_ai.json').read_text())['areas'] if a['file'] == old['file'] and a['section'] == 3}
+        self.assertIn(digest(source), owners)
         self.assertEqual(Bank.from_bytes(source).to_bytes(), source)

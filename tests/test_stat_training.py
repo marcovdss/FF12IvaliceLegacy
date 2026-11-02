@@ -74,6 +74,10 @@ class LicenseHelpTest(unittest.TestCase):
         bad = json.loads(json.dumps(PATCH)); bad['trainings'][0]['steps'][0]['help'] = 'x' * 60
         with self.assertRaisesRegex(ValueError, 'does not fit'):
             license_help(s58, s61, bad['help'], steps(bad))
+        # The help glyphs match the game's own: licence 305 is natively named '+435 HP'.
+        names = s61[bounds[3]:bounds[4]]
+        at = struct.unpack_from('<I', names, 4 + 4 * 305)[0]
+        self.assertEqual(names[at + 2:at + 9], encode('+435 HP'))
 
 
 if __name__ == '__main__':

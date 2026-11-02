@@ -9,7 +9,8 @@ import hashlib
 import struct
 
 HELP_SUBTABLE = 10
-GLYPHS = {' ': 4, '+': 166, ',': 167, '.': 168, **{str(i): 133 + i for i in range(10)},
+# '+' is glyph 164 (native '+435 HP' licence name: a4 89 88 8a); 165 is '-', 166 is '='.
+GLYPHS = {' ': 4, '+': 164, ',': 167, '.': 168, **{str(i): 133 + i for i in range(10)},
           **{chr(65 + i): 32 + i for i in range(26)}, **{chr(97 + i): 58 + i for i in range(26)}}
 
 

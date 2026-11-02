@@ -1,4 +1,4 @@
-"""Moves of equipment between license nodes and in-place license renames."""
+"""Moves of equipment between license nodes and license renames."""
 import copy
 import json
 import os
@@ -54,25 +54,37 @@ class LicenseContentTest(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('IVALICE_LEGACY_GAME'), 'set IVALICE_LEGACY_GAME for source integration')
 class LicenseNameTest(unittest.TestCase):
-    def test_four_names_change_in_their_slots_only(self):
+    def test_names_rebuild_keeps_other_entries(self):
         from ivalice_legacy.vbf import VBF
         from ivalice_legacy.formats import battle_pack_section
+        from ivalice_legacy.job_labels import encode_label
         archive = VBF(Path(os.environ['IVALICE_LEGACY_GAME'])/'FFXII_TZA.vbf')
         section = battle_pack_section(archive.read('ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin'), 61)
-        result = license_names(section, RECIPE['licenseNamePatch'])
+        patch = RECIPE['licenseNamePatch']
+        result = license_names(section, patch)
         bounds = [struct.unpack_from('<I', section, 4+4*i)[0] for i in range(16)]
         original = section[bounds[3]:bounds[4]]
-        self.assertEqual(len(result), len(original))
-        slots = [struct.unpack_from('<I', original, 4+4*i)[0] for i in range(362)] + [len(original)]
-        touched = {i for i, (a, b) in enumerate(zip(original, result)) if a != b}
-        allowed = set().union(*(range(slots[c['licenseId']], slots[c['licenseId']+1])
-                                for c in RECIPE['licenseNamePatch']['changes']))
-        self.assertTrue(touched and touched <= allowed)
-        patch = copy.deepcopy(RECIPE['licenseNamePatch'])
-        patch['changes'][0]['replacement'] = 'A much longer name than fits'
+        def entries(table):
+            offsets = [struct.unpack_from('<I', table, 4+4*i)[0] for i in range(363)]
+            self.assertEqual(offsets[-1], len(table))  # header ends with the sub-table length
+            self.assertTrue(all(o % 4 == 0 for o in offsets))
+            return [table[a:b] for a, b in zip(offsets, offsets[1:])]
+        before, after = entries(original), entries(result)
+        renamed = {c['licenseId']: c['replacement'] for c in patch['changes']}
+        for i in range(362):
+            if i in renamed:
+                self.assertEqual(after[i][:2], b'\0\0')
+                self.assertEqual(after[i][2:].split(b'\0', 1)[0] + b'\0', encode_label(renamed[i]))
+            else:
+                self.assertEqual(after[i], before[i])
+        self.assertTrue(any(len(n) > 17 for n in renamed.values()))  # longer than the old fixed slots
+        # With no changes the rebuild reproduces the native sub-table byte for byte.
+        empty = dict(patch, changes=[], resultSha256=sha(original))
+        self.assertEqual(license_names(section, empty), original)
+        bad = copy.deepcopy(patch)
+        bad['changes'][0]['replacement'] = 'A name far longer than any board can show'
         with self.assertRaises(ValueError):
-            license_names(section, patch)
-
+            license_names(section, bad)
 
 if __name__ == '__main__':
     unittest.main()

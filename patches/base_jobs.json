@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "Offline candidate 0.5.0: job stat trainings + legendary islands + shared basic tools",
+  "status": "Offline candidate 0.5.1: job stat trainings (Lore names, help + fix) + legendary islands + shared basic tools",
   "gameExeSha256": "73461d0896204b1c259c52f61aef4efbc95a2ffc388cadb36493d5d1d89721f8",
   "licenseTableSha256": "665019abce04423118529e461709a1b4aa77a164176c6fdf537b4b6d3b0ac8ea",
   "jobs": [
@@ -7623,7 +7623,7 @@
       ]
     }
   ],
-  "version": "0.5.0",
+  "version": "0.5.1",
   "licenseLpPatch": {
     "schemaVersion": 1,
     "sourceSha256": "665019abce04423118529e461709a1b4aa77a164176c6fdf537b4b6d3b0ac8ea",
@@ -7980,125 +7980,125 @@
       {
         "licenseId": 314,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Bulwark I"
+        "replacement": "Bulwark Lore I"
       },
       {
         "licenseId": 315,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Bulwark II"
+        "replacement": "Bulwark Lore II"
       },
       {
         "licenseId": 312,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Dragoon I"
+        "replacement": "Dragoon Lore I"
       },
       {
         "licenseId": 313,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Dragoon II"
+        "replacement": "Dragoon Lore II"
       },
       {
         "licenseId": 305,
         "beforeHex": "0000a489888a04272f00000000000000",
-        "replacement": "Juggernaut I"
+        "replacement": "Juggernaut Lore I"
       },
       {
         "licenseId": 306,
         "beforeHex": "0000a48a858504272f00000000000000",
-        "replacement": "Juggernaut II"
+        "replacement": "Juggernaut Lore II"
       },
       {
         "licenseId": 255,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Bushido I"
+        "replacement": "Bushido Lore I"
       },
       {
         "licenseId": 307,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Bushido II"
+        "replacement": "Bushido Lore II"
       },
       {
         "licenseId": 316,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Fleetfoot I"
+        "replacement": "Fleetfoot Lore I"
       },
       {
         "licenseId": 317,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Fleetfoot II"
+        "replacement": "Fleetfoot Lore II"
       },
       {
         "licenseId": 308,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Deadeye I"
+        "replacement": "Deadeye Lore I"
       },
       {
         "licenseId": 309,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Deadeye II"
+        "replacement": "Deadeye Lore II"
       },
       {
         "licenseId": 310,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Field Medic I"
+        "replacement": "Field Medic Lore I"
       },
       {
         "licenseId": 311,
         "beforeHex": "0000213a4d4d453e042b484b3e00000000000000",
-        "replacement": "Field Medic II"
+        "replacement": "Field Medic Lore II"
       },
       {
         "licenseId": 323,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Hexcraft I"
+        "replacement": "Hexcraft Lore I"
       },
       {
         "licenseId": 324,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Hexcraft II"
+        "replacement": "Hexcraft Lore II"
       },
       {
         "licenseId": 319,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Chronomancy I"
+        "replacement": "Chronomancy Lore I"
       },
       {
         "licenseId": 320,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Chronomancy II"
+        "replacement": "Chronomancy Lore II"
       },
       {
         "licenseId": 260,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Mysticism I"
+        "replacement": "Mysticism Lore I"
       },
       {
         "licenseId": 318,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Mysticism II"
+        "replacement": "Mysticism Lore II"
       },
       {
         "licenseId": 321,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Devotion I"
+        "replacement": "Devotion Lore I"
       },
       {
         "licenseId": 322,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Devotion II"
+        "replacement": "Devotion Lore II"
       },
       {
         "licenseId": 326,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Sorcery I"
+        "replacement": "Sorcery Lore I"
       },
       {
         "licenseId": 327,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
-        "replacement": "Sorcery II"
+        "replacement": "Sorcery Lore II"
       }
     ],
-    "resultSha256": "233e310fe96a5f6db9461fc3f932acd93761a7e1a5d33462e508de2745bde82f",
-    "previousResultSha256": "db84172f515a18c1c1bc2b8fc042231e02bd819900393e170bb99d1beb736d41"
+    "resultSha256": "717d40f4be8c9023c47e0adc6a9c6f2b80dfca02380f4c6fa618240594454ae8",
+    "previousResultSha256": "233e310fe96a5f6db9461fc3f932acd93761a7e1a5d33462e508de2745bde82f"
   }
 }

@@ -14,7 +14,7 @@ and progression you can't steamroll.
 | Package | Version | What it is | Tested in game |
 |---|---|---|---|
 | Ivalice Legacy (main) | 0.0.11 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | Earlier versions; 0.0.11 not yet |
-| Base Jobs | 0.5.0 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.0 not yet |
+| Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.x not yet |
 | Arsenal | 0.5.1 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.1 not yet |
 | Proficiency | 0.2.0 | Clan-rank job lines handed out by Montblanc | Not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
@@ -56,7 +56,7 @@ makes the game list and write `LEGCY_000`, `LEGCY_001`, ... instead of `FFXII_##
 Disabling the main package and restarting restores the normal namespace. The script never copies, renames or
 converts saves. If activation fails it logs **FATAL** and restores its own changes: stop before loading or saving.
 
-## Base Jobs (0.5.0)
+## Base Jobs (0.5.1)
 
 Twelve standalone jobs, each with a compact board: Knight, Lancer, Warrior, Samurai, Hunter, Gunner, Chemist,
 Green Mage, Time Mage, Mystic, White Mage and Black Mage.
@@ -74,20 +74,20 @@ Green Mage, Time Mage, Mystic, White Mage and Black Mage.
   [The Insurgent's Stat Lores](https://www.nexusmods.com/finalfantasy12/mods/299); the package's Stat Lores config
   must win over Stat Lores' own.
 
-| Job | Training | I | II |
+| Job | Board names | I | II |
 |---|---|---|---|
-| Knight | Bulwark | Defense +3, shield evasion +5 | Defense +4, magick shield evasion +5 |
-| Lancer | Dragoon | Strength +3, Magick Resist +3 | Strength +4, Magick Resist +4 |
-| Warrior | Juggernaut | HP +435, Strength +2, Vitality +4 | HP +500, Strength +3, Vitality +6 |
-| Samurai | Bushido | Strength +2, MP +40 | Strength +2, Magick +1, MP +60 |
-| Hunter | Fleetfoot | Strength +2, Speed +2 | Strength +3, Speed +3 |
-| Gunner | Deadeye | Speed +2, Attack +1 | Speed +2, Attack +1 |
-| Chemist | Field Medic | Vitality +3, Magick Resist +3, Strength +2 | Vitality +4, Magick Resist +4, Strength +2 |
-| Green Mage | Hexcraft | Magick +5, MP +30 | Magick +7, MP +50 |
-| Time Mage | Chronomancy | Magick +2, Speed +2 | Magick +4, Speed +2 |
-| Mystic | Mysticism | Strength +2, Magick +2 | Strength +2, Magick +2 |
-| White Mage | Devotion | Magick +4, Magick Resist +3 | Magick +5, Magick Resist +4 |
-| Black Mage | Sorcery | Magick +6 | Magick +8 |
+| Knight | Bulwark Lore I / II | Defense +3, shield evasion +5 | Defense +4, magick shield evasion +5 |
+| Lancer | Dragoon Lore I / II | Strength +3, Magick Resist +3 | Strength +4, Magick Resist +4 |
+| Warrior | Juggernaut Lore I / II | HP +435, Strength +2, Vitality +4 | HP +500, Strength +3, Vitality +6 |
+| Samurai | Bushido Lore I / II | Strength +2, MP +40 | Strength +2, Magick +1, MP +60 |
+| Hunter | Fleetfoot Lore I / II | Strength +2, Speed +2 | Strength +3, Speed +3 |
+| Gunner | Deadeye Lore I / II | Speed +2, Attack +1 | Speed +2, Attack +1 |
+| Chemist | Field Medic Lore I / II | Vitality +3, Magick Resist +3, Strength +2 | Vitality +4, Magick Resist +4, Strength +2 |
+| Green Mage | Hexcraft Lore I / II | Magick +5, MP +30 | Magick +7, MP +50 |
+| Time Mage | Chronomancy Lore I / II | Magick +2, Speed +2 | Magick +4, Speed +2 |
+| Mystic | Mysticism Lore I / II | Strength +2, Magick +2 | Strength +2, Magick +2 |
+| White Mage | Devotion Lore I / II | Magick +4, Magick Resist +3 | Magick +5, Magick Resist +4 |
+| Black Mage | Sorcery Lore I / II | Magick +6 | Magick +8 |
 
 Existing saved slot IDs and acquired licenses persist; there is no automatic respec. Hybrid jobs (66 combinations)
 are being designed and are not part of this package.
@@ -121,7 +121,7 @@ Each job's Clan line, earned from **Montblanc** and applied to whatever the char
 
 | Job | Line | Stage I in short |
 |---|---|---|
-| Knight | Bulwark | A parry or block draws the attacker to the Knight |
+| Knight | Bulwark Lore I / II | A parry or block draws the attacker to the Knight |
 | Lancer | Grounding | Hits strip Float, then Haste, Faith and Regen |
 | Warrior | Cleave | A kill grants Bravery |
 | Samurai | Zanshin | Hits in a row on one target grant Haste |

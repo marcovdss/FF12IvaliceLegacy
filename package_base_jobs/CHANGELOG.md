@@ -1,3 +1,10 @@
+# 0.5.1 candidate
+
+- Job stat trainings are named as stat licences, like the board's own Battle Lore and Magick Lore: Fleetfoot Lore I/II,
+  Sorcery Lore I/II and so on.
+- Fixed their board help showing "=" instead of "+" (e.g. "Strength =2, Speed =2.").
+- Same boards, licences, prices and effects as 0.5.0. Builds over an installed 0.5.0.
+
 # 0.5.0 candidate
 
 - Job stat trainings: each job's deep shared Battle/Magick Lores become two licenses of its own (e.g. Hunter
