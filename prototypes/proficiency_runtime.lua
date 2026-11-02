@@ -368,8 +368,18 @@ local function setSuffix(member, text)
   memory.u64[at] = buf
 end
 
--- Logs each newly hovered item with the description event's pointers (list entry r14, target rdi, panel owner
--- [rsi+0x60]) and the menu root around the character slot, to find what marks the Equipment menu.
+-- 0.3.6 showed the description owner ([rsi+0x60]) differs per menu but is a fresh heap object each opening. For
+-- each new owner this logs the owner's first 0x80 bytes and every menu-root qword (root .. root+0x2000) pointing at
+-- the owner or its text target, to find a stable mark of the Equipment menu.
+local function hexAt(address, n)
+  local raw, out = memory.readArray(address, n), {}
+  for i = 1, n do
+    local b = type(raw) == 'string' and raw:byte(i) or (type(raw) == 'table' and raw[i]) or nil
+    out[i] = b and string.format('%02X', b) or '??'
+  end
+  return table.concat(out)
+end
+
 local function probeTick()
   local at = gear.probe
   if not at then return end
@@ -377,23 +387,22 @@ local function probeTick()
   if type(calls) ~= 'number' or calls == 0 or calls == gear.lastCalls then return end
   gear.lastCalls = calls
   local kind, item = memory.u32[at], (memory.u32[at + 4] or 0) & 0xFFFF
-  local entry, target, owner = memory.u64[at + 0x18] or 0, memory.u64[at + 0x20] or 0, memory.u64[at + 0x28] or 0
-  local key = tostring(kind) .. ':' .. item .. ':' .. (entry >> 12)
+  local target, owner = memory.u64[at + 0x20] or 0, memory.u64[at + 0x28] or 0
   gear.seen = gear.seen or {}
-  if gear.seen[key] or (gear.probeLogs or 0) >= 60 then return end
-  gear.seen[key] = true
+  if owner <= 0 or gear.seen[owner] or (gear.probeLogs or 0) >= 30 then return end
+  gear.seen[owner] = true
   gear.probeLogs = (gear.probeLogs or 0) + 1
   local root = memory.u64[MENU_ROOT] or 0
-  local hex = {}
+  local refs = {}
   if root > 0 then
-    local raw = memory.readArray(root + 0xD80, 0x80)
-    for i = 1, 0x80 do
-      local b = type(raw) == 'string' and raw:byte(i) or (type(raw) == 'table' and raw[i]) or nil
-      hex[i] = b and string.format('%02X', b) or '??'
+    for o = 0, 0x2000 - 8, 8 do
+      local v = memory.u64[root + o]
+      if v == owner then refs[#refs + 1] = string.format('owner@+%X', o)
+      elseif v == target then refs[#refs + 1] = string.format('target@+%X', o) end
     end
   end
-  log(string.format('gear probe: kind=0x%X item=0x%04X entry=0x%X target=0x%X owner=0x%X slot=%d root+D80=%s',
-    kind or 0, item, entry, target, owner, root > 0 and memory.u16[root + 0xDE0] or -1, table.concat(hex)))
+  log(string.format('gear probe: kind=0x%X item=0x%04X owner=0x%X slot=%d refs=%s owner+0=%s', kind or 0, item, owner,
+    root > 0 and memory.u16[root + 0xDE0] or -1, #refs > 0 and table.concat(refs, ',') or 'none', hexAt(owner, 0x80)))
 end
 
 local function gearTick()
