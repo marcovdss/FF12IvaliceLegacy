@@ -34,6 +34,27 @@ function M.levels(claimedRank)
   return out
 end
 
+-- The Writs are key items (Apprentice's, Journeyman's, Master's). A stage only works while its Writ is owned:
+-- the Writ is handed over first and the Proficiency follows it.
+M.WRIT_IDS = {0x81F0, 0x81F1, 0x81F2}
+M.STAGE_START = {1, 5, 9}
+function M.writCap(owned)
+  for k = 1, 3 do
+    if not (type(owned) == 'table' and owned[k] == true) then return M.STAGE_START[k] - 1 end
+  end
+  return M.MAX_RANK
+end
+function M.effective(claimedRank, owned)
+  if not int(claimedRank, 0, M.MAX_RANK) then return 0 end
+  return math.min(claimedRank, M.writCap(owned))
+end
+-- Writs a claimed rank calls for: stage k needs Writ k once its first level is reached.
+function M.writsNeeded(claimedRank)
+  local L, out = M.levels(claimedRank), {}
+  for k = 1, 3 do if L[k] >= 1 then out[#out + 1] = k end end
+  return out
+end
+
 -- Per-character memory (chains), cleared on load.
 local mem = {}
 function M.reset() mem = {} end
@@ -379,6 +400,18 @@ function M.speech(from, to)
     boxes[#boxes + 1] = 'Kupo! Your ' .. gold(WRIT[stage]) .. ' gets a fresh\nstamp! ' .. gold('Proficiency ' .. roman .. ' ' .. level .. '/4') .. ' grows stronger\nfor every job you take up!'
   end
   return boxes
+end
+
+-- A Writ handed over late: its rank was rewarded before the Writs became key items, or the item went missing.
+function M.writSpeech(stage)
+  if not int(stage, 1, 3) then return {} end
+  return {'Kupo! Wait, I almost forgot your\n' .. gold(WRIT[stage]) .. '! Your ' .. gold('Proficiency') ..
+          ' only\nanswers to a hunter who carries it, kupo!'}
+end
+-- Whether M.speech(from, to) already hands over Writ k.
+function M.speechGives(from, to, stage)
+  return int(from, 0, M.MAX_RANK) and int(to, 0, M.MAX_RANK) and int(stage, 1, 3)
+    and from < M.STAGE_START[stage] and to >= M.STAGE_START[stage]
 end
 
 return M

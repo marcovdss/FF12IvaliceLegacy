@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "description": "Proficiency Writs as key items: names (section 61 sub-table 12), section-35 rows (in use, key-item icon) and Key Items menu descriptions (listhelp_daijinamono.bin). Proficiency grants them through the native key-item setter before any rank is rewarded.",
+  "wordTableSha256": "3b1dbac27b2c433a50e09b67160fa33eee3912a2a142f35d0e00290fce914bbc",
+  "section35Sha256": "aa40ccd8f79a7e1ef7f3aaac850994ae71cf644e20c3f868a7913e9c8c44a9b9",
+  "listhelpSha256": "297e3fc46533cfcaca89da275491d17afb3c480292fe07a1b764e30e7022f7a8",
+  "items": [
+    {
+      "index": 496,
+      "contentId": 33264,
+      "name": "Apprentice's Writ",
+      "article": "an",
+      "description": "A writ from Montblanc vouching for your skill in your\nchosen jobs. Its bearer may draw on Proficiency I."
+    },
+    {
+      "index": 497,
+      "contentId": 33265,
+      "name": "Journeyman's Writ",
+      "article": "a",
+      "description": "Montblanc's writ for members proven in many hunts.\nIts bearer may draw on Proficiency II."
+    },
+    {
+      "index": 498,
+      "contentId": 33266,
+      "name": "Master's Writ",
+      "article": "a",
+      "description": "The highest writ Clan Centurio grants.\nIts bearer may draw on Proficiency III."
+    }
+  ],
+  "resultSha256": {
+    "names": "4cd21427d97d6f71cebaec17e30d89249f840d492f30bbe34147af2527eed5ae",
+    "section35": "4d7c17c97292624413c09dce34e72c97da23f55260612594e8216b185cee48d2",
+    "listhelp": "4adc4eb4d05b1ca23e53eb9e29d9c110f64553daee6ac2efd3c7638132eb0449"
+  }
+}

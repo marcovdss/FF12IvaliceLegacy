@@ -36,13 +36,45 @@ end
 
 local campaign, claimed, location, logged, rankLogged = nil, 0, nil, 0, false
 local foes = {}
+local writs, writsKnown = {false, false, false}, false
 local LOG_LIMIT = 120
 local function log(line)
   if logged < LOG_LIMIT then logged = logged + 1; print('Legacy Proficiency: ' .. line) end
 end
 R.log = log
-function R.active() return campaign ~= nil and claimed >= 1 end
+
+-- Key items through the game's own inventory code: 0x2FD970 is the owned-bit getter (id, kind 0) and 0x2FD420 the
+-- setter (id, amount, mode). Mode 1 sets the amount outright and never reads the setter's stack-only notify
+-- argument; the setter updates the owned bit and the ordered key-item list (0x325F40) together.
+local KEY_GET, KEY_SET = 0x2FD970, 0x2FD420
+local function owns(id)
+  local ok, v = pcall(memory.execute, KEY_GET, memory.arg.s32, memory.arg.u32, id, memory.arg.s32, 0)
+  return ok and v == 1
+end
+local function grant(id)
+  local ok = pcall(memory.execute, KEY_SET, memory.arg.s32, memory.arg.u32, id, memory.arg.s32, 1, memory.arg.s32, 1)
+  return ok and owns(id)
+end
+local function refreshWrits()
+  for k = 1, 3 do writs[k] = owns(P.WRIT_IDS[k]) end
+  writsKnown = true
+end
+-- The rank Proficiency acts on: the claimed rank, capped by the Writs actually carried.
+local function effective()
+  if campaign == nil or claimed < 1 then return 0 end
+  if not writsKnown then
+    refreshWrits()
+    local e = P.effective(claimed, writs)
+    if e < claimed then
+      log(string.format('campaign=%s claimed rank %d but Writs I=%s II=%s III=%s: acting on rank %d until Montblanc hands them over',
+        campaign, claimed, tostring(writs[1]), tostring(writs[2]), tostring(writs[3]), e))
+    end
+  end
+  return P.effective(claimed, writs)
+end
+function R.active() return effective() >= 1 end
 function R.claimed() return claimed end
+function R.effective() return effective() end
 
 local function clanRank()
   local ok, clan = pcall(ClanRank.read, {
@@ -63,20 +95,43 @@ local function speak(boxes)
   end
 end
 
+-- Leaving the hall: hand over every Writ the rank calls for FIRST, then reward the rank. A Writ that cannot be
+-- granted stops the claim, so a Proficiency never runs without its Writ.
 local function claim()
   if not campaign or not legacyMode() then return end
   local rank = clanRank()
   if type(rank) ~= 'number' then log('clan rank unreadable; nothing claimed') return end
-  if rank <= claimed then return end
   local from = claimed
-  claimed = rank
-  local L = P.levels(claimed)
-  log(string.format('campaign=%s rank %d -> %d claimed; levels I=%d II=%d III=%d', campaign, from, rank, L[1], L[2], L[3]))
-  speak(P.speech(from, rank))
+  local to = math.max(rank, claimed)
+  refreshWrits()
+  local late = {}
+  for _, k in ipairs(P.writsNeeded(to)) do
+    if not writs[k] then
+      if not grant(P.WRIT_IDS[k]) then
+        log(string.format('campaign=%s Writ %d (0x%04X) could not be granted; nothing claimed', campaign, k, P.WRIT_IDS[k]))
+        refreshWrits()
+        return
+      end
+      writs[k] = true
+      log(string.format('campaign=%s Writ %d (0x%04X) granted', campaign, k, P.WRIT_IDS[k]))
+      if not P.speechGives(from, to, k) then late[#late + 1] = k end
+    end
+  end
+  local boxes = {}
+  for _, k in ipairs(late) do for _, b in ipairs(P.writSpeech(k)) do boxes[#boxes + 1] = b end end
+  if to > from then
+    claimed = to
+    local L = P.levels(claimed)
+    log(string.format('campaign=%s rank %d -> %d claimed; levels I=%d II=%d III=%d', campaign, from, to, L[1], L[2], L[3]))
+    for _, b in ipairs(P.speech(from, to)) do boxes[#boxes + 1] = b end
+  end
+  refreshWrits()
+  if #boxes > 0 then speak(boxes) end
 end
 
 local function reset()
   campaign, claimed, logged, rankLogged, foes = nil, 0, 0, false, {}
+  writs, writsKnown = {false, false, false}, false
   P.reset()
 end
 
@@ -105,6 +160,7 @@ function R.register()
     local from = location
     location = to
     foes = {}
+    writsKnown = false  -- the Writs are read again on the next use (a key item can come or go between maps)
     if campaign and not rankLogged then
       rankLogged = true
       log(string.format('campaign=%s clan rank %s (claimed %d), location %d', campaign, tostring(clanRank()), claimed, to))
@@ -285,7 +341,7 @@ function R.hook165(formula, caster, target, classes, helpers)
       s.charge = {current = work.currentChargeTime, required = work.requiredChargeTime, last = work.lastChargeTime}
     end
     s.foes = R.foes(classes, target.address)
-    local a = P.decide('hit', s, claimed)
+    local a = P.decide('hit', s, effective())
     if a then R.apply(a, formula, caster, classes, helpers); R.report('hit', s, a) end
   elseif caster.type == 1 and target.type == 0 and formula.target.removedHp ~= -1 and target.maxHp > 0 then
     local quarter = target.maxHp // 4
@@ -294,7 +350,7 @@ function R.hook165(formula, caster, target, classes, helpers)
         if p.job == P.JOB.knight and p.address ~= target.address then
           local k = classes.getBattleUnitKeep(p.address)
           local s = R.base(k, k.temporaryStatusEffects, classes, helpers)
-          local a = s and P.decide('ally', s, claimed)
+          local a = s and P.decide('ally', s, effective())
           if a then R.apply(a, nil, k, classes, helpers); R.report('ally', s, a) end
         end
       end
@@ -316,7 +372,7 @@ function R.hook240(formula, caster, target, classes, helpers)
     s.outcome = OUTCOME[formula.outcomeType]
     if not s.outcome then return end
   end
-  local a = P.decide('guard', s, claimed)
+  local a = P.decide('guard', s, effective())
   if a then R.apply(a, nil, target, classes, helpers); R.report('guard', s, a) end
 end
 
@@ -327,7 +383,7 @@ function R.hook110(formula, caster, target, classes, helpers)
   if not s or s.job ~= P.JOB.whiteMage then return end
   s.target = target.address
   s.overflow = math.floor(formula.target.addedHp) - (target.maxHp - target.currentHp)
-  local a = P.decide('heal', s, claimed)
+  local a = P.decide('heal', s, effective())
   if a then R.apply(a, formula, caster, classes, helpers); R.report('heal', s, a) end
 end
 
@@ -339,7 +395,7 @@ function R.hook170(formula, caster, target, classes, helpers)
   if not s or s.job ~= P.JOB.blackMage then return end
   s.element, s.mpCost = R.element(formula.action)
   s.foe, s.target = true, target.address
-  local a = P.decide('magick', s, claimed)
+  local a = P.decide('magick', s, effective())
   if a then R.apply(a, formula, caster, classes, helpers); R.report('magick', s, a) end
 end
 
@@ -357,7 +413,7 @@ function R.hook182(formula, caster, target, classes, helpers, before)
   if #s.landed == 0 then return end
   s.foe, s.target, s.damage = true, target.address, formula.target.removedHp
   s.foes = R.foes(classes, target.address)
-  local a = P.decide('status', s, claimed)
+  local a = P.decide('status', s, effective())
   if a then R.apply(a, formula, caster, classes, helpers); R.report('status', s, a) end
 end
 
@@ -366,7 +422,7 @@ function R.hook22(formula, caster, target, classes, helpers)
   if not R.active() or caster.type ~= 0 or target.type ~= 1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
   if not s or s.job ~= P.JOB.samurai then return end
-  local a = P.decide('aim', s, claimed)
+  local a = P.decide('aim', s, effective())
   if a and a.evade then
     if a.evade.weapon then formula.evadeWeapon = 0 end
     if a.evade.shield then formula.evadeShield = 0 end

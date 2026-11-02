@@ -193,5 +193,118 @@ class ProficiencyAdapterTest(unittest.TestCase):
         ''')
 
 
+@unittest.skipIf(LuaRuntime is None, 'requires Lupa Lua5.5')
+class ProficiencyWritTest(unittest.TestCase):
+    """The Writ key item comes first; Proficiency only acts on stages whose Writ is owned."""
+
+    def setUp(self):
+        self.lua = LuaRuntime(unpack_returned_tuples=True)
+        sources = {f'scripts/IvaliceLegacy/{n}.lua': (ROOT/f'prototypes/{n}.lua').read_text(encoding='utf-8')
+                   for n in ('proficiency', 'proficiency_runtime')}
+        sources['scripts/IvaliceLegacy/clan_rank.lua'] = 'return {MARKS_FN=0, read=function() return {rank=RANK} end}'
+        self.lua.globals().sources = self.lua.table_from(sources)
+        self.lua.execute(r'''
+          printed, boxes, handlers, keys, setFails, RANK = {}, {}, {}, {}, false, 0
+          print = function(s) printed[#printed+1] = s end
+          local real_load = load
+          loadfile = function(p, mode, env) return sources[p] and real_load(sources[p], '@'..p, mode, env) or nil end
+          local wide = function(s) return (s:gsub('.', '%0\0')) end
+          local mem = {[0x120000]='MZ', [0x120180]='PE\0\0\x64\x86', [0xD113D4]='LEGCY_\0',
+                       [0xD12200]=wide('%sLEGCY_%03d\0')}
+          memory = {u8={}, u32=setmetatable({}, {__index=function() return 0 end}), u64={},
+                    arg={s32='s32', u32='u32'},
+                    readArray=function(a, n) return (mem[a] or ''):sub(1, n) end,
+                    execute=function(fn, ret, t1, id, t2, v2, t3, v3)
+                      if fn == 0x2FD970 then return keys[id] and 1 or 0 end
+                      if fn == 0x2FD420 then
+                        assert(t3 == 'u32' or t3 == 's32')
+                        assert(v3 == 1, 'setter must use mode 1 (absolute)')
+                        if setFails then return 0 end
+                        keys[id] = v2 == 1; return v2
+                      end
+                      return 0
+                    end}
+          dialog = {amese={open=function(t) boxes[#boxes+1] = t.body return 1 end}}
+          event = {registerEventSync=function(name, fn) handlers[name] = fn return true end,
+                   registerEventAsync=function(name, fn) handlers[name] = fn return true end,
+                   registerLoadHandler=function(_, fn) handlers.load = fn return true end,
+                   registerSaveHandler=function(_, fn) handlers.save = fn return true end}
+          R = real_load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime', 't', _ENV)()
+          assert(R.register())
+          function loadCampaign(rank) handlers.load('C:/saves/LEGCY_000', {schema=1, campaign='LEGCY_000', claimedRank=rank}) end
+          function leaveHall() handlers.onMapJump(302); handlers.onMapJump(100) end
+          function said(text) for _, b in ipairs(boxes) do if b:find(text, 1, true) then return true end end end
+          function logged(text) for _, l in ipairs(printed) do if l:find(text, 1, true) then return true end end end
+        ''')
+
+    def test_rules(self):
+        self.lua.execute('''
+          local P = R.Proficiency
+          assert(P.effective(1, {}) == 0 and P.effective(1, {true}) == 1)
+          assert(P.effective(6, {true}) == 4 and P.effective(6, {true, true}) == 6)
+          assert(P.effective(12, {true, true}) == 8 and P.effective(12, {true, true, true}) == 12)
+          assert(P.effective(12, {false, true, true}) == 0)      -- no Apprentice's Writ: nothing at all
+          local n = P.writsNeeded(5); assert(#n == 2 and n[1] == 1 and n[2] == 2)
+          assert(#P.writsNeeded(0) == 0)
+          assert(P.speechGives(0, 1, 1) and not P.speechGives(1, 2, 1) and P.speechGives(4, 9, 3) and P.speechGives(4, 9, 2))
+          for k = 1, 3 do
+            for _, box in ipairs(P.writSpeech(k)) do
+              local lines = 0
+              for line in (box .. '\\n'):gmatch('(.-)\\n') do lines = lines + 1; assert(#line:gsub('{color:%a+}', '') <= 48, line) end
+              assert(lines <= 3)
+            end
+          end
+        ''')
+
+    def test_rank_claimed_before_the_writ_existed(self):
+        # Marco's campaign: rank 1 claimed by 0.2.0, no Writ in the inventory.
+        self.lua.execute('''
+          RANK = 1
+          loadCampaign(1)
+          assert(R.claimed() == 1 and not R.active() and R.effective() == 0)
+          assert(logged('acting on rank 0'))
+          leaveHall()
+          assert(keys[0x81F0] and not keys[0x81F1])
+          assert(R.active() and R.effective() == 1 and R.claimed() == 1)
+          assert(#boxes == 1 and said("Apprentice's Writ") and said('almost forgot'))
+          assert(logged('Writ 1 (0x81F0) granted'))
+          boxes = {}; leaveHall(); assert(#boxes == 0)          -- nothing more to give
+        ''')
+
+    def test_new_ranks_give_their_writs_first(self):
+        self.lua.execute('''
+          RANK = 5
+          loadCampaign(0)
+          assert(not R.active())
+          leaveHall()
+          assert(keys[0x81F0] and keys[0x81F1] and not keys[0x81F2])
+          assert(R.claimed() == 5 and R.effective() == 5)
+          assert(said("Apprentice's Writ") and said("Journeyman's Writ") and not said('almost forgot'))
+          assert(handlers.save().claimedRank == 5)
+        ''')
+
+    def test_refused_grant_claims_nothing(self):
+        self.lua.execute('''
+          RANK = 1; setFails = true
+          loadCampaign(0)
+          leaveHall()
+          assert(R.claimed() == 0 and not R.active() and #boxes == 0)
+          assert(logged('could not be granted; nothing claimed'))
+          assert(handlers.save().claimedRank == 0)
+        ''')
+
+    def test_lost_writ_caps_the_stage(self):
+        self.lua.execute('''
+          RANK = 6; keys[0x81F0] = true; keys[0x81F1] = true
+          loadCampaign(6)
+          assert(R.effective() == 6)
+          keys[0x81F1] = nil
+          handlers.onMapJump(50)
+          assert(R.effective() == 4)                            -- stage II waits for its Writ
+          leaveHall()
+          assert(keys[0x81F1] and R.effective() == 6 and said("Journeyman's Writ") and said('almost forgot'))
+        ''')
+
+
 if __name__ == '__main__':
     unittest.main()
