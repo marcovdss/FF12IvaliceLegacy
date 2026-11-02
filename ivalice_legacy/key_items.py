@@ -150,7 +150,7 @@ def build_files(archive, patch, pack_section):
     }
 
 
-PROFICIENCY_VERSION = '0.3.2'
+PROFICIENCY_VERSION = '0.3.3'
 PROFICIENCY_LUA = {
     'x64/scripts/config/TheInsurgentsForgeConfig/functions/165.lua': 'prototypes/forge_proficiency_165.lua',
     'x64/scripts/IvaliceLegacy/proficiency.lua': 'prototypes/proficiency.lua',
@@ -163,7 +163,8 @@ PROFICIENCY_LUA = {
 
 def build(game, out):
     """Proficiency package: the runtime and Forge adapters, the three Writ key-item resources and the Clan Primer
-    tip (four handbook/title files)."""
+    tip (four handbook/title files) and, when Dynamic Description is installed, its weapon/shield/armour
+    templates with a Proficiency row."""
     import json
     from pathlib import Path
     from .__main__ import ROOT, write_package
@@ -176,6 +177,9 @@ def build(game, out):
     from . import clan_primer
     tip = json.loads((ROOT/'patches/proficiency_tip.json').read_text(encoding='utf-8'))
     files.update(clan_primer.build_files(archive, tip))
+    # Gear descriptions: Dynamic Description equipment templates with the Proficiency row (only if DD is installed).
+    from . import gear_templates
+    files.update(gear_templates.build_files(game))
     stem = f'IvaliceLegacy-Proficiency-{PROFICIENCY_VERSION}'
     return write_package(files, out, stem, 'Ivalice Legacy Proficiency', PROFICIENCY_VERSION,
                          {'writs': [{k: i[k] for k in ('contentId', 'name')} for i in patch['items']]})

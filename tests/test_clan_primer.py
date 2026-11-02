@@ -99,3 +99,23 @@ class TipResourceTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+@unittest.skipUnless(os.environ.get('IVALICE_LEGACY_GAME'), 'set IVALICE_LEGACY_GAME for source integration')
+class GearTemplateTest(unittest.TestCase):
+    def test_rows(self):
+        from ivalice_legacy import gear_templates as G
+        game = Path(os.environ['IVALICE_LEGACY_GAME'])
+        files = G.build_files(game)
+        if not files:
+            self.skipTest('Dynamic Description not installed')
+        self.assertEqual(len(files), 33)
+        for icon in G.ICONS:
+            before = (game / G.TEMPLATES.format(icon)).read_bytes()
+            after = files[G.TEMPLATES.format(icon)]
+            self.assertEqual(after.replace(G.ROW.encode(), b''), before)        # only the row is added
+            self.assertLess(after.index(b'legacyProficiency'), after.index(b'content:(notes)'))
+        self.assertNotIn(G.TEMPLATES.format(33), files)                       # ammunition untouched
+        with self.assertRaises(ValueError):
+            G.add_row(files[G.TEMPLATES.format(0)], 0)                         # never twice
+        self.assertEqual(G.add_row(files[G.TEMPLATES.format(0)], 0, rebuild=True), files[G.TEMPLATES.format(0)])

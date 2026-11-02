@@ -369,6 +369,104 @@ function M.decide(event, s, claimedRank)
   return a
 end
 
+-- What each job's Proficiency does, for the gear descriptions: line name, then for each stage the sentence at
+-- levels 1-4 (what the rules above do at that level; effects still in M.PENDING are left out, '' = nothing yet).
+M.GEAR = {
+  [M.JOB.whiteMage] = {line = 'Overflow',
+    {'Healing past full HP gives a short Regen', 'Healing past full HP gives a short Regen',
+     'Overflow healing gives Regen and MP back', 'Overflow healing: longer Regen and MP back'},
+    {'Overflow Regen also reaches one more ally', 'Overflow Regen also reaches two more allies',
+     'Overflow Regen reaches the whole party', 'Overflow Regen reaches all, a bit stronger'},
+    {'Overflow also gives brief Shell', 'Overflow also gives brief Shell and Protect',
+     'Overflow also gives Shell, Protect and Faith', 'Overflow gives Shell (longer), Protect, Faith'}},
+  [M.JOB.lancer] = {line = 'Grounding',
+    {'Hits strip Float', 'Hits strip Float and Haste', 'Hits strip Float, Haste and Faith',
+     'Hits strip Float, Haste, Faith and Regen'},
+    {'', '', '', ''},
+    {'Foes left with no buffs are briefly Immobilized', 'Foes left with no buffs are Immobilized longer',
+     'Unbuffed foes are Immobilized, +15% damage to them', 'Unbuffed foes are Immobilized, +15% damage to them'}},
+  [M.JOB.gunner] = {line = 'Suppression',
+    {'Hits push back the target\'s charge time', 'Hits push back the target\'s charge time',
+     'Hits push back charge time, nearest foe a little', 'Hits push back charge more, nearest foe a little'},
+    {'', '', '', ''},
+    {'Three hits on one foe push it back further', 'Two hits on one foe push it back further',
+     'Two hits in a row push further and Slow the foe', 'Hit chains push, Slow, and carry over on a kill'}},
+  [M.JOB.greenMage] = {line = 'Mana Leech',
+    {'Hits drain a little MP', 'Hits drain MP, and a foe drained dry is Silenced',
+     'Drain MP (also heals HP), dry foes are Silenced', 'Drain more MP (heals HP), dry foes are Silenced'},
+    {'At full MP, drained MP feeds the ally lowest on MP', 'Full MP: drain feeds the lowest-MP ally, cures Silence',
+     'Full MP: drain feeds two low-MP allies, cures Silence', 'Full MP: drain feeds two allies more, cures Silence'},
+    {'Hits push back the foe\'s charge by 4%', 'Hits push back the foe\'s charge by 6%',
+     'Hits push back the foe\'s charge by 8%', 'Hits push back the foe\'s charge by 10%'}},
+  [M.JOB.knight] = {line = 'Bulwark',
+    {'A parry or block Lures the attacker', 'A parry, block or dodge Lures the attacker',
+     'Parry, block or dodge Lures the attacker longer', 'Parry, block or dodge Lures the attacker longer'},
+    {'Parry or block: brief Protect on the weakest ally', 'Parry or block: Protect and Shell on weakest ally',
+     'Parry or block: Protect and Shell on two allies', 'Parry or block: Protect and Shell on two allies'},
+    {'When an ally drops to critical HP, the Knight Lures', 'When an ally drops to critical HP, the Knight Lures',
+     'Ally at critical HP: the Knight Lures, gains Bravery', 'Ally at critical HP: the Knight Lures, gains Bravery'}},
+  [M.JOB.mystic] = {line = 'Ki Flow',
+    {'Counters heal the Mystic a little', 'Counters heal the Mystic and a hurt ally',
+     'Counters heal (also an ally) and push the foe back', 'Counters heal more (also an ally), push the foe'},
+    {'Counters restore a little MP', 'Counters restore MP and cure Blind', 'Counters restore MP and cure Blind',
+     'Counters restore more MP and cure Blind'},
+    {'Counters cure one ailment', 'Counters cure an ailment and give Protect',
+     'Counters cure an ailment, give Protect and Haste', 'Counters cure two ailments, give Protect and Haste'}},
+  [M.JOB.timeMage] = {line = 'Detonate',
+    {'Hits can briefly Stop a Slowed foe', 'Hits can Stop a Slowed or Immobilized foe',
+     'Hits can Stop a Slowed, Immobilized or Disabled foe', 'Likelier Stop on Slowed, Immobilized, Disabled foes'},
+    {'A Detonate Stop also Slows the nearest foe', 'A Detonate Stop also Slows the two nearest foes',
+     'Detonate Stop Slows two nearby foes, strips Haste', 'Detonate Stop: longer Slow on two foes, strips Haste'},
+    {'Party hits on Stopped foes grant brief Haste', 'Party hits on Stopped foes: Haste, +15% damage',
+     'Party hits on Stopped foes: Haste, +15% damage', 'Party hits on Stopped foes: longer Haste, +15%'}},
+  [M.JOB.warrior] = {line = 'Cleave',
+    {'A kill grants Bravery', 'A kill or greatsword sweep grants Bravery',
+     'A kill or greatsword sweep grants longer Bravery', 'Kill or sweep: Bravery, a kill under it cleanses'},
+    {'Below half HP, hits grant Bravery', 'Below half HP, hits grant Bravery', 'Below 75% HP, hits grant Bravery',
+     'Below 75% HP, hits grant Bravery to him and an ally'},
+    {'Hits at critical HP make the foe bleed (Sap)', 'Critical-HP hits Sap, +15% damage to Sapped foes',
+     'Critical-HP hits Sap, +15% vs Sap, spreads on kill', 'Longer Sap at critical HP, +15% vs Sap, spreads'}},
+  [M.JOB.hunter] = {line = 'Pursuit',
+    {'+15% damage to foes hindered by an ailment', '+15% damage to foes hindered by an ailment',
+     '+15% damage to foes hindered by an ailment', '+25% damage to foes hindered by an ailment'},
+    {'', '', 'Hits reveal hindered foes (Libra)', 'Hits reveal hindered foes (Libra)'},
+    {'Killing hindered prey grants brief Haste', 'Hindered kill: brief Haste, next foe hit is Slowed',
+     'Hindered kill: brief Haste, next foe hit is Slowed', 'Hindered kill: longer Haste, next foe hit Slowed'}},
+  [M.JOB.blackMage] = {line = 'Resonance',
+    {'Same element twice: the next cast charges faster', 'Same element twice: the next cast charges faster',
+     'Same element twice: the next cast charges faster', 'Same element twice: next cast charges much faster'},
+    {'Third same-element cast refunds MP', 'Third same-element cast refunds MP, hits harder',
+     'Third same-element cast: more MP back, hits harder', 'Third same-element cast: most MP back, hits harder'},
+    {'', '', '', ''}},
+  [M.JOB.samurai] = {line = 'Zanshin',
+    {'Three hits on one foe grant brief Haste', 'Two hits on one foe grant brief Haste',
+     'Two hits on one foe grant brief Haste', 'Two hits on one foe grant Haste (longer)'},
+    {'In Haste, attacks ignore evasion', 'In Haste, attacks ignore evasion and parry',
+     'In Haste: ignore evasion, parry and Protect', 'In Haste: ignore evasion, parry, Protect, push charge'},
+    {'A kill in Haste refreshes Haste', 'A kill in Haste refreshes Haste, grants Bravery',
+     'A kill in Haste refreshes Haste, grants Bravery', 'Kill in Haste: Haste, Bravery, chain carries over'}},
+  [M.JOB.chemist] = {line = 'Contagion',
+    {'Statuses you land can spread to the nearest foe', 'Landed statuses can spread, at full duration',
+     'Statuses spread (Oil and Poison more easily)', 'Statuses spread often (Oil and Poison most)'},
+    {'', '', '', ''},
+    {'Spreads reach two foes', 'Spreads reach two foes and hurt them a little',
+     'Spreads reach two foes, hurt and reveal them', 'Spreads reach three foes, hurt and reveal them'}},
+}
+M.GEAR_LIMIT = 56
+-- The gear lines for one job at the effective rank: header, then stages I-III (nil = nothing to show).
+function M.gearLines(job, effectiveRank)
+  local g = M.GEAR[job]
+  if not g then return nil end
+  local L = M.levels(effectiveRank)
+  local out = {g.line .. '  I ' .. L[1] .. '/4  II ' .. L[2] .. '/4  III ' .. L[3] .. '/4'}
+  for k = 1, 3 do
+    local text = L[k] >= 1 and g[k][L[k]] or ''
+    out[k + 1] = text ~= '' and text or nil
+  end
+  if L[1] < 1 then out[1] = g.line .. '  (no Writ yet: see Montblanc)' end
+  return out
+end
+
 -- Montblanc's lines for newly rewarded ranks (from+1 .. to). Returns a list of dialogue boxes.
 local WRIT = {"Apprentice's Writ", "Journeyman's Writ", "Master's Writ"}
 local function gold(text) return '{color:gold}' .. text .. '{color:none}' end

@@ -16,7 +16,7 @@ and progression you can't steamroll.
 | Ivalice Legacy (main) | 0.0.11 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | Earlier versions; 0.0.11 not yet |
 | Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.x not yet |
 | Arsenal | 0.5.1 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.1 not yet |
-| Proficiency | 0.3.2 | Clan-rank job lines handed out by Montblanc, with the Writs as key items and a Clan Primer tip | 0.2.0 rank reward yes; 0.3.x not yet |
+| Proficiency | 0.3.3 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip and the line shown on gear | 0.2.0 rank reward yes; 0.3.x not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
 
 ## Main package (0.0.11)
@@ -106,7 +106,7 @@ are being designed and are not part of this package.
 
 See [package_arsenal/README.md](package_arsenal/README.md) for every weapon's numbers.
 
-## Proficiency (0.3.2)
+## Proficiency (0.3.3)
 
 Each job's Clan line, earned from **Montblanc** and applied to whatever the character wields.
 
@@ -122,6 +122,8 @@ Each job's Clan line, earned from **Montblanc** and applied to whatever the char
   Key Items. A rank rewarded before the Writs existed gets its Writ on the next visit to the Clan hall.
 - **A Clan Primer tip.** "Clan Proficiency" joins the Traveler's Tips (The Ways of Strength) once the Apprentice's
   Writ is in Key Items.
+- **Shown on the gear.** In the Equipment menu every weapon, shield and armour piece shows the selected character's
+  Proficiency: its levels and what each unlocked stage does now (needs Dynamic Description; accessories excluded).
 
 | Job | Line | Stage I in short |
 |---|---|---|

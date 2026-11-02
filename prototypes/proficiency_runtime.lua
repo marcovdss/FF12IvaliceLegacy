@@ -169,9 +169,96 @@ local function claim()
   if #boxes > 0 then speak(boxes) end
 end
 
+-- ---------- gear descriptions ----------
+-- The Equipment menu shows the selected character's Proficiency on every weapon, shield and armour piece (not
+-- accessories or ammunition), through Dynamic Description's custom attributes. Selected character: i16 slot at
+-- [0x209AC30]+0xDE0 -> 0x282EA0(slot) menu index -> 0x31C4C0(index) party member -> 0x320A40(member) battle unit
+-- (job1 at +0x1C3, the job Proficiency uses). The lines are rewritten only when job or effective rank change.
+-- DD merges entries on refresh and never deletes them, so a line is hidden by setting its value to 0.
+local MENU_ROOT, MENU_SLOT = 0x0209AC30, 0xDE0
+local SLOT_TO_INDEX, INDEX_TO_MEMBER, MEMBER_KEEP, KEEP_JOB1 = 0x282EA0, 0x31C4C0, 0x320A40, 0x1C3
+local GEAR_IDS = {'legacyProficiency', 'legacyProficiencyI', 'legacyProficiencyII', 'legacyProficiencyIII'}
+local GEAR_LABELS = {'Proficiency', 'I', 'II', 'III'}
+local GEAR_POLL_MS = 300
+local ddApi, gearItems, gearKey, gearLogged = nil, nil, nil, false
+
+local function dd()
+  if ddApi == nil then
+    local chunk = loadfile('scripts/DynamicDescription/dd_api.lua', 't', _ENV)
+    local ok, api = pcall(function() return chunk and chunk() end)
+    ddApi = (ok and type(api) == 'table' and type(api.customAttribute) == 'table' and type(api.refresh) == 'function')
+      and api or false
+  end
+  return ddApi or nil
+end
+
+-- Equipment content IDs (0x1000 + record) that take the line: categories 0-20 (weapons, shield, helm, armour).
+local function eligibleGear()
+  if gearItems then return gearItems end
+  gearItems = {}
+  if type(bpack) ~= 'table' then return gearItems end
+  for i = 0, 1023 do
+    local ok, category = pcall(function() local r = bpack.section13[i]; return r and r.category end)
+    if not ok or type(category) ~= 'number' then break end
+    if category <= 20 then gearItems[#gearItems + 1] = 0x1000 + i end
+  end
+  return gearItems
+end
+
+local function selectedJob()
+  local root = memory.u64[MENU_ROOT]
+  if type(root) ~= 'number' or root <= 0 then return nil end
+  local slot = memory.u16[root + MENU_SLOT]
+  if type(slot) ~= 'number' or slot > 8 then return nil end           -- 0xFFFF (none) and anything odd
+  local ok, index = pcall(memory.execute, SLOT_TO_INDEX, memory.arg.s32, memory.arg.s32, slot)
+  if not ok or type(index) ~= 'number' or index < 0 or index > 8 then return nil end
+  local ok2, member = pcall(memory.execute, INDEX_TO_MEMBER, memory.arg.u32, memory.arg.s32, index)
+  if not ok2 or type(member) ~= 'number' then return nil end
+  member = member & 0xFF
+  if member >= 0xFF then return nil end
+  local ok3, keep = pcall(memory.execute, MEMBER_KEEP, memory.arg.pointer, memory.arg.s32, member)
+  if not ok3 or type(keep) ~= 'number' or keep <= 0 then return nil end
+  local job = memory.u8[keep + KEEP_JOB1]
+  if type(job) ~= 'number' or not P.GEAR[job] then return nil end
+  return job, member
+end
+
+local function writeGear(job, rank)
+  local api = dd()
+  if not api then return false end
+  local lines = P.gearLines(job, rank)
+  if not lines then return false end
+  for _, id in ipairs(eligibleGear()) do
+    for k = 1, 4 do api.customAttribute.create(id, GEAR_IDS[k], GEAR_LABELS[k], lines[k] or 0, false) end
+  end
+  return api.refresh()
+end
+
+local function gearTick()
+  if campaign and legacyMode() then
+    local job, member = selectedJob()
+    if job then
+      local rank = effective()
+      local key = job .. ':' .. rank
+      if key ~= gearKey then
+        gearKey = key
+        local ok, refreshed = pcall(writeGear, job, rank)
+        if not gearLogged or not ok then
+          gearLogged = true
+          log(string.format('campaign=%s gear text for member %d job %d rank %d: %s (%d items)', campaign, member, job,
+            rank, ok and (refreshed and 'written' or 'no Dynamic Description') or ('error ' .. tostring(refreshed)),
+            #eligibleGear()))
+        end
+      end
+    end
+  end
+  event.executeAfterMs(GEAR_POLL_MS, gearTick)
+end
+
 local function reset()
   campaign, claimed, logged, rankLogged, foes = nil, 0, 0, false, {}
   writs, writsKnown, flagsLogged = {false, false, false}, false, false
+  gearKey, gearLogged = nil, false
   P.reset()
 end
 
@@ -208,6 +295,7 @@ function R.register()
     if from == CLAN_HALL and to ~= CLAN_HALL then claim() end
     if campaign and legacyMode() then effective(); refreshWrits(); syncTip() end
   end) == true and ok
+  if type(event.executeAfterMs) == 'function' then event.executeAfterMs(GEAR_POLL_MS, gearTick) end
   return ok
 end
 

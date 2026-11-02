@@ -324,6 +324,69 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(not shown() and calls == 3)                      -- Writ gone: tip hidden again
         ''')
 
+    def test_gear_text(self):
+        self.lua.execute('''
+          local P = R.Proficiency
+          local jobs = 0
+          for job = 0, 11 do
+            local g = P.GEAR[job]; assert(g and g.line, job); jobs = jobs + 1
+            for k = 1, 3 do
+              assert(#g[k] == 4, job .. ':' .. k)
+              for l = 1, 4 do assert(#g[k][l] <= P.GEAR_LIMIT, g[k][l]); assert(not g[k][l]:find('[;/<>{}]'), g[k][l]) end
+            end
+          end
+          assert(jobs == 12)
+          local hunter = P.gearLines(P.JOB.hunter, 2)
+          assert(hunter[1] == 'Pursuit  I 2/4  II 0/4  III 0/4' and hunter[2]:find('15%%') and hunter[3] == nil and hunter[4] == nil)
+          local six = P.gearLines(P.JOB.hunter, 7)                       -- I 4/4, II 3/4
+          assert(six[2]:find('25%%') and six[3]:find('Libra') and six[4] == nil)
+          assert(P.gearLines(P.JOB.lancer, 6)[3] == nil)                   -- Lancer II is not built yet: no line
+          assert(P.gearLines(P.JOB.knight, 0)[1]:find('no Writ yet'))
+        ''')
+
+    def test_gear_descriptions_follow_the_selected_character(self):
+        self.lua.execute(r'''
+          sources['scripts/DynamicDescription/dd_api.lua'] = [[
+            local api = {customAttribute = {}}
+            DD = {attrs = {}, refreshes = 0}
+            function api.customAttribute.create(id, key, label, value) DD.attrs[id .. ':' .. key] = {label, value} return true end
+            function api.refresh() DD.refreshes = DD.refreshes + 1 return true end
+            return api
+          ]]
+          local tick
+          event.executeAfterMs = function(ms, fn) tick = fn end
+          R2 = load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime2', 't', _ENV)()
+          assert(R2.register() and tick)
+          handlers.load('C:/saves/LEGCY_000', {schema = 1, campaign = 'LEGCY_000', claimedRank = 2})
+          keys[0x81F0] = true
+          -- equipment: 0 dagger, 1 accessory, 2 armour, 3 arrows
+          local cats = {[0] = 12, 21, 20, 23}
+          bpack = {section13 = setmetatable({}, {__index = function(_, i) return cats[i] and {category = cats[i]} or nil end})}
+          local root, keep, slot, job = 0x7000, 0x9000, 1, 8
+          memory.u64 = {[0x020927C0] = 0, [0x0209AC30] = root}
+          memory.u16 = setmetatable({}, {__index = function(_, a) return a == root + 0xDE0 and slot or 0 end})
+          memory.u8 = setmetatable({}, {__index = function(_, a) return a == keep + 0x1C3 and job or 0 end})
+          local base = memory.execute
+          memory.execute = function(fn, ret, t1, a1, ...)
+            if fn == 0x282EA0 then return a1 end
+            if fn == 0x31C4C0 then return 0x500 + a1 end                      -- only the low byte is the member
+            if fn == 0x320A40 then return keep end
+            return base(fn, ret, t1, a1, ...)
+          end
+          tick()
+          assert(DD.refreshes == 1)
+          assert(DD.attrs['4096:legacyProficiency'][2] == 'Pursuit  I 2/4  II 0/4  III 0/4')
+          assert(DD.attrs['4096:legacyProficiencyI'][2]:find('15%%'))
+          assert(DD.attrs['4096:legacyProficiencyII'][2] == 0)                 -- hidden stage = 0
+          assert(DD.attrs['4098:legacyProficiency'] and not DD.attrs['4097:legacyProficiency']
+                 and not DD.attrs['4099:legacyProficiency'])                   -- armour yes; accessory, arrows no
+          tick(); assert(DD.refreshes == 1)                                     -- nothing changed: no rewrite
+          job = 4; tick()
+          assert(DD.refreshes == 2 and DD.attrs['4096:legacyProficiency'][2]:find('^Bulwark'))
+          slot = 0xFFFF; tick(); assert(DD.refreshes == 2)                      -- no character selected: untouched
+          assert(logged('gear text for member 1 job 8 rank 2: written (2 items)'))
+        ''')
+
     def test_lost_writ_caps_the_stage(self):
         self.lua.execute('''
           RANK = 6; keys[0x81F0] = true; keys[0x81F1] = true
