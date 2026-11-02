@@ -38,10 +38,12 @@ class GearHookTest(unittest.TestCase):
                            (0x02090000, 0x20000), (0x00280000, 0x10000), (0x00310000, 0x10000), (0x00290000, 0x10000)):
             uc.mem_map(base, size)
         uc.mem_write(CODE_AT, code)
-        # Symbol slots are the last three quads of the assembled block (bits, table, buffer).
-        slots = CODE_AT + len(code) - 24
-        bits, table, buffer, suffix_at, text_at, entry = (DATA_AT + o for o in (0, 0x1000, 0x2000, 0x3000, 0x4000, 0x5010))
-        uc.mem_write(slots, struct.pack('<QQQ', bits, table, buffer))
+        # Symbol slots are the last four quads of the assembled block (bits, table, buffer, probe).
+        slots = CODE_AT + len(code) - 32
+        bits, table, buffer, suffix_at, text_at, entry, probe = (DATA_AT + o for o in
+                                                                (0, 0x1000, 0x2000, 0x3000, 0x4000, 0x5010, 0x7000))
+        uc.mem_write(slots, struct.pack('<QQQQ', bits, table, buffer, probe))
+        uc.mem_write(entry - 0x10, struct.pack('<I', 0x2B))
         bitmap = bytearray(0x80)
         bitmap[0] = 0b101                                  # equipment 0 and 2 are eligible, 1 is not
         uc.mem_write(bits, bytes(bitmap))
@@ -70,6 +72,8 @@ class GearHookTest(unittest.TestCase):
         shown = uc.reg_read(X.UC_X86_REG_RBX)
         self.assertEqual(struct.unpack('<Q', bytes(uc.mem_read(rdi + 0x18, 8)))[0], shown)
         out = bytes(uc.mem_read(shown, 0x40))
+        kind, item, panel, calls = struct.unpack('<IIQI', bytes(uc.mem_read(probe, 0x14)))
+        self.assertEqual((kind, item, panel, calls), (0x2B, item_id, 0x1234, 1))    # measurement recorded
         return shown, out[:out.index(b'\0')], buffer, text_at
 
     def test_eligible_equipment_gets_the_suffix(self):

@@ -188,6 +188,16 @@ legacy_prof_code:
   push r12
   push r13
   sub rsp,0x20
+  mov r12,[legacy_prof_probe]
+  test r12,r12
+  je legacy_prof_probed
+  mov eax,dword ptr [r14-0x10]
+  mov [r12],eax
+  movzx eax,word ptr [r14-0x0A]
+  mov [r12+0x04],eax
+  mov [r12+0x08],rsi
+  inc dword ptr [r12+0x10]
+legacy_prof_probed:
   mov r12,[legacy_prof_bits]
   test r12,r12
   je legacy_prof_done
@@ -260,10 +270,12 @@ legacy_prof_table:
   .dq 0x00
 legacy_prof_buffer:
   .dq 0x00
+legacy_prof_probe:
+  .dq 0x00
 ]]
-local GEAR_SYMBOLS = {'legacy_prof_code', 'legacy_prof_bits', 'legacy_prof_table', 'legacy_prof_buffer'}
+local GEAR_SYMBOLS = {'legacy_prof_code', 'legacy_prof_bits', 'legacy_prof_table', 'legacy_prof_buffer', 'legacy_prof_probe'}
 local MEMBERS, SUFFIX_SIZE, GEAR_POLL_MS = 16, 0x200, 500
-local MEMBER_KEEP, KEEP_JOB1 = 0x320A40, 0x1C3
+local MEMBER_KEEP, KEEP_JOB1, MENU_ROOT = 0x320A40, 0x1C3, 0x0209AC30
 local gear = {installed = false, failed = false, keys = {}, slots = {}, flip = {}}
 
 local function label(name, value)
@@ -312,7 +324,7 @@ local function installGear()
   -- The code block first; the site is patched only once the block and its data are in place.
   local ok, err = pcall(memory.assemble, GEAR_CODE, GEAR_SYMBOLS)
   local slots = ok and {memory.getSymbol('legacy_prof_bits'), memory.getSymbol('legacy_prof_table'),
-    memory.getSymbol('legacy_prof_buffer')} or {}
+    memory.getSymbol('legacy_prof_buffer'), memory.getSymbol('legacy_prof_probe')} or {}
   if not ok or not (slots[1] and slots[1] ~= 0 and slots[2] and slots[2] ~= 0 and slots[3] and slots[3] ~= 0) then
     gear.failed = true
     log('gear text not installed: code block rejected (' .. tostring(err) .. ')')
@@ -321,6 +333,10 @@ local function installGear()
   memory.u64[slots[1]] = bits
   memory.u64[slots[2]] = table_
   memory.u64[slots[3]] = buffer
+  -- Measurement (0.3.5): which description kind / panel the Equipment menu uses, to restrict the text to it.
+  local probe = memory.alloc(0x20)
+  memory.writeArray(probe, {string.rep('\0', 0x20):byte(1, -1)})
+  if slots[4] and slots[4] ~= 0 then memory.u64[slots[4]] = probe; gear.probe = probe end
   gear.table = table_
   ok, err = pcall(memory.assemble, GEAR_PATCH, GEAR_SITE)
   if not ok then
@@ -348,7 +364,25 @@ local function setSuffix(member, text)
   memory.u64[at] = buf
 end
 
+-- Logs each new (kind, panel) the description window reports, with the menu root's candidate fields.
+local function probeTick()
+  local at = gear.probe
+  if not at then return end
+  local kind, item, panel = memory.u32[at], memory.u32[at + 4], memory.u64[at + 8]
+  if type(kind) ~= 'number' or memory.u32[at + 0x10] == 0 then return end
+  local key = kind .. ':' .. tostring(panel)
+  gear.seen = gear.seen or {}
+  if gear.seen[key] or (gear.probeLogs or 0) >= 40 then return end
+  gear.seen[key] = true
+  gear.probeLogs = (gear.probeLogs or 0) + 1
+  local root = memory.u64[MENU_ROOT] or 0
+  local function q(o) return root > 0 and memory.u64[root + o] or 0 end
+  log(string.format('gear probe: kind=0x%X item=0x%04X panel=0x%X slot=%d root+2F8=0x%X root+300=0x%X',
+    kind, item & 0xFFFF, panel or 0, root > 0 and memory.u16[root + 0xDE0] or -1, q(0x2F8), q(0x300)))
+end
+
 local function gearTick()
+  if gear.installed then pcall(probeTick) end
   if campaign and legacyMode() and installGear() then
     local rank = effective()
     for member = 0, MEMBERS - 1 do

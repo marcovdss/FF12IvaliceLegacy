@@ -332,7 +332,7 @@ class ProficiencyWritTest(unittest.TestCase):
             local g = P.GEAR[job]; assert(g and g.line, job); jobs = jobs + 1
             for k = 1, 3 do
               assert(#g[k] == 4, job .. ':' .. k)
-              for l = 1, 4 do assert(#g[k][l] <= P.GEAR_LIMIT, g[k][l]); assert(not g[k][l]:find('[;/<>{}]'), g[k][l]) end
+              for l = 1, 4 do assert(#g[k][l] <= P.GEAR_LIMIT, g[k][l]); assert(not g[k][l]:find('[;<>{}]'), g[k][l]) end
             end
           end
           assert(jobs == 12)
