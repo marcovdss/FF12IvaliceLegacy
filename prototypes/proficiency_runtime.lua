@@ -177,6 +177,11 @@ end
 -- patch there appends a ready-made suffix for the selected party member (menu slot [0x209AC30]+0xDE0 -> 0x282EA0
 -- -> 0x31C4C0) to a copy of that text. Lua keeps one native-encoded suffix per party member, rebuilt only when a
 -- member's job or the effective rank changes.
+-- Equipment only (0.3.8): every menu asks for its help text through 0x293110/0x293100 -> 0x293170, which sends it
+-- synchronously (0x247510, return 0x2932A4) to this handler (return 0x247549). So the opener's return address,
+-- at hook rsp+0x358 (+0x30 for our pushes), names the menu that asked. Only the Equipment menu's item calls pass:
+-- 0x3FE2D5 (gear list, return 0x3FE2DA) and 0x3FF973 (equipped slots, return 0x3FF978). Inventory (0x563E42),
+-- shops and every other caller keep the plain text. Any unexpected frame also keeps the plain text.
 local GEAR_SITE = 0x0029266C
 local GEAR_ORIGINAL = {0x33, 0xC9, 0x48, 0x89, 0x5F, 0x18}  -- xor ecx,ecx ; mov [rdi+0x18],rbx
 local GEAR_PATCH = [[
@@ -188,20 +193,28 @@ legacy_prof_code:
   push r12
   push r13
   sub rsp,0x20
+  mov rax,[rsp+0xA8]
+  mov rdx,[rsp+0xF8]
+  mov r13,[rsp+0x388]
   mov r12,[legacy_prof_probe]
   test r12,r12
   je legacy_prof_probed
-  mov eax,dword ptr [r14-0x10]
-  mov [r12],eax
-  movzx eax,word ptr [r14-0x0A]
-  mov [r12+0x04],eax
-  mov [r12+0x08],rsi
-  inc dword ptr [r12+0x10]
-  mov [r12+0x18],r14
-  mov [r12+0x20],rdi
-  mov rax,[rsi+0x60]
-  mov [r12+0x28],rax
+  mov [r12],rax
+  mov [r12+0x08],rdx
+  mov [r12+0x10],r13
+  movzx ecx,word ptr [r14-0x0A]
+  mov [r12+0x18],ecx
+  inc dword ptr [r12+0x1C]
 legacy_prof_probed:
+  cmp rax,0x00247549
+  jne legacy_prof_done
+  cmp rdx,0x002932A4
+  jne legacy_prof_done
+  cmp r13,0x003FE2DA
+  je legacy_prof_equipment
+  cmp r13,0x003FF978
+  jne legacy_prof_done
+legacy_prof_equipment:
   mov r12,[legacy_prof_bits]
   test r12,r12
   je legacy_prof_done
@@ -279,7 +292,7 @@ legacy_prof_probe:
 ]]
 local GEAR_SYMBOLS = {'legacy_prof_code', 'legacy_prof_bits', 'legacy_prof_table', 'legacy_prof_buffer', 'legacy_prof_probe'}
 local MEMBERS, SUFFIX_SIZE, GEAR_POLL_MS = 16, 0x200, 500
-local MEMBER_KEEP, KEEP_JOB1, MENU_ROOT = 0x320A40, 0x1C3, 0x0209AC30
+local MEMBER_KEEP, KEEP_JOB1 = 0x320A40, 0x1C3
 local gear = {installed = false, failed = false, keys = {}, slots = {}, flip = {}}
 
 local function label(name, value)
@@ -337,7 +350,7 @@ local function installGear()
   memory.u64[slots[1]] = bits
   memory.u64[slots[2]] = table_
   memory.u64[slots[3]] = buffer
-  -- Measurement (0.3.5): which description kind / panel the Equipment menu uses, to restrict the text to it.
+  -- Caller record (0.3.8): the three return addresses the gate checks, the item and a call count.
   local probe = memory.alloc(0x40)
   memory.writeArray(probe, {string.rep('\0', 0x40):byte(1, -1)})
   if slots[4] and slots[4] ~= 0 then memory.u64[slots[4]] = probe; gear.probe = probe end
@@ -368,41 +381,26 @@ local function setSuffix(member, text)
   memory.u64[at] = buf
 end
 
--- 0.3.6 showed the description owner ([rsi+0x60]) differs per menu but is a fresh heap object each opening. For
--- each new owner this logs the owner's first 0x80 bytes and every menu-root qword (root .. root+0x2000) pointing at
--- the owner or its text target, to find a stable mark of the Equipment menu.
-local function hexAt(address, n)
-  local raw, out = memory.readArray(address, n), {}
-  for i = 1, n do
-    local b = type(raw) == 'string' and raw:byte(i) or (type(raw) == 'table' and raw[i]) or nil
-    out[i] = b and string.format('%02X', b) or '??'
-  end
-  return table.concat(out)
-end
-
+-- Logs each distinct description caller once (cap 20), so a menu that should or should not show the line can be
+-- named from hook.log without a special test visit.
+local EQUIPMENT_CALLERS = {[0x3FE2DA] = true, [0x3FF978] = true}
 local function probeTick()
   local at = gear.probe
   if not at then return end
-  local calls = memory.u32[at + 0x10]
+  local calls = memory.u32[at + 0x1C]
   if type(calls) ~= 'number' or calls == 0 or calls == gear.lastCalls then return end
   gear.lastCalls = calls
-  local kind, item = memory.u32[at], (memory.u32[at + 4] or 0) & 0xFFFF
-  local target, owner = memory.u64[at + 0x20] or 0, memory.u64[at + 0x28] or 0
+  local handler, sender, caller = memory.u64[at] or 0, memory.u64[at + 0x08] or 0, memory.u64[at + 0x10] or 0
+  local item = (memory.u32[at + 0x18] or 0) & 0xFFFF
+  local key = string.format('%X:%X:%X', handler, sender, caller)
   gear.seen = gear.seen or {}
-  if owner <= 0 or gear.seen[owner] or (gear.probeLogs or 0) >= 30 then return end
-  gear.seen[owner] = true
+  if gear.seen[key] or (gear.probeLogs or 0) >= 20 then return end
+  gear.seen[key] = true
   gear.probeLogs = (gear.probeLogs or 0) + 1
-  local root = memory.u64[MENU_ROOT] or 0
-  local refs = {}
-  if root > 0 then
-    for o = 0, 0x2000 - 8, 8 do
-      local v = memory.u64[root + o]
-      if v == owner then refs[#refs + 1] = string.format('owner@+%X', o)
-      elseif v == target then refs[#refs + 1] = string.format('target@+%X', o) end
-    end
-  end
-  log(string.format('gear probe: kind=0x%X item=0x%04X owner=0x%X slot=%d refs=%s owner+0=%s', kind or 0, item, owner,
-    root > 0 and memory.u16[root + 0xDE0] or -1, #refs > 0 and table.concat(refs, ',') or 'none', hexAt(owner, 0x80)))
+  local framed = handler == 0x247549 and sender == 0x2932A4
+  log(string.format('gear caller: menu=0x%X item=0x%04X %s', caller, item,
+    not framed and string.format('unexpected frame (0x%X 0x%X): plain text', handler, sender)
+    or (EQUIPMENT_CALLERS[caller] and 'Equipment: line allowed' or 'other menu: plain text')))
 end
 
 local function gearTick()

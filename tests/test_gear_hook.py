@@ -1,8 +1,10 @@
 """Emulates the Proficiency gear-text patch (GEAR_CODE in prototypes/proficiency_runtime.lua) with Keystone + Unicorn.
 
 The game's helpers are replaced by stubs at their real addresses: 0x282EA0 (menu slot -> index) and 0x31C4C0
-(index -> party member). Checks: the suffix is appended for eligible equipment, everything else is left alone, the
-displaced instructions still run, registers the caller relies on are preserved, and the stack is balanced.
+(index -> party member). The stack holds the return addresses of the real call chain (handler <- 0x247510 <- help
+opener <- menu). Checks: the suffix is appended for eligible equipment asked for by the Equipment menu only,
+everything else is left alone, the displaced instructions still run, registers the caller relies on are preserved,
+the stack is balanced and the caller record is written.
 """
 import re
 import struct
@@ -29,8 +31,9 @@ def gear_code():
 
 @unittest.skipIf(keystone is None, 'requires keystone-engine and unicorn')
 class GearHookTest(unittest.TestCase):
-    def run_hook(self, item_id, slot=1, member_of_index=3, suffix=b'\x20\x21', text=b'\x30\x31\x32'):
-        ks = keystone.Ks(keystone.KS_ARCH_X86, keystone.KS_MODE_64)
+    def run_hook(self, item_id, slot=1, member_of_index=3, suffix=b'\x20\x21', text=b'\x30\x31\x32',
+                 frame=(0x247549, 0x2932A4, 0x3FF978)):
+        ks =keystone.Ks(keystone.KS_ARCH_X86, keystone.KS_MODE_64)
         code, _ = ks.asm(gear_code(), CODE_AT)
         code = bytes(code)
         uc = unicorn.Uc(unicorn.UC_ARCH_X86, unicorn.UC_MODE_64)
@@ -57,6 +60,8 @@ class GearHookTest(unittest.TestCase):
         uc.mem_write(0x0031C4C0, bytes([0x8D, 0x41, 0x02, 0xC3]))               # lea eax,[rcx+2] ; ret
         uc.mem_write(0x00292672, b'\xf4')                                       # return target: hlt
         rsp = STACK_AT + 0x8000
+        for offset, value in zip((0x78, 0xC8, 0x358), frame):
+            uc.mem_write(rsp + offset, struct.pack('<Q', value))
         panel_at = DATA_AT + 0x8000
         uc.mem_write(panel_at + 0x60, struct.pack('<Q', 0xABCD))
         rdi = DATA_AT + 0x6000
@@ -74,10 +79,8 @@ class GearHookTest(unittest.TestCase):
         shown = uc.reg_read(X.UC_X86_REG_RBX)
         self.assertEqual(struct.unpack('<Q', bytes(uc.mem_read(rdi + 0x18, 8)))[0], shown)
         out = bytes(uc.mem_read(shown, 0x40))
-        kind, item, panel, calls = struct.unpack('<IIQI', bytes(uc.mem_read(probe, 0x14)))
-        self.assertEqual((kind, item, panel, calls), (0x2B, item_id, panel_at, 1))  # measurement recorded
-        e, t, o = struct.unpack('<QQQ', bytes(uc.mem_read(probe + 0x18, 24)))
-        self.assertEqual((e, t, o), (entry, rdi, 0xABCD))
+        record = struct.unpack('<QQQII', bytes(uc.mem_read(probe, 0x20)))
+        self.assertEqual(record, tuple(frame) + (item_id, 1))                     # caller record written
         return shown, out[:out.index(b'\0')], buffer, text_at
 
     def test_eligible_equipment_gets_the_suffix(self):
@@ -87,6 +90,20 @@ class GearHookTest(unittest.TestCase):
     def test_other_items_are_left_alone(self):
         for item in (0x1001, 0x0FFF, 0x2000, 0x1400):                            # not eligible, below, above
             shown, text, _, original = self.run_hook(item)
+            self.assertEqual((shown, text), (original, b'\x30\x31\x32'))
+
+    def test_equipment_gear_list_also_gets_the_suffix(self):
+        shown, text, buffer, _ = self.run_hook(0x1000, frame=(0x247549, 0x2932A4, 0x3FE2DA))
+        self.assertEqual((shown, text), (buffer, b'\x30\x31\x32\x20\x21'))
+
+    def test_other_menus_keep_the_plain_text(self):
+        for caller in (0x563E47, 0x3FF737, 0x2C5E3E, 0):                         # Inventory, clear, Status, none
+            shown, text, _, original = self.run_hook(0x1000, frame=(0x247549, 0x2932A4, caller))
+            self.assertEqual((shown, text), (original, b'\x30\x31\x32'))
+
+    def test_unexpected_frames_keep_the_plain_text(self):
+        for frame in ((0x247549, 0x2932A5, 0x3FF978), (0x247548, 0x2932A4, 0x3FF978)):
+            shown, text, _, original = self.run_hook(0x1000, frame=frame)
             self.assertEqual((shown, text), (original, b'\x30\x31\x32'))
 
     def test_no_character_or_no_suffix(self):
