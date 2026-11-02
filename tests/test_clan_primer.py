@@ -36,7 +36,7 @@ class TipContractTest(unittest.TestCase):
         self.assertIn(f"R.TIP_FLAG = {PATCH['tip']['flag']}", runtime)
 
     def test_bad_tips_rejected(self):
-        for mutate in (lambda t: t.update(flag=256), lambda t: t.update(category=4),
+        for mutate in (lambda t: t.update(flag=255), lambda t: t.update(category=4),
                        lambda t: t.update(body='x' * 57), lambda t: t.update(title='Proficiency; II')):
             bad = copy.deepcopy(PATCH)
             mutate(bad['tip'])
@@ -66,7 +66,8 @@ class TipResourceTest(unittest.TestCase):
         before, after = self.read(C.BOOK + '.dat'), C.tip_checks(self.read(C.BOOK + '.dat'), PATCH)
         self.assertEqual(struct.unpack_from('<I', after, 8)[0], 17)
         self.assertEqual(after[12:12 + 8 * 16], before[12:])
-        self.assertEqual(after[-8:], bytes((0xFF, 0xFF, 255, 0)) + b'\xff' * 4)
+        self.assertEqual(after[-8:], bytes((0xFF, 0xFF, PATCH['tip']['flag'], 0)) + b'\xff' * 4)
+        self.assertNotEqual(after[-6], 0xFF)                              # 0xFF would mean "no flag test"
         # No native tip check uses the flag bytes, so the bit cannot already unlock a native tip.
         self.assertTrue(all(before[12 + 8 * i:15 + 8 * i] == b'\xff\xff\xff' for i in range(16)))
 

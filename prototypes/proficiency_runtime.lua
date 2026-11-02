@@ -80,7 +80,8 @@ function R.effective() return effective() end
 -- ([0x20927C0] + 0x334C, 256 bits, read by the tip check 0x575E80 through 0x315620). No native tip check uses these
 -- bits; the bit follows the Apprentice's Writ through the native setter 0x315A20(index, on).
 local MENU_INFO, TIP_FLAGS, SET_TIP_FLAG = 0x020927C0, 0x334C, 0x315A20
-R.TIP_FLAG = 255
+R.TIP_FLAG = 254  -- 255 (0xFF) means "no flag test" in a tip check; 0.3.1 used it by mistake
+local STRAY_FLAG = 255
 local flagsLogged = false
 local function syncTip()
   if campaign == nil then return end
@@ -96,6 +97,12 @@ local function syncTip()
       hex[i] = b and string.format('%02X', b) or '??'
     end
     log('campaign=' .. campaign .. ' menu flags before Proficiency: ' .. table.concat(hex))
+  end
+  -- 0.3.1 set bit 255 (no native or Legacy use): clear it once.
+  local stray = memory.u8[at + (STRAY_FLAG >> 3)]
+  if type(stray) == 'number' and (stray >> (STRAY_FLAG & 7)) & 1 == 1 then
+    local ok = pcall(memory.execute, SET_TIP_FLAG, memory.arg.void, memory.arg.u32, STRAY_FLAG, memory.arg.s32, 0)
+    log(string.format('campaign=%s cleared stray flag %d%s', campaign, STRAY_FLAG, ok and '' or ': setter failed'))
   end
   local byte = memory.u8[at + (R.TIP_FLAG >> 3)]
   if type(byte) ~= 'number' then return end

@@ -309,17 +309,19 @@ class ProficiencyWritTest(unittest.TestCase):
             end
             return execute(fn, ret, t1, a1, t2, a2, ...)
           end
-          local function shown() return (bits[state + 0x334C + 31] >> 7) & 1 == 1 end
+          local function shown() return (bits[state + 0x334C + 31] >> 6) & 1 == 1 end
+          bits[state + 0x334C + 31] = 0x80                -- bit 255, left by 0.3.1
           RANK = 1
           loadCampaign(1)
           handlers.onMapJump(50)
-          assert(not shown() and calls == 0)                      -- no Writ yet: nothing written
-          assert(logged('menu flags before Proficiency: ' .. string.rep('00', 32)))
+          assert(not shown() and calls == 1)                      -- no Writ yet: only the stray bit is cleared
+          assert(bits[state + 0x334C + 31] == 0 and logged('cleared stray flag 255'))
+          assert(logged('menu flags before Proficiency: '))
           leaveHall()
-          assert(keys[0x81F0] and shown() and calls == 1 and logged('Proficiency tip shown (flag 255)'))
-          handlers.onMapJump(60); assert(calls == 1)              -- already set: no second write
+          assert(keys[0x81F0] and shown() and calls == 2 and logged('Proficiency tip shown (flag 254)'))
+          handlers.onMapJump(60); assert(calls == 2)              -- already set: no second write
           keys[0x81F0] = nil; handlers.onMapJump(70)
-          assert(not shown() and calls == 2)                      -- Writ gone: tip hidden again
+          assert(not shown() and calls == 3)                      -- Writ gone: tip hidden again
         ''')
 
     def test_lost_writ_caps_the_stage(self):

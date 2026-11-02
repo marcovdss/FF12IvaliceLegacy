@@ -42,7 +42,7 @@ def check_tip(patch):
     require(type(tip['titleRow']) is int and type(tip['titleId']) is int and 0 < tip['titleId'] < 0x10000,
             'Bad title row')
     require(tip['category'] in (0, 1, 2, 3), 'Tip category must be one of the four native categories')
-    require(type(tip['flag']) is int and 0 <= tip['flag'] < 256, 'Tip flag must be a bit index 0-255')
+    require(type(tip['flag']) is int and 0 <= tip['flag'] < 255, 'Tip flag must be a bit index 0-254 (0xFF means no flag test)')
     require(0 < len(tip['title']) <= 30, 'Bad tip title')
     lines = tip['body'].split('\n')
     require(0 < len(lines) <= 16 and all(len(line) <= 56 for line in lines), 'Tip body lines must be 56 characters or less')

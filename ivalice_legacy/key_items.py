@@ -150,7 +150,7 @@ def build_files(archive, patch, pack_section):
     }
 
 
-PROFICIENCY_VERSION = '0.3.1'
+PROFICIENCY_VERSION = '0.3.2'
 PROFICIENCY_LUA = {
     'x64/scripts/config/TheInsurgentsForgeConfig/functions/165.lua': 'prototypes/forge_proficiency_165.lua',
     'x64/scripts/IvaliceLegacy/proficiency.lua': 'prototypes/proficiency.lua',

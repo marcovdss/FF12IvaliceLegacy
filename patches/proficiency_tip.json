@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "Clan Primer Traveler's Tips: a Proficiency tip (17th entry, The Ways of Strength) that appears while menu-info flag bit `flag` is set; the Proficiency runtime sets it while the Apprentice's Writ is owned.",
+  "description": "Clan Primer Traveler's Tips: a Proficiency tip (17th entry, The Ways of Strength) that appears while menu-info flag bit `flag` (0-254; 0xFF means no flag test) is set; the Proficiency runtime sets it while the Apprentice's Writ is owned.",
   "listSha256": "c2b35a1a2d80237e2f45191162dbeda3b0a0868c415d0abbe8fcd5cc7b427d76",
   "checksSha256": "6c236d36478f28844b72af1664860304061e1056c648384cd0dfaf33cdc2c2ff",
   "pagesSha256": "323bbf99a8abf88f217e48d443b4b566fea07e59345676a9956587699ca63019",
@@ -10,12 +10,12 @@
     "titleRow": 661,
     "titleId": 5863,
     "category": 2,
-    "flag": 255,
+    "flag": 254,
     "body": "Clan Centurio trains its members in the ways of their\njobs. Each time you rise in the clan's ranks, Montblanc\nhas something for you as you leave the clan hall: a\nWrit, or a fresh stamp on the one you carry.\n\nWhile the Writ is in your Key Items, every character\nfights with the Proficiency of the job they hold. Their\nweapons and armour gain that job's edge, whatever they\nwield.\n\nThe Apprentice's Writ opens Proficiency I. The\nJourneyman's and Master's Writs open II and III. Change\njobs freely: the clan's training goes with you."
   },
   "resultSha256": {
     "list": "e8e056608821c204015201fdf702738149e5352acb08894fa948859106175f03",
-    "checks": "f5af91dcb5745a83f0d0538189ceadca4af47c47a3fa7b858a51a7ebcbb3b046",
+    "checks": "3d25c7dbf8edcac24023bfdb18a642c4e1db516159ed31917103343ec33dea34",
     "pages": "7a96299500cb038add4a25251078e1d0f4f175a7a772efc882561d9d6e81d242",
     "titles": "2b437c60ddb3d2c5e21424f406e23eeca970c19867580cec95a87df87d758855"
   }
