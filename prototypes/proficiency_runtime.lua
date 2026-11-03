@@ -325,14 +325,24 @@ local gear = {installed = false, failed = false, keys = {}, slots = {}, flip = {
 local function label(name, value)
   return '\n{scale:82}{rgb:90,90,90}' .. name .. ':{lowspace}{rgb:255,255,255}' .. value
 end
+-- ONE added line (0.3.12): the Equipment help box (180,816 1400x216 at 1920x1080) holds four lines, weapons
+-- already use three, and a fifth line throws the whole text off the left edge (seen in game, 0.3.11). The line
+-- names the highest stage begun and its effect, e.g. "Pursuit I 1/4: +15% damage to foes with an ailment"
+-- (longest 82 characters, inside the box); without the Apprentice's Writ it reads "Proficiency: Pursuit (no Writ yet...)".
+local STAGES = {'I', 'II', 'III'}
 function R.gearSuffix(job, rank)
   local lines = P.gearLines(job, rank)
-  if not lines then return nil end
-  local out = label('Proficiency', lines[1])
-  for k, name in ipairs({'I', 'II', 'III'}) do
-    if lines[k + 1] then out = out .. label(name, lines[k + 1]) end
+  local g = P.GEAR[job]
+  if not lines or not g then return nil end
+  local L = P.levels(rank)
+  for k = 3, 1, -1 do
+    if L[k] >= 1 then
+      local head = g.line .. ' ' .. STAGES[k] .. ' ' .. L[k] .. '/4'
+      if lines[k + 1] then return label(head, lines[k + 1]) end
+      return label('Proficiency', head)
+    end
   end
-  return out
+  return label('Proficiency', lines[1])
 end
 
 local function installGear()

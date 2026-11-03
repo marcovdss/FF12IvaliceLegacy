@@ -394,13 +394,23 @@ class ProficiencyWritTest(unittest.TestCase):
             while memory.u8[at + i] ~= 0 do out[#out + 1] = string.char(memory.u8[at + i]); i = i + 1 end
             return table.concat(out)
           end
-          assert(suffix(0):find('^N:\nProficiency:') == nil and suffix(0):find('Pursuit  I 1/4', 1, true))
-          assert(suffix(1):find('Bulwark  I 1/4', 1, true) and suffix(2) == nil)
+          assert(suffix(0):find('^N:\nProficiency:') == nil and suffix(0):find('Pursuit I 1/4:', 1, true))
+          assert(suffix(1):find('Bulwark I 1/4:', 1, true) and suffix(2) == nil)
           local first = memory.u64[tbl]
           tick(); assert(memory.u64[tbl] == first)                            -- nothing changed: same buffer
           jobs[0] = 11; tick()
           assert(memory.u64[tbl] ~= first and suffix(0):find('Contagion', 1, true))   -- other buffer, new text
-          assert(R3.gearSuffix(8, 1):find('{rgb:90,90,90}Proficiency:{lowspace}{rgb:255,255,255}Pursuit', 1, true))
+          -- One added line only: the Equipment help box holds four lines and weapons already use three.
+          local one = R3.gearSuffix(8, 1)
+          assert(one == '\n{scale:82}{rgb:90,90,90}Pursuit I 1/4:{lowspace}{rgb:255,255,255}+15% damage to foes with an ailment', one)
+          assert(R3.gearSuffix(8, 0):find('{rgb:90,90,90}Proficiency:{lowspace}{rgb:255,255,255}Pursuit  (no Writ yet', 1, true))
+          assert(R3.gearSuffix(8, 7):find('Pursuit II 3/4:', 1, true))             -- highest stage begun
+          for job = 0, 11 do for rank = 0, 12 do
+            local s = R3.gearSuffix(job, rank)
+            local _, breaks = s:gsub('\n', '')
+            local plain = s:gsub('{[^}]*}', '')
+            assert(breaks == 1 and #plain <= 96, job .. ':' .. rank .. ' ' .. plain)
+          end end
           site = {0xE9, 0, 0, 0, 0, 0x90}                                      -- someone else patched the site
           R4 = load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime4', 't', _ENV)()
           assembled = {}
