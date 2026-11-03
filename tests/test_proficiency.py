@@ -408,6 +408,31 @@ class ProficiencyWritTest(unittest.TestCase):
           tick(); assert(#assembled == 0 and logged('unexpected code at 0x29266C'))
         ''')
 
+    def test_side_file_saved_under_another_slot_name_is_used(self):
+        # Marco: LEGCY_000 loaded, then saved into slot 3: LEGCY_003.dir carries campaign "LEGCY_000".
+        self.lua.execute('''
+          RANK = 1; keys[0x81F0] = true
+          handlers.load('C:/saves/LEGCY_003', {schema=1, campaign='LEGCY_000', claimedRank=1})
+          assert(R.claimed() == 1 and R.effective() == 1)
+          assert(logged('side file of LEGCY_003 was written as LEGCY_000; using its rank 1'))
+          assert(handlers.save().campaign == 'LEGCY_003' and handlers.save().claimedRank == 1)
+          leaveHall(); assert(#boxes == 0)                       -- nothing to hand over again
+        ''')
+
+    def test_writs_carried_restore_a_lost_claimed_rank(self):
+        # 0.3.10 and earlier: the rejected side file made the next save write rank 0 beside a save holding Writ I.
+        self.lua.execute('''
+          RANK = 1; keys[0x81F0] = true
+          handlers.load('C:/saves/LEGCY_000', {schema=1, campaign='LEGCY_003', claimedRank=0})
+          assert(R.effective() == 1 and R.claimed() == 1)
+          assert(logged('claimed rank 0 restored to 1 from the Writs carried'))
+          assert(handlers.save().claimedRank == 1)
+          leaveHall(); assert(#boxes == 0)                       -- no second Writ, no repeated speech
+          keys[0x81F1] = true                                     -- a Journeyman's Writ proves rank 5
+          handlers.load('C:/saves/LEGCY_001', {schema=1, campaign='LEGCY_001', claimedRank=2})
+          assert(R.effective() == 5 and R.claimed() == 5)
+        ''')
+
     def test_palace_guard_holds_companions_at_leader_only(self):
         self.lua.execute('''
           handlers.onMapJump(289)                                   -- no Companions mod: idle, logged once

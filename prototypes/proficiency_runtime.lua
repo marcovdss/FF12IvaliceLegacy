@@ -55,13 +55,29 @@ local function grant(id)
   local ok = pcall(memory.execute, KEY_SET, memory.arg.s32, memory.arg.u32, id, memory.arg.s32, 1, memory.arg.s32, 1)
   return ok and owns(id)
 end
+-- Montblanc hands the Writs over at ranks 1, 5 and 9, so a Writ in Key Items proves at least that rank was claimed.
+-- This repairs a side file that lost the claimed rank (0.3.10 and earlier rejected a side file saved under another
+-- slot's name, and the next save then wrote rank 0).
+local WRIT_FLOOR = {1, 5, 9}
 local function refreshWrits()
   for k = 1, 3 do writs[k] = owns(P.WRIT_IDS[k]) end
   writsKnown = true
+  if campaign then
+    for k = 3, 1, -1 do
+      if writs[k] then
+        if claimed < WRIT_FLOOR[k] then
+          log(string.format('campaign=%s claimed rank %d restored to %d from the Writs carried', campaign, claimed,
+            WRIT_FLOOR[k]))
+          claimed = WRIT_FLOOR[k]
+        end
+        break
+      end
+    end
+  end
 end
 -- The rank Proficiency acts on: the claimed rank, capped by the Writs actually carried.
 local function effective()
-  if campaign == nil or claimed < 1 then return 0 end
+  if campaign == nil then return 0 end
   if not writsKnown then
     refreshWrits()
     local e = P.effective(claimed, writs)
@@ -70,6 +86,7 @@ local function effective()
         campaign, claimed, tostring(writs[1]), tostring(writs[2]), tostring(writs[3]), e))
     end
   end
+  if claimed < 1 then return 0 end
   return P.effective(claimed, writs)
 end
 function R.active() return effective() >= 1 end
@@ -500,9 +517,14 @@ function R.register()
     local name = path:match('([^/\\]+)$')
     if not (name and name:match('^LEGCY_%d%d%d$') and legacyMode()) then return end
     campaign = name
-    if type(data) == 'table' and data.schema == 1 and data.campaign == name and type(data.claimedRank) == 'number'
+    -- The side file sits beside this save, so it is this save's data even when it was written while another slot's
+    -- campaign was loaded (saving into a new slot keeps the old name).
+    if type(data) == 'table' and data.schema == 1 and type(data.claimedRank) == 'number'
         and data.claimedRank % 1 == 0 and data.claimedRank >= 0 and data.claimedRank <= P.MAX_RANK then
       claimed = data.claimedRank
+      if data.campaign ~= name then
+        log(string.format('side file of %s was written as %s; using its rank %d', name, tostring(data.campaign), claimed))
+      end
     end
     location = memory.u32[LOCATION]
     pcall(soloGuard, location)
