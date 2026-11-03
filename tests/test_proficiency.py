@@ -418,6 +418,19 @@ class ProficiencyWritTest(unittest.TestCase):
           tick(); assert(#assembled == 0 and logged('unexpected code at 0x29266C'))
         ''')
 
+    def test_equipment_box_width_fix(self):
+        self.lua.execute('''
+          local site, assembled = {0x8B, 0xC8}, {}
+          local baseRead = memory.readArray
+          memory.readArray = function(a, n) if a == 0x3FF6CD then return site end return baseRead(a, n) end
+          memory.assemble = function(code, where) assembled[#assembled + 1] = {code, where} end
+          assert(R.installWidthFix() and #assembled == 1)
+          assert(assembled[1][1] == 'xor ecx,ecx' and assembled[1][2] == 0x3FF6CD)
+          assert(logged('Equipment box width fix applied'))
+          site = {0x31, 0xC9}                                   -- already changed (or another mod): leave it
+          assert(not R.installWidthFix() and #assembled == 1 and logged('not applied: unexpected code'))
+        ''')
+
     def test_session_logs_keep_five_previous_sessions(self):
         import os, tempfile
         here = os.getcwd()

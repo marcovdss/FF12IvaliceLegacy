@@ -345,6 +345,26 @@ function R.gearSuffix(job, rank)
   return label('Proficiency', lines[1])
 end
 
+-- Equipment help box position (0.3.13). Opening Equipment, the game builds the help text of every owned item in four
+-- categories (0x3FCEE0) and hands the widest to the help window (0x3FF6CD mov ecx,eax -> call 0x2932F0, window
+-- +0xCC); the window then slides the WHOLE box left until that widest text fits. One item with a long description
+-- (1532 px against the 1400 px box, seen in game 2026-11-03) pushed every Equipment description off the left edge.
+-- The width handed over is now 0 (xor ecx,ecx), so the box stays where the layout puts it; a long line runs further
+-- right, still on screen. Equipment only: the other callers of 0x2932F0 are untouched. Confirmed live by Marco.
+local WIDTH_SITE, WIDTH_ORIGINAL = 0x003FF6CD, {0x8B, 0xC8}
+function R.installWidthFix()
+  local raw = memory.readArray(WIDTH_SITE, 2)
+  local b1 = type(raw) == 'string' and raw:byte(1) or (type(raw) == 'table' and raw[1]) or nil
+  local b2 = type(raw) == 'string' and raw:byte(2) or (type(raw) == 'table' and raw[2]) or nil
+  if b1 ~= WIDTH_ORIGINAL[1] or b2 ~= WIDTH_ORIGINAL[2] then
+    log('Equipment box width fix not applied: unexpected code at 0x3FF6CD')
+    return false
+  end
+  local ok, err = pcall(memory.assemble, 'xor ecx,ecx', WIDTH_SITE)
+  log(ok and 'Equipment box width fix applied' or ('Equipment box width fix rejected (' .. tostring(err) .. ')'))
+  return ok
+end
+
 local function installGear()
   if gear.installed or gear.failed then return gear.installed end
   local raw = memory.readArray(GEAR_SITE, #GEAR_ORIGINAL)
@@ -560,6 +580,7 @@ local function copyTick()
 end
 
 function R.register()
+  if type(memory) == 'table' and type(memory.assemble) == 'function' then pcall(R.installWidthFix) end
   if type(io) == 'table' and type(io.open) == 'function' and readAll('hook.log') ~= nil then
     local ok = pcall(R.rotateLogs)
     log(ok and string.format('session logs: previous sessions kept as hook-previous-1..%d.log', KEEP)
