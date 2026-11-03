@@ -13,13 +13,13 @@ and progression you can't steamroll.
 
 | Package | Version | What it is | Tested in game |
 |---|---|---|---|
-| Ivalice Legacy (main) | 0.0.11 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | Earlier versions; 0.0.11 not yet |
+| Ivalice Legacy (main) | 0.0.12 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | 0.0.11 yes (Estersand); 0.0.12 not yet |
 | Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.x not yet |
 | Arsenal | 0.5.1 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.1 not yet |
 | Proficiency | 0.3.13 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip and the line shown on gear | 0.2.0 rank reward yes; 0.3.x not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
 
-## Main package (0.0.11)
+## Main package (0.0.12)
 
 **Opening stock.** Rabanastre's merchants sell a wider set of opening tools from the very start. Items they
 already stocked later in the story move to the start instead of appearing twice. Prices are unchanged.
@@ -44,8 +44,20 @@ moves from the Skyferry to a Pharos at Ridorana chest (Diamond Armlet branch), B
 the Cerobi Steppe Bellwyvern, and Gladius from two early chests (Estersand, Barheim) and the Westersand Lindbur Wolf to
 a steal from the Paramina Rift Feral Retriever. Every early slot they leave keeps a weapon of its own tier: Aevis Killer, Silver Bow, Mage Masher or Dagger.
 
-**Kings of the zone.** Ripe Rampager always appears in Yardang Labyrinth; Rain Dancer always appears in Giza
-Plains' rainy season, and only then. More Kings, each with its own fight and reward, are planned.
+**Kings of the zone.** Every rare game (the Bestiary's 80 rare-game entries) is the King of its zone: it is there on
+every visit while it lives, and once you defeat it, it never appears again. "Defeated" is the game's own Bestiary
+count, so Kings you defeated before this version are already gone. Ripe Rampager always appears in Yardang
+Labyrinth; Rain Dancer always appears in Giza Plains' rainy season, and only then. In five places the King replaces
+an ordinary foe of the same spawner (Terror Tyrant, Grimalkin, Nazarnir, Disma); there the King keeps its natural
+chance to appear until it is defeated. A few Kings appear under conditions of their own (for example Cultsworn Lich,
+Evil Spirit, Grey Molter); those conditions are unchanged, and once defeated they are gone too. Each King's own fight
+and reward are planned.
+
+How it works: `x64/scripts/IvaliceLegacyKings.lua` loads `x64/scripts/IvaliceLegacy/kings_runtime.lua`, which
+installs two small hooks only when it finds the original game code at both places (and logs the reason otherwise):
+the engine's rare-game switch answers "yes" in a King's home while that King lives, and a field script that sets a
+defeated King as a spawner's unit gets "no unit" instead, in that King's home only. With Bountiful Bundle's "Always
+Spawn Rare Game" on, rare game still appears everywhere else as that option decides.
 
 **Estersand hunts.** Flowering Cactoid no longer uses 1000 Needles (an ordinary attack takes its place) and casts
 Cure at most once per stage of the fight; its two Potions were already once-only. Ripe Rampager starts recovering
