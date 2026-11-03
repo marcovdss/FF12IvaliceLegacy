@@ -431,6 +431,34 @@ local function gearTick()
   event.executeAfterMs(GEAR_POLL_MS, gearTick)
 end
 
+-- ---------- solo scenes (lives here until the next main-package release) ----------
+-- The Insurgent's Companions shows the whole party in towns (config partyInTowns; runtime byte pit_ot: 1 Full
+-- Party, 0 Leader Only, read live by its patches). The Royal Palace counts as a town, and the solo-Vaan sneak-in
+-- there (rrp_a02, "Now's your chance!") restarts forever while companions stand in its trigger. While the party
+-- is in the palace (locations 567-572: the palace maps' own exits, named in The Planetary Age's zone list) the
+-- byte is held at Leader Only; the configured value comes back on leaving. Without that mod nothing happens.
+local PALACE_FIRST, PALACE_LAST = 567, 572
+local solo = {held = false, saved = nil, missing = false}
+local function soloGuard(at)
+  local ok, sym = pcall(memory.getSymbol, 'pit_ot')
+  if not ok or type(sym) ~= 'number' or sym == 0 then
+    if not solo.missing then solo.missing = true; log('palace guard idle: The Insurgent\'s Companions not found') end
+    return
+  end
+  local inPalace = type(at) == 'number' and at >= PALACE_FIRST and at <= PALACE_LAST
+  if inPalace and not solo.held then
+    solo.saved, solo.held = memory.u8[sym], true
+    if solo.saved ~= 0 then memory.u8[sym] = 0 end
+    log(string.format('palace guard: companions in towns held at Leader Only (location %d, was %s)', at,
+      tostring(solo.saved)))
+  elseif not inPalace and solo.held then
+    memory.u8[sym] = solo.saved or 1
+    solo.held = false
+    log(string.format('palace guard: companions in towns back to %s (location %s)', tostring(solo.saved or 1),
+      tostring(at)))
+  end
+end
+
 local function reset()
   campaign, claimed, logged, rankLogged, foes = nil, 0, 0, false, {}
   writs, writsKnown, flagsLogged = {false, false, false}, false, false
@@ -452,6 +480,7 @@ function R.register()
       claimed = data.claimedRank
     end
     location = memory.u32[LOCATION]
+    pcall(soloGuard, location)
     local L = P.levels(claimed)
     log(string.format('campaign=%s claimed rank %d; levels I=%d II=%d III=%d', name, claimed, L[1], L[2], L[3]))
   end) == true and ok
@@ -460,6 +489,7 @@ function R.register()
     return {schema = 1, campaign = campaign, claimedRank = claimed}
   end) == true and ok
   ok = event.registerEventAsync('onMapJump', function(to)
+    pcall(soloGuard, to)
     local from = location
     location = to
     foes = {}

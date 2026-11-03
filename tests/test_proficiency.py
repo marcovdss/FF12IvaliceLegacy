@@ -408,6 +408,29 @@ class ProficiencyWritTest(unittest.TestCase):
           tick(); assert(#assembled == 0 and logged('unexpected code at 0x29266C'))
         ''')
 
+    def test_palace_guard_holds_companions_at_leader_only(self):
+        self.lua.execute('''
+          handlers.onMapJump(289)                                   -- no Companions mod: idle, logged once
+          handlers.onMapJump(567)
+          assert(logged('palace guard idle'))
+          local count = 0
+          for _, l in ipairs(printed) do if l:find('palace guard idle', 1, true) then count = count + 1 end end
+          assert(count == 1)
+          local PIT = 0x7000
+          memory.getSymbol = function(name) if name == 'pit_ot' then return PIT end end
+          memory.u8[PIT] = 1                                        -- Full Party, as configured
+          handlers.onMapJump(291)                                   -- East End: untouched
+          assert(memory.u8[PIT] == 1)
+          handlers.onMapJump(568)                                   -- palace Cellars: held at Leader Only
+          assert(memory.u8[PIT] == 0 and logged('held at Leader Only (location 568, was 1)'))
+          handlers.onMapJump(569); assert(memory.u8[PIT] == 0)      -- still inside
+          handlers.onMapJump(573); assert(memory.u8[PIT] == 1)      -- left: configured value back
+          assert(logged('back to 1'))
+          memory.u8[PIT] = 0                                        -- Leader Only configured: stays so
+          handlers.onMapJump(570); handlers.onMapJump(291)
+          assert(memory.u8[PIT] == 0)
+        ''')
+
     def test_lost_writ_caps_the_stage(self):
         self.lua.execute('''
           RANK = 6; keys[0x81F0] = true; keys[0x81F1] = true
