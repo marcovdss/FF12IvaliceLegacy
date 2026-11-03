@@ -178,8 +178,10 @@ end
 -- -> 0x31C4C0) to a copy of that text. Lua keeps one native-encoded suffix per party member, rebuilt only when a
 -- member's job or the effective rank changes.
 -- Equipment only (0.3.8): every menu asks for its help text through 0x293110/0x293100 -> 0x293170, which sends it
--- synchronously (0x247510, return 0x2932A4) to this handler (return 0x247549). So the opener's return address,
--- at hook rsp+0x358 (+0x30 for our pushes), names the menu that asked. Only the Equipment menu's item calls pass:
+-- synchronously to this handler: through 0x247510 (opener return 0x2932A4) or, the first time a menu shows help,
+-- through window creation 0x244F50 -> init message -> 0x292AD9 (opener return 0x293286). Either way the text
+-- (r14) is the opener's buffer at its rsp+0x60, so [r14-0x68] is the opener's return and [r14+0x228] the menu's
+-- (0.3.9; 0.3.8 used fixed rsp offsets, which missed the first item). Only the Equipment menu's item calls pass:
 -- 0x3FE2D5 (gear list, return 0x3FE2DA) and 0x3FF973 (equipped slots, return 0x3FF978). Inventory (0x563E42),
 -- shops and every other caller keep the plain text. Any unexpected frame also keeps the plain text.
 local GEAR_SITE = 0x0029266C
@@ -193,23 +195,31 @@ legacy_prof_code:
   push r12
   push r13
   sub rsp,0x20
-  mov rax,[rsp+0xA8]
-  mov rdx,[rsp+0xF8]
-  mov r13,[rsp+0x388]
+  xor eax,eax
+  xor r13d,r13d
+  mov rdx,r14
+  sub rdx,rsp
+  cmp rdx,0x10000
+  jae legacy_prof_framed
+  mov rax,[r14-0x68]
+  mov r13,[r14+0x228]
+legacy_prof_framed:
   mov r12,[legacy_prof_probe]
   test r12,r12
   je legacy_prof_probed
-  mov [r12],rax
-  mov [r12+0x08],rdx
+  mov rcx,[rsp+0xA8]
+  mov [r12],rcx
+  mov [r12+0x08],rax
   mov [r12+0x10],r13
   movzx ecx,word ptr [r14-0x0A]
   mov [r12+0x18],ecx
   inc dword ptr [r12+0x1C]
 legacy_prof_probed:
-  cmp rax,0x00247549
+  cmp rax,0x002932A4
+  je legacy_prof_opener
+  cmp rax,0x00293286
   jne legacy_prof_done
-  cmp rdx,0x002932A4
-  jne legacy_prof_done
+legacy_prof_opener:
   cmp r13,0x003FE2DA
   je legacy_prof_equipment
   cmp r13,0x003FF978
@@ -397,7 +407,7 @@ local function probeTick()
   if gear.seen[key] or (gear.probeLogs or 0) >= 20 then return end
   gear.seen[key] = true
   gear.probeLogs = (gear.probeLogs or 0) + 1
-  local framed = handler == 0x247549 and sender == 0x2932A4
+  local framed = sender == 0x2932A4 or sender == 0x293286
   log(string.format('gear caller: menu=0x%X item=0x%04X %s', caller, item,
     not framed and string.format('unexpected frame (0x%X 0x%X): plain text', handler, sender)
     or (EQUIPMENT_CALLERS[caller] and 'Equipment: line allowed' or 'other menu: plain text')))

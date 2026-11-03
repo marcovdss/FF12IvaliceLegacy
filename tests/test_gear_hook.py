@@ -32,8 +32,8 @@ def gear_code():
 @unittest.skipIf(keystone is None, 'requires keystone-engine and unicorn')
 class GearHookTest(unittest.TestCase):
     def run_hook(self, item_id, slot=1, member_of_index=3, suffix=b'\x20\x21', text=b'\x30\x31\x32',
-                 frame=(0x247549, 0x2932A4, 0x3FF978)):
-        ks =keystone.Ks(keystone.KS_ARCH_X86, keystone.KS_MODE_64)
+                 frame=(0x247549, 0x2932A4, 0x3FF978), on_stack=True):
+        ks = keystone.Ks(keystone.KS_ARCH_X86, keystone.KS_MODE_64)
         code, _ = ks.asm(gear_code(), CODE_AT)
         code = bytes(code)
         uc = unicorn.Uc(unicorn.UC_ARCH_X86, unicorn.UC_MODE_64)
@@ -45,6 +45,9 @@ class GearHookTest(unittest.TestCase):
         slots = CODE_AT + len(code) - 32
         bits, table, buffer, suffix_at, text_at, entry, probe = (DATA_AT + o for o in
                                                                 (0, 0x1000, 0x2000, 0x3000, 0x4000, 0x5010, 0x7000))
+        rsp = STACK_AT + 0x8000
+        if on_stack:
+            entry = rsp + 0x130                            # the opener's text buffer (opener rsp+0x60)
         uc.mem_write(slots, struct.pack('<QQQQ', bits, table, buffer, probe))
         uc.mem_write(entry - 0x10, struct.pack('<I', 0x2B))
         bitmap = bytearray(0x80)
@@ -59,9 +62,9 @@ class GearHookTest(unittest.TestCase):
         uc.mem_write(0x00282EA0, bytes([0x89, 0xC8, 0xC3]))                     # mov eax,ecx ; ret
         uc.mem_write(0x0031C4C0, bytes([0x8D, 0x41, 0x02, 0xC3]))               # lea eax,[rcx+2] ; ret
         uc.mem_write(0x00292672, b'\xf4')                                       # return target: hlt
-        rsp = STACK_AT + 0x8000
-        for offset, value in zip((0x78, 0xC8, 0x358), frame):
-            uc.mem_write(rsp + offset, struct.pack('<Q', value))
+        # Handler return, then the opener's return and the menu's return around the opener's text buffer.
+        for at, value in zip((rsp + 0x78, entry - 0x68, entry + 0x228), frame):
+            uc.mem_write(at, struct.pack('<Q', value))
         panel_at = DATA_AT + 0x8000
         uc.mem_write(panel_at + 0x60, struct.pack('<Q', 0xABCD))
         rdi = DATA_AT + 0x6000
@@ -80,7 +83,8 @@ class GearHookTest(unittest.TestCase):
         self.assertEqual(struct.unpack('<Q', bytes(uc.mem_read(rdi + 0x18, 8)))[0], shown)
         out = bytes(uc.mem_read(shown, 0x40))
         record = struct.unpack('<QQQII', bytes(uc.mem_read(probe, 0x20)))
-        self.assertEqual(record, tuple(frame) + (item_id, 1))                     # caller record written
+        expected = tuple(frame) if on_stack else (frame[0], 0, 0)
+        self.assertEqual(record, expected + (item_id, 1))                         # caller record written
         return shown, out[:out.index(b'\0')], buffer, text_at
 
     def test_eligible_equipment_gets_the_suffix(self):
@@ -96,15 +100,23 @@ class GearHookTest(unittest.TestCase):
         shown, text, buffer, _ = self.run_hook(0x1000, frame=(0x247549, 0x2932A4, 0x3FE2DA))
         self.assertEqual((shown, text), (buffer, b'\x30\x31\x32\x20\x21'))
 
+    def test_first_help_of_a_menu_also_gets_the_suffix(self):
+        # The first help text of a menu arrives through window creation (opener return 0x293286).
+        for menu in (0x3FF978, 0x3FE2DA):
+            shown, text, buffer, _ = self.run_hook(0x1000, frame=(0x247549, 0x293286, menu))
+            self.assertEqual((shown, text), (buffer, b'\x30\x31\x32\x20\x21'))
+
     def test_other_menus_keep_the_plain_text(self):
         for caller in (0x563E47, 0x3FF737, 0x2C5E3E, 0):                         # Inventory, clear, Status, none
             shown, text, _, original = self.run_hook(0x1000, frame=(0x247549, 0x2932A4, caller))
             self.assertEqual((shown, text), (original, b'\x30\x31\x32'))
 
     def test_unexpected_frames_keep_the_plain_text(self):
-        for frame in ((0x247549, 0x2932A5, 0x3FF978), (0x247548, 0x2932A4, 0x3FF978)):
+        for frame in ((0x247549, 0x2932A5, 0x3FF978), (0x247549, 0, 0x3FF978)):
             shown, text, _, original = self.run_hook(0x1000, frame=frame)
             self.assertEqual((shown, text), (original, b'\x30\x31\x32'))
+        shown, text, _, original = self.run_hook(0x1000, on_stack=False)          # text not in a stack frame
+        self.assertEqual((shown, text), (original, b'\x30\x31\x32'))
 
     def test_no_character_or_no_suffix(self):
         for kwargs in ({'slot': 0xFFFF}, {'slot': 9}, {'member_of_index': 7}):
