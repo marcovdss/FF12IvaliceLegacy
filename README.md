@@ -126,6 +126,10 @@ Each job's Clan line, earned from **Montblanc** and applied to whatever the char
   Proficiency: its levels and what each unlocked stage does now (accessories excluded). The text is added when the
   description is shown, so it always matches the character on screen. Inventory, shops and other menus show the
   plain description.
+- **Palace sneak-in guard (temporary home).** With The Insurgent's Companions showing the full party in towns, the
+  solo sneak-in at the Royal Palace restarts forever. While the party is in the palace (locations 567-572) its
+  party-in-towns setting is held at Leader Only, and your setting returns on leaving. It moves to the main package
+  at its next release.
 
 | Job | Line | Stage I in short |
 |---|---|---|
