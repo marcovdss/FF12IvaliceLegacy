@@ -16,7 +16,7 @@ and progression you can't steamroll.
 | Ivalice Legacy (main) | 0.0.11 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | Earlier versions; 0.0.11 not yet |
 | Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.x not yet |
 | Arsenal | 0.5.1 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.1 not yet |
-| Proficiency | 0.3.9 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip and the line shown on gear | 0.2.0 rank reward yes; 0.3.x not yet |
+| Proficiency | 0.3.10 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip and the line shown on gear | 0.2.0 rank reward yes; 0.3.x not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
 
 ## Main package (0.0.11)
@@ -106,7 +106,7 @@ are being designed and are not part of this package.
 
 See [package_arsenal/README.md](package_arsenal/README.md) for every weapon's numbers.
 
-## Proficiency (0.3.9)
+## Proficiency (0.3.10)
 
 Each job's Clan line, earned from **Montblanc** and applied to whatever the character wields.
 

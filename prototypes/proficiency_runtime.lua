@@ -438,15 +438,40 @@ end
 -- is in the palace (locations 567-572: the palace maps' own exits, named in The Planetary Age's zone list) the
 -- byte is held at Leader Only; the configured value comes back on leaving. Without that mod nothing happens.
 local PALACE_FIRST, PALACE_LAST = 567, 572
+-- Another script's symbols are not visible here (0.3.9 found none in game), so the byte is found through the mod's
+-- own patch: 0x2838CC holds "jmp pit3_code", and pit3_code starts "cmp byte ptr [pit_ot],0" (80 3D rel32 00, or
+-- 80 3C 25 abs32 00). Anything else: the mod is absent or changed, and the guard stays idle.
+local PIT_SITE = 0x002838CC
+local function s32(a)
+  local v = memory.u8[a] | (memory.u8[a + 1] << 8) | (memory.u8[a + 2] << 16) | (memory.u8[a + 3] << 24)
+  return v >= 0x80000000 and v - 0x100000000 or v
+end
+local function companionsByte()
+  local ok, sym = pcall(memory.getSymbol, 'pit_ot')
+  if ok and type(sym) == 'number' and sym > 0 then return sym end
+  if memory.u8[PIT_SITE] ~= 0xE9 then return nil end
+  local code = PIT_SITE + 5 + s32(PIT_SITE + 1)
+  if memory.u8[code] ~= 0x80 then return nil end
+  if memory.u8[code + 1] == 0x3D and memory.u8[code + 6] == 0x00 then return code + 7 + s32(code + 2) end
+  if memory.u8[code + 1] == 0x3C and memory.u8[code + 2] == 0x25 and memory.u8[code + 7] == 0x00 then
+    return s32(code + 3) & 0xFFFFFFFF
+  end
+  return nil
+end
 local solo = {held = false, saved = nil, missing = false}
 local function soloGuard(at)
-  local ok, sym = pcall(memory.getSymbol, 'pit_ot')
-  if not ok or type(sym) ~= 'number' or sym == 0 then
+  local ok, sym = pcall(companionsByte)
+  if not ok or type(sym) ~= 'number' or sym <= 0 then
     if not solo.missing then solo.missing = true; log('palace guard idle: The Insurgent\'s Companions not found') end
     return
   end
   local inPalace = type(at) == 'number' and at >= PALACE_FIRST and at <= PALACE_LAST
   if inPalace and not solo.held then
+    local value = memory.u8[sym]
+    if value ~= 0 and value ~= 1 then
+      log(string.format('palace guard idle: unexpected Companions setting %s at 0x%X', tostring(value), sym))
+      return
+    end
     solo.saved, solo.held = memory.u8[sym], true
     if solo.saved ~= 0 then memory.u8[sym] = 0 end
     log(string.format('palace guard: companions in towns held at Leader Only (location %d, was %s)', at,

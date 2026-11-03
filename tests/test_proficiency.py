@@ -431,6 +431,28 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(memory.u8[PIT] == 0)
         ''')
 
+    def test_palace_guard_finds_the_byte_through_the_patch(self):
+        # In game another script's symbols are not visible: the byte is read from "jmp pit3_code" at 0x2838CC and
+        # pit3_code's first instruction, cmp byte ptr [rip+rel32],0.
+        self.lua.execute('''
+          local bytes = {}
+          memory.u8 = setmetatable({}, {__index = function(_, a) return bytes[a] or 0 end,
+                                        __newindex = function(_, a, v) bytes[a] = v end})
+          local function put(a, list) for i, b in ipairs(list) do bytes[a + i - 1] = b end end
+          local CODE, PIT = 0x40000000, 0x40000400
+          local rel = CODE - (0x2838CC + 5)
+          put(0x2838CC, {0xE9, rel & 0xFF, (rel >> 8) & 0xFF, (rel >> 16) & 0xFF, (rel >> 24) & 0xFF})
+          local disp = PIT - (CODE + 7)
+          put(CODE, {0x80, 0x3D, disp & 0xFF, (disp >> 8) & 0xFF, (disp >> 16) & 0xFF, (disp >> 24) & 0xFF, 0x00})
+          bytes[PIT] = 1
+          handlers.onMapJump(568)
+          assert(bytes[PIT] == 0 and logged('held at Leader Only (location 568, was 1)'))
+          handlers.onMapJump(291); assert(bytes[PIT] == 1)
+          bytes[CODE] = 0x90                                    -- not the expected patch: idle, nothing written
+          bytes[PIT] = 1; handlers.onMapJump(569)
+          assert(bytes[PIT] == 1 and logged('palace guard idle'))
+        ''')
+
     def test_lost_writ_caps_the_stage(self):
         self.lua.execute('''
           RANK = 6; keys[0x81F0] = true; keys[0x81F1] = true
