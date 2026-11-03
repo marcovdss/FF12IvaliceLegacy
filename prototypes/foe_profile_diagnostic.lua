@@ -1,7 +1,7 @@
 -- Diagnostic prototype: logs each distinct foe's live level, stats and status masks once.
 -- No bonuses, no writes to game state, no save data, no loader registration.
 local M = {}
-M.version = '0.1.5'
+M.version = '0.1.6'
 
 local STATUS = {'ko','stone','petrify','stop','sleep','confuse','doom','blind','poison','silence','sap','oil',
   'reverse','disable','immobilize','slow','disease','lure','protect','shell','haste','bravery','faith','reflect',
@@ -25,7 +25,7 @@ function M.new(deps)
   assert(type(deps)=='table' and type(deps.profile)=='function' and type(deps.emit)=='function',
     'diagnostic requires profile and log adapters')
   local seen, count, charges, hits, actions, lastClock, errorLogged = {}, 0, 0, 0, 0, nil, false
-  local LIMIT = 400
+  local LIMIT = 1000
   local observer = {}
 
   function observer:reset()
@@ -34,7 +34,7 @@ function M.new(deps)
 
   -- Charge-timer samples (current/required/last/idle) for the attacker and target of a hit, to learn how
   -- the native charge works before any mechanic writes to it. Read-only, capped per load.
-  local CHARGE_LIMIT = 120
+  local CHARGE_LIMIT = 1000
   function observer:charge(s)
     if charges >= CHARGE_LIMIT or type(s) ~= 'table' then return false end
     for _, side in ipairs({'caster', 'target'}) do
@@ -55,7 +55,7 @@ function M.new(deps)
 
   -- Base damage of each hit (Forge 113's removedHp, before crit/status factors) with the target's level and max HP,
   -- to measure fight length and damage taken against the band targets. Read-only, capped per load.
-  local HIT_LIMIT = 300
+  local HIT_LIMIT = 1000
   function observer:hit(s)
     if hits >= HIT_LIMIT or type(s) ~= 'table' then return false end
     -- Forge computes damage as power * multiplier, so it is usually fractional; log it rounded down.
@@ -78,7 +78,7 @@ function M.new(deps)
 
   -- Observations at Forge's cast boundary, including non-damaging casts. This is
   -- not a trace of AI-rule evaluation, movement, cancelled or native-only actions.
-  local ACTION_LIMIT = 300
+  local ACTION_LIMIT = 1000
   function observer:action(s)
     if actions >= ACTION_LIMIT or type(s) ~= 'table' or s.foe ~= true then return false end
     if not integer(s.nameId, 0, 0xFFFF) or not integer(s.action, 0, 0xFFFF) or

@@ -49,8 +49,8 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
           assert(logs[1]:find('action=150 casterType=0 caster=40/100/90/0 targetType=1 target=7/60/55/3 bonuses=off$'))
           sample.target.current=-1; assert(not observer:charge(sample)); sample.target.current=7
           assert(not observer:charge({caster=sample.caster}))
-          for i=1,200 do observer:charge(sample) end
-          assert(#logs==120)
+          for i=1,1200 do observer:charge(sample) end
+          assert(#logs==1000)
           observer:reset(); assert(observer:charge(sample))
         ''')
 
@@ -63,8 +63,8 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
           assert(observer:hit(s2)); assert(logs[2]:find('caster=foe:16542 target=party lv=4 maxHp=95 removed=9 '))
           s.removed=-1; assert(not observer:hit(s)); s.removed=0/0; assert(not observer:hit(s))
           s.removed=46.875; assert(observer:hit(s)); assert(logs[3]:find(' removed=46 bonuses=off$')); s.removed=46
-          for i=1,400 do observer:hit(s) end
-          assert(#logs==301 and logs[301]:find('limit reached'))  -- 300 hits including the fractional one
+          for i=1,1100 do observer:hit(s) end
+          assert(#logs==1001 and logs[1001]:find('limit reached'))  -- 1000 hits including the fractional one
           observer:reset(); assert(observer:hit(s))
         ''')
 
@@ -88,8 +88,8 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
 
     def test_reset_and_limit(self):
         self.lua.execute('''
-          for i=1,405 do current={foe=true,nameId=i,level=1,maxHp=1,immune=0,innate=0}; observer:observe() end
-          assert(#logs==401 and logs[401]:find('limit reached'))
+          for i=1,1005 do current={foe=true,nameId=i,level=1,maxHp=1,immune=0,innate=0}; observer:observe() end
+          assert(#logs==1001 and logs[1001]:find('limit reached'))
           observer:reset(); current={foe=true,nameId=1,level=1,maxHp=1,immune=0,innate=0}
           assert(observer:observe())
         ''')
@@ -128,8 +128,8 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
           assert(not observer:action({foe=false, nameId=1, action=1, currentHp=1, maxHp=1, clock=12}))
           a.clock=5; assert(not observer:action(a))
           a.currentHp=171; a.clock=12; assert(not observer:action(a)); a.currentHp=85
-          for i=1,400 do a.clock=12+i; observer:action(a) end
-          assert(#logs==301 and logs[301]=='Legacy action: limit reached for this load')
+          for i=1,1100 do a.clock=12+i; observer:action(a) end
+          assert(#logs==1001 and logs[1001]=='Legacy action: limit reached for this load')
           observer:reset(); a.clock=1; assert(observer:action(a))
         ''')
 

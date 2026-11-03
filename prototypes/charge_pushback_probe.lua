@@ -7,7 +7,7 @@ M.version = '0.1.0'
 
 local ATTACK = 150
 local WRITE_LIMIT = 12
-local LINE_LIMIT = 60
+local LINE_LIMIT = 1000
 
 local function integer(v, lo, hi)
   return type(v)=='number' and v%1==0 and v>=lo and v<=hi

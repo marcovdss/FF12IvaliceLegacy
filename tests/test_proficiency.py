@@ -408,6 +408,27 @@ class ProficiencyWritTest(unittest.TestCase):
           tick(); assert(#assembled == 0 and logged('unexpected code at 0x29266C'))
         ''')
 
+    def test_session_logs_keep_five_previous_sessions(self):
+        import os, tempfile
+        here = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmp:
+            os.chdir(tmp)
+            try:
+                def put(name, text):
+                    with open(name, 'w') as f:
+                        f.write(text)
+                put('hook.log', 'this session')
+                put('hook-session.log', 'session 0')
+                for n in range(1, 6):
+                    put(f'hook-previous-{n}.log', f'session -{n}')
+                self.lua.execute('R.rotateLogs(); R.copyLog()')
+                read = lambda name: open(name).read() if os.path.exists(name) else ''
+                self.assertEqual([read(f'hook-previous-{n}.log') for n in range(1, 6)],
+                                 ['session 0', 'session -1', 'session -2', 'session -3', 'session -4'])
+                self.assertEqual(read('hook-session.log'), 'this session')
+            finally:
+                os.chdir(here)
+
     def test_side_file_saved_under_another_slot_name_is_used(self):
         # Marco: LEGCY_000 loaded, then saved into slot 3: LEGCY_003.dir carries campaign "LEGCY_000".
         self.lua.execute('''

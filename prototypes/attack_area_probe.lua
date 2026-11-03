@@ -5,7 +5,7 @@ local M = {}
 M.version = '0.1.0'
 
 local ATTACK = 150
-local LIMIT = 200
+local LIMIT = 1000
 
 local function integer(v, lo, hi)
   return type(v)=='number' and v%1==0 and v>=lo and v<=hi

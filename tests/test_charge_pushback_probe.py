@@ -61,10 +61,10 @@ class ChargePushbackProbeTests(unittest.TestCase):
 
     def test_line_cap_and_reset(self):
         self.lua.execute('''
-          for i=1,100 do memory=20000; probe:hit(sample()) end
-          assert(#logs==60)
+          for i=1,1100 do memory=20000; probe:hit(sample()) end
+          assert(#logs==1000)
           probe:reset(); memory=20000; assert(probe:hit(sample()))
-          assert(logs[61]:find('n=1 arm=control '))
+          assert(logs[1001]:find('n=1 arm=control '))
         ''')
 
 

@@ -39,9 +39,9 @@ class AttackAreaProbeTests(unittest.TestCase):
     def test_ignores_other_actions_caps_and_resets(self):
         self.lua.execute('''
           assert(not probe:hit(sample({action=429}))); assert(not probe:hit(nil))
-          for i=1,250 do probe:hit(sample()) end
-          assert(#logs==200)
-          probe:reset(); assert(probe:hit(sample({casterType=1}))); assert(logs[201]:find('caster=foe:4 '))
+          for i=1,1250 do probe:hit(sample()) end
+          assert(#logs==1000)
+          probe:reset(); assert(probe:hit(sample({casterType=1}))); assert(logs[1001]:find('caster=foe:4 '))
         ''')
 
 

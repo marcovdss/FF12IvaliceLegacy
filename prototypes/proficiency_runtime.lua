@@ -37,7 +37,7 @@ end
 local campaign, claimed, location, logged, rankLogged = nil, 0, nil, 0, false
 local foes = {}
 local writs, writsKnown = {false, false, false}, false
-local LOG_LIMIT = 120
+local LOG_LIMIT = 1000
 local function log(line)
   if logged < LOG_LIMIT then logged = logged + 1; print('Legacy Proficiency: ' .. line) end
 end
@@ -508,7 +508,57 @@ local function reset()
   P.reset()
 end
 
+-- ---------- session logs (lives here until the next main-package release) ----------
+-- The loader rewrites hook.log at every launch, so a fight is lost once the game restarts. This keeps the last five
+-- sessions beside it: at startup hook-previous-4.log -> 5, ..., hook-session.log -> hook-previous-1.log; then
+-- hook.log is copied to hook-session.log every 30 seconds and on exit (a crash loses at most 30 seconds).
+local SESSION, PREVIOUS, KEEP, COPY_MS = 'hook-session.log', 'hook-previous-%d.log', 5, 30000
+local function readAll(path)
+  local f = io.open(path, 'rb')
+  if not f then return nil end
+  local data = f:read('a')
+  f:close()
+  return data
+end
+local function writeAll(path, data)
+  local f = io.open(path, 'wb')
+  if not f then return false end
+  f:write(data)
+  f:close()
+  return true
+end
+local function remove(path)
+  if type(os) == 'table' and type(os.remove) == 'function' then pcall(os.remove, path) else writeAll(path, '') end
+end
+local function moveLog(from, to)
+  local data = readAll(from)
+  if data == nil or #data == 0 then return end
+  if writeAll(to, data) then remove(from) end
+end
+function R.rotateLogs()
+  remove(string.format(PREVIOUS, KEEP))
+  for n = KEEP - 1, 1, -1 do moveLog(string.format(PREVIOUS, n), string.format(PREVIOUS, n + 1)) end
+  moveLog(SESSION, string.format(PREVIOUS, 1))
+end
+function R.copyLog()
+  local data = readAll('hook.log')
+  if data and #data > 0 then writeAll(SESSION, data) end
+end
+local function copyTick()
+  pcall(R.copyLog)
+  event.executeAfterMs(COPY_MS, copyTick)
+end
+
 function R.register()
+  if type(io) == 'table' and type(io.open) == 'function' and readAll('hook.log') ~= nil then
+    local ok = pcall(R.rotateLogs)
+    log(ok and string.format('session logs: previous sessions kept as hook-previous-1..%d.log', KEEP)
+      or 'session logs: rotation failed')
+    if type(event.executeAfterMs) == 'function' then event.executeAfterMs(COPY_MS, copyTick) end
+    if type(event.registerEventAsync) == 'function' then
+      event.registerEventAsync('exit', function() pcall(R.copyLog) end)
+    end
+  end
   local ok = event.registerEventSync('onSaveLoad', function() reset() return true end) == true
   ok = event.registerEventSync('onNewGameStart', function() reset() return true end) == true and ok
   ok = event.registerLoadHandler(SAVE_ID, function(path, data)
