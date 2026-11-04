@@ -46,11 +46,104 @@ class ProficiencyRulesTest(unittest.TestCase):
     def test_hunter(self):
         self.run_lua('''
           assert(P.decide('hit', S({targetStatus={slow=true}}), 1).damage == 1.15)
+          P.reset()
           assert(P.decide('hit', S({targetStatus={poison=true}}), 4).damage == 1.25)
+          P.reset()
           assert(P.decide('hit', S({targetStatus={poison=true}}), 7).targetAdd[30])       -- II-3 Libra
           local a = P.decide('hit', S({targetStatus={poison=true}, kill=true}), 12)
           assert(a.casterAdd[20] == 0.75)                                                -- III Haste, longer at 4
           assert(P.decide('hit', S({targetId=5}), 12).targetAdd[15] == 0.5)               -- III-2 next target Slowed
+        ''')
+
+    def test_040_levels(self):
+        self.run_lua('''
+          local function has(list, id) for _, v in ipairs(list or {}) do if v == id then return true end end return false end
+          local function op(a, name, id)
+            for _, o in ipairs(a and a.others or {}) do if o.op == name and (id == nil or o.id == id) then return o end end
+          end
+          -- Hunter: in a row, kill heal, renewals, nearest foe Slowed.
+          P.reset()
+          assert(P.decide('hit', S({targetStatus={slow=true}}), 2).damage == 1.15)
+          assert(P.decide('hit', S({targetStatus={slow=true}}), 2).damage == 1.15 + 0.05)
+          P.reset()
+          assert(P.decide('hit', S({targetStatus={poison=true}, kill=true}), 3).healHp == 10)
+          P.reset()
+          local h = P.decide('hit', S({targetStatus={poison=true, slow=true, oil=true}}), 5)
+          local n = 0 for _ in pairs(h.targetAdd) do n = n + 1 end
+          assert(n == 1)
+          h = P.decide('hit', S({targetStatus={poison=true, slow=true, oil=true}}), 8)
+          n = 0 for _ in pairs(h.targetAdd) do n = n + 1 end
+          assert(n == 4)                                                                  -- three renewals and Libra
+          P.reset()
+          assert(P.decide('hit', S({targetStatus={disease=true}}), 5).targetAdd[16])      -- Disease has its own id
+          P.reset()
+          assert(op(P.decide('hit', S({targetStatus={poison=true}, kill=true}), 11), 'add', 15))
+          -- Lancer II: only on a foe with an ailment; III-4 Slow.
+          local L = S({job=1, targetStatus={protect=true, shell=true}})
+          assert(not has((P.decide('hit', L, 5) or {}).targetRemove, 18))
+          L = P.decide('hit', S({job=1, targetStatus={poison=true, protect=true, shell=true}}), 5)
+          assert(has(L.targetRemove, 18) and not has(L.targetRemove, 19))
+          L = P.decide('hit', S({job=1, targetStatus={poison=true, protect=true, shell=true, reflect=true, bubble=true}}), 8)
+          assert(has(L.targetRemove, 18) and has(L.targetRemove, 19) and has(L.targetRemove, 23) and has(L.targetRemove, 28))
+          assert(P.decide('hit', S({job=1, targetStatus={immobilize=true}}), 12).targetAdd[15] == 0.5)
+          -- Warrior II-2.
+          assert(P.decide('hit', S({job=7, casterHpPct=40}), 6).casterAdd[18] == 0.5)
+          -- Samurai I-3 and III-3.
+          P.reset()
+          local c = P.decide('hit', S({job=10, casterStatus={slow=true}}), 3)
+          c = P.decide('hit', S({job=10, casterStatus={slow=true}}), 3)
+          assert(has(c.casterRemove, 15))
+          P.reset()
+          P.decide('hit', S({job=10, kill=true, casterStatus={haste=true}}), 11)
+          assert(P.decide('hit', S({job=10, targetId=11}), 11).damage == 1.20)
+          -- Gunner: Slowed push, late foes, Silence, Faith.
+          P.reset()
+          local g = P.decide('hit', S({job=2, targetStatus={slow=true}}), 2)
+          assert(g.chargeTo == 20000 - math.floor(30000 * 0.15))
+          P.reset()
+          g = P.decide('hit', S({job=2, charge={current=25000, required=30000, last=25000}}), 5)
+          assert(g.chargeTo == 25000 - math.floor(30000 * 0.25))
+          P.reset()
+          g = P.decide('hit', S({job=2, charge={current=25000, required=30000, last=25000}}), 8)
+          assert(g.targetAdd[9] == 0.5 and op(g, 'add', 22))
+          P.reset()
+          g = P.decide('hit', S({job=2, charge={current=2000, required=30000, last=2000}}), 8)
+          assert(not g.targetAdd or not g.targetAdd[9])                                   -- not about to act
+          -- Knight.
+          local k = P.decide('guard', S({job=4, outcome='parry', attacker=777}), 4)
+          local o = op(k, 'remove', 21)
+          assert(o and o.unit == 777)
+          assert(not op(P.decide('guard', S({job=4, outcome='dodge', attacker=777}), 4), 'remove', 21))
+          assert(op(P.decide('guard', S({job=4, outcome='parry', party={{address=100, job=4, hpPct=100, status={}}, {address=200, job=0, hpPct=40, status={immobilize=true}}}}), 8), 'remove', 14))
+          assert(op(P.decide('ally', S({job=4}), 10), 'add', 17).scale == 0.75)
+          assert(op(P.decide('ally', S({job=4}), 12), 'add', 18).unit == 200)
+          -- Mystic II-3, White Mage I-2.
+          assert(op(P.decide('guard', S({job=5, outcome='counter', casterStatus={sap=true}}), 7), 'remove', 10))
+          assert(has(P.decide('heal', S({job=0, overflow=50}), 2).targetRemove, 10))
+          -- Chemist II: heals the most hurt ally.
+          local m = P.decide('hit', S({job=11}), 5)
+          o = op(m, 'hp')
+          assert(o and o.unit == 200 and o.amount == 10)
+          assert(op(P.decide('hit', S({job=11}), 7), 'add', 18))
+          assert(P.decide('hit', S({job=11, party={{address=100, job=11, hpPct=100, status={}}}}), 5) == nil)
+          -- Black Mage III on the third cast only.
+          P.reset()
+          local function cast(rank) return P.decide('magick', S({job=9, element=1, mpCost=10}), rank) end
+          cast(11); cast(11)
+          local b = cast(11)
+          assert(b.targetAdd[11] == 0.5 and op(b, 'add', 11) and op(b, 'hp').amount == -25)
+          -- Legendary: a master of the owning job with the right family; nobody else.
+          P.reset()
+          local function leg(job, category, rank, weapon)
+            return (P.decide('hit', S({job=job, category=category, weapon=weapon or 4130}), rank) or {}).damage or 1
+          end
+          assert(leg(10, 3, 12) >= 1.25)                                                  -- Samurai with a katana legendary
+          assert(leg(10, 3, 11) == 1)                                                     -- not yet a master
+          assert(leg(4, 3, 12) == 1)                                                      -- Knight, wrong family
+          assert(leg(10, 3, 12, 4097) == 1)                                               -- not a legendary
+          for job, want in pairs({[1]=P.JOB.knight, [5]=P.JOB.lancer, [13]=P.JOB.whiteMage, [14]=P.JOB.blackMage}) do
+            assert(P.FAMILY_OWNER[job] == want)
+          end
         ''')
 
     def test_warrior(self):
@@ -340,7 +433,15 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(hunter[1] == 'Pursuit  I 2/4  II 0/4  III 0/4' and hunter[2]:find('15%%') and hunter[3] == nil and hunter[4] == nil)
           local six = P.gearLines(P.JOB.hunter, 7)                       -- I 4/4, II 3/4
           assert(six[2]:find('25%%') and six[3]:find('Libra') and six[4] == nil)
-          assert(P.gearLines(P.JOB.lancer, 6)[3] == nil)                   -- Lancer II is not built yet: no line
+          assert(P.gearLines(P.JOB.lancer, 6)[3]:find('strip'))            -- every stage now has a line
+          for job = 0, 11 do
+            for rank = 1, 12 do
+              local lines = P.gearLines(job, rank)
+              for k = 1, 3 do
+                if P.levels(rank)[k] >= 1 then assert(lines[k + 1], job .. ' stage ' .. k) end
+              end
+            end
+          end
           assert(P.gearLines(P.JOB.knight, 0)[1]:find('no Writ yet'))
         ''')
 

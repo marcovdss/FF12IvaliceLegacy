@@ -797,6 +797,7 @@ function R.hook165(formula, caster, target, classes, helpers)
       category = bpack.section13[caster.weapon - 0x1000].category
     end
     s.targetId, s.foe, s.target, s.damage = formula.target.identifier, true, target.address, damage
+    s.weapon = caster.weapon
     s.kill = damage ~= -1 and damage >= target.currentHp
     s.bystander = formula.initialTargetPointer ~= 0 and formula.initialTargetPointer ~= target.address
     s.category, s.targetStatus, s.targetMp = category, statusSet(formula.target.statusEffects), target.currentMp
@@ -857,7 +858,9 @@ function R.hook170(formula, caster, target, classes, helpers)
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
   if not s or s.job ~= P.JOB.blackMage then return end
   s.element, s.mpCost = R.element(formula.action)
-  s.foe, s.target = true, target.address
+  s.foe, s.target, s.damage = true, target.address, formula.target.removedHp
+  s.targetStatus = statusSet(formula.target.statusEffects)
+  s.foes = R.foes(classes, target.address)
   local a = P.decide('magick', s, effective())
   if a then R.apply(a, formula, caster, classes, helpers); R.report('magick', s, a) end
 end
