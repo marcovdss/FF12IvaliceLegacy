@@ -13,13 +13,13 @@ and progression you can't steamroll.
 
 | Package | Version | What it is | Tested in game |
 |---|---|---|---|
-| Ivalice Legacy (main) | 0.0.12 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | 0.0.11 yes (Estersand); 0.0.12 not yet |
+| Ivalice Legacy (main) | 0.0.13 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | 0.0.11 yes (Estersand); 0.0.12 Kings spawn yes, defeated Kings did not stay gone (fixed in 0.0.13, not yet tested) |
 | Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.x not yet |
 | Arsenal | 0.5.1 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.1 not yet |
 | Proficiency | 0.3.13 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip and the line shown on gear | 0.2.0 rank reward yes; 0.3.x not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
 
-## Main package (0.0.12)
+## Main package (0.0.13)
 
 **Opening stock.** Rabanastre's merchants sell a wider set of opening tools from the very start. Items they
 already stocked later in the story move to the start instead of appearing twice. Prices are unchanged.

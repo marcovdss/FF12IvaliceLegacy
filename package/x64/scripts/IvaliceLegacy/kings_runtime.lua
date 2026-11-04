@@ -7,10 +7,11 @@
 --             lives. Everywhere else, and once the King is dead, the native (or Bountiful) answer stands.
 --   0x510178  btlAtelSetUnit, before 0x23A3B0: when a field script sets a unit whose class is a dead King's
 --             Bestiary entry, in one of that King's home locations, the unit becomes 0xFF ("no unit", the engine's
---             own value for an unset spawner), so the King is never placed there again.
+--             own value for an unset spawner), so the King is never placed there again. The class table's +0x52
+--             counts from 0 (Nekhbet 330) while the defeat counts and K.HOMES count from 1 (Nekhbet 331).
 -- "Dead" is the game's own Bestiary defeat count, which the save keeps: the save image is at 0x2164280 and entry n's
 -- count is the byte at +0xB603+n. Kings defeated before this file existed count as dead too.
-local K = {version = '0.1.0'}
+local K = {version = '0.1.1'}
 
 K.FIRST, K.LAST = 293, 372
 K.KILLS = 0x0216F883          -- 0x2164280 (save image) + 0xB603; entry n at K.KILLS + n
@@ -276,6 +277,7 @@ legacy_kings_unit:
   mov r11,[r11]
   add r10,r11
   movzx ecx,word ptr [r10+0x52]
+  inc ecx
   cmp ecx,0x125
   jb legacy_kings_unit_done
   cmp ecx,0x174

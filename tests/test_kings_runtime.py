@@ -242,7 +242,8 @@ class HookTest(unittest.TestCase):
                 uc.mem_write(TABLES_AT + 0x8000 + cls * self.CLASS_STRIDE + 0x52, struct.pack('<H', 10 + cls))
             if unit_class is not None:
                 row, entry = unit_class
-                uc.mem_write(TABLES_AT + 0x8000 + (row + 3) * self.CLASS_STRIDE + 0x52, struct.pack('<H', entry))
+                # The class table counts from 0; defeat counts and homes count from 1.
+                uc.mem_write(TABLES_AT + 0x8000 + (row + 3) * self.CLASS_STRIDE + 0x52, struct.pack('<H', entry - 1))
         for at in (0x003504C3, 0x0051017D):
             uc.mem_write(at, b'\xf4')
         return uc, blob
@@ -326,7 +327,17 @@ class HookTest(unittest.TestCase):
 
     def test_living_king_and_ordinary_units_are_kept(self):
         self.assertEqual(self.unit(4, location=891, unit_class=(4, 320))[0], 4)
-        self.assertEqual(self.unit(5, location=891, kills=(320,), unit_class=(4, 320))[0], 5)  # row 5: entry 18
+        self.assertEqual(self.unit(5, location=891, kills=(320,), unit_class=(4, 320))[0], 5)  # row 5: entry 19
+
+    def test_the_previous_entrys_death_does_not_count(self):
+        # Entry 319 is dead and Minibug (320) lives: reading the defeat count without adding 1 would look at 319.
+        self.assertEqual(self.unit(4, location=891, kills=(319,), unit_class=(4, 320))[0], 4)
+
+    def test_no_bestiary_entry_is_kept(self):
+        # Adds such as Tiny Battery have 0xFFFF in the class table.
+        uc, _ = self.machine(location=891, kills=(320,))
+        uc.mem_write(TABLES_AT + 0x8000 + 7 * self.CLASS_STRIDE + 0x52, struct.pack('<H', 0xFFFF))
+        self.assertEqual(self.execute(uc, self.unit_start(), 4, 0x0051017D), 4)
 
     def test_bad_rows_and_missing_tables_are_kept(self):
         self.assertEqual(self.unit(0xFF, location=891, kills=(320,), unit_class=(4, 320))[0], 0xFF)
@@ -391,6 +402,22 @@ class ExecutableTest(unittest.TestCase):
         self.assertEqual(LOCATION, 0x2164280 + 0x1244)
         # 0x20E600: mov eax,ecx ; add rax,[rip+...] -> TABLE_BASE
         self.assertEqual(0x20E609 + struct.unpack_from('<i', self.at(0x20E605, 4))[0], TABLE_BASE)
+
+    def test_class_table_counts_from_zero(self):
+        # The field the unit hook reads: dst_a's Ripe Rampager, Nekhbet and Greeden, one below their K.HOMES entries.
+        from ivalice_legacy.vbf import VBF
+        raw = VBF(Path(GAME) / 'FFXII_TZA.vbf').read('ps2data/plan_master/in/plan_map/dst_a/area/dst_a.ard')
+        self.assertEqual(raw[:8], b'FF12AR03')
+        table = raw[struct.unpack_from('<10I', raw, 8)[2]:]
+        self.assertEqual(table[:4], b'st2e')
+        count, stride, offset = struct.unpack_from('<III', table, 4)
+        stride &= 0xFFFF
+        fields = [struct.unpack_from('<H', table, offset + i * stride + 0x52)[0] for i in range(count)]
+        h = {(l, e) for l, e, _ in homes()}
+        for location, entry in ((228, 316), (229, 331), (230, 297)):
+            self.assertIn(entry - 1, fields)
+            self.assertNotIn(entry, fields)
+            self.assertIn((location, entry), h)
 
 
 if __name__ == '__main__':
