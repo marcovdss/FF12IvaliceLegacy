@@ -49,7 +49,8 @@ class ProficiencyRulesTest(unittest.TestCase):
           P.reset()
           assert(P.decide('hit', S({targetStatus={poison=true}}), 4).damage == 1.25)
           P.reset()
-          assert(P.decide('hit', S({targetStatus={poison=true}}), 7).targetAdd[30])       -- II-3 Libra
+          assert(P.decide('hit', S({targetStatus={poison=true}}), 7).casterAdd[30])       -- II-3 Libra goes to the Hunter
+          assert(P.decide('hit', S({targetStatus={poison=true}, casterStatus={libra=true}}), 7).casterAdd == nil)
           local a = P.decide('hit', S({targetStatus={poison=true}, kill=true}), 12)
           assert(a.casterAdd[20] == 0.75)                                                -- III Haste, longer at 4
           assert(P.decide('hit', S({targetId=5}), 12).targetAdd[15] == 0.5)               -- III-2 next target Slowed
@@ -69,13 +70,11 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(P.decide('hit', S({targetStatus={poison=true}, kill=true}), 3).healHp == 10)
           P.reset()
           local h = P.decide('hit', S({targetStatus={poison=true, slow=true, oil=true}}), 5)
-          local n = 0 for _ in pairs(h.targetAdd) do n = n + 1 end
-          assert(n == 1)
-          h = P.decide('hit', S({targetStatus={poison=true, slow=true, oil=true}}), 8)
-          n = 0 for _ in pairs(h.targetAdd) do n = n + 1 end
-          assert(n == 4)                                                                  -- three renewals and Libra
+          assert(#h.targetRenew == 1 and h.targetRenew[1] == 8)                           -- shortest timer first
+          h = P.decide('hit', S({targetStatus={poison=true, slow=true, oil=true, disable=true}}), 8)
+          assert(#h.targetRenew == 3)                                                     -- only timed ailments
           P.reset()
-          assert(P.decide('hit', S({targetStatus={disease=true}}), 5).targetAdd[16])      -- Disease has its own id
+          assert(P.decide('hit', S({targetStatus={oil=true}}), 5).targetRenew == nil)     -- Oil has no timer to renew
           P.reset()
           assert(op(P.decide('hit', S({targetStatus={poison=true}, kill=true}), 11), 'add', 15))
           -- Lancer II: only on a foe with an ailment; III-4 Slow.
@@ -90,9 +89,18 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(P.decide('hit', S({job=7, casterHpPct=40}), 6).casterAdd[18] == 0.5)
           -- Samurai I-3 and III-3.
           P.reset()
-          local c = P.decide('hit', S({job=10, casterStatus={slow=true}}), 3)
-          c = P.decide('hit', S({job=10, casterStatus={slow=true}}), 3)
-          assert(has(c.casterRemove, 15))
+          assert(P.decide('hit', S({job=10, targetId=1}), 3) == nil)
+          assert(P.decide('hit', S({job=10, targetId=2}), 3).casterAdd[20])               -- survives one switch
+          P.reset()
+          P.decide('hit', S({job=10, targetId=1}), 2)
+          assert(P.decide('hit', S({job=10, targetId=2}), 2) == nil)                      -- not before level 3
+          P.reset()
+          P.decide('hit', S({job=10, targetId=1}), 3); P.decide('hit', S({job=10, targetId=2}), 3)
+          P.decide('hit', S({job=10, targetId=2}), 3)
+          assert(P.decide('hit', S({job=10, targetId=3}), 3).casterAdd[20])               -- the grace renews with each chain
+          P.reset()
+          P.decide('hit', S({job=10, targetId=1}), 1); P.decide('hit', S({job=10, targetId=2}), 1)
+          assert(P.decide('hit', S({job=10, targetId=3}), 1) == nil)                      -- level 1: a switch restarts it
           P.reset()
           P.decide('hit', S({job=10, kill=true, casterStatus={haste=true}}), 11)
           assert(P.decide('hit', S({job=10, targetId=11}), 11).damage == 1.20)
@@ -111,15 +119,16 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(not g.targetAdd or not g.targetAdd[9])                                   -- not about to act
           -- Knight.
           local k = P.decide('guard', S({job=4, outcome='parry', attacker=777}), 4)
-          local o = op(k, 'remove', 21)
-          assert(o and o.unit == 777)
-          assert(not op(P.decide('guard', S({job=4, outcome='dodge', attacker=777}), 4), 'remove', 21))
+          local o = op(k, 'push')
+          assert(o and o.unit == 777 and o.fraction == 0.10)
+          assert(not op(P.decide('guard', S({job=4, outcome='dodge', attacker=777}), 4), 'push'))
           assert(op(P.decide('guard', S({job=4, outcome='parry', party={{address=100, job=4, hpPct=100, status={}}, {address=200, job=0, hpPct=40, status={immobilize=true}}}}), 8), 'remove', 14))
           assert(op(P.decide('ally', S({job=4}), 10), 'add', 17).scale == 0.75)
-          assert(op(P.decide('ally', S({job=4}), 12), 'add', 18).unit == 200)
+          assert(op(P.decide('ally', S({job=4, ally=300}), 12), 'add', 18).unit == 300)   -- the ally actually struck
           -- Mystic II-3, White Mage I-2.
           assert(op(P.decide('guard', S({job=5, outcome='counter', casterStatus={sap=true}}), 7), 'remove', 10))
-          assert(has(P.decide('heal', S({job=0, overflow=50}), 2).targetRemove, 10))
+          assert(P.decide('heal', S({job=0, overflow=50, item=true}), 1) == nil)          -- potions from level 2
+          assert(P.decide('heal', S({job=0, overflow=50, item=true}), 2).targetAdd[25])
           -- Chemist II: heals the most hurt ally.
           local m = P.decide('hit', S({job=11}), 5)
           o = op(m, 'hp')
@@ -163,7 +172,9 @@ class ProficiencyRulesTest(unittest.TestCase):
     def test_lancer(self):
         self.run_lua('''
           local a = P.decide('hit', S({job=1, targetStatus={float=true, haste=true, faith=true, regen=true}}), 2)
-          assert(#a.targetRemove == 2)
+          assert(#a.targetRemove == 3)                                                    -- Float, Haste, Faith
+          assert(#P.decide('hit', S({job=1, targetStatus={haste=true}}), 1).targetRemove == 1)  -- rank 1 has a real target
+          assert(#P.decide('hit', S({job=1, targetStatus={bravery=true}}), 4).targetRemove == 1)
           assert(P.decide('hit', S({job=1, targetStatus={protect=true}}), 9) == nil)       -- buff left: no pin
           assert(P.decide('hit', S({job=1}), 9).targetAdd[14] == 0.5)                     -- III pin
           assert(P.decide('hit', S({job=1, targetStatus={float=true}}), 9).targetAdd[14]) -- stripped last buff
@@ -197,7 +208,7 @@ class ProficiencyRulesTest(unittest.TestCase):
           P.reset(); P.decide('hit', S({job=2}), 11)
           assert(P.decide('hit', S({job=2}), 11).targetAdd[15])                           -- III-3 Slow
           a = P.decide('hit', S({job=6, targetStatus={slow=true}}), 7)
-          assert(a.targetAdd[3] == 0.5 and others(a, 'add') == 2 and others(a, 'remove') == 1)  -- II Slow 2 foes, strip Haste
+          assert(a.targetAdd[3] == 0.5 and others(a, 'add') == 2 and others(a, 'push') == 2)  -- II Slow 2 foes, strip Haste
           assert(P.decide('hit', S({job=6, targetStatus={slow=true}, roll=function() return false end}), 4) == nil)
           a = P.decide('hit', S({job=4, targetStatus={stop=true}, party={{address=100, job=4, hpPct=100, mp=0, maxMp=0, status={}}, {address=300, job=6, hpPct=100, mp=0, maxMp=0, status={}}}}), 10)
           assert(a.casterAdd[20] and a.damage == 1.15)                                    -- Time Mage III aura
@@ -225,6 +236,40 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(P.decide('magick', S({job=9, element=1, mpCost=20}), 12) == nil)
           a = P.decide('magick', S({job=9, element=1, mpCost=20}), 12); assert(a.casterCharge == 0.30)
           a = P.decide('magick', S({job=9, element=1, mpCost=20}), 12); assert(others(a, 'mp') == 1 and a.damage == 1.15)
+          assert(P.decide('magick', S({job=9, element=1, mpCost=20}), 12).casterCharge == 0.30)
+          P.decide('magick', S({job=9, element=1, mpCost=20}), 12)
+          a = P.decide('magick', S({job=9, element=1, mpCost=20}), 12); assert(others(a, 'mp') == 1)  -- every third cast
+          P.reset()                                                                       -- one spell, three targets, one cast
+          local function aoe(now) return P.decide('magick', S({job=9, element=1, mpCost=20, now=now}), 12) end
+          assert(aoe(1000000) == nil and aoe(1005000) == nil and aoe(1010000) == nil)
+          assert(aoe(3000000).casterCharge == 0.30 and aoe(3005000) == nil)
+          a = aoe(5000000); assert(others(a, 'mp') == 1 and a.damage == 1.15)
+          a = aoe(5005000); assert(others(a, 'mp') == 0 and a.damage == 1.15 and a.targetAdd[11])
+          P.reset()                                                                       -- I-2 one other spell keeps it
+          local function el(e, r) return P.decide('magick', S({job=9, element=e, mpCost=20}), r) end
+          el(1, 2); assert(el(2, 2) == nil); assert(el(1, 2).casterCharge == 0.20)
+          P.reset(); el(1, 1); el(2, 1); assert(el(1, 1) == nil)                          -- level 1: broken
+          P.reset(); el(1, 3); el(1, 3); el(2, 3); assert(el(4, 3).casterCharge == 0.20)  -- I-3 also as the chain ends
+          -- Time Mage III-3: a bounded number of extensions per Stop.
+          P.reset()
+          local function stopped(t) return P.decide('hit', S({job=4, targetId=t or 9, targetStatus={stop=true},
+            party={{address=100, job=6, hpPct=100, mp=0, maxMp=0, status={}}}}), 11) end
+          for i = 1, 4 do assert(stopped().targetExtend[3] == 0.10) end
+          assert(stopped().targetExtend == nil and stopped(8).targetExtend[3] == 0.10)
+          P.decide('hit', S({job=4, targetId=9, party={{address=100, job=6, hpPct=100, mp=0, maxMp=0, status={}}}}), 11)
+          assert(stopped().targetExtend[3] == 0.10)                                       -- a new Stop counts afresh
+          -- A hit only the bonus makes lethal is a kill, and the chain state is not advanced twice.
+          P.reset()
+          a = P.decide('hit', S({targetStatus={poison=true}, damage=100, targetHp=110}), 3)
+          assert(a.healHp == 10 and a.damage == 1.15)
+          P.reset()
+          assert(P.decide('hit', S({targetStatus={poison=true}, damage=100, targetHp=120}), 3).healHp == nil)
+          -- No level is a copy of the one before it.
+          for job = 0, 11 do
+            for k = 1, 3 do
+              for l = 2, 4 do assert(P.GEAR[job][k][l] ~= P.GEAR[job][k][l - 1], P.GEAR[job][k][l]) end
+            end
+          end
           a = P.decide('status', S({job=11, landed={8}}), 9); assert(others(a, 'add') == 2)  -- III: two foes
           assert(P.decide('status', S({job=11, landed={}}), 12) == nil)
         ''')
@@ -252,6 +297,112 @@ class ProficiencyRulesTest(unittest.TestCase):
 
 
 @unittest.skipIf(LuaRuntime is None, 'requires Lupa Lua5.5')
+class ProficiencyApplyTest(unittest.TestCase):
+    """What reaches the game: immunities respected, longer statuses kept, timers renewed, charge bonus deferred."""
+
+    def setUp(self):
+        self.lua = LuaRuntime(unpack_returned_tuples=True)
+        sources = {f'scripts/IvaliceLegacy/{n}.lua': (ROOT/f'prototypes/{n}.lua').read_text(encoding='utf-8')
+                   for n in ('proficiency', 'proficiency_runtime', 'clan_rank')}
+        self.lua.globals().sources = self.lua.table_from(sources)
+        self.lua.execute('''
+          local real_load = load
+          loadfile = function(p, mode, env) return sources[p] and real_load(sources[p], '@'..p, mode, env) or nil end
+          memory = {u8={}, u32={}, u64={}, readArray=function() return {} end, execute=function() return 0 end}
+          arg = {s32=0}
+          NOW, ticks = 1000000, {}
+          event = {registerEventSync=function() return true end, registerEventAsync=function() return true end,
+                   registerLoadHandler=function() return true end, registerSaveHandler=function() return true end,
+                   getClock=function() return NOW end, executeAfterMs=function(ms, fn) ticks[#ticks+1] = fn end}
+          R = real_load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], 'runtime', 't', _ENV)()
+          local function flags() return setmetatable({}, {__index=function() return 0 end}) end
+          function record(t)
+            t = t or {}
+            return {flags1={isNegative=t.negative or 0, isNotApplicableToFoes=t.notFoes or 0}, absentStatusEffects=flags()}
+          end
+          bpack = {section15=setmetatable({[30]=record({notFoes=1}), [3]=record({negative=1}), [15]=record({negative=1}),
+                                           [14]=record({negative=1})}, {__index=function() return record() end})}
+          added = {}
+          helpers = {getStatusEffectDuration=function() return 100 end, getStatusEffectTickDuration=function() return 0 end,
+                     getStatusEffectsMatch=function() return false end,
+                     addStatusEffect=function(c, u, id, d) added[#added+1] = {u=u, id=id, d=d} end,
+                     getBattleUnitWork=function(a) return a end, modifyHp=function() end, modifyMp=function() end,
+                     removeStatusEffect=function() end}
+          work = {address=500, currentChargeTime=30000, requiredChargeTime=29000, lastChargeTime=0}
+          keeps = {}
+          function keep(t)
+            local k = {type=1, address=t.address or 900, permanentStatusEffectImmunities=flags(), permanentStatusEffects=flags(),
+                       temporaryStatusEffects=flags(), statusEffectDurations=flags(), temporaryAugments=flags(), permanentAugments=flags()}
+            for _, i in ipairs(t.immune or {}) do k.permanentStatusEffectImmunities[i] = 1 end
+            for i, d in pairs(t.has or {}) do k.temporaryStatusEffects[i] = 1; k.statusEffectDurations[i] = d end
+            keeps[k.address] = k
+            return k
+          end
+          classes = {getBattleUnitKeep=function(a) return keeps[a] end, getBattleUnitWork=function(a) return work end}
+          function plus() return {statusEffects=flags(), addedStatusEffects=flags(), removedStatusEffects=flags(),
+                                  statusEffectDurations=setmetatable({}, {__index=function() return -1 end})} end
+          function apply(a, target) local f = {caster=plus(), target=plus()}
+            R.apply(a, f, keep({address=100, type=0}), classes, helpers, target); return f end
+        ''')
+
+    def test_immune_foes_stay_immune(self):
+        self.lua.execute('''
+          local f = apply({targetAdd={[3]=0.5}}, keep({immune={3}}))
+          assert(f.target.addedStatusEffects[3] == 0)
+          f = apply({targetAdd={[3]=0.5}}, keep({}))
+          assert(f.target.addedStatusEffects[3] == 1 and f.target.statusEffectDurations[3] == 50)
+          f = apply({targetAdd={[30]=1}}, keep({}))                 -- Libra cannot sit on a foe
+          assert(f.target.addedStatusEffects[30] == 0)
+          keep({address=901, immune={15}}); keep({address=902})
+          apply({others={{op='add', unit=901, id=15, scale=1}, {op='add', unit=902, id=15, scale=1}}}, keep({}))
+          assert(#added == 1 and added[1].u == 902)                 -- the helper is guarded too
+        ''')
+
+    def test_a_shorter_proc_never_cuts_a_longer_status(self):
+        self.lua.execute('''
+          local f = apply({casterAdd={}, targetAdd={[20]=0.5}}, keep({has={[20]=80}}))
+          assert(f.target.addedStatusEffects[20] == 0)              -- 80 left beats the 50 on offer
+          f = apply({targetAdd={[20]=0.5}}, keep({has={[20]=30}}))
+          assert(f.target.addedStatusEffects[20] == 1 and f.target.statusEffectDurations[20] == 50)
+          keep({address=901, has={[18]=90}})
+          apply({others={{op='add', unit=901, id=18, scale=0.5}}}, keep({}))
+          assert(#added == 0)
+        ''')
+
+    def test_renew_and_extend(self):
+        self.lua.execute('''
+          local f = apply({targetRenew={15, 14}}, keep({has={[15]=10}}))
+          assert(f.target.addedStatusEffects[15] == 1 and f.target.addedStatusEffects[14] == 0)
+          assert(f.target.statusEffectDurations[15] == -1)          -- -1 = the full duration at the end of the hit
+          f = apply({targetExtend={[3]=0.10}}, keep({has={[3]=40}}))
+          assert(f.target.statusEffectDurations[3] == 50)
+          f = apply({targetExtend={[3]=0.10}}, keep({has={[3]=95}}))
+          assert(f.target.statusEffectDurations[3] == 100)          -- never past a full Stop
+          f = apply({targetExtend={[3]=0.10}}, keep({has={[3]=100}}))
+          assert(f.target.addedStatusEffects[3] == 0)
+          f = apply({targetExtend={[3]=0.10}}, keep({}))            -- no Stop: nothing to extend
+          assert(f.target.addedStatusEffects[3] == 0)
+        ''')
+
+    def test_charge_bonus_waits_for_the_next_charge(self):
+        self.lua.execute('''
+          local function run() local t = ticks; ticks = {}; for _, fn in ipairs(t) do fn() end end
+          R.apply({casterCharge=0.20}, nil, keep({address=100, type=0}), classes, helpers)
+          assert(work.currentChargeTime == 30000)                   -- the running spell's timer is left alone
+          run(); assert(work.currentChargeTime == 30000)            -- still finishing
+          work.currentChargeTime, work.requiredChargeTime = 0, 0
+          run(); assert(work.currentChargeTime == 0)                -- between actions
+          work.currentChargeTime, work.requiredChargeTime = 1000, 20000
+          run(); assert(work.currentChargeTime == 5000)             -- 20% of the new charge, once
+          assert(#ticks == 0)
+          work.currentChargeTime = 30000; work.requiredChargeTime = 29000
+          R.apply({casterCharge=0.20}, nil, keep({address=100, type=0}), classes, helpers)
+          NOW = NOW + 11000000                                      -- no next action within 10 s: dropped
+          run(); assert(#ticks == 0)
+        ''')
+
+
+@unittest.skipIf(LuaRuntime is None, 'requires Lupa Lua5.5')
 class ProficiencyAdapterTest(unittest.TestCase):
     def test_adapters_share_one_runtime_and_always_run_original(self):
         lua = LuaRuntime(unpack_returned_tuples=True)
@@ -273,7 +424,7 @@ class ProficiencyAdapterTest(unittest.TestCase):
                    registerEventAsync=function() return true end, registerLoadHandler=function() return true end,
                    registerSaveHandler=function() return true end}
         ''')
-        for n in (165, 240, 110, 170, 182, 22):
+        for n in (165, 240, 110, 127, 170, 182, 22):
             fn = lua.execute('return load(...)()', (ROOT/f'prototypes/forge_proficiency_{n}.lua').read_text(encoding='utf-8'))
             lua.globals()[f'f{n}'] = fn
         lua.execute('''

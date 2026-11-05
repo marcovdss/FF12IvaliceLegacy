@@ -1,4 +1,4 @@
--- Proficiency runtime shared by the Forge adapters (165 physical hits, 170 magick, 110 healing, 182 statuses,
+-- Proficiency runtime shared by the Forge adapters (165 physical hits, 170 magick, 110 and 127 healing, 182 statuses,
 -- 240 guard reactions, 22 evasion). Loaded once and kept in _G so all adapters see one campaign state.
 -- Montblanc hands out the ranks: leaving the Clan hall (location 302) with an unrewarded rank makes him speak in
 -- native dialogue windows (Lua loader dialog plugin), and the rewarded rank is stored beside the Legacy save.
@@ -12,7 +12,7 @@ local CLAN_HALL = 302
 local LOCATION = 0x021654C4
 local SAVE_ID = 'IvaliceLegacyProficiency'
 local ELEMENTS = {'fire', 'lightning', 'ice', 'earth', 'water', 'wind', 'holy', 'dark'}
-local FOE_MEMORY = 8000000  -- clock units (about 30 s) a foe stays "engaged" after its last hit
+local FOE_MEMORY = 30000000  -- clock units (microseconds, so 30 s) a foe stays "engaged" after its last hit
 
 local function expected(address, text, wide)
   local count = #text * (wide and 2 or 1)
@@ -531,8 +531,10 @@ local function soloGuard(at)
   end
 end
 
+local pendingCharge = {}
 local function reset()
   campaign, claimed, logged, rankLogged, foes = nil, 0, 0, false, {}
+  pendingCharge = {}
   writs, writsKnown, flagsLogged = {false, false, false}, false, false
   gear.keys = {}
   P.reset()
@@ -708,10 +710,65 @@ function R.element(action)
 end
 
 -- ---------- applying ----------
-local function grant(plus, unit, helpers, id, scale)
+-- Forge's end-of-hit step and its add helper apply a status outright: the checks live in the on-hit functions 181/182.
+-- So everything Proficiency adds passes the same checks here, or immune foes would be Stopped, Slowed and Immobilized.
+function R.mayAdd(keep, id, flags, helpers)
+  local record = bpack.section15[id]
+  if keep.permanentStatusEffectImmunities[id] == 1 or keep.permanentStatusEffects[id] == 1 then return false end
+  if keep.type == 1 and record.flags1.isNotApplicableToFoes == 1 then return false end
+  if record.flags1.isNegative == 1 and (keep.temporaryAugments.statusImmunity == 1 or keep.permanentAugments.statusImmunity == 1) then
+    return false
+  end
+  return not helpers.getStatusEffectsMatch(record.absentStatusEffects, flags)
+end
+
+-- The add helper overwrites the timer, so a short proc must not cut a longer status already running. nil = leave it.
+function R.duration(keep, source, id, scale, helpers)
+  local d = math.max(1, math.floor(helpers.getStatusEffectDuration(source, id) * scale))
+  if keep.temporaryStatusEffects[id] == 1 and keep.statusEffectDurations[id] >= d then return nil end
+  return d
+end
+
+local function grant(plus, keep, source, id, scale, helpers)
+  if not R.mayAdd(keep, id, plus.statusEffects, helpers) then return end
+  local d = R.duration(keep, source, id, scale, helpers)
+  if not d then return end
   plus.addedStatusEffects[id] = 1
-  if scale ~= 1 then
-    plus.statusEffectDurations[id] = math.max(1, math.floor(helpers.getStatusEffectDuration(unit, id) * scale))
+  plus.statusEffectDurations[id] = d
+end
+
+-- Black Mage: when a spell lands the caster's timer is already at its end and is reset afterwards, so the bonus waits
+-- for the next charge to start (at most 10 s).
+local CHARGE_POLL_MS, CHARGE_WAIT = 100, 10000000
+local chargePolling = false
+local function chargeTick()
+  local now, any = clock(), false
+  for address, p in pairs(pendingCharge) do
+    local w = p.classes.getBattleUnitWork(p.helpers.getBattleUnitWork(address))
+    if w.address == 0 or now > p.expires then pendingCharge[address] = nil
+    else
+      local cur, req = w.currentChargeTime, w.requiredChargeTime
+      if cur > 0 and cur < req and (p.above or cur < p.last) then
+        w.currentChargeTime = math.min(req - 1, cur + math.floor(req * p.fraction))
+        log(string.format('next action charge +%d%% (%d of %d)', math.floor(p.fraction * 100 + 0.5), cur, req))
+        pendingCharge[address] = nil
+      else
+        p.last = cur
+        any = true
+      end
+    end
+  end
+  chargePolling = any
+  if any then event.executeAfterMs(CHARGE_POLL_MS, chargeTick) end
+end
+function R.armCharge(address, fraction, classes, helpers)
+  local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(address))
+  if w.address == 0 then return end
+  pendingCharge[address] = {fraction = fraction, expires = clock() + CHARGE_WAIT, classes = classes, helpers = helpers,
+                            above = w.currentChargeTime >= w.requiredChargeTime, last = w.currentChargeTime}
+  if not chargePolling and type(event.executeAfterMs) == 'function' then
+    chargePolling = true
+    event.executeAfterMs(CHARGE_POLL_MS, chargeTick)
   end
 end
 
@@ -724,13 +781,25 @@ end
 
 -- Apply an action table for party member `member`. Formula fields are used only when `formula` is given and the
 -- member is that formula's caster; everything in a.others goes through Forge helpers with the member as source.
-function R.apply(a, formula, member, classes, helpers)
+function R.apply(a, formula, member, classes, helpers, target)
   if formula then
     if a.damage and formula.target.removedHp ~= -1 then
       formula.target.removedHp = math.floor(formula.target.removedHp * a.damage)
     end
-    for id, scale in pairs(a.casterAdd or {}) do grant(formula.caster, member.address, helpers, id, scale) end
-    for id, scale in pairs(a.targetAdd or {}) do grant(formula.target, member.address, helpers, id, scale) end
+    for id, scale in pairs(a.casterAdd or {}) do grant(formula.caster, member, member.address, id, scale, helpers) end
+    for id, scale in pairs(a.targetAdd or {}) do grant(formula.target, target, member.address, id, scale, helpers) end
+    -- Renewing restarts the timer: the helper writes it even when the status is already on.
+    for _, id in ipairs(a.targetRenew or {}) do
+      if target.temporaryStatusEffects[id] == 1 then formula.target.addedStatusEffects[id] = 1 end
+    end
+    for id, fraction in pairs(a.targetExtend or {}) do
+      local full = helpers.getStatusEffectDuration(member.address, id)
+      local now = target.statusEffectDurations[id]
+      if target.temporaryStatusEffects[id] == 1 and now < full then
+        formula.target.addedStatusEffects[id] = 1
+        formula.target.statusEffectDurations[id] = math.min(full, now + math.max(1, math.floor(full * fraction)))
+      end
+    end
     for _, id in ipairs(a.casterRemove or {}) do formula.caster.removedStatusEffects[id] = 1 end
     for _, id in ipairs(a.targetRemove or {}) do formula.target.removedStatusEffects[id] = 1 end
     if a.drainMp then
@@ -744,18 +813,14 @@ function R.apply(a, formula, member, classes, helpers)
     end
     if a.chargeTo then formula.target.battleUnitWork.currentChargeTime = a.chargeTo end
   end
-  if a.casterCharge then
-    local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(member.address))
-    if w.address ~= 0 and w.requiredChargeTime > 0 then
-      w.currentChargeTime = math.min(w.requiredChargeTime - 1,
-        w.currentChargeTime + math.floor(w.requiredChargeTime * a.casterCharge))
-    end
-  end
+  if a.casterCharge then R.armCharge(member.address, a.casterCharge, classes, helpers) end
   for _, o in ipairs(a.others or {}) do
     if o.op == 'add' then
-      local d = helpers.getStatusEffectDuration(member.address, o.id)
-      helpers.addStatusEffect(member.address, o.unit, o.id, math.max(1, math.floor(d * (o.scale or 1))),
-        helpers.getStatusEffectTickDuration(o.id))
+      local keep = classes.getBattleUnitKeep(o.unit)
+      if R.mayAdd(keep, o.id, keep.temporaryStatusEffects, helpers) then
+        local d = R.duration(keep, member.address, o.id, o.scale or 1, helpers)
+        if d then helpers.addStatusEffect(member.address, o.unit, o.id, d, helpers.getStatusEffectTickDuration(o.id)) end
+      end
     elseif o.op == 'remove' then helpers.removeStatusEffect(o.unit, o.id)
     elseif o.op == 'mp' then helpers.modifyMp(o.unit, o.amount)
     elseif o.op == 'hp' then helpers.modifyHp(member.address, o.unit, o.amount, 0, 0, 0)
@@ -792,13 +857,14 @@ function R.hook165(formula, caster, target, classes, helpers)
     local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
     if not s then return end
     local damage, work = formula.target.removedHp, formula.target.battleUnitWork
+    if damage == -1 then return end  -- the target was immune: nothing landed
     local category = nil
     if type(caster.weapon) == 'number' and caster.weapon >= 0x1000 and caster.weapon - 0x1000 < bpack.section13.count then
       category = bpack.section13[caster.weapon - 0x1000].category
     end
     s.targetId, s.foe, s.target, s.damage = formula.target.identifier, true, target.address, damage
     s.weapon = caster.weapon
-    s.kill = damage ~= -1 and damage >= target.currentHp
+    s.kill, s.targetHp = damage >= target.currentHp, target.currentHp
     s.bystander = formula.initialTargetPointer ~= 0 and formula.initialTargetPointer ~= target.address
     s.category, s.targetStatus, s.targetMp = category, statusSet(formula.target.statusEffects), target.currentMp
     if work.address ~= 0 then
@@ -806,7 +872,7 @@ function R.hook165(formula, caster, target, classes, helpers)
     end
     s.foes = R.foes(classes, target.address)
     local a = P.decide('hit', s, effective())
-    if a then R.apply(a, formula, caster, classes, helpers); R.report('hit', s, a) end
+    if a then R.apply(a, formula, caster, classes, helpers, target); R.report('hit', s, a) end
   elseif caster.type == 1 and target.type == 0 and formula.target.removedHp ~= -1 and target.maxHp > 0 then
     local quarter = target.maxHp // 4
     if target.currentHp > quarter and target.currentHp - formula.target.removedHp <= quarter then
@@ -814,6 +880,7 @@ function R.hook165(formula, caster, target, classes, helpers)
         if p.job == P.JOB.knight and p.address ~= target.address then
           local k = classes.getBattleUnitKeep(p.address)
           local s = R.base(k, k.temporaryStatusEffects, classes, helpers)
+          if s then s.ally = target.address end
           local a = s and P.decide('ally', s, effective())
           if a then R.apply(a, nil, k, classes, helpers); R.report('ally', s, a) end
         end
@@ -825,6 +892,7 @@ end
 -- 240: after the hit/dodge/parry/block/counter decision. A party member attacked by a foe gives 'guard'.
 local OUTCOME = {[1] = 'dodge', [2] = 'dodge', [3] = 'block', [4] = 'block', [5] = 'parry'}
 function R.hook240(formula, caster, target, classes, helpers)
+  if caster.type == 1 then R.seeFoe(caster.address) end
   if not R.active() or caster.type ~= 1 or target.type ~= 0 then return end
   local s = R.base(target, formula.target.statusEffects, classes, helpers)
   if not s then return end
@@ -841,28 +909,36 @@ function R.hook240(formula, caster, target, classes, helpers)
 end
 
 -- 110: healing amount. A party White Mage healing an ally past full HP gives 'heal'.
-function R.hook110(formula, caster, target, classes, helpers)
+function R.hook110(formula, caster, target, classes, helpers, _, item)
   if not R.active() or caster.type ~= 0 or target.type ~= 0 or formula.target.addedHp == -1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
   if not s or s.job ~= P.JOB.whiteMage then return end
   s.target = target.address
   s.overflow = math.floor(formula.target.addedHp) - (target.maxHp - target.currentHp)
+  s.item = item
   local a = P.decide('heal', s, effective())
-  if a then R.apply(a, formula, caster, classes, helpers); R.report('heal', s, a) end
+  if a then R.apply(a, formula, caster, classes, helpers, target); R.report('heal', s, a) end
+end
+
+-- 127: the Potion family, same reaction from White Mage I-2.
+function R.hook127(formula, caster, target, classes, helpers)
+  R.hook110(formula, caster, target, classes, helpers, nil, true)
 end
 
 -- 170: magick damage (after the damage is known). A party Black Mage gives 'magick'.
 function R.hook170(formula, caster, target, classes, helpers)
   if target.type == 1 then R.seeFoe(target.address) end
+  if caster.type == 1 then R.seeFoe(caster.address) end
   if not R.active() or caster.type ~= 0 or target.type ~= 1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
   if not s or s.job ~= P.JOB.blackMage then return end
   s.element, s.mpCost = R.element(formula.action)
   s.foe, s.target, s.damage = true, target.address, formula.target.removedHp
+  s.now = clock()
   s.targetStatus = statusSet(formula.target.statusEffects)
   s.foes = R.foes(classes, target.address)
   local a = P.decide('magick', s, effective())
-  if a then R.apply(a, formula, caster, classes, helpers); R.report('magick', s, a) end
+  if a then R.apply(a, formula, caster, classes, helpers, target); R.report('magick', s, a) end
 end
 
 -- 182: on-hit statuses. `before` = the target's added-status flags before the original ran.
@@ -880,7 +956,7 @@ function R.hook182(formula, caster, target, classes, helpers, before)
   s.foe, s.target, s.damage = true, target.address, formula.target.removedHp
   s.foes = R.foes(classes, target.address)
   local a = P.decide('status', s, effective())
-  if a then R.apply(a, formula, caster, classes, helpers); R.report('status', s, a) end
+  if a then R.apply(a, formula, caster, classes, helpers, target); R.report('status', s, a) end
 end
 
 -- 22: evasion setup of a physical attack. A party Samurai's attack during Haste gives 'aim'.

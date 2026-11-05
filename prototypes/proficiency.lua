@@ -5,16 +5,20 @@
 -- Every level is built from operations already seen working in play; where a designed effect needed an engine detail
 -- nobody has proven, the level does the nearest thing those operations allow (reports/LEGACY-PROFICIENCY-040.md).
 local M = {}
-M.version = '0.4.0'
+M.version = '0.4.1'
 
 M.NO_JOB = 255
 M.JOB = {whiteMage = 0, lancer = 1, gunner = 2, greenMage = 3, knight = 4, mystic = 5, timeMage = 6, warrior = 7,
          hunter = 8, blackMage = 9, samurai = 10, chemist = 11}
 M.STATUS = {ko = 0, stop = 3, blind = 7, poison = 8, silence = 9, sap = 10, oil = 11, disable = 13,
-            immobilize = 14, slow = 15, lure = 17, protect = 18, shell = 19, haste = 20, bravery = 21, faith = 22,
-            reflect = 23, invisible = 24, regen = 25, float = 26, bubble = 28, hpCritical = 29, libra = 30}
+            immobilize = 14, slow = 15, disease = 16, lure = 17, protect = 18, shell = 19, haste = 20, bravery = 21,
+            faith = 22, reflect = 23, invisible = 24, regen = 25, float = 26, berserk = 27, bubble = 28, hpCritical = 29,
+            libra = 30}
 M.HINDERED = {'blind', 'poison', 'silence', 'slow', 'sap', 'disease', 'immobilize', 'disable', 'oil', 'stop'}
-M.BUFFS = {'protect', 'shell', 'haste', 'bravery', 'faith', 'reflect', 'regen', 'float', 'bubble', 'invisible'}
+M.BUFFS = {'protect', 'shell', 'haste', 'bravery', 'faith', 'reflect', 'regen', 'float', 'bubble', 'invisible', 'berserk'}
+-- Ailments with a running timer, shortest first (status table durations: Disable 20, Immobilize 50, Poison 50, Slow 60).
+-- Blind, Silence, Sap, Oil and Disease have no timer, so renewing them would do nothing.
+M.TIMED = {'disable', 'immobilize', 'poison', 'slow'}
 M.AILMENTS = {'blind', 'poison', 'silence', 'slow', 'sap', 'disease', 'immobilize', 'disable', 'oil'}
 M.GREATSWORD = 2
 M.MAX_RANK = 12
@@ -27,6 +31,8 @@ M.FAMILY_OWNER = {[1] = M.JOB.knight, [2] = M.JOB.warrior, [3] = M.JOB.samurai, 
 M.LEGENDARY = {[4130] = true, [4266] = true, [4267] = true, [4268] = true, [4270] = true, [4272] = true, [4288] = true,
                [4290] = true, [4291] = true, [4292] = true, [4293] = true, [4294] = true, [4295] = true}
 M.DISEASE = 16
+M.CAST_WINDOW = 200000   -- clock units (microseconds): one spell reaches all its targets within this
+M.STOP_EXTENDS = 4       -- Time Mage III-3: at most this many extensions per Stop, so a Stop always ends
 
 local function int(v, lo, hi) return type(v) == 'number' and v % 1 == 0 and v >= lo and v <= hi end
 local function has(set, list) for _, n in ipairs(list) do if set[n] then return n end end end
@@ -92,13 +98,14 @@ rules[M.JOB.hunter] = {hit = function(s, a)
     -- Renewing an ailment already on the foe: the most this can do is restart its timer.
     local renewed = 0
     local most = L[2] >= 4 and 99 or (L[2] >= 2 and 2 or 1)
-    for _, name in ipairs(M.HINDERED) do
-      if s.targetStatus[name] and name ~= 'stop' and renewed < most then
-        add(a, 'targetAdd', M.STATUS[name] or M.DISEASE); renewed = renewed + 1
+    for _, name in ipairs(M.TIMED) do
+      if s.targetStatus[name] and renewed < most then
+        push(a, 'targetRenew', M.STATUS[name]); renewed = renewed + 1
       end
     end
   end
-  if L[2] >= 3 and prey and not s.targetStatus.libra then add(a, 'targetAdd', M.STATUS.libra) end
+  -- Libra only works on the party (foes cannot hold it): the Hunter gets it and sees the foes' details.
+  if L[2] >= 3 and prey and not s.casterStatus.libra then add(a, 'casterAdd', M.STATUS.libra) end
   if m.slowNext and L[3] >= 2 and not s.targetStatus.slow then add(a, 'targetAdd', M.STATUS.slow, 0.5); m.slowNext = nil end
   if L[3] >= 1 and prey and s.kill then
     add(a, 'casterAdd', M.STATUS.haste, (L[3] >= 4 and 1.5 or 1) * 0.5)
@@ -138,7 +145,9 @@ end}
 rules[M.JOB.lancer] = {hit = function(s, a)
   if not s.foe then return end
   local L, strip = s.L, {}
-  for i, name in ipairs({'float', 'haste', 'faith', 'regen'}) do
+  -- Foes are immune to Float and none cast it, so it cannot be the whole of the first level.
+  if L[1] >= 1 and s.targetStatus.float then strip[#strip + 1] = 'float' end
+  for i, name in ipairs({'haste', 'faith', 'regen', 'bravery'}) do
     if L[1] >= i and s.targetStatus[name] then strip[#strip + 1] = name end
   end
   if L[2] >= 1 and has(s.targetStatus, M.HINDERED) then
@@ -146,6 +155,7 @@ rules[M.JOB.lancer] = {hit = function(s, a)
     if s.targetStatus.shell and (L[2] >= 2 or not s.targetStatus.protect) then strip[#strip + 1] = 'shell' end
     if L[2] >= 3 and s.targetStatus.reflect then strip[#strip + 1] = 'reflect' end
     if L[2] >= 4 and s.targetStatus.bubble then strip[#strip + 1] = 'bubble' end
+    if L[2] >= 4 and s.targetStatus.berserk then strip[#strip + 1] = 'berserk' end
   end
   for _, name in ipairs(strip) do push(a, 'targetRemove', M.STATUS[name]) end
   if L[3] >= 1 and not s.targetStatus.immobilize then
@@ -182,12 +192,13 @@ rules[M.JOB.samurai] = {
     end
     if L[1] < 1 then return end
     if m.target == s.targetId or m.carry then m.count = (m.count or 0) + 1; m.carry = nil
-    else m.target, m.count = s.targetId, 1 end
+    elseif L[1] >= 3 and m.target and not m.switched then m.count, m.switched = (m.count or 0) + 1, true
+    else m.count, m.switched = 1, nil end
     m.target = s.targetId
     if m.count >= (L[1] >= 2 and 2 or 3) then
-      m.count = 0
+      m.count, m.switched = 0, nil
+      -- Haste cancels Slow by itself (status table), and misses never break the chain: only changing target does.
       add(a, 'casterAdd', M.STATUS.haste, L[1] >= 4 and 0.75 or 0.5)
-      if L[1] >= 3 and s.casterStatus.slow then push(a, 'casterRemove', M.STATUS.slow) end
     end
   end,
   -- Evasion setup (Forge 22) for the Samurai's own attacks during Haste.
@@ -240,9 +251,10 @@ rules[M.JOB.timeMage] = {hit = function(s, a)
     if L[2] >= 1 then
       for i = 1, (L[2] >= 2 and 2 or 1) do
         local f = s.foes[i]
-        if f and not f.status.slow then
-          other(a, {op = 'add', unit = f.address, id = M.STATUS.slow, scale = L[2] >= 4 and 1.5 or 1})
-          if L[2] >= 3 and f.status.haste then other(a, {op = 'remove', unit = f.address, id = M.STATUS.haste}) end
+        if f then
+          -- Slow cancels Haste by itself (status table), so level 3 gives something new instead.
+          if not f.status.slow then other(a, {op = 'add', unit = f.address, id = M.STATUS.slow, scale = L[2] >= 4 and 1.5 or 1}) end
+          if L[2] >= 3 then other(a, {op = 'push', unit = f.address, fraction = 0.10}) end
         end
       end
     end
@@ -253,9 +265,21 @@ end}
 local function timeMageAura(s, a)
   local best = 0
   for _, p in ipairs(s.party) do if p.job == M.JOB.timeMage then best = math.max(best, s.L[3]) end end
-  if best < 1 or not s.foe or not s.targetStatus.stop then return end
+  if best < 1 or not s.foe then return end
+  if not s.targetStatus.stop then
+    if mem.stopHits then mem.stopHits[s.targetId] = nil end
+    return
+  end
   if not s.casterStatus.haste then add(a, 'casterAdd', M.STATUS.haste, (best >= 4 and 0.75 or 0.5)) end
   if best >= 2 then a.damage = (a.damage or 1) * 1.15 end
+  if best >= 3 and s.targetId then
+    mem.stopHits = mem.stopHits or {}
+    local n = mem.stopHits[s.targetId] or 0
+    if s.stopCounted or n < M.STOP_EXTENDS then
+      if not s.stopCounted then mem.stopHits[s.targetId], s.stopCounted = n + 1, true end
+      a.targetExtend = {[M.STATUS.stop] = 0.10}
+    end
+  end
 end
 
 rules[M.JOB.greenMage] = {hit = function(s, a)
@@ -298,7 +322,7 @@ rules[M.JOB.knight] = {
     local blocked = s.outcome == 'parry' or s.outcome == 'block' or (L[1] >= 2 and s.outcome == 'dodge')
     if not blocked then return end
     if L[1] >= 1 then other(a, {op = 'add', unit = s.self, id = M.STATUS.lure, scale = L[1] >= 3 and 0.75 or 0.5}) end
-    if L[1] >= 4 and s.outcome ~= 'dodge' and s.attacker then other(a, {op = 'remove', unit = s.attacker, id = M.STATUS.bravery}) end
+    if L[1] >= 4 and s.outcome ~= 'dodge' and s.attacker then other(a, {op = 'push', unit = s.attacker, fraction = 0.10}) end
     if L[2] >= 1 and (s.outcome == 'parry' or s.outcome == 'block') then
       local sorted = {}
       for _, p in ipairs(s.party) do if p.address ~= s.self then sorted[#sorted + 1] = p end end
@@ -317,13 +341,7 @@ rules[M.JOB.knight] = {
     if s.L[3] < 1 then return end
     other(a, {op = 'add', unit = s.self, id = M.STATUS.lure, scale = s.L[3] >= 2 and 0.75 or 0.5})
     if s.L[3] >= 3 then other(a, {op = 'add', unit = s.self, id = M.STATUS.bravery, scale = 0.5}) end
-    if s.L[3] >= 4 then
-      local lowest
-      for _, p in ipairs(s.party) do
-        if p.address ~= s.self and (not lowest or p.hpPct < lowest.hpPct) then lowest = p end
-      end
-      if lowest then other(a, {op = 'add', unit = lowest.address, id = M.STATUS.protect, scale = 0.5}) end
-    end
+    if s.L[3] >= 4 and s.ally then other(a, {op = 'add', unit = s.ally, id = M.STATUS.protect, scale = 0.5}) end
   end,
 }
 
@@ -360,10 +378,9 @@ end}
 rules[M.JOB.whiteMage] = {heal = function(s, a)
   if not (s.overflow and s.overflow > 0) then return end
   local L = s.L
-  if L[1] < 1 then return end
+  if L[1] < 1 or (s.item and L[1] < 2) then return end
   local regen = L[1] >= 4 and 1.5 or 1
-  add(a, 'targetAdd', M.STATUS.regen, regen)
-  if L[1] >= 2 then push(a, 'targetRemove', M.STATUS.sap) end
+  add(a, 'targetAdd', M.STATUS.regen, regen)  -- Regen cures Sap by itself (status table)
   if L[1] >= 3 then other(a, {op = 'mp', unit = s.self, amount = math.max(1, s.overflow // 20)}) end
   local reach = L[2] >= 3 and 99 or (L[2] >= 2 and 2 or (L[2] >= 1 and 1 or 0))
   local n = 0
@@ -382,18 +399,34 @@ end}
 rules[M.JOB.blackMage] = {magick = function(s, a)
   if not int(s.element, 1, 0xFF) then return end
   local L, m = s.L, slot(s.actorId)
-  if m.element == s.element then m.chain = (m.chain or 1) + 1 else m.element, m.chain = s.element, 1 end
-  if L[1] >= 1 and m.chain >= 2 then a.casterCharge = L[1] >= 4 and 0.30 or 0.20 end
-  if L[2] >= 1 and m.chain == 3 then
-    local refund = math.max(1, (s.mpCost or 0) * (L[2] >= 4 and 50 or 30) // 100)
-    if L[2] >= 3 then refund = refund + math.max(1, (s.mpCost or 0) // 10) end
-    other(a, {op = 'mp', unit = s.self, amount = refund})
+  -- Forge calls this once per target: a spell hitting three foes is one cast, not three.
+  local first = not (m.castAt and s.now and s.now - m.castAt < M.CAST_WINDOW and m.castElement == s.element)
+  if first then
+    local ended = false
+    if m.element == s.element then m.chain, m.strayed = (m.chain or 1) + 1, nil
+    elseif L[1] >= 2 and m.element and not m.strayed then m.strayed = true
+    else
+      ended = (m.chain or 0) >= 2
+      m.element, m.chain, m.strayed = s.element, 1, nil
+    end
+    m.castAt, m.castElement = s.now, s.element
+    m.full = m.element == s.element and m.chain % 3 == 0
+    if L[1] >= 1 and ((m.element == s.element and m.chain >= 2) or (L[1] >= 3 and ended)) then
+      a.casterCharge = L[1] >= 4 and 0.30 or 0.20
+    end
+  end
+  if L[2] >= 1 and m.full then
+    if first then
+      local refund = math.max(1, (s.mpCost or 0) * (L[2] >= 4 and 50 or 30) // 100)
+      if L[2] >= 3 then refund = refund + math.max(1, (s.mpCost or 0) // 10) end
+      other(a, {op = 'mp', unit = s.self, amount = refund})
+    end
     if L[2] >= 2 then a.damage = (a.damage or 1) * 1.15 end
     if L[3] >= 1 then
       local oil = L[3] >= 4 and 0.75 or 0.5
       if not s.targetStatus.oil then add(a, 'targetAdd', M.STATUS.oil, oil) end
       local near = s.foes[1]
-      if near then
+      if near and first then
         if L[3] >= 2 and not near.status.oil then other(a, {op = 'add', unit = near.address, id = M.STATUS.oil, scale = oil}) end
         if L[3] >= 3 and int(s.damage, 1, 99999) then other(a, {op = 'hp', unit = near.address, amount = -math.max(1, s.damage // 4)}) end
       end
@@ -429,7 +462,7 @@ end, status = function(s, a)
       if s.roll(easy and chance + 15 or chance) then
         other(a, {op = 'add', unit = f.address, id = id, scale = L[1] >= 2 and 1 or 0.75})
         if L[3] >= 2 then other(a, {op = 'hp', unit = f.address, amount = -math.max(1, (s.damage or 0) // 10)}) end
-        if L[3] >= 3 then other(a, {op = 'add', unit = f.address, id = M.STATUS.libra}) end
+        if L[3] >= 3 and not s.casterStatus.libra then add(a, 'casterAdd', M.STATUS.libra) end
       end
     end
   end
@@ -444,41 +477,56 @@ function M.decide(event, s, claimedRank)
   s.casterStatus, s.targetStatus = s.casterStatus or {}, s.targetStatus or {}
   s.casterHpPct = s.casterHpPct or 100
   s.roll = s.roll or function() return false end
-  local a = {}
   local r = rules[s.job]
-  if r and r[event] then r[event](s, a) end
-  if event == 'hit' then
-    timeMageAura(s, a)
-    if s.L[3] >= 4 and s.foe and M.LEGENDARY[s.weapon] and M.FAMILY_OWNER[s.category] == s.job then
-      a.damage = (a.damage or 1) * M.MASTER_DAMAGE
+  local function pass()
+    local a = {}
+    if r and r[event] then r[event](s, a) end
+    if event == 'hit' then
+      timeMageAura(s, a)
+      if s.L[3] >= 4 and s.foe and M.LEGENDARY[s.weapon] and M.FAMILY_OWNER[s.category] == s.job then
+        a.damage = (a.damage or 1) * M.MASTER_DAMAGE
+      end
     end
+    return a
+  end
+  local saved
+  if event == 'hit' and s.actorId ~= nil then
+    saved = {}
+    for k, v in pairs(slot(s.actorId)) do saved[k] = v end
+  end
+  local a = pass()
+  -- A hit only a bonus makes lethal is still a kill: decide again knowing that, from the same chain state.
+  if saved and a.damage and not s.kill and int(s.damage, 1, 9999999) and int(s.targetHp, 1, 9999999)
+      and math.floor(s.damage * a.damage) >= s.targetHp then
+    mem[s.actorId], s.kill = saved, true
+    a = pass()
   end
   if next(a) == nil then return nil end
   return a
 end
 
 -- What each job's Proficiency does, for the gear descriptions: line name, then for each stage the sentence at
--- levels 1-4 (what the rules above do at that level; effects still in M.PENDING are left out, '' = nothing yet).
+-- levels 1-4 (what the rules above do at that level).
 M.GEAR = {
   [M.JOB.whiteMage] = {line = 'Overflow',
-    {'Healing past full HP gives the target Regen', 'Healing past full HP gives Regen and cures Sap',
-     'Overflow: Regen, cures Sap, 5% of the overflow back as MP', 'Overflow: Regen (+50%), cures Sap, 5% of the overflow as MP'},
+    {'Healing past full HP gives the target Regen', 'Healing or potions past full HP give the target Regen',
+     'Overflow (potions too): Regen, 5% of the overflow back as MP', 'Overflow (potions too): Regen (+50%), 5% of the overflow as MP'},
     {'Overflow Regen also reaches 1 more ally', 'Overflow Regen also reaches 2 more allies',
      'Overflow Regen reaches the whole party', 'Overflow Regen reaches the whole party, +25% duration'},
     {'Overflow also gives Shell (half duration)', 'Overflow also gives Shell and Protect (half duration)',
      'Overflow also gives Shell, Protect and Faith (half duration)', 'Overflow gives Shell (3/4), Protect and Faith (half duration)'}},
   [M.JOB.lancer] = {line = 'Grounding',
-    {'Hits remove Float', 'Hits remove Float and Haste', 'Hits remove Float, Haste and Faith',
-     'Hits remove Float, Haste, Faith and Regen'},
+    {'Hits remove Float and Haste', 'Hits remove Float, Haste and Faith', 'Hits remove Float, Haste, Faith and Regen',
+     'Hits remove Float, Haste, Faith, Regen and Bravery'},
     {'Hits on foes with an ailment strip Protect or Shell', 'Hits on foes with an ailment strip Protect and Shell',
-     'Hits on foes with an ailment strip Protect, Shell, Reflect', 'Hits on foes with an ailment strip Protect, Shell, Reflect, Bubble'},
+     'Hits on foes with an ailment strip Protect, Shell, Reflect', 'Ailing foes lose Protect, Shell, Reflect, Bubble and Berserk'},
     {'A foe left with no buffs is Immobilized (half duration)', 'A foe left with no buffs is Immobilized (3/4 duration)',
      'Unbuffed foes Immobilized (3/4), +15% damage to Immobilized', 'Unbuffed foes Immobilized (3/4), +15% to them, and Slowed'}},
   [M.JOB.gunner] = {line = 'Suppression',
     {"Hits push the target's charge back 10%", "Hits push charge back 10%, Slowed foes 15%",
-     'Push charge 10% (Slowed 15%), the nearest other foe 5%', 'Push charge 15% (Slowed 20%), the nearest other foe 5%'},
+     'Push charge 10% (Slowed 15%), another foe 5%', 'Push charge 15% (Slowed 20%), another foe 5%'},
     {'Foes about to act are pushed back 10% more', 'Foes about to act: +10% push, 15% chance of Silence (half)',
-     'Foes about to act: +10% push, 25% chance of Silence (half)', 'About to act: +10% push, 25% Silence, an ally gets Faith (half)'},
+     'Foes about to act: +10% push, 25% chance of Silence (half)', 'About to act: +10% push, 25% Silence, which gives an ally Faith'},
     {'3 hits in a row on one foe: +5% more push', '2 hits in a row on one foe: +5% more push',
      '2 hits in a row: +5% push and Slow (half duration)', '2-hit chains: +5% push, Slow, the chain survives a kill'}},
   [M.JOB.greenMage] = {line = 'Mana Leech',
@@ -490,7 +538,7 @@ M.GEAR = {
      "Hits push the target's charge back 8%", "Hits push the target's charge back 10%"}},
   [M.JOB.knight] = {line = 'Bulwark',
     {'A parry or block Lures the attacker (half duration)', 'A parry, block or dodge Lures the attacker (half duration)',
-     'A parry, block or dodge Lures the attacker (3/4 duration)', 'Parry, block or dodge Lures (3/4), parry strips foe Bravery'},
+     'A parry, block or dodge Lures the attacker (3/4 duration)', 'Parry, block or dodge Lures (3/4), parry or block pushes charge'},
     {'Parry or block: Protect on the lowest-HP ally (half)', 'Parry or block: Protect and Shell on the lowest-HP ally (half)',
      'Parry or block: Protect and Shell on the 2 lowest-HP allies', 'Parry or block: Protect, Shell, frees 2 allies from Immobilize'},
     {'An ally at critical HP: the Knight Lures foes (half duration)', 'An ally at critical HP: the Knight Lures foes (3/4 duration)',
@@ -505,10 +553,10 @@ M.GEAR = {
   [M.JOB.timeMage] = {line = 'Detonate',
     {'Hits have 15% to Stop a Slowed foe (half duration)', 'Hits: 15% to Stop a Slowed or Immobilized foe (half)',
      'Hits: 15% to Stop a Slowed, Immobilized or Disabled foe', 'Hits: 25% to Stop a Slowed, Immobilized or Disabled foe'},
-    {'A Detonate Stop also Slows the nearest foe', 'A Detonate Stop also Slows the 2 nearest foes',
-     'Detonate Stop: Slow on the 2 nearest foes, removing their Haste', 'Detonate Stop: Slow (+50% duration) on 2 foes, removing Haste'},
+    {'A Detonate Stop also Slows another foe', 'A Detonate Stop also Slows 2 other foes',
+     'Detonate Stop: Slow 2 other foes and push their charge 10%', 'Detonate Stop: Slow (+50%) 2 other foes, push their charge 10%'},
     {'Party hits on a Stopped foe give the hitter Haste (half)', 'Party hits on Stopped foes: Haste (half), +15% damage',
-     'Party hits on Stopped foes: Haste (half), +15% damage', 'Party hits on Stopped foes: Haste (3/4), +15% damage'}},
+     'Party hits on Stopped foes: Haste, +15%, each hit extends Stop', 'Party hits on Stopped: Haste (3/4), +15%, each hit extends Stop'}},
   [M.JOB.warrior] = {line = 'Cleave',
     {'A kill grants Bravery', 'A kill or a greatsword sweep grants Bravery',
      'A kill or a greatsword sweep grants Bravery (+50% duration)', 'Kill or sweep: Bravery (+50%), kills under it cure Slow/Disable'},
@@ -519,30 +567,30 @@ M.GEAR = {
   [M.JOB.hunter] = {line = 'Pursuit',
     {'+15% damage to foes with an ailment', '+15% to foes with an ailment, +5% more on the next hit in a row',
      '+15% (+5% in a row), killing that foe heals 10% of the damage', '+25% (+5% in a row), killing that foe heals 10% of the damage'},
-    {'Hits on foes with an ailment renew one ailment', 'Hits on foes with an ailment renew two ailments',
-     'Hits renew two ailments and reveal the foe (Libra)', 'Hits renew every ailment and reveal the foe (Libra)'},
+    {'Hits on foes with an ailment renew one timed ailment', 'Hits on foes with an ailment renew two timed ailments',
+     'Hits renew two timed ailments and reveal foes (Libra)', 'Hits renew every timed ailment and reveal foes (Libra)'},
     {'Killing a foe with an ailment grants Haste (half duration)', 'That kill: Haste (half), the next foe hit is Slowed (half)',
-     'That kill: Haste (half), next foe hit and nearest foe Slowed', 'That kill: Haste (3/4), next foe hit and nearest foe Slowed'}},
+     'That kill: Haste (half), next foe hit and another foe Slowed', 'That kill: Haste (3/4), next foe hit and another foe Slowed'}},
   [M.JOB.blackMage] = {line = 'Resonance',
-    {'Same element twice in a row: the next cast charges 20% faster', 'Same element twice in a row: the next cast charges 20% faster',
-     'Same element twice in a row: the next cast charges 20% faster', 'Same element twice in a row: the next cast charges 30% faster'},
-    {'3rd same-element cast in a row refunds 30% of its MP', '3rd same-element cast: refunds 30% MP, +15% damage',
-     '3rd same-element cast: refunds 40% MP, +15% damage', '3rd same-element cast: refunds 60% MP, +15% damage'},
-    {'3rd same-element cast Oils the target (half duration)', '3rd same-element cast Oils the target and the nearest foe',
-     '3rd cast: Oil on both, the nearest foe takes 25% of the damage', '3rd cast: Oil on both (3/4), nearest foe takes 25% of the damage'}},
+    {'Same element twice in a row: the next action charges 20% faster', 'Same element twice: next action +20%, 1 other spell keeps chain',
+     'Same element twice: next action +20%, also when the chain ends', 'Same element twice: next action +30%, also when the chain ends'},
+    {'Every 3rd same-element cast refunds 30% of its MP', 'Every 3rd same-element cast: refunds 30% MP, +15% damage',
+     'Every 3rd same-element cast: refunds 40% MP, +15% damage', 'Every 3rd same-element cast: refunds 60% MP, +15% damage'},
+    {'Every 3rd same-element cast Oils the target (half duration)', 'Every 3rd same-element cast Oils the target and another foe',
+     'Every 3rd cast: Oil on both, the other foe takes 25% of the damage', 'Every 3rd: Oil on both (3/4), other foe takes 25% of the damage'}},
   [M.JOB.samurai] = {line = 'Zanshin',
     {'3 hits in a row on one foe grant Haste (half duration)', '2 hits in a row on one foe grant Haste (half duration)',
-     '2 hits in a row: Haste (half), shaking off Slow', '2 hits in a row: Haste (3/4), shaking off Slow'},
+     '2 hits in a row: Haste (half), the chain survives one switch', '2 hits in a row: Haste (3/4), the chain survives one switch'},
     {'During Haste, attacks ignore weapon and shield evasion', 'During Haste, attacks ignore evasion and parry',
      'During Haste, attacks ignore evasion, parry and Protect', 'During Haste: ignore evasion, parry, Protect, push charge 5%'},
     {'A kill during Haste renews Haste (half duration)', 'A kill during Haste renews Haste and gives Bravery (half)',
      'Kill in Haste: Haste, Bravery, the next hit deals +20%', 'Kill in Haste: Haste, Bravery, next hit +20%, the chain carries'}},
   [M.JOB.chemist] = {line = 'Contagion',
-    {'Statuses you land: 35% to spread to the nearest foe (3/4)', 'Statuses you land: 35% to spread to the nearest foe',
+    {'Statuses you land: 35% to spread to another foe (3/4)', 'Statuses you land: 35% to spread to another foe',
      'Landed statuses: 35% to spread (Oil and Poison 50%)', 'Landed statuses: 50% to spread (Oil and Poison 65%)'},
     {'Hits heal the most hurt ally for 10% of the damage', 'Hits heal the most hurt ally for 20% of the damage',
      'Hits heal the most hurt ally 20% of the damage, add Protect', 'Hits heal the 2 most hurt allies 20% of the damage, add Protect'},
-    {'Spreads reach the 2 nearest foes', 'Spreads reach 2 foes and deal 10% of the damage',
+    {'Spreads reach 2 other foes', 'Spreads reach 2 foes and deal 10% of the damage',
      'Spreads reach 2 foes, deal 10% of the damage, reveal (Libra)', 'Spreads reach 3 foes, deal 10% of the damage, reveal (Libra)'}},
 }
 M.GEAR_LIMIT = 66
