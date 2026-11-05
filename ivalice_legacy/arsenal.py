@@ -2,7 +2,7 @@
 import hashlib
 import json
 
-VERSION = '0.5.1'
+VERSION = '0.6.0'
 PACK = 'ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin'
 SECTION = PACK + '.dir/section_013.bin'
 # Equipment tables written by earlier Arsenal releases, which this build replaces.
@@ -14,7 +14,8 @@ PREVIOUS = {'0.1.0': 'a45f3661bcd121cfbd0a334a4372d8c6361d749f2233a155bdefda55cd
             '0.4.0': 'eb10ed5edfd46dd89797e1e18ba9ef92e009c9816ad44928b063243920c1ea8b',
             '0.4.1': '06e25902ed56a41b2edfc63e096d90aee127776bce49d26a66374436235ef5b1',
             '0.4.2': 'ba071b0b3a3c52a99882565166c945219d70c8e82552a3fef3f47ef8c0bf931a',
-            '0.5.0': '5ffe73748b17764a8564d9386c433cc1d44dd9371b621c3b6aeb3d762d05e8bd'}
+            '0.5.0': '5ffe73748b17764a8564d9386c433cc1d44dd9371b621c3b6aeb3d762d05e8bd',
+            '0.5.1': 'abd2ea83e0776455cabb87eed08a5d4673c01c33d629ba67ccb9ea48f151956e'}
 NAMES = PACK + '.dir/section_061.bin.dir/section_001.bin'
 
 

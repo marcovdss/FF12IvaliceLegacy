@@ -1,6 +1,9 @@
-# Ivalice Legacy: Arsenal 0.5.1 (experimental)
+# Ivalice Legacy: Arsenal 0.6.0 (experimental)
 
-Weapon attack and weapon family identities for the English Steam game, version 1.0.4.0.
+Weapon attack, weapon family identities and an armour rework for the English Steam game, version 1.0.4.0.
+
+**Armour and shields:** 105 of 140 pieces gain one strategic property: a ward or element focus chosen from what enemies
+cast in that part of the story, or a stat trade that costs something. Defence and magick resist are unchanged.
 
 ## What changes
 

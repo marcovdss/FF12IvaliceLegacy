@@ -1,3 +1,12 @@
+# 0.6.0 candidate
+
+- Armour and shields rework: 105 of 140 pieces gain one strategic property. Defence and magick resist never change.
+- Wards and element focus follow what enemies cast in each part of the story. A few pieces trade a stat for another
+  (HP for Speed, Strength for Vitality, evade for magick evade), so same-stage pieces are real choices.
+- No new status immunities, because those belong to each job's own armour line.
+- Pieces with a strong identity of their own are unchanged (for example Mirror Mail, Brave Suit, Zodiac Escutcheon).
+- Builds over an installed Arsenal 0.1.0 to 0.5.1.
+
 # 0.5.1 candidate
 
 - The Claymore's test price ends: it costs 12,500 gil again (native). The greatsword cleave it was bought early for

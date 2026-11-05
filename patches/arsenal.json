@@ -5,7 +5,7 @@
   "section": 13,
   "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
   "sourceSectionSha256": "981d88689d4292d55db4697a06fb6105d80a62e83405d25c3422d6716936979e",
-  "appendAttributeBlocks": 1,
+  "appendAttributeBlocks": 30,
   "items": [
     {
       "contentId": 4097,
@@ -2758,9 +2758,357 @@
           48
         ]
       }
+    },
+    {
+      "contentId": 4299,
+      "name": "Bronze Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          11,
+          7
+        ],
+        "magickEvade": [
+          0,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4300,
+      "name": "Round Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          177
+        ]
+      }
+    },
+    {
+      "contentId": 4302,
+      "name": "Golden Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          178
+        ]
+      }
+    },
+    {
+      "contentId": 4305,
+      "name": "Diamond Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          179
+        ]
+      }
+    },
+    {
+      "contentId": 4306,
+      "name": "Platinum Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          180
+        ]
+      }
+    },
+    {
+      "contentId": 4310,
+      "name": "Kaiser Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          27,
+          20
+        ],
+        "magickEvade": [
+          0,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4316,
+      "name": "Leather Cap",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          38,
+          181
+        ]
+      }
+    },
+    {
+      "contentId": 4317,
+      "name": "Headgear",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          39,
+          182
+        ]
+      }
+    },
+    {
+      "contentId": 4318,
+      "name": "Headguard",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          40,
+          183
+        ]
+      }
+    },
+    {
+      "contentId": 4319,
+      "name": "Leather Headgear",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          41,
+          184
+        ]
+      }
+    },
+    {
+      "contentId": 4320,
+      "name": "Horned Hat",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          42,
+          185
+        ]
+      }
+    },
+    {
+      "contentId": 4340,
+      "name": "Topkapi Hat",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          62,
+          186
+        ]
+      }
+    },
+    {
+      "contentId": 4358,
+      "name": "Leather Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          187
+        ]
+      }
+    },
+    {
+      "contentId": 4359,
+      "name": "Bronze Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          188
+        ]
+      }
+    },
+    {
+      "contentId": 4360,
+      "name": "Sallet",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          189
+        ]
+      }
+    },
+    {
+      "contentId": 4361,
+      "name": "Iron Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          190
+        ]
+      }
+    },
+    {
+      "contentId": 4362,
+      "name": "Barbut",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          191
+        ]
+      }
+    },
+    {
+      "contentId": 4364,
+      "name": "Golden Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          84,
+          192
+        ]
+      }
+    },
+    {
+      "contentId": 4365,
+      "name": "Burgonet",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          193
+        ]
+      }
+    },
+    {
+      "contentId": 4366,
+      "name": "Close Helmet",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          84,
+          194
+        ]
+      }
+    },
+    {
+      "contentId": 4376,
+      "name": "Leather Clothing",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          38,
+          195
+        ]
+      }
+    },
+    {
+      "contentId": 4377,
+      "name": "Chromed Leathers",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          39,
+          196
+        ]
+      }
+    },
+    {
+      "contentId": 4378,
+      "name": "Leather Breastplate",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          40,
+          197
+        ]
+      }
+    },
+    {
+      "contentId": 4379,
+      "name": "Bronze Chestplate",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          41,
+          198
+        ]
+      }
+    },
+    {
+      "contentId": 4401,
+      "name": "Shepherd's Bolero",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          62,
+          199
+        ]
+      }
+    },
+    {
+      "contentId": 4418,
+      "name": "Leather Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          200
+        ]
+      }
+    },
+    {
+      "contentId": 4419,
+      "name": "Scale Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          201
+        ]
+      }
+    },
+    {
+      "contentId": 4421,
+      "name": "Iron Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          202
+        ]
+      }
+    },
+    {
+      "contentId": 4422,
+      "name": "Linen Cuirass",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          203
+        ]
+      }
+    },
+    {
+      "contentId": 4423,
+      "name": "Chainmail",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          204
+        ]
+      }
+    },
+    {
+      "contentId": 4424,
+      "name": "Golden Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          205
+        ]
+      }
     }
   ],
-  "resultSectionSha256": "abd2ea83e0776455cabb87eed08a5d4673c01c33d629ba67ccb9ea48f151956e",
   "attributes": [
     {
       "attributeIndex": 142,
@@ -3343,6 +3691,1603 @@
           ]
         ]
       }
+    },
+    {
+      "attributeIndex": 177,
+      "users": [
+        4300
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 178,
+      "users": [
+        4302
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 179,
+      "users": [
+        4305
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 180,
+      "users": [
+        4306
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Earth"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 181,
+      "users": [
+        4316
+      ],
+      "set": {
+        "hp": [
+          0,
+          10
+        ],
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 182,
+      "users": [
+        4317
+      ],
+      "set": {
+        "hp": [
+          0,
+          20
+        ],
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 183,
+      "users": [
+        4318
+      ],
+      "set": {
+        "hp": [
+          0,
+          30
+        ],
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 184,
+      "users": [
+        4319
+      ],
+      "set": {
+        "hp": [
+          0,
+          25
+        ],
+        "speed": [
+          0,
+          2
+        ]
+      }
+    },
+    {
+      "attributeIndex": 185,
+      "users": [
+        4320
+      ],
+      "set": {
+        "hp": [
+          0,
+          50
+        ],
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 43,
+      "users": [
+        4321
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 44,
+      "users": [
+        4322
+      ],
+      "set": {
+        "hp": [
+          110,
+          80
+        ],
+        "strength": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "attributeIndex": 45,
+      "users": [
+        4323
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 46,
+      "users": [
+        4324
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 47,
+      "users": [
+        4325
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 48,
+      "users": [
+        4326
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 51,
+      "users": [
+        4329
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 52,
+      "users": [
+        4330
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 53,
+      "users": [
+        4331
+      ],
+      "set": {
+        "hp": [
+          460,
+          380
+        ],
+        "speed": [
+          4,
+          8
+        ]
+      }
+    },
+    {
+      "attributeIndex": 54,
+      "users": [
+        4332
+      ],
+      "set": {
+        "magick": [
+          2,
+          0
+        ],
+        "vitality": [
+          0,
+          8
+        ]
+      }
+    },
+    {
+      "attributeIndex": 55,
+      "users": [
+        4333
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 56,
+      "users": [
+        4334
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 58,
+      "users": [
+        4336
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 59,
+      "users": [
+        4337
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 60,
+      "users": [
+        4338
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 61,
+      "users": [
+        4339
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 186,
+      "users": [
+        4340
+      ],
+      "set": {
+        "mp": [
+          0,
+          20
+        ],
+        "magick": [
+          0,
+          3
+        ],
+        "boost": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 63,
+      "users": [
+        4341
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 64,
+      "users": [
+        4342
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 65,
+      "users": [
+        4343
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 66,
+      "users": [
+        4344
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 67,
+      "users": [
+        4345
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 69,
+      "users": [
+        4347
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 70,
+      "users": [
+        4348
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 71,
+      "users": [
+        4349
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 72,
+      "users": [
+        4350
+      ],
+      "set": {
+        "absorb": [
+          [],
+          [
+            "Earth"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 73,
+      "users": [
+        4351
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 74,
+      "users": [
+        4352
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 75,
+      "users": [
+        4353
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 78,
+      "users": [
+        4356
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 79,
+      "users": [
+        4357
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 187,
+      "users": [
+        4358
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 188,
+      "users": [
+        4359
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 189,
+      "users": [
+        4360
+      ],
+      "set": {
+        "strength": [
+          0,
+          1
+        ],
+        "vitality": [
+          0,
+          4
+        ]
+      }
+    },
+    {
+      "attributeIndex": 190,
+      "users": [
+        4361
+      ],
+      "set": {
+        "strength": [
+          0,
+          3
+        ],
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 191,
+      "users": [
+        4362
+      ],
+      "set": {
+        "strength": [
+          0,
+          4
+        ],
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 83,
+      "users": [
+        4363
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Float"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 192,
+      "users": [
+        4364
+      ],
+      "set": {
+        "strength": [
+          0,
+          5
+        ],
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 193,
+      "users": [
+        4365
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "vitality": [
+          0,
+          6
+        ]
+      }
+    },
+    {
+      "attributeIndex": 194,
+      "users": [
+        4366
+      ],
+      "set": {
+        "strength": [
+          0,
+          5
+        ],
+        "half": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 86,
+      "users": [
+        4368
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 87,
+      "users": [
+        4369
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 88,
+      "users": [
+        4370
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 89,
+      "users": [
+        4371
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 90,
+      "users": [
+        4372
+      ],
+      "set": {
+        "hp": [
+          70,
+          0
+        ],
+        "boost": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 92,
+      "users": [
+        4374
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 93,
+      "users": [
+        4375
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 195,
+      "users": [
+        4376
+      ],
+      "set": {
+        "hp": [
+          0,
+          10
+        ],
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 196,
+      "users": [
+        4377
+      ],
+      "set": {
+        "hp": [
+          0,
+          10
+        ],
+        "speed": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "attributeIndex": 197,
+      "users": [
+        4378
+      ],
+      "set": {
+        "hp": [
+          0,
+          30
+        ],
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 198,
+      "users": [
+        4379
+      ],
+      "set": {
+        "hp": [
+          0,
+          30
+        ],
+        "vitality": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "attributeIndex": 94,
+      "users": [
+        4380
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 96,
+      "users": [
+        4382
+      ],
+      "set": {
+        "hp": [
+          120,
+          90
+        ],
+        "vitality": [
+          0,
+          8
+        ]
+      }
+    },
+    {
+      "attributeIndex": 97,
+      "users": [
+        4383
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 98,
+      "users": [
+        4384
+      ],
+      "set": {
+        "hp": [
+          160,
+          120
+        ],
+        "speed": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "attributeIndex": 99,
+      "users": [
+        4385
+      ],
+      "set": {
+        "hp": [
+          180,
+          140
+        ],
+        "speed": [
+          0,
+          4
+        ]
+      }
+    },
+    {
+      "attributeIndex": 101,
+      "users": [
+        4387
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 103,
+      "users": [
+        4389
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 104,
+      "users": [
+        4390
+      ],
+      "set": {
+        "hp": [
+          400,
+          320
+        ],
+        "strength": [
+          2,
+          5
+        ]
+      }
+    },
+    {
+      "attributeIndex": 105,
+      "users": [
+        4391
+      ],
+      "set": {
+        "hp": [
+          470,
+          400
+        ],
+        "speed": [
+          4,
+          8
+        ]
+      }
+    },
+    {
+      "attributeIndex": 106,
+      "users": [
+        4392
+      ],
+      "set": {
+        "hp": [
+          540,
+          500
+        ],
+        "magick": [
+          2,
+          0
+        ],
+        "vitality": [
+          0,
+          8
+        ]
+      }
+    },
+    {
+      "attributeIndex": 107,
+      "users": [
+        4393
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 111,
+      "users": [
+        4397
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 112,
+      "users": [
+        4398
+      ],
+      "set": {
+        "mp": [
+          7,
+          3
+        ],
+        "speed": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "attributeIndex": 113,
+      "users": [
+        4399
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 114,
+      "users": [
+        4400
+      ],
+      "set": {
+        "mp": [
+          16,
+          10
+        ],
+        "vitality": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "attributeIndex": 199,
+      "users": [
+        4401
+      ],
+      "set": {
+        "mp": [
+          0,
+          20
+        ],
+        "magick": [
+          0,
+          3
+        ],
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 115,
+      "users": [
+        4402
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 116,
+      "users": [
+        4403
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 117,
+      "users": [
+        4404
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 118,
+      "users": [
+        4405
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 119,
+      "users": [
+        4406
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 120,
+      "users": [
+        4407
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 121,
+      "users": [
+        4408
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 122,
+      "users": [
+        4409
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 123,
+      "users": [
+        4410
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 124,
+      "users": [
+        4411
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 125,
+      "users": [
+        4412
+      ],
+      "set": {
+        "absorb": [
+          [],
+          [
+            "Earth"
+          ]
+        ],
+        "boost": [
+          [],
+          [
+            "Earth"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 126,
+      "users": [
+        4413
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 129,
+      "users": [
+        4416
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 130,
+      "users": [
+        4417
+      ],
+      "set": {
+        "strength": [
+          5,
+          0
+        ],
+        "magick": [
+          15,
+          8
+        ],
+        "half": [
+          [],
+          [
+            "Fire",
+            "Lightning",
+            "Ice",
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 200,
+      "users": [
+        4418
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 201,
+      "users": [
+        4419
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 202,
+      "users": [
+        4421
+      ],
+      "set": {
+        "strength": [
+          0,
+          3
+        ],
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 203,
+      "users": [
+        4422
+      ],
+      "set": {
+        "strength": [
+          0,
+          4
+        ],
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 204,
+      "users": [
+        4423
+      ],
+      "set": {
+        "strength": [
+          0,
+          3
+        ],
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 205,
+      "users": [
+        4424
+      ],
+      "set": {
+        "strength": [
+          0,
+          4
+        ],
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 133,
+      "users": [
+        4426
+      ],
+      "set": {
+        "absorb": [
+          [],
+          [
+            "Dark"
+          ]
+        ],
+        "weak": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 134,
+      "users": [
+        4428
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 136,
+      "users": [
+        4430
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 137,
+      "users": [
+        4431
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 138,
+      "users": [
+        4432
+      ],
+      "set": {
+        "hp": [
+          100,
+          0
+        ],
+        "boost": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 140,
+      "users": [
+        4434
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 141,
+      "users": [
+        4435
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
     }
   ],
   "equipmentNames": {
@@ -3512,5 +5457,6 @@
       }
     ],
     "resultSha256": "defcb6bcd59e3d538a5146e8f8c2a2bfa8f9d021a0450ba48faabba8eea6394e"
-  }
+  },
+  "resultSectionSha256": "a937dcdad34d67e8c3db5d11017bf60806fe8e97c7a3bc5c7f8e91d09644b904"
 }
