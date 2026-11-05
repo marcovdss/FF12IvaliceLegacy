@@ -1,14 +1,15 @@
 """Kings of the zone runtime (package/x64/scripts/IvaliceLegacy/kings_runtime.lua).
 
-- Lua (Lupa): the home table is valid, the data block layout, and install() patches nothing unless the Legacy build
-  and both original sites are found (block first, sites last).
-- Native (Keystone + Unicorn): both hooks run against stand-ins for the game's tables at their real addresses:
-  presence answer 1 only for a living King in a forced home; a dead King's unit row becomes 0xFF only in its home;
-  everything else keeps the native value; the displaced instructions still run; callee-saved registers and the
-  stack are untouched.
-- Game executable (when IVALICE_LEGACY_GAME is set): the sites hold the bytes the hooks displace, and the code
-  around them is what the hooks assume.
+- Lua (Lupa): the home table is valid, the data block layout, and install() patches nothing unless the Legacy build,
+  the original site and the original command table are found (block first, then site, then table).
+- Native (Keystone + Unicorn): both pieces run against stand-ins for the game's data at their real addresses: a King's
+  own spawner is forced, and its spawn cancel skipped, only until that King is defeated; other spawners only where a
+  King is gated through another thread; everything else keeps native behaviour; callee-saved registers and the stack
+  are untouched.
+- Game executable (when IVALICE_LEGACY_GAME is set): the site holds the bytes the hook displaces, and the code around
+  it is what the pieces assume.
 """
+import json
 import os
 import re
 import struct
@@ -32,16 +33,55 @@ ENTRY = ROOT / 'package/x64/scripts/IvaliceLegacyKings.lua'
 SOURCE = RUNTIME.read_text(encoding='utf-8')
 CODE_AT, DATA_AT, STACK_AT, TABLES_AT = 0x10000000, 0x20000000, 0x30000000, 0x40000000
 KILLS, LOCATION = 0x0216F883, 0x021654C4
-UNIT_TABLE, CLASS_TABLE, TABLE_BASE = 0x02EBF120, 0x02EBF150, 0x01F83530
+TABLE_BASE = 0x01F83530
+DATA_SLOT, KEEP_ADDRESS, CANCEL_SLOT, CANCEL_HANDLER = 0x50000100, 0x50000200, 0x01F28B70, 0x005102D0
+CALLS = {0x58, 0x59, 0x5D}                              # the VM's command-call opcodes
 
 
 def homes():
     body = re.search(r'K\.HOMES = \{[^\n]*\n(.*?)\n\}', SOURCE, re.S).group(1)
-    return [tuple(int(x) for x in m) for m in re.findall(r'\{(\d+), (\d+), ([01])\}', body)]
+    return [tuple(int(x) for x in m) for m in re.findall(r'\{(\d+), (\d+), ([0123])\}', body)]
 
 
 def code():
     return re.search(r'K\.RARE_CODE = \[\[\n(.*?)\]\]', SOURCE, re.S).group(1).replace('.dq 0x00', '.quad 0')
+
+
+def variables_in(code):
+    """The variables a selection reads, in order."""
+    out, pc = [], 0
+    while pc < len(code):
+        if code[pc] == 0x48:
+            out.append(struct.unpack_from('<H', code, pc + 1)[0])
+        pc += 3 if code[pc] >= 0x48 else 1
+    return out
+
+
+def run_vm(code, rand, variables, switch):
+    """The few opcodes of a selection, from the interpreter 0x25E550: 0x4F push, 0x48 read a variable, 0x58 a command
+    (0x29 rand, 0x5A9 switch), 0x0D <, 0x0A ==, 0x05 OR, 0x06 AND. Comparisons and logic leave 0 or 1."""
+    stack, pc = [], 0
+    while pc < len(code):
+        op = code[pc]
+        if op in (0x4F, 0x48, 0x58):
+            arg = struct.unpack_from('<H', code, pc + 1)[0]
+            pc += 3
+            if op == 0x4F:
+                stack.append(arg)
+            elif op == 0x48:
+                stack.append(variables[arg])
+            elif arg == 0x29:
+                stack.pop()
+                stack.append(rand)
+            else:
+                assert arg == 0x5A9
+                stack.append(switch)
+            continue
+        pc += 1
+        b, a = stack.pop(), stack.pop()
+        stack.append(int({0x0D: a < b, 0x0A: a == b, 0x05: bool(a or b), 0x06: bool(a and b)}[op]))
+    assert len(stack) == 1
+    return stack[0]
 
 
 class HomeTableTest(unittest.TestCase):
@@ -50,32 +90,80 @@ class HomeTableTest(unittest.TestCase):
         self.assertEqual({e for _, e, _ in h}, set(range(293, 373)))  # all 80 Bestiary rare-game entries
         self.assertEqual(len(h), len(set((l, e) for l, e, _ in h)))
 
-    def test_bountiful_exclusions_keep_natural_rules(self):
-        for loc, _, presence in homes():
-            if loc in (133, 137, 247, 902, 903):
-                self.assertEqual(presence, 0)
+    def test_only_spawners_without_a_way_in_stay_natural(self):
+        h = homes()
+        # Spawners that never ask the switch: Larva Eater's gil_e/f/g, Aspidochelon, Aeros, Ishteen in mic_e01.
+        self.assertEqual({(l, e) for l, e, p in h if p == 0 and e != 342}, {(505, 293), (536, 328), (891, 336)})
+        self.assertEqual({e for _, e, p in h if p == 0}, {342, 293, 328, 336})
+        self.assertEqual([x for x in h if x[2] == 1], [])                # no home may depend on recognising the spawner
+        for location, entry in ((133, 330), (137, 329), (247, 349), (902, 358), (903, 358), (411, 335), (947, 337)):
+            self.assertIn((location, entry, 2), h)
+        self.assertEqual([x for x in h if x[2] == 3], [(216, 345, 3)])  # Grey Molter alone relies on skipping its cancel
 
     def test_no_absolute_memory_operands(self):
         # "[0x...]" may be assembled rip-relative for registers other than rax (Keystone does): load addresses first.
         self.assertEqual(re.findall(r'\[0x[0-9A-Fa-f]+\]', code()), [])
 
+    def test_units_are_never_replaced(self):
+        # Every spawner keeps writing through the unit's work pointer after btlAtelSetUnit: "no unit" crashes the game
+        # (2026-11-04, Sand-swept Naze: SetDirection at 0x239210 on a null [actor+0x6A0]).
+        self.assertNotIn('0x00510178', SOURCE)
+        self.assertNotIn('mov eax,0xFF', code())
+
+    def test_no_king_is_ever_blocked(self):
+        # After a defeat a King follows the game's own conditions: nothing may veto its spawner, and a data edit may
+        # only add the switch to a natural condition (natural OR switch), never force the spawn.
+        self.assertNotIn('legacy_kings_hold', SOURCE)
+        patch = json.loads((ROOT / 'patches/kings.json').read_text(encoding='utf-8'))
+        self.assertEqual({k['king'] for k in patch['kings']},
+                         {'Cultsworn Lich', 'Wary Wolf', 'Matriarch Bomb', 'Grimalkin', 'Disma', 'Evil Spirit',
+                          'Terror Tyrant', 'Negalmuur', 'Crystal Knight'})
+        for king in patch['kings']:
+            self.assertNotIn('immediates', king)
+            for edit in king['replacements']:
+                before, after = edit['before'], edit['after']
+                if king['king'] == 'Cultsworn Lich':
+                    self.assertEqual((before, after), ('4f01000a', '58a90505'))   # == 1 becomes OR switch
+                elif len(before) == 6:
+                    # Matriarch Bomb's later "if switch" is now in the roll; the others are switch-only spawners.
+                    self.assertIn(king['king'], ('Matriarch Bomb', 'Terror Tyrant', 'Negalmuur', 'Crystal Knight'))
+                    self.assertEqual((before, after), ('58a905', '4f0000'))
+                else:
+                    self.roll_table(before, after)
+
+    def roll_table(self, before, after):
+        """A rewritten selection equals the original when the switch says no, and when it says yes passes exactly when
+        no other spawner holds the King yet (flag 0). The original's variables, in order: chance, flag, optional gate."""
+        old, new = bytes.fromhex(before), bytes.fromhex(after)
+        self.assertEqual(len(old), len(new))
+        names = variables_in(old)
+        for rand in range(0, 100, 3):
+            for chance in (0, 5, 40, 100):
+                for flag in (0, 1):
+                    for gate in (0, 1, 2):
+                        values = dict(zip(names, (chance, flag, gate)))
+                        self.assertEqual(run_vm(new, rand, values, 0), run_vm(old, rand, values, 0))
+                        self.assertEqual(run_vm(new, rand, values, 1), int(flag == 0))
+
     def test_known_homes(self):
         h = set(homes())
-        for row in ((228, 316, 1),   # Ripe Rampager, Yardang Labyrinth (gated through dst_a02 thread 30's roll)
-                    (358, 294, 1),   # Aerieel, Oltam Span
-                    (891, 320, 1),   # Minibug, East-West Bypass
-                    (891, 336, 1),   # Ishteen, East-West Bypass
-                    (892, 336, 1),   # Ishteen, The Zeviah Span
-                    (895, 322, 1),   # Ithuno, Special Op Sector 5
-                    (374, 353, 1),   # Gemhorn, Site 11
-                    (901, 310, 1),   # Bombshell, Lasche Span
-                    (137, 329, 0)):  # Grimalkin, Uazcuff Hills (Bountiful-excluded)
+        for row in ((228, 316, 2),   # Ripe Rampager, Yardang Labyrinth (gated through dst_a02 thread 30's roll)
+                    (230, 297, 2),   # Greeden, Banks of the Nebra: missing in 0.0.17 (2026-11-04)
+                    (358, 294, 2),   # Aerieel, Oltam Span
+                    (891, 320, 2),   # Minibug, East-West Bypass
+                    (891, 336, 0),   # Ishteen, East-West Bypass: its spawner there never asks
+                    (892, 336, 2),   # Ishteen, The Zeviah Span
+                    (895, 322, 2),   # Ithuno, Special Op Sector 5
+                    (374, 353, 2),   # Gemhorn, Site 11
+                    (901, 310, 2),   # Bombshell, Lasche Span
+                    (137, 329, 2)):  # Grimalkin, Uazcuff Hills
             self.assertIn(row, h)
 
 
 @unittest.skipIf(LuaRuntime is None, 'requires lupa')
 class LuaTest(unittest.TestCase):
-    def runtime(self, mem=None, legacy=True, sites_ok=True, fail_assemble=False):
+    def runtime(self, mem=None, legacy=True, sites_ok=True, fail_assemble=False, table=0x5102D0, sticky=False,
+                site_returns_zero=False, site_unchanged=False):
         lua = LuaRuntime(unpack_returned_tuples=True)
         g = lua.globals()
         mem = {} if mem is None else mem
@@ -91,7 +179,7 @@ class LuaTest(unittest.TestCase):
             write(0xD12200, '%sLEGCY_%03d\0'.encode('utf-16-le'))
         if sites_ok:
             write(0x3504BE, bytes([0x8B, 0xD0, 0x48, 0x8B, 0xCB]))
-            write(0x510178, bytes([0x8B, 0xD0, 0x48, 0x8B, 0xCB]))
+        write(CANCEL_SLOT, struct.pack('<Q', table))
 
         def read_array(at, n):
             return lua.table_from([mem.get(at + i, 0) for i in range(n)])
@@ -104,6 +192,11 @@ class LuaTest(unittest.TestCase):
             calls.append((src, where if isinstance(where, int) else 'block'))
             if fail_assemble:
                 raise RuntimeError('rejected')
+            if isinstance(where, int):
+                if site_returns_zero:                  # the loader's documented failure: (0, 0), nothing written
+                    return 0
+                if not site_unchanged:
+                    mem[where] = 0xE9
             return 0x50000000
 
         def alloc(n):
@@ -118,10 +211,14 @@ class LuaTest(unittest.TestCase):
                 return int.from_bytes(bytes(mem.get(at + i, 0) for i in range(self.size)), 'little')
 
             def __setitem__(self, at, v):
+                if sticky and at == CANCEL_SLOT:
+                    return
+                calls.append(('write', at))
                 for i in range(self.size):
                     mem[at + i] = (v >> (8 * i)) & 0xFF
+        symbols = {'legacy_kings_data': DATA_SLOT, 'legacy_kings_cancel': KEEP_ADDRESS}
         g.memory = lua.table_from({'readArray': read_array, 'writeArray': write_array, 'assemble': assemble,
-                                   'alloc': alloc, 'getSymbol': lambda name: 0x50000100,
+                                   'alloc': alloc, 'getSymbol': lambda name: symbols.get(name, 0),
                                    'u8': U(1), 'u32': U(4), 'u64': U(8)})
         self.handlers = {}
 
@@ -146,21 +243,28 @@ class LuaTest(unittest.TestCase):
         bad = lua.table_from([lua.table_from([228, 292, 1])])
         self.assertEqual(K.validate(bad), (False, 'entry 1'))    # 292 is a boss, not a rare game
 
-    def test_install_patches_block_first_then_sites(self):
+    def test_install_order_block_then_site_then_table_then_on(self):
         lua, K, mem, calls, lines = self.runtime()
         self.assertTrue(K.register())
         kinds = [c[1] for c in calls if c[0] != 'alloc']
-        self.assertEqual(kinds, ['block', 0x3504BE, 0x510178])
-        self.assertEqual(int.from_bytes(bytes(mem[0x50000100 + i] for i in range(8)), 'little'), 0x60000000)
+        self.assertEqual(kinds, ['block', DATA_SLOT, 0x3504BE, CANCEL_SLOT, 0x60000000])
+        self.assertEqual(int.from_bytes(bytes(mem[DATA_SLOT + i] for i in range(8)), 'little'), 0x60000000)
+        self.assertEqual(int.from_bytes(bytes(mem[CANCEL_SLOT + i] for i in range(8)), 'little'), KEEP_ADDRESS)
         self.assertEqual(mem[0x60000000], 1)                   # switched on once installed
         self.assertTrue(any('installed' in s for s in lines))
 
-    def test_nothing_patched_without_legacy_build_or_original_sites(self):
-        for kwargs in ({'legacy': False}, {'sites_ok': False}):
+    def test_nothing_patched_without_legacy_build_or_original_game(self):
+        for kwargs in ({'legacy': False}, {'sites_ok': False}, {'table': 0x12345}):
             lua, K, mem, calls, lines = self.runtime(**kwargs)
             self.assertFalse(K.register())
             self.assertEqual([c for c in calls if c[0] != 'alloc'], [])
             self.assertTrue(any('not installed' in s for s in lines))
+
+    def test_table_write_that_does_not_stick_stays_off(self):
+        lua, K, mem, calls, lines = self.runtime(sticky=True)
+        self.assertFalse(K.register())
+        self.assertEqual(mem[0x60000000], 0)                   # the block stays inert
+        self.assertTrue(any('kept its old value' in s for s in lines))
 
     def test_install_retried_once_on_the_first_map_change(self):
         lua, K, mem, calls, lines = self.runtime(legacy=False)
@@ -174,7 +278,8 @@ class LuaTest(unittest.TestCase):
         for i, b in enumerate('%sLEGCY_%03d\0'.encode('utf-16-le')):
             mem[0xD12200 + i] = b
         self.handlers['onMapJump'](891)
-        self.assertEqual([c[1] for c in calls if c[0] != 'alloc'], ['block', 0x3504BE, 0x510178])
+        self.assertEqual([c[1] for c in calls if c[0] != 'alloc'],
+                         ['block', DATA_SLOT, 0x3504BE, CANCEL_SLOT, 0x60000000])
         self.assertEqual(mem[0x60000000], 1)
 
     def test_install_given_up_after_the_retry(self):
@@ -190,10 +295,21 @@ class LuaTest(unittest.TestCase):
         self.assertFalse(K.register())
         self.assertEqual([c[1] for c in calls if c[0] != 'alloc'], ['block'])
 
+    def test_site_that_was_not_patched_stays_off(self):
+        # memory.assemble's documented failure is a 0 return, not an error; a site still holding its bytes is no better.
+        for kwargs in ({'site_returns_zero': True}, {'site_unchanged': True}):
+            lua, K, mem, calls, lines = self.runtime(**kwargs)
+            self.assertFalse(K.register())
+            self.assertEqual(mem[0x60000000], 0)               # the block stays inert
+            self.assertNotIn(CANCEL_SLOT, [c[1] for c in calls if c[0] == 'write'])
+            self.assertTrue(any('rejected' in s for s in lines))
+            self.assertFalse(any('installed:' in s for s in lines))
+
     def test_report_names_kings_of_the_location(self):
         lua, K, mem, calls, lines = self.runtime()
         K.register()
-        mem[KILLS + 336] = 1                                   # Ishteen defeated, Minibug alive
+        mem[KILLS + 336] = 2                                   # Ishteen: one kill, the byte's lowest "defeated" value
+        mem[KILLS + 320] = 1                                   # Minibug: recorded, never killed
         K.report(891)
         self.assertIn('location 891: 320 alive, 336 defeated', lines[-1])
 
@@ -205,16 +321,16 @@ class LuaTest(unittest.TestCase):
 
 @unittest.skipIf(keystone is None, 'requires keystone-engine and unicorn')
 class HookTest(unittest.TestCase):
-    UNIT_STRIDE, CLASS_STRIDE = 0x58, 0x60
+    THREAD, ACTOR, CLASS = TABLES_AT + 0x1000, TABLES_AT + 0x2000, TABLES_AT + 0x8000
+    RETURN = 0x00511000
 
-    def machine(self, on=True, location=891, kills=(), unit_class=None, class_entry=None, tables=True):
+    def machine(self, on=True, location=891, kills=(), own=None, flags=0x1D, cls=True, actor=True, seen=()):
         ks = keystone.Ks(keystone.KS_ARCH_X86, keystone.KS_MODE_64)
         blob, _ = ks.asm(code(), CODE_AT)
         blob = bytes(blob)
         uc = unicorn.Uc(unicorn.UC_ARCH_X86, unicorn.UC_MODE_64)
         for base, size in ((CODE_AT, 0x10000), (DATA_AT, 0x10000), (STACK_AT, 0x10000), (TABLES_AT, 0x100000),
-                           (0x01F80000, 0x10000), (0x02160000, 0x20000), (0x02EB0000, 0x20000),
-                           (0x00350000, 0x10000), (0x00510000, 0x10000)):
+                           (0x02160000, 0x20000), (0x00350000, 0x10000), (0x00510000, 0x10000)):
             uc.mem_map(base, size)
         uc.mem_write(CODE_AT, blob)
         uc.mem_write(CODE_AT + len(blob) - 8, struct.pack('<Q', DATA_AT))          # legacy_kings_data
@@ -227,123 +343,195 @@ class HookTest(unittest.TestCase):
         uc.mem_write(DATA_AT, bytes(data))
         uc.mem_write(LOCATION, struct.pack('<I', location))
         for entry in kills:
-            uc.mem_write(KILLS + entry, b'\x03')
-        # Area tables: descriptor {?, count, stride, offset}; data = offset + [TABLE_BASE].
-        uc.mem_write(TABLE_BASE, struct.pack('<Q', TABLES_AT))
-        if tables:
-            unit_desc, class_desc = TABLES_AT + 0x100, TABLES_AT + 0x200
-            uc.mem_write(unit_desc, struct.pack('<IIHHI', 0, 12, self.UNIT_STRIDE, 0, 0x1000))
-            uc.mem_write(class_desc, struct.pack('<IIHHI', 0, 20, self.CLASS_STRIDE, 0, 0x8000))
-            uc.mem_write(UNIT_TABLE, struct.pack('<Q', unit_desc))
-            uc.mem_write(CLASS_TABLE, struct.pack('<Q', class_desc))
-            for row in range(12):                                                  # row r -> class r + 3
-                uc.mem_write(TABLES_AT + 0x1000 + row * self.UNIT_STRIDE, struct.pack('<H', row + 3))
-            for cls in range(20):
-                uc.mem_write(TABLES_AT + 0x8000 + cls * self.CLASS_STRIDE + 0x52, struct.pack('<H', 10 + cls))
-            if unit_class is not None:
-                row, entry = unit_class
-                # The class table counts from 0; defeat counts and homes count from 1.
-                uc.mem_write(TABLES_AT + 0x8000 + (row + 3) * self.CLASS_STRIDE + 0x52, struct.pack('<H', entry - 1))
-        for at in (0x003504C3, 0x0051017D):
-            uc.mem_write(at, b'\xf4')
-        return uc, blob
-
-    def execute(self, uc, start, eax, stop):
-        rsp = STACK_AT + 0x8000
-        for reg, value in ((X.UC_X86_REG_RSP, rsp), (X.UC_X86_REG_RAX, eax), (X.UC_X86_REG_RBX, 0x7777),
-                           (X.UC_X86_REG_RDI, 0x8888), (X.UC_X86_REG_RSI, 0x9999), (X.UC_X86_REG_RBP, 0xAAAA),
-                           (X.UC_X86_REG_R12, 0x1212), (X.UC_X86_REG_R13, 0x1313), (X.UC_X86_REG_R14, 0x1414),
-                           (X.UC_X86_REG_R15, 0x1515), (X.UC_X86_REG_RCX, 0x5555), (X.UC_X86_REG_RDX, 0x6666)):
-            uc.reg_write(reg, value)
-        uc.emu_start(start, stop + 1, count=20000)
-        self.assertEqual(uc.reg_read(X.UC_X86_REG_RIP), stop + 1)
-        self.assertEqual(uc.reg_read(X.UC_X86_REG_RSP), rsp)
-        for reg, value in ((X.UC_X86_REG_RBX, 0x7777), (X.UC_X86_REG_RDI, 0x8888), (X.UC_X86_REG_RSI, 0x9999),
-                           (X.UC_X86_REG_RBP, 0xAAAA), (X.UC_X86_REG_R12, 0x1212), (X.UC_X86_REG_R13, 0x1313),
-                           (X.UC_X86_REG_R14, 0x1414), (X.UC_X86_REG_R15, 0x1515)):
-            self.assertEqual(uc.reg_read(reg), value)
-        self.assertEqual(uc.reg_read(X.UC_X86_REG_RCX), 0x7777)                   # mov rcx,rbx still runs
-        eax = uc.reg_read(X.UC_X86_REG_RAX) & 0xFFFFFFFF
-        self.assertEqual(uc.reg_read(X.UC_X86_REG_RDX) & 0xFFFFFFFF, eax)        # mov edx,eax still runs
-        return eax
+            uc.mem_write(KILLS + entry, b'\x02')                                   # exactly one kill
+        for entry in seen:
+            uc.mem_write(KILLS + entry, b'\x01')                                   # recorded, never killed
+        uc.mem_write(0x003504C3, b'\xf4')
+        uc.mem_write(CANCEL_HANDLER, b'\xf4')
+        uc.mem_write(self.RETURN, b'\xf4')
+        # The calling thread: +0x30 actor; actor flags, +0xE68 class; class +0x52 = Bestiary entry - 1 (own=None: 0).
+        uc.mem_write(self.THREAD + 0x30, struct.pack('<Q', self.ACTOR if actor else 0))
+        uc.mem_write(self.ACTOR, struct.pack('<Q', flags))
+        uc.mem_write(self.ACTOR + 0xE68, struct.pack('<Q', self.CLASS if cls else 0))
+        if own is not None:
+            uc.mem_write(self.CLASS + 0x52, struct.pack('<H', (own - 1) & 0xFFFF))
+        return uc
 
     def rare(self, native=0, **kw):
-        uc, _ = self.machine(**kw)
-        return self.execute(uc, CODE_AT, native, 0x003504C3), uc
-
-    def unit(self, row, **kw):
-        uc, _ = self.machine(**kw)
-        return self.execute(uc, self.unit_start(), row, 0x0051017D), uc
-
-    @staticmethod
-    def unit_start():
-        # The second hook starts where the first one's source ends.
-        ks = keystone.Ks(keystone.KS_ARCH_X86, keystone.KS_MODE_64)
-        source = code()
-        prefix = source[:source.index('legacy_kings_unit:')]
-        # A stand-in data label resolves the first hook's reference; its rip-relative encoding has a fixed size.
-        return CODE_AT + len(bytes(ks.asm(prefix + '\nlegacy_kings_data:\n', CODE_AT)[0]))
+        uc = self.machine(**kw)
+        rsp, stop = STACK_AT + 0x8000, 0x003504C3
+        saved = dict(RBX=self.THREAD, RDI=0x8888, RSI=0x9999, RBP=0xAAAA, R12=0x1212, R13=0x1313, R14=0x1414, R15=0x1515)
+        uc.reg_write(X.UC_X86_REG_RSP, rsp)
+        for name, value in dict(saved, RAX=native, RCX=0x5555, RDX=0x6666).items():
+            uc.reg_write(getattr(X, 'UC_X86_REG_' + name), value)
+        uc.emu_start(CODE_AT, stop + 1, count=20000)
+        self.assertEqual(uc.reg_read(X.UC_X86_REG_RIP), stop + 1)
+        self.assertEqual(uc.reg_read(X.UC_X86_REG_RSP), rsp)
+        for name, value in saved.items():
+            self.assertEqual(uc.reg_read(getattr(X, 'UC_X86_REG_' + name)), value)
+        self.assertEqual(uc.reg_read(X.UC_X86_REG_RCX), self.THREAD)              # mov rcx,rbx still runs
+        eax = uc.reg_read(X.UC_X86_REG_RAX) & 0xFFFFFFFF
+        self.assertEqual(uc.reg_read(X.UC_X86_REG_RDX) & 0xFFFFFFFF, eax)        # mov edx,eax still runs
+        return eax, uc
 
     @staticmethod
     def counters(uc):
-        """(presence forced, last vetoed entry, vetoes, last forced location)"""
-        return struct.unpack('<IIII', bytes(uc.mem_read(DATA_AT + 0x8, 16)))
+        """(presence forced, last forced location)"""
+        return struct.unpack('<I', bytes(uc.mem_read(DATA_AT + 0x8, 4)))[0], struct.unpack('<I', bytes(uc.mem_read(DATA_AT + 0x14, 4)))[0]
 
-    # ---- presence (0x5A9) ----
-    def test_living_king_forces_presence(self):
-        eax, uc = self.rare(location=891)                    # Minibug and Ishteen live in East-West Bypass
+    # ---- a King's own spawner ----
+    def test_undefeated_king_forces_its_own_spawner(self):
+        eax, uc = self.rare(location=891, own=320)
         self.assertEqual(eax, 1)
-        forced, _, _, where = self.counters(uc)
-        self.assertEqual((forced, where), (1, 891))
+        self.assertEqual(self.counters(uc), (1, 891))
 
-    def test_dead_kings_leave_the_native_answer(self):
-        for native in (0, 1):
-            eax, _ = self.rare(native=native, location=891, kills=(320, 336))
+    def test_defeated_king_gets_the_native_answer(self):
+        for native in (0, 1):                                # 1: the game's own answer, or Bountiful's option if left on
+            eax, uc = self.rare(native=native, location=891, kills=(320,), own=320)
             self.assertEqual(eax, native)
+            self.assertEqual(self.counters(uc)[0], 0)
 
-    def test_one_living_king_is_enough(self):
-        eax, _ = self.rare(location=891, kills=(336,))
+    def test_a_king_recorded_without_a_kill_is_still_undefeated(self):
+        # The byte is 1 once the game has recorded the King, with no kill: every native reader must still force it.
+        eax, uc = self.rare(location=891, seen=(320,), own=320)
         self.assertEqual(eax, 1)
+        self.assertEqual(self.rare(location=228, seen=(316,), own=2)[0], 1)                # another spawner, presence 2
+        self.assertFalse(self.cancel(location=216, seen=(345,), own=345)[0])               # the cancel is still skipped
 
-    def test_other_locations_and_natural_homes_are_untouched(self):
-        for loc in (70, 302, 137):                           # Barheim inner map, Clan hall, Grimalkin (presence 0)
-            eax, _ = self.rare(native=0, location=loc)
-            self.assertEqual(eax, 0)
+    def test_a_high_kill_count_is_defeated(self):
+        for byte in (2, 3, 0x7F, 0x80, 0xFF):
+            # An unsigned comparison: a count past 127 must not read as "never killed".
+            uc = self.machine(location=891, own=320)
+            uc.mem_write(KILLS + 320, bytes([byte]))
+            uc.reg_write(X.UC_X86_REG_RSP, STACK_AT + 0x8000)
+            uc.reg_write(X.UC_X86_REG_RBX, self.THREAD)
+            uc.reg_write(X.UC_X86_REG_RAX, 0)
+            uc.emu_start(CODE_AT, 0x003504C4, count=20000)
+            self.assertEqual(uc.reg_read(X.UC_X86_REG_RAX) & 0xFFFFFFFF, 0, byte)
+
+    def test_the_living_neighbour_does_not_bring_a_defeated_king_back(self):
+        # Wildwood Deep's two Kings: Kaiser Wolf defeated, Dustia alive. A recognised spawner answers for its own King.
+        self.assertEqual(self.rare(location=346, kills=(305,), own=305)[0], 0)
+        self.assertEqual(self.rare(location=346, kills=(305,), own=334)[0], 1)
+        # Aeros's spawner never asks, so she cannot bring a defeated Bull Croc back.
+        self.assertEqual(self.rare(location=536, kills=(299,), own=2)[0], 0)
+
+    def test_nekhbet_in_the_map_that_crashed(self):
+        # The game's own class field holds 330 for Nekhbet, entry 331, home 229.
+        self.assertEqual(self.rare(location=229, kills=(331,), own=331)[0], 0)
+        self.assertEqual(self.rare(location=229, own=331)[0], 1)
+
+    def test_the_previous_entrys_defeat_does_not_count(self):
+        # Entry 319 is defeated and Minibug (320) lives: reading the count without adding 1 would look at 319.
+        self.assertEqual(self.rare(location=891, kills=(319,), own=320)[0], 1)
+
+    def test_natural_homes_keep_the_native_answer(self):
+        self.assertEqual(self.rare(native=0, location=621, own=342)[0], 0)   # Larva Eater, gil_e01
+        self.assertEqual(self.rare(native=1, location=621, own=342)[0], 1)
+
+    def test_presence_does_not_depend_on_recognising_the_spawner(self):
+        # 2026-11-04, MAIN 0.0.17: a whole session with no yes and Greeden missing at Banks of the Nebra. Whatever the hook
+        # reads from the asker, her map answers yes until she is defeated.
+        for kw in (dict(own=297), dict(own=2), dict(cls=False), dict(actor=False), dict(flags=0x1)):
+            self.assertEqual(self.rare(location=230, **kw)[0], 1, kw)
+            self.assertEqual(self.rare(location=230, kills=(297,), **kw)[0], 0, kw)
+
+    def test_the_hook_records_what_it_sees(self):
+        uc = self.rare(location=230, own=297)[1]
+        self.assertEqual(struct.unpack('<III', bytes(uc.mem_read(DATA_AT + 0x18, 12))), (1, 297, 0))
+        uc = self.rare(location=230, cls=False)[1]
+        self.assertEqual(struct.unpack('<III', bytes(uc.mem_read(DATA_AT + 0x18, 12))), (1, 0, 1))
+
+    # ---- any other spawner ----
+    def test_a_defeated_king_s_map_keeps_the_native_answer(self):
+        for native in (0, 1):
+            self.assertEqual(self.rare(native=native, location=229, kills=(331,), own=2)[0], native)
+
+    def test_indirect_gates_follow_the_location_s_king(self):
+        # Ripe Rampager waits for a roll in dst_a02 thread 30, whose own unit is a Cactite.
+        self.assertEqual(self.rare(location=228, own=2)[0], 1)
+        self.assertEqual(self.rare(location=228, own=2, kills=(316,))[0], 0)
+        self.assertEqual(self.rare(location=228, own=316)[0], 1)
+        self.assertEqual(self.rare(location=228, own=316, kills=(316,))[0], 0)
+
+    def test_actors_without_a_battle_unit_count_as_other_spawners(self):
+        # Party-style actors have no class, others no unit at all: +0xE68 must not be read without flag 4 (the
+        # unmapped pointer would stop the emulator if it were), and a thread may have no actor.
+        self.assertEqual(self.rare(location=228, cls=False)[0], 1)
+        self.assertEqual(self.rare(location=228, actor=False)[0], 1)
+        self.assertEqual(self.rare(location=70, cls=False)[0], 0)              # no King lives here
+        uc = self.machine(location=228, flags=0x1)
+        uc.mem_write(self.ACTOR + 0xE68, struct.pack('<Q', 0x7000000000))
+        uc.reg_write(X.UC_X86_REG_RSP, STACK_AT + 0x8000)
+        uc.reg_write(X.UC_X86_REG_RBX, self.THREAD)
+        uc.reg_write(X.UC_X86_REG_RAX, 0)
+        uc.emu_start(CODE_AT, 0x003504C4, count=20000)
+        self.assertEqual(uc.reg_read(X.UC_X86_REG_RAX) & 0xFFFFFFFF, 1)
+
+    def test_no_bestiary_entry_counts_as_another_spawner(self):
+        # Adds such as Tiny Battery have 0xFFFF in the class table.
+        self.assertEqual(self.rare(location=228, own=0x10000)[0], 1)
+        self.assertEqual(self.rare(location=70, own=0x10000)[0], 0)
+
+    def test_other_locations_are_untouched(self):
+        for loc in (70, 302):                                # Barheim inner map, Clan hall
+            for native in (0, 1):
+                self.assertEqual(self.rare(native=native, location=loc, own=320)[0], native)
 
     def test_switch_off(self):
-        eax, _ = self.rare(native=0, location=891, on=False)
-        self.assertEqual(eax, 0)
+        self.assertEqual(self.rare(native=0, location=891, own=320, on=False)[0], 0)
 
-    # ---- veto (btlAtelSetUnit) ----
-    def test_dead_king_unit_becomes_no_unit_in_its_home(self):
-        eax, uc = self.unit(4, location=891, kills=(320,), unit_class=(4, 320))
-        self.assertEqual(eax, 0xFF)
-        _, last, vetoes, _ = self.counters(uc)
-        self.assertEqual((last, vetoes), (320, 1))
+    # ---- the spawn cancel: True = the game's handler runs, False = skipped ----
+    @staticmethod
+    def cancel_start():
+        ks = keystone.Ks(keystone.KS_ARCH_X86, keystone.KS_MODE_64)
+        source = code()
+        prefix = source[:source.index('legacy_kings_cancel:')]
+        return CODE_AT + len(bytes(ks.asm(prefix + '\nlegacy_kings_data:\n', CODE_AT)[0]))
 
-    def test_dead_king_outside_its_home_is_kept(self):        # e.g. Trial Mode or an event using the same class
-        eax, _ = self.unit(4, location=302, kills=(320,), unit_class=(4, 320))
-        self.assertEqual(eax, 4)
+    def cancel(self, thread=None, **kw):
+        uc = self.machine(**kw)
+        rsp = STACK_AT + 0x8000
+        uc.mem_write(rsp - 8, struct.pack('<Q', self.RETURN))
+        saved = dict(RBX=0x7777, RDI=0x8888, RSI=0x9999, RBP=0xAAAA, R12=0x1212, R13=0x1313, R14=0x1414, R15=0x1515)
+        uc.reg_write(X.UC_X86_REG_RSP, rsp - 8)
+        for name, value in dict(saved, RDX=self.THREAD if thread is None else thread, RCX=self.THREAD).items():
+            uc.reg_write(getattr(X, 'UC_X86_REG_' + name), value)
+        uc.hook_add(unicorn.UC_HOOK_CODE, lambda u, a, s, d: u.emu_stop(), begin=CANCEL_HANDLER, end=CANCEL_HANDLER)
+        uc.hook_add(unicorn.UC_HOOK_CODE, lambda u, a, s, d: u.emu_stop(), begin=self.RETURN, end=self.RETURN)
+        uc.emu_start(self.cancel_start(), 0, count=20000)
+        for name, value in saved.items():
+            self.assertEqual(uc.reg_read(getattr(X, 'UC_X86_REG_' + name)), value)
+        rip = uc.reg_read(X.UC_X86_REG_RIP)
+        self.assertIn(rip, (CANCEL_HANDLER, self.RETURN))
+        if rip == CANCEL_HANDLER:
+            self.assertEqual(uc.reg_read(X.UC_X86_REG_RSP), rsp - 8)            # a clean tail jump, rdx intact
+            self.assertEqual(uc.reg_read(X.UC_X86_REG_RDX), self.THREAD if thread is None else thread)
+        else:
+            self.assertEqual(uc.reg_read(X.UC_X86_REG_RSP), rsp)                # ret popped the return address
+        return rip == CANCEL_HANDLER, uc
 
-    def test_living_king_and_ordinary_units_are_kept(self):
-        self.assertEqual(self.unit(4, location=891, unit_class=(4, 320))[0], 4)
-        self.assertEqual(self.unit(5, location=891, kills=(320,), unit_class=(4, 320))[0], 5)  # row 5: entry 19
+    def test_undefeated_king_skips_its_cancel(self):
+        ran, uc = self.cancel(location=216, own=345)         # Grey Molter
+        self.assertFalse(ran)
+        self.assertEqual(struct.unpack('<I', bytes(uc.mem_read(DATA_AT + 0xC, 4)))[0], 1)
 
-    def test_the_previous_entrys_death_does_not_count(self):
-        # Entry 319 is dead and Minibug (320) lives: reading the defeat count without adding 1 would look at 319.
-        self.assertEqual(self.unit(4, location=891, kills=(319,), unit_class=(4, 320))[0], 4)
-
-    def test_no_bestiary_entry_is_kept(self):
-        # Adds such as Tiny Battery have 0xFFFF in the class table.
-        uc, _ = self.machine(location=891, kills=(320,))
-        uc.mem_write(TABLES_AT + 0x8000 + 7 * self.CLASS_STRIDE + 0x52, struct.pack('<H', 0xFFFF))
-        self.assertEqual(self.execute(uc, self.unit_start(), 4, 0x0051017D), 4)
-
-    def test_bad_rows_and_missing_tables_are_kept(self):
-        self.assertEqual(self.unit(0xFF, location=891, kills=(320,), unit_class=(4, 320))[0], 0xFF)
-        self.assertEqual(self.unit(12, location=891, kills=(320,), unit_class=(4, 320))[0], 12)   # row >= count
-        self.assertEqual(self.unit(4, location=891, kills=(320,), tables=False)[0], 4)
-        self.assertEqual(self.unit(4, location=891, kills=(320,), unit_class=(4, 320), on=False)[0], 4)
+    def test_cancel_runs_for_everything_else(self):
+        cases = (dict(location=216, own=345, kills=(345,)),  # defeated: the game's rules again
+                 dict(location=302, own=345),                # outside its home
+                 dict(location=621, own=342),                # a natural home
+                 dict(location=947, own=337),                # Evil Spirit: skipping it would let all 12 spawners enter
+                 dict(location=210, own=303),                # Wary Wolf's spare spawners keep their cancel
+                 dict(location=229, own=331),                # a forced King enters through its own branch
+                 dict(location=216, own=2),                  # an ordinary foe
+                 dict(location=216, own=373),                # past the block
+                 dict(location=216, own=345, on=False),
+                 dict(location=216, cls=False),
+                 dict(location=216, actor=False))
+        for case in cases:
+            self.assertTrue(self.cancel(**case)[0], case)
+        self.assertTrue(self.cancel(thread=0, location=216, own=345)[0])
+        self.assertTrue(self.cancel(location=216, own=345, flags=0x1)[0])     # no unit
 
 
 GAME = os.environ.get('IVALICE_LEGACY_GAME')
@@ -381,18 +569,23 @@ class ExecutableTest(unittest.TestCase):
         self.assertEqual(code[0x18], 0xE9)                    # jmp 0x26B4E0 (push the answer)
         self.assertEqual(0x3504C8 + 5 + struct.unpack_from('<i', code, 0x19)[0], 0x26B4E0)
 
-    def test_unit_site(self):
-        # mov rcx,r9 ; mov rdi,r8 ; mov rbx,rdx ; call 0x267E10 (pop row) ; [mov edx,eax ; mov rcx,rbx] ; call 0x23A3B0
-        code = self.at(0x51016A, 0x18)
-        self.assertEqual(code[:9], bytes.fromhex('498bc9498bf8488bda'))
-        self.assertEqual(code[0x0E:0x13], bytes([0x8B, 0xD0, 0x48, 0x8B, 0xCB]))
-        self.assertEqual(code[0x13], 0xE8)
-        self.assertEqual(0x51017D + 5 + struct.unpack_from('<i', code, 0x14)[0], 0x23A3B0)
+    def test_handler_keeps_the_thread_in_rbx(self):
+        # The executor calls a handler with rcx = the calling thread (0x2622F5 mov rcx,r14 before the call).
+        self.assertEqual(self.at(0x262275, 3), bytes.fromhex('498bce'))
+        self.assertEqual(self.at(0x3504B6, 3), bytes.fromhex('488bd9'))
 
-    def test_no_unit_value(self):
-        # 0x23A3B0: cmp ebx,0xFF ; je -> mov ebx,0xFFFF (0xFF means "no unit")
-        self.assertEqual(self.at(0x23A3D9, 6), bytes.fromhex('81fbff000000'))
-        self.assertEqual(self.at(0x23A3E7, 5), bytes.fromhex('bbffff0000'))
+    def test_cancel_handler_and_its_slot(self):
+        # Set 3 id 0x4D: the handler at (id + 1) * 32; it reads only rdx: sub rsp,0x28 ; mov rcx,rdx ; call 0x31B760
+        self.assertEqual(0x1F281B0 + 0x4E * 32, CANCEL_SLOT)
+        self.assertEqual(struct.unpack('<Q', self.at(CANCEL_SLOT, 8))[0], CANCEL_HANDLER)
+        self.assertEqual(self.at(CANCEL_HANDLER, 7), bytes.fromhex('4883ec28488bca'))
+
+    def test_actor_fields(self):
+        # 0x263E30: mov rax,[rcx+0x30] (thread -> actor). 0x23A91C: mov [rdi+0xE68],r15 (the class), flag 4 set later.
+        self.assertEqual(self.at(0x263E30, 5), bytes.fromhex('488b4130c3'))
+        self.assertEqual(self.at(0x23A91C, 7), bytes.fromhex('4c89bf680e0000'))
+        # 0x23A59C: test byte ptr [rcx],4 is how the game itself asks "does this actor have a unit".
+        self.assertEqual(self.at(0x23A59C, 3), bytes.fromhex('f60104'))
 
     def test_save_image_and_tables(self):
         # 0x2EF640: lea rax,[rip+...] -> save image 0x2164280 (cleared with size 0x56690 at 0x2EF5F6)
@@ -403,8 +596,88 @@ class ExecutableTest(unittest.TestCase):
         # 0x20E600: mov eax,ecx ; add rax,[rip+...] -> TABLE_BASE
         self.assertEqual(0x20E609 + struct.unpack_from('<i', self.at(0x20E605, 4))[0], TABLE_BASE)
 
+    def test_kill_byte_encoding(self):
+        # Getter: 0 -> -1, otherwise byte - 1 (cmp byte [rax+rbx+0x3404],0 ; ... ; movzx eax,byte ; dec eax).
+        self.assertEqual(self.at(0x315440, 8), bytes.fromhex('80bc180434000000'))
+        self.assertEqual(self.at(0x31545C, 8), bytes.fromhex('0fb6841804340000'))
+        self.assertEqual(self.at(0x315469, 2), bytes.fromhex('ffc8'))
+        # The routine that records an entry writes 1 and counts no kill (mov byte [rax+rbx+0x3404],1).
+        self.assertEqual(self.at(0x315AB7, 8), bytes.fromhex('c684180434000001'))
+        # A kill stores (byte - 1, or 0 from unknown) + 2, so a first kill stores 2.
+        self.assertEqual(self.at(0x31586D, 2), bytes.fromhex('33db'))          # xor ebx,ebx from unknown
+        self.assertEqual(self.at(0x31587B, 2), bytes.fromhex('ffc3'))          # inc ebx
+        self.assertEqual(self.at(0x315887, 2), bytes.fromhex('fec3'))          # inc bl
+
+    def decode(self, section, start, end):
+        """One thread's instructions; the VM's instruction sizes come from the executable's table."""
+        pc, out = start, []
+        while pc < end and section[pc] < 0x64:
+            op = section[pc]
+            size = max(struct.unpack('<h', self.at(0x1EFEA60 + 24 * op, 2))[0], 1)
+            out.append((pc, op, struct.unpack_from('<H', section, pc + 1)[0] if size == 3 else None))
+            pc += size
+        return out
+
+    def threads(self, section):
+        table = struct.unpack_from('<I', section, 0x18)[0]
+        count = struct.unpack_from('<I', section, table)[0]
+        stride = 48 if struct.unpack_from('<H', section, 0)[0] >= 8 else 32
+        codes = [struct.unpack_from('<I', section, table + 4 + stride * i + 8)[0] for i in range(count)]
+        ends = sorted(set(codes)) + [len(section)]
+        return [(c, ends[ends.index(c) + 1]) for c in codes]
+
+    def test_every_selection_of_a_king_tests_the_flag_first(self):
+        # On the real scripts, after the edits: only the listed bytes changed, and every selection of every thread holding
+        # the King, run as written, passes on a forced switch only while the shared flag is 0. A selection that skipped
+        # the flag would let several spawners pick the King (2026-11-04 audit).
+        from ivalice_legacy import patches
+        from ivalice_legacy.vbf import VBF
+        vbf = VBF(Path(GAME) / 'FFXII_TZA.vbf')
+        patch = json.loads((ROOT / 'patches/kings.json').read_text(encoding='utf-8'))
+        for king in patch['kings']:
+            raw = vbf.read(king['file'])
+            old = patches.ebp_section(raw, king['section'])
+            edited = patches.kings(lambda name: raw, {'kings': [king]})[f"{king['file']}.dir/section_000.bin"]
+            self.assertEqual(len(old), len(edited))
+            changed = {i for i in range(len(old)) if old[i] != edited[i]}
+            spans = set()
+            for edit in king['replacements']:
+                spans |= set(range(edit['sectionByteOffset'], edit['sectionByteOffset'] + len(edit['before']) // 2))
+            self.assertLessEqual(changed, spans, king['area'])
+            if 'kingRow' not in king:
+                continue
+            row = king['kingRow']
+            holders, selections, switches = 0, 0, 0
+            for start, end in self.threads(edited):
+                new = self.decode(edited, start, end)
+                first = next((new[i - 1][2] for i, x in enumerate(new) if x[1] in CALLS and x[2] == 0x3001 and i
+                              and new[i - 1][1] == 0x4F), None)        # 0x3001 btlAtelSetUnit, its row pushed before it
+                if first != row:
+                    continue
+                holders += 1
+                switches += sum(x[1] in CALLS and x[2] == 0x5A9 for x in new)
+                for i, x in enumerate(new):
+                    if x[1] in CALLS and x[2] == 0x29:                 # rand: push 100 before it, the flag before that
+                        selections += 1
+                        self.assertEqual((new[i - 1][1], new[i - 1][2], new[i - 2][1]), (0x4F, 100, 0x48), king['area'])
+                        jump = next(y for y in new[i:] if y[1] == 0x5C)
+                        code = edited[new[i - 2][0]:jump[0]]
+                        names = variables_in(code)
+                        self.assertEqual(names[0], new[i - 2][2])
+                        for flag, want in ((0, 1), (1, 0)):
+                            # A roll that fails and a gate that is shut: only the forced switch can pass it.
+                            values = dict(zip(names, (flag, 0, 0)))
+                            self.assertEqual(run_vm(code, 99, values, 1), want, (king['area'], hex(x[0])))
+                            self.assertEqual(run_vm(code, 99, values, 0), 0, (king['area'], hex(x[0])))
+            self.assertGreater(holders, 1, king['area'])
+            self.assertGreater(selections, 0, king['area'])
+            # No other route may ask the switch: a separate "if switch: choose the King" would skip the flag. Grimalkin and
+            # Disma also ask it in two checks that only keep a remembered group and set the flag; they choose no new King.
+            per_selection = 3 if king['king'] in ('Grimalkin', 'Disma') else 1
+            self.assertEqual(switches, selections * per_selection, king['area'])
+
     def test_class_table_counts_from_zero(self):
-        # The field the unit hook reads: dst_a's Ripe Rampager, Nekhbet and Greeden, one below their K.HOMES entries.
+        # The field the hook reads: dst_a's Ripe Rampager, Nekhbet and Greeden, one below their K.HOMES entries.
         from ivalice_legacy.vbf import VBF
         raw = VBF(Path(GAME) / 'FFXII_TZA.vbf').read('ps2data/plan_master/in/plan_map/dst_a/area/dst_a.ard')
         self.assertEqual(raw[:8], b'FF12AR03')

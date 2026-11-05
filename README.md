@@ -13,13 +13,13 @@ and progression you can't steamroll.
 
 | Package | Version | What it is | Tested in game |
 |---|---|---|---|
-| Ivalice Legacy (main) | 0.0.13 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | 0.0.11 yes (Estersand); 0.0.12 Kings spawn yes, defeated Kings did not stay gone (fixed in 0.0.13, not yet tested) |
-| Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Boards up to 0.4.x; 0.5.x not yet |
-| Arsenal | 0.5.1 | Weapon attack curve and family identities, accessory identities | Earlier versions; 0.5.1 not yet |
-| Proficiency | 0.4.0 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip, the line shown on gear and full legendary power for masters | 0.2.0 rank reward yes; 0.3.x and 0.4.0 not yet |
+| Ivalice Legacy (main) | 0.0.18 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | 0.0.11 yes (Estersand); 0.0.12 Kings spawn yes, defeated Kings did not stay gone; 0.0.13 crashed entering a defeated King's map (fixed in 0.0.14); defeated Kings came back on every visit in 0.0.14 (0.0.15: they follow the game's own conditions; 0.0.16: nearly all 80 guaranteed until defeated; 0.0.17: an undefeated King was often missing, its spawner went unrecognised; 0.0.18: the yes is per map again, seen working on three Kings of the Estersand) |
+| Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Early game, feels good |
+| Arsenal | 0.6.0 | Weapon attack curve and family identities, accessory identities, armour rework | Early game; armour text seen, effects not yet measured |
+| Proficiency | 0.4.1 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip, the line shown on gear and full legendary power for masters | Stage I at rank 1; stages II and III not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
 
-## Main package (0.0.13)
+## Main package (0.0.18)
 
 **Opening stock.** Rabanastre's merchants sell a wider set of opening tools from the very start. Items they
 already stocked later in the story move to the start instead of appearing twice. Prices are unchanged.
@@ -45,19 +45,19 @@ the Cerobi Steppe Bellwyvern, and Gladius from two early chests (Estersand, Barh
 a steal from the Paramina Rift Feral Retriever. Every early slot they leave keeps a weapon of its own tier: Aevis Killer, Silver Bow, Mage Masher or Dagger.
 
 **Kings of the zone.** Every rare game (the Bestiary's 80 rare-game entries) is the King of its zone: it is there on
-every visit while it lives, and once you defeat it, it never appears again. "Defeated" is the game's own Bestiary
-count, so Kings you defeated before this version are already gone. Ripe Rampager always appears in Yardang
-Labyrinth; Rain Dancer always appears in Giza Plains' rainy season, and only then. In five places the King replaces
-an ordinary foe of the same spawner (Terror Tyrant, Grimalkin, Nazarnir, Disma); there the King keeps its natural
-chance to appear until it is defeated. A few Kings appear under conditions of their own (for example Cultsworn Lich,
-Evil Spirit, Grey Molter); those conditions are unchanged, and once defeated they are gone too. Each King's own fight
-and reward are planned.
+every visit until you defeat it once. After that it follows the game's own conditions (a roll, play time, a chain and
+so on), so it can return, but rarely. "Defeated" is the game's own Bestiary count, so Kings you defeated before this
+version already count. Rain Dancer only exists in Giza Plains' rainy season. Two Kings keep their own way in: Aeros
+appears after Bull Croc falls, and Aspidochelon has its original chance. Each King's own fight and reward are planned.
 
-How it works: `x64/scripts/IvaliceLegacyKings.lua` loads `x64/scripts/IvaliceLegacy/kings_runtime.lua`, which
-installs two small hooks only when it finds the original game code at both places (and logs the reason otherwise):
-the engine's rare-game switch answers "yes" in a King's home while that King lives, and a field script that sets a
-defeated King as a spawner's unit gets "no unit" instead, in that King's home only. With Bountiful Bundle's "Always
-Spawn Rare Game" on, rare game still appears everywhere else as that option decides.
+How it works: `x64/scripts/IvaliceLegacyKings.lua` loads `x64/scripts/IvaliceLegacy/kings_runtime.lua`, which changes
+two things only when it finds the original game at both places (and logs the reason otherwise): the engine's rare-game
+switch answers "yes" in a King's home until the King is defeated, and Grey Molter's cancel command does nothing until
+then. Spawners that only that switch brings in stop asking, so ordinary foes keep their own rules. `patches/kings.json` makes Cultsworn Lich's and Evil
+Spirit's scripts ask the switch as well, natural conditions intact. Where several spawners hold one King, the first one
+you trigger takes it and the rest keep their ordinary foes, so such a King appears as you reach that spot, not always on
+entering the map. Keep Bountiful Bundle's "Always Spawn Rare Game" off: it answers
+"yes" everywhere, so every defeated King would return on every visit.
 
 **Estersand hunts.** Flowering Cactoid no longer uses 1000 Needles (an ordinary attack takes its place) and casts
 Cure at most once per stage of the fight; its two Potions were already once-only. Ripe Rampager starts recovering
@@ -104,7 +104,7 @@ Green Mage, Time Mage, Mystic, White Mage and Black Mage.
 Existing saved slot IDs and acquired licenses persist; there is no automatic respec. Hybrid jobs (66 combinations)
 are being designed and are not part of this package.
 
-## Arsenal (0.5.1)
+## Arsenal (0.6.0)
 
 - **A gentle damage climb.** The opening weapons keep their attack; every later weapon is lower than native, so a
   typical hit grows from about 47 at the start to about 830 by the last shops (native: about 1,375). Each weapon
@@ -114,11 +114,14 @@ are being designed and are not part of this package.
   chains, bows the highest critical rate, greatswords slow and heavy, swords the best evade, hammers knockback and
   Disable, hand-bombs Slow or Oil, ninja swords Blind, spears reach. Speed, combo and critical identities are offset
   in attack.
-- **Accessory identities** borrowed from established overhauls where they add a new answer, with renamed items.
+- **Accessory identities** inspired by established overhauls where they add a new answer, with renamed items.
+- **Armour rework.** 105 of the 140 armour and shield pieces gain one strategic property, such as an element ward or a
+  stat trade, chosen for what foes cast at that stage of the story. Defence, magick resist and augments stay native.
+  The effects are real item data, not description text.
 
 See [package_arsenal/README.md](package_arsenal/README.md) for every weapon's numbers.
 
-## Proficiency (0.4.0)
+## Proficiency (0.4.1)
 
 Each job's Clan line, earned from **Montblanc** and applied to whatever the character wields.
 
@@ -146,23 +149,24 @@ Each job's Clan line, earned from **Montblanc** and applied to whatever the char
 | Job | Line | Stage I in short |
 |---|---|---|
 | Knight | Bulwark | A parry or block draws the attacker to the Knight |
-| Lancer | Grounding | Hits strip Float, then Haste, Faith and Regen |
+| Lancer | Grounding | Hits strip Float and Haste, then Faith, Regen and Bravery |
 | Warrior | Cleave | A kill grants Bravery |
 | Samurai | Zanshin | Hits in a row on one target grant Haste |
 | Hunter | Pursuit | More damage to targets hindered by an ailment |
 | Gunner | Suppression | Hits push back the target's next action |
-| Chemist | Contagion | Statuses it lands spread to another foe |
+| Chemist | Contagion | Statuses it lands can spread to another foe |
 | Green Mage | Mana Leech | Hits drain MP to her |
 | Time Mage | Detonate | Hits can briefly Stop a Slowed target |
 | Mystic | Ki Flow | Counterattacks heal the Mystic |
 | White Mage | Overflow | Healing past full HP becomes Regen |
-| Black Mage | Resonance | Casting the same element twice charges faster |
+| Black Mage | Resonance | Casting the same element twice makes the next action charge faster |
 
 Stages II and III add new facets of the same idea, and every one of the 144 levels now has an effect, built from
 statuses, HP and MP changes, damage scaling and charge pushback. At rank 12, a character whose job owns a legendary
-weapon's family deals +25% with it; everyone else wields it at base power. Not yet tested in game. Requires [The Insurgent's Forge](https://www.nexusmods.com/finalfantasy12/mods/386)
-and FF12 LUA Loader 2.0.1 with its dialog plugin. The package is six Forge `config/functions` adapters (110, 165,
-170, 182, 22, 240), a shared runtime, the rules and a Clan rank reader; each adapter runs Forge's original function
+weapon's family deals +25% with it; everyone else wields it at base power. Statuses Proficiency adds respect the same
+immunities as the game's own on-hit statuses, and a shorter one never cuts a longer one short. Not yet tested in game. Requires [The Insurgent's Forge](https://www.nexusmods.com/finalfantasy12/mods/386)
+and FF12 LUA Loader 2.0.1 with its dialog plugin. The package is seven Forge `config/functions` adapters (110, 127,
+165, 170, 182, 22, 240), a shared runtime, the rules and a Clan rank reader; each adapter runs Forge's original function
 first.
 
 ## Attack Area Experiment (0.0.2)
