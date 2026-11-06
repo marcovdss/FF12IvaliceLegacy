@@ -16,7 +16,7 @@ and progression you can't steamroll.
 | Ivalice Legacy (main) | 0.0.21 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, Magicks, separate save files | 0.0.11 yes (Estersand); 0.0.12 Kings spawn yes, defeated Kings did not stay gone; 0.0.13 crashed entering a defeated King's map (fixed in 0.0.14); defeated Kings came back on every visit in 0.0.14 (0.0.15: they follow the game's own conditions; 0.0.16: nearly all 80 guaranteed until defeated; 0.0.17: an undefeated King was often missing, its spawner went unrecognised; 0.0.18: the yes is per map again, seen working on three Kings of the Estersand) |
 | Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Early game, feels good |
 | Arsenal | 0.6.0 | Weapon attack curve and family identities, accessory identities, armour rework | Early game; armour text seen, effects not yet measured |
-| Proficiency | 0.4.4 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip, the line shown on gear and full legendary power for masters | Stage I at rank 1; stages II and III not yet |
+| Proficiency | 0.4.5 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip, the line shown on gear and full legendary power for masters | Stage I at rank 1; stages II and III not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
 
 ## Main package (0.0.21)
@@ -139,7 +139,7 @@ are being designed and are not part of this package.
 
 See [package_arsenal/README.md](package_arsenal/README.md) for every weapon's numbers.
 
-## Proficiency (0.4.4)
+## Proficiency (0.4.5)
 
 Each job's Clan line, earned from **Montblanc** and applied to whatever the character wields.
 
@@ -159,6 +159,10 @@ Each job's Clan line, earned from **Montblanc** and applied to whatever the char
   with that stage's current level and effect for the selected character. Locked stages point to Montblanc. Shields,
   accessories and ammunition keep their plain descriptions. The passives still follow the character's job. Inventory,
   shops and other menus show the plain description. Help boxes retain their layout position even with long text.
+- **Status durations.** A short Proficiency proc preserves a longer status already running or queued by the current
+  action, including Forge's default full-duration grant. Stop extensions preserve longer queued grants too. An expired
+  Stop's four-hit extension budget clears before a new spell can reapply it; extending an active Stop keeps its cap.
+  These 0.4.5 edge-case fixes pass offline regressions and still need native play checks.
 - **Palace sneak-in guard (temporary home).** With The Insurgent's Companions showing the full party in towns, the
   solo sneak-in at the Royal Palace restarts forever. While the party is in the palace (locations 567-572) its
   party-in-towns setting is held at Leader Only, and your setting returns on leaving. It moves to the main package

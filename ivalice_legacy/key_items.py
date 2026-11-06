@@ -150,14 +150,14 @@ def build_files(archive, patch, pack_section):
     }
 
 
-PROFICIENCY_VERSION = '0.4.4'
+PROFICIENCY_VERSION = '0.4.5'
 PROFICIENCY_LUA = {
     'x64/scripts/config/TheInsurgentsForgeConfig/functions/165.lua': 'prototypes/forge_proficiency_165.lua',
     'x64/scripts/IvaliceLegacy/proficiency.lua': 'prototypes/proficiency.lua',
     'x64/scripts/IvaliceLegacy/clan_rank.lua': 'prototypes/clan_rank.lua',
     'x64/scripts/IvaliceLegacy/proficiency_runtime.lua': 'prototypes/proficiency_runtime.lua',
     **{f'x64/scripts/config/TheInsurgentsForgeConfig/functions/{n}.lua': f'prototypes/forge_proficiency_{n}.lua'
-       for n in (240, 110, 127, 170, 182, 22)},
+       for n in (240, 110, 127, 170, 182, 22, 222)},
 }
 
 

@@ -736,16 +736,27 @@ function R.mayAdd(keep, id, flags, helpers)
   return not helpers.getStatusEffectsMatch(record.absentStatusEffects, flags)
 end
 
--- The add helper overwrites the timer, so a short proc must not cut a longer status already running. nil = leave it.
-function R.duration(keep, source, id, scale, helpers)
+-- A formula may already have a longer grant queued before the status reaches the unit. Forge 323/324 resolves
+-- a duration of -1 to the caster's full duration when it commits the formula; an unmarked slot is not a grant.
+local function queuedDuration(plus, source, id, helpers)
+  if not plus or plus.addedStatusEffects[id] ~= 1 then return nil end
+  local d = plus.statusEffectDurations[id]
+  if d == -1 then return helpers.getStatusEffectDuration(source, id) end
+  return d
+end
+
+-- The add helper overwrites the timer. Preserve a longer running OR queued status. nil = leave it.
+function R.duration(keep, source, id, scale, helpers, plus)
   local d = math.max(1, math.floor(helpers.getStatusEffectDuration(source, id) * scale))
   if keep.temporaryStatusEffects[id] == 1 and keep.statusEffectDurations[id] >= d then return nil end
+  local queued = queuedDuration(plus, source, id, helpers)
+  if queued and queued >= d then return nil end
   return d
 end
 
 local function grant(plus, keep, source, id, scale, helpers)
   if not R.mayAdd(keep, id, plus.statusEffects, helpers) then return end
-  local d = R.duration(keep, source, id, scale, helpers)
+  local d = R.duration(keep, source, id, scale, helpers, plus)
   if not d then return end
   plus.addedStatusEffects[id] = 1
   plus.statusEffectDurations[id] = d
@@ -810,8 +821,12 @@ function R.apply(a, formula, member, classes, helpers, target)
       local full = helpers.getStatusEffectDuration(member.address, id)
       local now = target.statusEffectDurations[id]
       if target.temporaryStatusEffects[id] == 1 and now < full then
-        formula.target.addedStatusEffects[id] = 1
-        formula.target.statusEffectDurations[id] = math.min(full, now + math.max(1, math.floor(full * fraction)))
+        local extended = math.min(full, now + math.max(1, math.floor(full * fraction)))
+        local queued = queuedDuration(formula.target, member.address, id, helpers)
+        if not queued or queued < extended then
+          formula.target.addedStatusEffects[id] = 1
+          formula.target.statusEffectDurations[id] = extended
+        end
       end
     end
     for _, id in ipairs(a.casterRemove or {}) do formula.caster.removedStatusEffects[id] = 1 end
@@ -860,6 +875,15 @@ function R.report(kind, s, a)
 end
 
 -- ---------- hooks (each Forge adapter calls one after its original function) ----------
+
+-- 222 initializes the target in BOTH onCastPre and onHitPre, before formula effects. Watching the live flag
+-- here clears an expired Stop's budget before a new Stop spell can hide that gap. A still-active Stop is untouched;
+-- our own extensions therefore never reset their cap. No native statuses or timers are written here.
+function R.hook222(formula, caster, target)
+  if target.type == 1 and target.address ~= 0 then
+    P.observeStop(formula.target.identifier, target.temporaryStatusEffects[P.STATUS.stop] == 1)
+  end
+end
 
 -- 165: every physical hit after damage. Party member hitting a foe gives 'hit'; a foe dropping a party member to
 -- critical HP gives the Knight's 'ally' reaction.

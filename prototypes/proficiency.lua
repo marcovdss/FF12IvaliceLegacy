@@ -5,7 +5,7 @@
 -- Every level is built from operations already seen working in play; where a designed effect needed an engine detail
 -- nobody has proven, the level does the nearest thing those operations allow (reports/LEGACY-PROFICIENCY-040.md).
 local M = {}
-M.version = '0.4.4'
+M.version = '0.4.5'
 
 M.NO_JOB = 255
 M.JOB = {whiteMage = 0, lancer = 1, gunner = 2, greenMage = 3, knight = 4, mystic = 5, timeMage = 6, warrior = 7,
@@ -267,13 +267,19 @@ rules[M.JOB.timeMage] = {hit = function(s, a)
   end
 end}
 
+-- Observe the target before any action can apply a new Stop. This also runs for spells, so an expired Stop's
+-- four-hit budget is cleared even when the next action reapplies Stop before anyone lands an unstopped hit.
+function M.observeStop(targetId, stopped)
+  if targetId ~= nil and not stopped and mem.stopHits then mem.stopHits[targetId] = nil end
+end
+
 -- Time Mage III works for the whole party: any member hitting a Stopped foe.
 local function timeMageAura(s, a)
   local best = 0
   for _, p in ipairs(s.party) do if p.job == M.JOB.timeMage then best = math.max(best, s.L[3]) end end
   if best < 1 or not s.foe then return end
   if not s.targetStatus.stop then
-    if mem.stopHits then mem.stopHits[s.targetId] = nil end
+    M.observeStop(s.targetId, false)
     return
   end
   if not s.casterStatus.haste then add(a, 'casterAdd', M.STATUS.haste, (best >= 4 and 0.75 or 0.5)) end

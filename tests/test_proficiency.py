@@ -437,6 +437,53 @@ class ProficiencyApplyTest(unittest.TestCase):
           assert(#added == 0)
         ''')
 
+    def test_short_proc_preserves_a_longer_queued_status(self):
+        self.lua.execute('''
+          local source, target = keep({address=100, type=0}), keep({})
+          for _, side in ipairs({'caster', 'target'}) do
+            for _, duration in ipairs({80, 150, -1}) do
+              local f = {caster=plus(), target=plus()}
+              f[side].addedStatusEffects[20] = 1
+              f[side].statusEffectDurations[20] = duration
+              local a = {}; a[side .. 'Add'] = {[20]=0.5}
+              R.apply(a, f, source, classes, helpers, target)
+              assert(f[side].statusEffectDurations[20] == duration, side .. ':' .. duration)
+            end
+          end
+        ''')
+
+    def test_longer_proc_can_replace_a_shorter_queued_status(self):
+        self.lua.execute('''
+          local source, target = keep({address=100, type=0}), keep({})
+          for _, duration in ipairs({30, -1}) do
+            local f = {caster=plus(), target=plus()}
+            f.target.addedStatusEffects[20] = 1
+            f.target.statusEffectDurations[20] = duration
+            R.apply({targetAdd={[20]=1.5}}, f, source, classes, helpers, target)
+            assert(f.target.statusEffectDurations[20] == 150)
+          end
+          local f = {caster=plus(), target=plus()}
+          f.target.statusEffectDurations[20] = 999 -- no pending grant: stale duration does not count
+          R.apply({targetAdd={[20]=0.5}}, f, source, classes, helpers, target)
+          assert(f.target.addedStatusEffects[20] == 1 and f.target.statusEffectDurations[20] == 50)
+        ''')
+
+    def test_stop_extension_preserves_longer_queued_grants(self):
+        self.lua.execute('''
+          local source, target = keep({address=100, type=0}), keep({has={[3]=40}})
+          for _, duration in ipairs({80, 150, -1}) do
+            local f = {caster=plus(), target=plus()}
+            f.target.addedStatusEffects[3] = 1
+            f.target.statusEffectDurations[3] = duration
+            R.apply({targetExtend={[3]=0.1}}, f, source, classes, helpers, target)
+            assert(f.target.statusEffectDurations[3] == duration)
+          end
+          local f = {caster=plus(), target=plus()}
+          f.target.addedStatusEffects[3] = 1; f.target.statusEffectDurations[3] = 30
+          R.apply({targetExtend={[3]=0.1}}, f, source, classes, helpers, target)
+          assert(f.target.statusEffectDurations[3] == 50)
+        ''')
+
     def test_renew_and_extend(self):
         self.lua.execute('''
           local f = apply({targetRenew={15, 14}}, keep({has={[15]=10}}))
@@ -450,6 +497,33 @@ class ProficiencyApplyTest(unittest.TestCase):
           assert(f.target.addedStatusEffects[3] == 0)
           f = apply({targetExtend={[3]=0.10}}, keep({}))            -- no Stop: nothing to extend
           assert(f.target.addedStatusEffects[3] == 0)
+        ''')
+
+    def test_fresh_stop_gets_a_new_budget_without_an_unstopped_hit(self):
+        self.lua.execute('''
+          local p = R.Proficiency
+          local function strike(id)
+            return p.decide('hit', {job=4, actorId=1, targetId=id or 9, foe=true, damage=100,
+              targetStatus={stop=true}, casterStatus={haste=true}, party={{job=6}}}, 11)
+          end
+          local function exhaust()
+            for i=1,4 do assert(strike().targetExtend, 'extension ' .. i) end
+            assert(not strike().targetExtend, 'four extensions is the cap')
+          end
+          exhaust()
+          local source, target = keep({address=100, type=0}), keep({has={[3]=40}})
+          local calls = 0
+          local init = R.wrap(222, function(formula)
+            calls = calls + 1
+            formula.target.identifier = 9 -- initialized by Forge 222 before our hook reads it
+          end)
+          init({target={}}, source, target, {}, classes, helpers)
+          assert(calls == 1 and not strike().targetExtend, 'an active Stop keeps its used budget')
+          target.temporaryStatusEffects[3] = 0 -- the old Stop expired
+          init({target={}}, source, target, {}, classes, helpers) -- a Stop spell starts, no intervening physical hit
+          target.temporaryStatusEffects[3] = 1 -- the new Stop lands
+          exhaust()
+          assert(not strike().targetExtend, 'the replacement Stop is capped too')
         ''')
 
     def test_charge_bonus_waits_for_the_next_charge(self):
@@ -492,7 +566,7 @@ class ProficiencyAdapterTest(unittest.TestCase):
                    registerEventAsync=function() return true end, registerLoadHandler=function() return true end,
                    registerSaveHandler=function() return true end}
         ''')
-        for n in (165, 240, 110, 127, 170, 182, 22):
+        for n in (165, 240, 110, 127, 170, 182, 22, 222):
             fn = lua.execute('return load(...)()', (ROOT/f'prototypes/forge_proficiency_{n}.lua').read_text(encoding='utf-8'))
             lua.globals()[f'f{n}'] = fn
         lua.execute('''
@@ -501,7 +575,8 @@ class ProficiencyAdapterTest(unittest.TestCase):
           assert(n == 1)
           f165({target={removedHp=1}}, {type=0}, {type=1}, {}, {}, {})
           f182({target={addedStatusEffects=setmetatable({}, {__index=function() return 0 end})}}, {type=0}, {type=1}, {}, {}, {})
-          assert(calls['165'] == 1 and calls['182'] == 1)
+          f222({target={identifier=9}}, {type=0}, {type=1, address=900, temporaryStatusEffects={[3]=0}}, {}, {}, {})
+          assert(calls['165'] == 1 and calls['182'] == 1 and calls['222'] == 1)
         ''')
 
 
