@@ -67,7 +67,7 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(P.decide('hit', S({targetStatus={slow=true}}), 2).damage == 1.15)
           assert(P.decide('hit', S({targetStatus={slow=true}}), 2).damage == 1.15 + 0.05)
           P.reset()
-          assert(P.decide('hit', S({targetStatus={poison=true}, kill=true}), 3).healHp == 10)
+          assert(P.decide('hit', S({targetStatus={poison=true}, kill=true}), 3).healHp == 11)   -- 10% of the final 114
           P.reset()
           local h = P.decide('hit', S({targetStatus={poison=true, slow=true, oil=true}}), 5)
           assert(#h.targetRenew == 1 and h.targetRenew[1] == 8)                           -- shortest timer first
@@ -140,7 +140,7 @@ class ProficiencyRulesTest(unittest.TestCase):
           local function cast(rank) return P.decide('magick', S({job=9, element=1, mpCost=10}), rank) end
           cast(11); cast(11)
           local b = cast(11)
-          assert(b.targetAdd[11] == 0.5 and op(b, 'add', 11) and op(b, 'hp').amount == -25)
+          assert(b.targetAdd[11] == 0.5 and op(b, 'add', 11) and op(b, 'hp').amount == -28)   -- 25% of the final 114
           -- Legendary: a master of the owning job with the right family; nobody else.
           P.reset()
           local function leg(job, category, rank, weapon)
@@ -153,6 +153,73 @@ class ProficiencyRulesTest(unittest.TestCase):
           for job, want in pairs({[1]=P.JOB.knight, [5]=P.JOB.lancer, [13]=P.JOB.whiteMage, [14]=P.JOB.blackMage}) do
             assert(P.FAMILY_OWNER[job] == want)
           end
+        ''')
+
+    def test_audit_042(self):
+        self.run_lua('''
+          local function op(a, name, id)
+            for _, o in ipairs(a and a.others or {}) do if o.op == name and (id == nil or o.id == id) then return o end end
+          end
+          local function no() return false end
+          -- Samurai III-4: the carry survives the killing hit and counts on the next foe.
+          P.reset()
+          P.decide('hit', S({job=10, targetId=1, kill=true, casterStatus={haste=true}}), 12)
+          local c = P.decide('hit', S({job=10, targetId=2}), 12)
+          assert(c and c.casterAdd and c.casterAdd[20], 'the chain carried to the next foe')
+          P.reset()
+          P.decide('hit', S({job=10, targetId=1, kill=true, casterStatus={haste=true}}), 11)
+          assert(P.decide('hit', S({job=10, targetId=2}), 11).damage == 1.20)             -- level 3: no carry, the boost only
+          -- A status the foe refuses gives no reward.
+          local a = P.decide('hit', S({job=6, targetStatus={slow=true}, canLand=no}), 7)
+          assert(a.targetAdd[3] and not a.others, 'an immune foe: no Slow on the others')
+          P.reset()
+          a = P.decide('hit', S({job=2, charge={current=25000, required=30000, last=25000}, canLand=no}), 8)
+          assert(a.targetAdd[9] and not op(a, 'add', 22), 'no Faith without the Silence')
+          a = P.decide('status', S({job=11, landed={8}, damage=100, canLand=no}), 12)
+          assert(a == nil, 'no spread, no damage, no Libra on a foe that refuses it')
+          -- One set of rolls for a hit decided twice.
+          P.reset()
+          local calls, answers = 0, {true, false}
+          a = P.decide('hit', S({job=2, charge={current=25000, required=30000, last=25000}, targetStatus={stop=true}, damage=100,
+            targetHp=110, roll=function() calls = calls + 1; return answers[calls] end,
+            party={{address=100, job=2, hpPct=100, mp=0, maxMp=0, status={}}, {address=300, job=6, hpPct=100, mp=0, maxMp=0, status={}}}}), 12)
+          assert(calls == 1 and a.targetAdd[9], 'the replay kept the first roll')
+          -- Warrior: II keeps a kill's longer Bravery, and Protect does not need Bravery to be missing.
+          a = P.decide('hit', S({job=7, kill=true, casterHpPct=40}), 8)
+          assert(a.casterAdd[21] == 1.5 and a.casterAdd[18])
+          a = P.decide('hit', S({job=7, casterHpPct=40, casterStatus={bravery=true}}), 8)
+          assert(a.casterAdd[18] and not a.casterAdd[21] and op(a, 'add', 21))
+          -- Warrior III-4: real, not a longer timer on a status with none.
+          local two = {{address=1, status={}}, {address=2, status={}}}
+          a = P.decide('hit', S({job=7, kill=true, targetStatus={sap=true}, foes=two}), 12)
+          local spreads = 0
+          for _, o in ipairs(a.others) do if o.op == 'add' and o.id == 10 then spreads = spreads + 1 end end
+          assert(spreads == 2)
+          -- White Mage II-4: the healed target gets the +25% too.
+          assert(P.decide('heal', S({job=0, overflow=50}), 8).targetAdd[25] == 1.5 * 1.25)
+          -- Hunter III: the armed Slow is spent on the next foe hit, even one already Slowed.
+          P.reset()
+          P.decide('hit', S({targetId=1, kill=true, targetStatus={poison=true}}), 10)
+          P.decide('hit', S({targetId=2, targetStatus={slow=true}}), 10)
+          a = P.decide('hit', S({targetId=3}), 10)
+          assert(not (a and a.targetAdd and a.targetAdd[15]), 'not carried to a later foe')
+          -- Chemist II: 20% of the final damage, with a Time Mage's bonus included.
+          P.reset()
+          a = P.decide('hit', S({job=11, targetStatus={stop=true}, party={{address=100, job=11, hpPct=100, mp=0, maxMp=0, status={}},
+            {address=200, job=0, hpPct=40, mp=0, maxMp=0, status={}}, {address=300, job=6, hpPct=100, mp=0, maxMp=0, status={}}}}), 10)
+          assert(a.damage == 1.15 and op(a, 'hp').amount == 22)                           -- floor(100 x 1.15) is 114, as the runtime applies it
+          -- Black Mage: one refund percentage; III-4 raises the splash.
+          P.reset()
+          for rank, refund in pairs({[7] = 7, [8] = 11}) do
+            P.reset()
+            local function cast() return P.decide('magick', S({job=9, element=1, mpCost=19}), rank) end
+            cast(); cast()
+            assert(op(cast(), 'mp').amount == refund)
+          end
+          P.reset()
+          local function last() return P.decide('magick', S({job=9, element=1, mpCost=19}), 12) end
+          last(); last()
+          assert(op(last(), 'hp').amount == -39)                                          -- 35% of the final 114
         ''')
 
     def test_warrior(self):
@@ -216,6 +283,7 @@ class ProficiencyRulesTest(unittest.TestCase):
           a = P.decide('hit', S({job=3, damage=200, casterMp=100}), 8)                    -- II full: gives to allies
           assert(a.drainMp == nil and a.targetMpLoss == 16 and others(a, 'mp') == 2 and others(a, 'remove') == 1)
           assert(P.decide('hit', S({job=3, damage=200}), 9).chargeTo)                     -- III slows charge
+          assert(P.decide('hit', S({job=3, damage=200, targetMp=0}), 9).chargeTo)         -- even on a foe with no MP
         ''')
 
     def test_knight_mystic_white_black_chemist(self):
@@ -261,7 +329,7 @@ class ProficiencyRulesTest(unittest.TestCase):
           -- A hit only the bonus makes lethal is a kill, and the chain state is not advanced twice.
           P.reset()
           a = P.decide('hit', S({targetStatus={poison=true}, damage=100, targetHp=110}), 3)
-          assert(a.healHp == 10 and a.damage == 1.15)
+          assert(a.healHp == 11 and a.damage == 1.15)
           P.reset()
           assert(P.decide('hit', S({targetStatus={poison=true}, damage=100, targetHp=120}), 3).healHp == nil)
           -- No level is a copy of the one before it.
@@ -616,7 +684,7 @@ class ProficiencyWritTest(unittest.TestCase):
           end
           memory.getSymbol = function(name) return symbols[name] end
           message = {convert = function(s) return 'N:' .. s end}
-          local cats = {[0] = 12, 21, 20}
+          local cats = {[0] = 12, 21, 20, 19, 18, 23}
           bpack = {section13 = setmetatable({}, {__index = function(_, i) return cats[i] and {category = cats[i]} or nil end})}
           local jobs = {[0] = 8, [1] = 4}                                    -- member 0 Hunter, member 1 Knight
           local baseExec = memory.execute
@@ -635,12 +703,12 @@ class ProficiencyWritTest(unittest.TestCase):
           keys[0x81F0] = true
           tick()
           assert(#assembled == 2 and type(assembled[1]) == 'table' and assembled[2] == 0x29266C)  -- block, then site
-          assert(logged('gear text hook installed (2 items)'))                                   -- dagger, armour
+          assert(logged('gear text hook installed (3 items)'))                                   -- dagger, body armour, helmet
           local bits = memory.u64[symbols.legacy_prof_bits]
-          assert(memory.u8[bits] == 0x05)                                                        -- records 0 and 2
+          assert(memory.u8[bits] == 1 and memory.u8[bits+1] == 0 and memory.u8[bits+2] == 2 and memory.u8[bits+3] == 3 and memory.u8[bits+4] == 0 and memory.u8[bits+5] == 0)                                                        -- per-item stage map
           local tbl = memory.u64[symbols.legacy_prof_table]
-          local function suffix(m)
-            local at, out = memory.u64[tbl + m * 8], {}
+          local function suffix(m, stage)
+            local at, out = memory.u64[tbl + (m * 3 + (stage or 1) - 1) * 8], {}
             if at == 0 then return nil end
             local i = 0
             while memory.u8[at + i] ~= 0 do out[#out + 1] = string.char(memory.u8[at + i]); i = i + 1 end
@@ -648,21 +716,36 @@ class ProficiencyWritTest(unittest.TestCase):
           end
           assert(suffix(0):find('^N:\nProficiency:') == nil and suffix(0):find('Pursuit I 1/4:', 1, true))
           assert(suffix(1):find('Bulwark I 1/4:', 1, true) and suffix(2) == nil)
+          assert(suffix(0, 2):find('Pursuit II 0/4:', 1, true))
+          assert(suffix(0, 3):find('Pursuit III 0/4:', 1, true))
+          assert(suffix(0, 2):find('See Montblanc to unlock', 1, true))
+          for c = 0, 26 do
+            local expected = c <= 17 and 1 or (c == 19 and 3 or (c == 20 and 2 or nil))
+            assert(R3.gearStage(c) == expected, c)
+          end
+          assert(R3.gearStage(-1) == nil and R3.gearStage(1.5) == nil and R3.gearStage(nil) == nil)
           local first = memory.u64[tbl]
           tick(); assert(memory.u64[tbl] == first)                            -- nothing changed: same buffer
           jobs[0] = 11; tick()
           assert(memory.u64[tbl] ~= first and suffix(0):find('Contagion', 1, true))   -- other buffer, new text
           -- One added line only: the Equipment help box holds four lines and weapons already use three.
-          local one = R3.gearSuffix(8, 1)
+          local one = R3.gearSuffix(8, 1, 1)
           assert(one == '\n{scale:82}{rgb:90,90,90}Pursuit I 1/4:{lowspace}{rgb:255,255,255}+15% damage to foes with an ailment', one)
-          assert(R3.gearSuffix(8, 0):find('{rgb:90,90,90}Proficiency:{lowspace}{rgb:255,255,255}Pursuit  (no Writ yet', 1, true))
-          assert(R3.gearSuffix(8, 7):find('Pursuit II 3/4:', 1, true))             -- highest stage begun
-          for job = 0, 11 do for rank = 0, 12 do
-            local s = R3.gearSuffix(job, rank)
+          assert(R3.gearSuffix(8, 0, 1):find('Pursuit I 0/4:', 1, true))
+          assert(R3.gearSuffix(8, 7, 1):find('Pursuit I 4/4:', 1, true))
+          assert(R3.gearSuffix(8, 7, 2):find('Pursuit II 3/4:', 1, true))
+          assert(R3.gearSuffix(8, 12, 3):find('Pursuit III 4/4:', 1, true))
+          assert(R3.gearSuffix(8, 12, 0) == nil and R3.gearSuffix(99, 12, 1) == nil)
+          for job = 0, 11 do for rank = 0, 12 do for stage = 1, 3 do
+            local s = R3.gearSuffix(job, rank, stage)
             local _, breaks = s:gsub('\n', '')
             local plain = s:gsub('{[^}]*}', '')
-            assert(breaks == 1 and #plain <= 96, job .. ':' .. rank .. ' ' .. plain)
-          end end
+            assert(breaks == 1 and #plain <= 96, job .. ':' .. rank .. ':' .. stage .. ' ' .. plain)
+            local levels = R3.Proficiency.levels(rank)
+            if levels[stage] > 0 then
+              assert(s:find(R3.Proficiency.GEAR[job][stage][levels[stage]], 1, true))
+            else assert(s:find('See Montblanc to unlock', 1, true)) end
+          end end end
           site = {0xE9, 0, 0, 0, 0, 0x90}                                      -- someone else patched the site
           R4 = load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime4', 't', _ENV)()
           assembled = {}
@@ -670,16 +753,16 @@ class ProficiencyWritTest(unittest.TestCase):
           tick(); assert(#assembled == 0 and logged('unexpected code at 0x29266C'))
         ''')
 
-    def test_equipment_box_width_fix(self):
+    def test_help_box_width_fix(self):
         self.lua.execute('''
-          local site, assembled = {0x8B, 0xC8}, {}
+          local site, assembled = {0x3B, 0xC1}, {}
           local baseRead = memory.readArray
-          memory.readArray = function(a, n) if a == 0x3FF6CD then return site end return baseRead(a, n) end
+          memory.readArray = function(a, n) if a == 0x292452 then return site end return baseRead(a, n) end
           memory.assemble = function(code, where) assembled[#assembled + 1] = {code, where} end
           assert(R.installWidthFix() and #assembled == 1)
-          assert(assembled[1][1] == 'xor ecx,ecx' and assembled[1][2] == 0x3FF6CD)
-          assert(logged('Equipment box width fix applied'))
-          site = {0x31, 0xC9}                                   -- already changed (or another mod): leave it
+          assert(assembled[1][1] == 'xor eax,eax' and assembled[1][2] == 0x292452)
+          assert(logged('Help box width fix applied'))
+          site = {0x31, 0xC0}                                   -- already changed (or another mod): leave it
           assert(not R.installWidthFix() and #assembled == 1 and logged('not applied: unexpected code'))
         ''')
 

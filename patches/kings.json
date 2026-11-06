@@ -669,6 +669,19 @@
         {"sectionByteOffset": 125326, "before": "58a905", "after": "4f0000"},
         {"sectionByteOffset": 125762, "before": "58a905", "after": "4f0000"}
       ]
+    },
+    {
+      "king": "Aspidochelon",
+      "area": "srb_b03",
+      "file": "ps2data/plan_master/us/plan_map/srb_b/srb_b03/global/srb_b03.ebp",
+      "section": 0,
+      "sourceFileSha256": "392eda3bf1147124ecafa7c48e1d9a9d3507364922afa5f26b351a1ac3b245f1",
+      "sourceSectionSha256": "3bfbf12abb999f9fd430f9598ea526d601794baf5a57be1098f37db316a7c552",
+      "note": "Thread 35 tests its Hunt Club gate, then rolls once on load. gate == 1 becomes gate <= switch, so it enters before the quest while it lives and stays gone once the trophy is earned. Its three checks all jump to the same wait, so they become one expression with the switch beside the roll.",
+      "replacements": [
+        {"sectionByteOffset": 72058, "before": "4f01000a", "after": "58a9050f"},
+        {"sectionByteOffset": 72134, "before": "5c08004f00005836304f0000584a300c4f00005829304f00000a055c06004f64005829004817000d5c0400", "after": "4f00005836304f0000584a300c4f00005829304f00000a05064f64005829004817000d58a90505065c0400"}
+      ]
     }
   ]
 }

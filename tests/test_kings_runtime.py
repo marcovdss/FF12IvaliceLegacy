@@ -43,6 +43,11 @@ def homes():
     return [tuple(int(x) for x in m) for m in re.findall(r'\{(\d+), (\d+), ([0123])\}', body)]
 
 
+def spawners():
+    body = re.search(r'K\.SPAWNERS = \{[^\n]*\n(.*?)\n\}', SOURCE, re.S).group(1)
+    return [tuple(int(x) for x in m) for m in re.findall(r'\{(\d+), (\d+), (\d+)\}', body)]
+
+
 def code():
     return re.search(r'K\.RARE_CODE = \[\[\n(.*?)\]\]', SOURCE, re.S).group(1).replace('.dq 0x00', '.quad 0')
 
@@ -92,9 +97,9 @@ class HomeTableTest(unittest.TestCase):
 
     def test_only_spawners_without_a_way_in_stay_natural(self):
         h = homes()
-        # Spawners that never ask the switch: Larva Eater's gil_e/f/g, Aspidochelon, Aeros, Ishteen in mic_e01.
-        self.assertEqual({(l, e) for l, e, p in h if p == 0 and e != 342}, {(505, 293), (536, 328), (891, 336)})
-        self.assertEqual({e for _, e, p in h if p == 0}, {342, 293, 328, 336})
+        # Spawners that never ask the switch: Larva Eater's gil_e/f/g, Aeros, Ishteen in mic_e01.
+        self.assertEqual({(l, e) for l, e, p in h if p == 0 and e != 342}, {(536, 328), (891, 336)})
+        self.assertEqual({e for _, e, p in h if p == 0}, {342, 328, 336})
         self.assertEqual([x for x in h if x[2] == 1], [])                # no home may depend on recognising the spawner
         for location, entry in ((133, 330), (137, 329), (247, 349), (902, 358), (903, 358), (411, 335), (947, 337)):
             self.assertIn((location, entry, 2), h)
@@ -117,19 +122,37 @@ class HomeTableTest(unittest.TestCase):
         patch = json.loads((ROOT / 'patches/kings.json').read_text(encoding='utf-8'))
         self.assertEqual({k['king'] for k in patch['kings']},
                          {'Cultsworn Lich', 'Wary Wolf', 'Matriarch Bomb', 'Grimalkin', 'Disma', 'Evil Spirit',
-                          'Terror Tyrant', 'Negalmuur', 'Crystal Knight'})
+                          'Terror Tyrant', 'Negalmuur', 'Crystal Knight', 'Aspidochelon'})
         for king in patch['kings']:
             self.assertNotIn('immediates', king)
             for edit in king['replacements']:
                 before, after = edit['before'], edit['after']
                 if king['king'] == 'Cultsworn Lich':
                     self.assertEqual((before, after), ('4f01000a', '58a90505'))   # == 1 becomes OR switch
+                elif king['king'] == 'Aspidochelon':
+                    self.aspidochelon_table(before, after)
                 elif len(before) == 6:
                     # Matriarch Bomb's later "if switch" is now in the roll; the others are switch-only spawners.
                     self.assertIn(king['king'], ('Matriarch Bomb', 'Terror Tyrant', 'Negalmuur', 'Crystal Knight'))
                     self.assertEqual((before, after), ('58a905', '4f0000'))
                 else:
                     self.roll_table(before, after)
+
+    def aspidochelon_table(self, before, after):
+        """Its Hunt Club gate and its three checks. Both edits keep the length."""
+        old, new = bytes.fromhex(before), bytes.fromhex(after)
+        self.assertEqual(len(old), len(new))
+        if len(old) == 4:
+            # gate == 1 becomes gate <= switch (the variable is read just before): free while it lives, whatever the quest
+            # says; with the trophy earned the gate is 2 and it stays gone; no switch and no quest, no entry.
+            self.assertEqual((old, new), (bytes.fromhex('4f01000a'), bytes.fromhex('58a9050f')))
+            for gate, switch, want in ((0, 1, 1), (1, 1, 1), (2, 1, 0), (2, 0, 0), (1, 0, 0)):
+                self.assertEqual(int(gate <= switch), want, (gate, switch))
+            return
+        # Three checks jump to one wait, so they become one expression: B AND (roll OR switch) after the untouched A.
+        self.assertEqual(new[-3:], old[-3:])
+        b, roll = old[3:27], old[30:40]
+        self.assertEqual(new[:-3], b + b'\x06' + roll + bytes.fromhex('58a905') + b'\x05\x06')
 
     def roll_table(self, before, after):
         """A rewritten selection equals the original when the switch says no, and when it says yes passes exactly when
@@ -324,7 +347,7 @@ class HookTest(unittest.TestCase):
     THREAD, ACTOR, CLASS = TABLES_AT + 0x1000, TABLES_AT + 0x2000, TABLES_AT + 0x8000
     RETURN = 0x00511000
 
-    def machine(self, on=True, location=891, kills=(), own=None, flags=0x1D, cls=True, actor=True, seen=()):
+    def machine(self, on=True, location=891, kills=(), own=None, flags=0x1D, cls=True, actor=True, seen=(), thread=0):
         ks = keystone.Ks(keystone.KS_ARCH_X86, keystone.KS_MODE_64)
         blob, _ = ks.asm(code(), CODE_AT)
         blob = bytes(blob)
@@ -340,6 +363,10 @@ class HookTest(unittest.TestCase):
         struct.pack_into('<I', data, 4, len(h))
         for i, entry in enumerate(h):
             struct.pack_into('<IHH', data, 0x40 + 8 * i, *entry)
+        two = spawners()
+        struct.pack_into('<I', data, 0x24, len(two))
+        for i, entry in enumerate(two):
+            struct.pack_into('<IHH', data, 0x600 + 8 * i, *entry)
         uc.mem_write(DATA_AT, bytes(data))
         uc.mem_write(LOCATION, struct.pack('<I', location))
         for entry in kills:
@@ -349,7 +376,8 @@ class HookTest(unittest.TestCase):
         uc.mem_write(0x003504C3, b'\xf4')
         uc.mem_write(CANCEL_HANDLER, b'\xf4')
         uc.mem_write(self.RETURN, b'\xf4')
-        # The calling thread: +0x30 actor; actor flags, +0xE68 class; class +0x52 = Bestiary entry - 1 (own=None: 0).
+        # The calling thread: +0 index; +0x30 actor; actor flags, +0xE68 class; class +0x52 = Bestiary entry - 1 (own=None: 0).
+        uc.mem_write(self.THREAD, struct.pack('<H', thread))
         uc.mem_write(self.THREAD + 0x30, struct.pack('<Q', self.ACTOR if actor else 0))
         uc.mem_write(self.ACTOR, struct.pack('<Q', flags))
         uc.mem_write(self.ACTOR + 0xE68, struct.pack('<Q', self.CLASS if cls else 0))
@@ -415,6 +443,38 @@ class HookTest(unittest.TestCase):
         self.assertEqual(self.rare(location=346, kills=(305,), own=334)[0], 1)
         # Aeros's spawner never asks, so she cannot bring a defeated Bull Croc back.
         self.assertEqual(self.rare(location=536, kills=(299,), own=2)[0], 0)
+
+    def test_dustia_stays_out_beside_a_living_kaiser_wolf(self):
+        # Marco's session: Dustia (334) defeated, Kaiser Wolf (305) alive, and no asker recognised by its class.
+        kills = (334,)
+        eax, uc = self.rare(location=346, kills=kills, thread=21, actor=False)                  # Dustia's spawner
+        self.assertEqual(eax, 0)
+        self.assertEqual(self.counters(uc), (0, 0))
+        self.assertEqual(self.rare(location=346, kills=kills, thread=21, actor=False, native=1)[0], 1)  # natural roll stands
+        self.assertEqual(self.rare(location=346, kills=kills, thread=22, actor=False)[0], 1)    # Kaiser Wolf's spawner
+        self.assertEqual(self.rare(location=346, kills=(305,), thread=22, actor=False)[0], 0)   # and the other way round
+        self.assertEqual(self.rare(location=346, kills=(305,), thread=21, actor=False)[0], 1)
+
+    def test_every_two_king_spawner_answers_for_its_own_king(self):
+        for location, thread, entry in spawners():
+            self.assertEqual(self.rare(location=location, thread=thread, actor=False)[0], 1, (location, thread))
+            self.assertEqual(self.rare(location=location, thread=thread, actor=False, kills=(entry,))[0], 0, (location, thread))
+
+    def test_a_king_only_recorded_counts_as_undefeated(self):
+        # Byte 1 = recorded, no kill.
+        self.assertEqual(self.rare(location=346, thread=21, actor=False, seen=(334,))[0], 1)
+
+    def test_other_threads_and_maps_keep_the_location_answer(self):
+        # The trophy thread on the same map, and a matching thread number on another map.
+        self.assertEqual(self.rare(location=346, kills=(334,), thread=5, actor=False)[0], 1)
+        self.assertEqual(self.rare(location=229, thread=21, actor=False)[0], 1)
+        self.assertEqual(self.rare(location=229, kills=(331,), thread=21, actor=False)[0], 0)
+
+    def test_two_king_spawners_are_counted(self):
+        _, uc = self.rare(location=346, thread=21, actor=False)
+        self.assertEqual(struct.unpack('<I', bytes(uc.mem_read(DATA_AT + 0x28, 4)))[0], 1)
+        _, uc = self.rare(location=346, thread=5, actor=False)
+        self.assertEqual(struct.unpack('<I', bytes(uc.mem_read(DATA_AT + 0x28, 4)))[0], 0)
 
     def test_nekhbet_in_the_map_that_crashed(self):
         # The game's own class field holds 330 for Nekhbet, entry 331, home 229.
@@ -645,6 +705,9 @@ class ExecutableTest(unittest.TestCase):
                 spans |= set(range(edit['sectionByteOffset'], edit['sectionByteOffset'] + len(edit['before']) // 2))
             self.assertLessEqual(changed, spans, king['area'])
             if 'kingRow' not in king:
+                if king['king'] == 'Aspidochelon':
+                    # Both its checks now ask the switch, in the one thread that holds it.
+                    self.assertEqual(sum(bytes.fromhex('58a905') in bytes.fromhex(e['after']) for e in king['replacements']), 2)
                 continue
             row = king['kingRow']
             holders, selections, switches = 0, 0, 0

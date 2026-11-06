@@ -9,8 +9,12 @@
 --               recognised as a King's own answers for that King alone, so a defeated King stays out beside a living
 --               neighbour. 0.0.15-0.0.17 answered only recognised spawners, and in game nothing was recognised (no yes in
 --               a whole session, Greeden missing), so presence no longer depends on it. The log line "switch asked"
---               records what the hook sees, to find out why. Spawners that only the switch brings in stop asking
---               (patches/kings.json), so ordinary foes are not added.
+--               records what the hook sees, to find out why. On a map with two Kings the asker is told apart by its
+--               thread index (K.SPAWNERS), so a defeated King stays out beside a living neighbour. Spawners that only the switch brings in stop asking
+--               (patches/kings.json), so ordinary foes are not added. Hunt Club Kings are forced too, before the quest:
+--               a dangerous monster in a low-level area is wanted. Their trophy state (save image + 0x200 + 0xC90 + slot:
+--               0 quest not started, 1 active, 2 trophy earned) keeps them gone once the trophy is earned. Accepting the
+--               quest sets every slot to 1, so a King killed before it can return once on its natural roll.
 --   0x1F28B70   the handler of btlAtelCanselInitialSpawnFlag in the script command table. Presence 3 only (Grey Molter,
 --               whose map has no switch and whose entry is a play-time window): the command does nothing for the
 --               undefeated King in its home, on the inference that a unit enters by default unless this command ran.
@@ -27,7 +31,7 @@
 -- at +0xB603+n. The class table's +0x52 counts from 0 (Nekhbet 330) while these count from 1 (331). The byte is encoded:
 -- 0 unknown, 1 recorded without a kill (0x315A90), otherwise kills + 1 (getter 0x315434, increment 0x31582D). So a King
 -- is defeated only when its byte is 2 or more.
-local K = {version = '0.5.0'}
+local K = {version = '0.7.0'}
 
 K.FIRST, K.LAST = 293, 372
 K.KILLS = 0x0216F883          -- 0x2164280 (save image) + 0xB603; entry n at K.KILLS + n
@@ -36,16 +40,18 @@ K.RARE_SITE, K.RARE_RETURN = 0x003504BE, 0x003504C3
 K.ORIGINAL = {0x8B, 0xD0, 0x48, 0x8B, 0xCB}  -- mov edx,eax ; mov rcx,rbx
 K.CANCEL_SLOT, K.CANCEL_HANDLER = 0x01F28B70, 0x005102D0   -- set 3 table 0x1F281B0 + (0x4D + 1) * 32
 K.DATA_SIZE, K.ENTRY_AT, K.ENTRY_SIZE = 0x800, 0x40, 8
+K.SPAWNER_AT = 0x600
 -- Data block: +0 on (u8), +4 home count, +8 presence answers forced, +0xC cancels skipped, +0x14 last forced location,
 -- +0x18 times the switch was asked, +0x1C last Bestiary entry read from an asker, +0x20 askers with no class,
--- +0x40 homes {u32 location, u16 Bestiary entry, u16 presence}.
+-- +0x24 two-King spawner count, +0x28 times one of them asked, +0x40 homes {u32 location, u16 Bestiary entry, u16 presence},
+-- +0x600 two-King spawners {u32 location, u16 thread index, u16 Bestiary entry}.
 
 -- Home locations of every King (field maps whose scripts set the King's roster row; location ids from the map names).
 -- Presence 0: natural spawn rules (Larva Eater's gil_e/f/g spawners have no way in at all). 1: forced until defeated,
 -- a recognised own spawner only (no home uses this now). 2: anyone asking in this location gets yes until defeated.
 -- 3: no switch on the map: its spawn cancel does nothing until defeated.
 K.HOMES = {  -- {location, Bestiary entry, presence}
-  {505, 293, 0},  -- Aspidochelon (srb_b03)
+  {505, 293, 2},  -- Aspidochelon (srb_b03)
   {358, 294, 2},  -- Aerieel (lus_a02)
   {492, 295, 2},  -- Thalassinon (fon_c02)
   {185, 296, 2},  -- Anubys (rui_a02)
@@ -156,6 +162,21 @@ K.HOMES = {  -- {location, Bestiary entry, presence}
   {385, 372, 2},  -- Urutan Exile (ene_a07)
 }
 
+-- The maps with two Kings. Presence 2 says yes while any King of the location lives, so each of these spawners answers for
+-- its own King alone: yes until that King is defeated, then the game's own answer. The thread index is u16 [thread]
+-- (stored at 0x2665EB). These are the threads whose scripts run command 0x5A9 and set that King's unit (read from the
+-- effective scripts, 2026-11-05). Each map's trophy thread also asks, sets no unit, and keeps the location answer.
+K.SPAWNERS = {  -- {location, thread, Bestiary entry}
+  {346, 21, 334},  -- Dustia (wdl_a02)
+  {346, 22, 305},  -- Kaiser Wolf (wdl_a02)
+  {430, 25, 338},  -- Vorres (bds_c01)
+  {430, 26, 367},  -- Helvinek (bds_c01)
+  {940, 32, 342},  -- Larva Eater (gil_i02)
+  {940, 33, 348},  -- Crystal Knight (gil_i02)
+  {470, 22, 364},  -- Anchag (pbc_b03)
+  {470, 23, 360},  -- Ancbolder (pbc_b03)
+}
+
 local logged, LOG_LIMIT = 0, 200
 local function log(line)
   if logged < LOG_LIMIT then logged = logged + 1; print('Legacy Kings: ' .. line) end
@@ -203,7 +224,11 @@ function K.validate(homes)
     if seen[key] then return false, 'duplicate ' .. i end
     seen[key] = true
   end
-  if #homes * K.ENTRY_SIZE + K.ENTRY_AT > K.DATA_SIZE then return false, 'too many homes' end
+  if #homes * K.ENTRY_SIZE + K.ENTRY_AT > K.SPAWNER_AT then return false, 'too many homes' end
+  if #K.SPAWNERS * K.ENTRY_SIZE + K.SPAWNER_AT > K.DATA_SIZE then return false, 'too many spawners' end
+  for i, s in ipairs(K.SPAWNERS) do
+    if homes == K.HOMES and not seen[s[1] * 1000 + s[3]] then return false, 'spawner without a home ' .. i end
+  end
   return true
 end
 
@@ -219,6 +244,11 @@ function K.dataBytes(homes, on)
   for i, h in ipairs(homes) do
     local at = K.ENTRY_AT + (i - 1) * K.ENTRY_SIZE
     put(at, h[1], 4); put(at + 4, h[2], 2); put(at + 6, h[3], 2)
+  end
+  put(0x24, #K.SPAWNERS, 4)
+  for i, s in ipairs(K.SPAWNERS) do
+    local at = K.SPAWNER_AT + (i - 1) * K.ENTRY_SIZE
+    put(at, s[1], 4); put(at + 4, s[2], 2); put(at + 6, s[3], 2)
   end
   return b
 end
@@ -252,6 +282,27 @@ legacy_kings_rare_no_class:
 legacy_kings_rare_lookup:
   mov r11d,0x021654C4
   mov edx,[r11]
+  movzx r11d,word ptr [rbx]
+  mov r9d,[r8+0x24]
+  lea r10,[r8+0x600]
+legacy_kings_rare_spawner:
+  test r9d,r9d
+  je legacy_kings_rare_own_start
+  cmp [r10],edx
+  jne legacy_kings_rare_spawner_next
+  cmp word ptr [r10+0x04],r11w
+  jne legacy_kings_rare_spawner_next
+  inc dword ptr [r8+0x28]
+  movzx ecx,word ptr [r10+0x06]
+  mov r11d,0x0216F883
+  cmp byte ptr [r11+rcx],0x01
+  ja legacy_kings_rare_done
+  jmp legacy_kings_rare_force
+legacy_kings_rare_spawner_next:
+  add r10,0x08
+  dec r9d
+  jmp legacy_kings_rare_spawner
+legacy_kings_rare_own_start:
   mov r9d,[r8+0x04]
   lea r10,[r8+0x40]
 legacy_kings_rare_own:
@@ -358,7 +409,7 @@ legacy_kings_data:
 K.SYMBOLS = {'legacy_kings_rare', 'legacy_kings_cancel', 'legacy_kings_data'}
 K.RARE_PATCH = 'jmp %legacy_kings_rare%'
 
-local state = {installed = false, data = nil, forced = 0, kept = 0, asked = 0, noClass = 0}
+local state = {installed = false, data = nil, forced = 0, kept = 0, asked = 0, noClass = 0, own = 0}
 K.state = state
 
 function K.install()
@@ -422,10 +473,11 @@ function K.report(location)
   if not state.installed then return end
   local forced, kept = memory.u32[state.data + 0x08], memory.u32[state.data + 0x0C]
   local asked, noClass = memory.u32[state.data + 0x18], memory.u32[state.data + 0x20]
+  local own = memory.u32[state.data + 0x28]
   if asked ~= state.asked or kept ~= state.kept then
-    log(string.format('since last map: switch asked %d (no class %d, last entry %d), forced %d, cancels skipped %d',
-      asked - state.asked, noClass - state.noClass, memory.u32[state.data + 0x1C], forced - state.forced, kept - state.kept))
-    state.forced, state.kept, state.asked, state.noClass = forced, kept, asked, noClass
+    log(string.format('since last map: switch asked %d (no class %d, last entry %d, two-King spawners %d), forced %d, cancels skipped %d',
+      asked - state.asked, noClass - state.noClass, memory.u32[state.data + 0x1C], own - state.own, forced - state.forced, kept - state.kept))
+    state.forced, state.kept, state.asked, state.noClass, state.own = forced, kept, asked, noClass, own
   end
   local here = {}
   for _, h in ipairs(K.HOMES) do

@@ -13,13 +13,13 @@ and progression you can't steamroll.
 
 | Package | Version | What it is | Tested in game |
 |---|---|---|---|
-| Ivalice Legacy (main) | 0.0.18 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, separate save files | 0.0.11 yes (Estersand); 0.0.12 Kings spawn yes, defeated Kings did not stay gone; 0.0.13 crashed entering a defeated King's map (fixed in 0.0.14); defeated Kings came back on every visit in 0.0.14 (0.0.15: they follow the game's own conditions; 0.0.16: nearly all 80 guaranteed until defeated; 0.0.17: an undefeated King was often missing, its spawner went unrecognised; 0.0.18: the yes is per map again, seen working on three Kings of the Estersand) |
+| Ivalice Legacy (main) | 0.0.21 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, Magicks, separate save files | 0.0.11 yes (Estersand); 0.0.12 Kings spawn yes, defeated Kings did not stay gone; 0.0.13 crashed entering a defeated King's map (fixed in 0.0.14); defeated Kings came back on every visit in 0.0.14 (0.0.15: they follow the game's own conditions; 0.0.16: nearly all 80 guaranteed until defeated; 0.0.17: an undefeated King was often missing, its spawner went unrecognised; 0.0.18: the yes is per map again, seen working on three Kings of the Estersand) |
 | Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Early game, feels good |
 | Arsenal | 0.6.0 | Weapon attack curve and family identities, accessory identities, armour rework | Early game; armour text seen, effects not yet measured |
-| Proficiency | 0.4.1 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip, the line shown on gear and full legendary power for masters | Stage I at rank 1; stages II and III not yet |
+| Proficiency | 0.4.4 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip, the line shown on gear and full legendary power for masters | Stage I at rank 1; stages II and III not yet |
 | Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
 
-## Main package (0.0.18)
+## Main package (0.0.21)
 
 **Opening stock.** Rabanastre's merchants sell a wider set of opening tools from the very start. Items they
 already stocked later in the story move to the start instead of appearing twice. Prices are unchanged.
@@ -47,8 +47,9 @@ a steal from the Paramina Rift Feral Retriever. Every early slot they leave keep
 **Kings of the zone.** Every rare game (the Bestiary's 80 rare-game entries) is the King of its zone: it is there on
 every visit until you defeat it once. After that it follows the game's own conditions (a roll, play time, a chain and
 so on), so it can return, but rarely. "Defeated" is the game's own Bestiary count, so Kings you defeated before this
-version already count. Rain Dancer only exists in Giza Plains' rainy season. Two Kings keep their own way in: Aeros
-appears after Bull Croc falls, and Aspidochelon has its original chance. Each King's own fight and reward are planned.
+version already count. Rain Dancer only exists in Giza Plains' rainy season. Hunt Club Kings are there from the start too, quest or no quest,
+and once you earn their trophy they stay gone. Aeros appears after Bull Croc falls. Each King's own fight and reward
+are planned.
 
 How it works: `x64/scripts/IvaliceLegacyKings.lua` loads `x64/scripts/IvaliceLegacy/kings_runtime.lua`, which changes
 two things only when it finds the original game at both places (and logs the reason otherwise): the engine's rare-game
@@ -59,9 +60,26 @@ you trigger takes it and the rest keep their ordinary foes, so such a King appea
 entering the map. Keep Bountiful Bundle's "Always Spawn Rare Game" off: it answers
 "yes" everywhere, so every defeated King would return on every visit.
 
+On the four maps with two Kings, each King's spawner is checked separately, so a living neighbour no longer forces a
+King you already defeated. This is installed and tested offline; the latest spawner changes still need play checks.
+
+**Decoy.** The party's Decoy targets about two minutes; its duration is an estimate pending a timed cast. The timer
+change does not affect enemy casts or Knight's Proficiency Lure. Always-hit Decoy and the fix for enemy-only spells
+occupying the gambit picker are provided by the separate personal-use Foe Base package, whose copied data is not
+included in this repository.
+
+**Magicks.** The party's attack spells climb with the weapons. Arsenal lowered late weapons, and spells had kept their
+native power, so by the last shops a spell hit 4 to 7 times as hard as a swing. Each spell is now set on its own, in
+`x64/scripts/IvaliceLegacy/magicks.lua` with the reason beside it. A spell still beats a swing, more when it hits one
+foe, less when it hits many: Flare is about 3 weapon hits and Firaga about 2 on each foe. Fire, Thunder and Blizzard
+stay native. MP, area and targeting stay native. Foes cast the same spells at full power, because this works in Forge
+function 62 and only for the party, without touching the action table. Expose and Shear now take 30% from a foe,
+like Wither and Addle, instead of 10%, so armoured and warded foes have a real answer.
+
 **Estersand hunts.** Flowering Cactoid no longer uses 1000 Needles (an ordinary attack takes its place) and casts
 Cure at most once per stage of the fight; its two Potions were already once-only. Ripe Rampager starts recovering
-below 60% HP (was 50%) and stops at 70% (was 60%). Enemy AI lives in `patches/area_ai.json`, one entry per area.
+below 60% HP (was 50%) and stops at 70% (was 60%). Enemy AI lives in `patches/area_ai.json`, one entry per area. Family signatures, such as rats
+going for the lowest Defense and wounded Mimics turning on the furthest party member, live in `patches/families.json`.
 
 **Separate save files.** An early-init script (`x64/scripts/init/IvaliceLegacySaves.lua`, FF12 LUA Loader 2.0.1)
 makes the game list and write `LEGCY_000`, `LEGCY_001`, ... instead of `FFXII_###`. Normal saves are left alone.
@@ -121,7 +139,7 @@ are being designed and are not part of this package.
 
 See [package_arsenal/README.md](package_arsenal/README.md) for every weapon's numbers.
 
-## Proficiency (0.4.1)
+## Proficiency (0.4.4)
 
 Each job's Clan line, earned from **Montblanc** and applied to whatever the character wields.
 
@@ -137,10 +155,10 @@ Each job's Clan line, earned from **Montblanc** and applied to whatever the char
   Key Items. A rank rewarded before the Writs existed gets its Writ on the next visit to the Clan hall.
 - **A Clan Primer tip.** "Clan Proficiency" joins the Traveler's Tips (The Ways of Strength) once the Apprentice's
   Writ is in Key Items.
-- **Shown on the gear.** In the Equipment menu every weapon, shield and armour piece shows the selected character's
-  Proficiency: its levels and what each unlocked stage does now (accessories excluded). The text is added when the
-  description is shown, so it always matches the character on screen. Inventory, shops and other menus show the
-  plain description.
+- **Shown on the gear.** In the Equipment menu weapons show stage I, body armour stage II, and helmets stage III,
+  with that stage's current level and effect for the selected character. Locked stages point to Montblanc. Shields,
+  accessories and ammunition keep their plain descriptions. The passives still follow the character's job. Inventory,
+  shops and other menus show the plain description. Help boxes retain their layout position even with long text.
 - **Palace sneak-in guard (temporary home).** With The Insurgent's Companions showing the full party in towns, the
   solo sneak-in at the Royal Palace restarts forever. While the party is in the palace (locations 567-572) its
   party-in-towns setting is held at Leader Only, and your setting returns on leaving. It moves to the main package

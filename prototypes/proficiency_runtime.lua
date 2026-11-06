@@ -187,13 +187,13 @@ local function claim()
 end
 
 -- ---------- gear descriptions ----------
--- The Equipment menu shows the selected character's Proficiency under each weapon, shield and armour description
--- (not accessories or ammunition). It is added when the description is shown, so it always matches the character
+-- The Equipment menu shows stage I on weapons, II on body armour and III on helmets for the selected character
+-- (not shields, accessories or ammunition). It is added when the description is shown, so it always matches the character
 -- on screen: the help-window updater copies the hovered item's description and stores the text pointer at
 -- 0x29266C (mov [rdi+0x18], rbx; The Insurgent's Descriptive Inventory swaps rbx just before, at 0x292667). The
--- patch there appends a ready-made suffix for the selected party member (menu slot [0x209AC30]+0xDE0 -> 0x282EA0
+-- patch there appends a ready-made slot-specific suffix for the selected party member (menu slot [0x209AC30]+0xDE0 -> 0x282EA0
 -- -> 0x31C4C0) to a copy of that text. Lua keeps one native-encoded suffix per party member, rebuilt only when a
--- member's job or the effective rank changes.
+-- member's job or the effective rank changes. Each item maps to one stage byte; each member has three suffix pointers.
 -- Equipment only (0.3.8): every menu asks for its help text through 0x293110/0x293100 -> 0x293170, which sends it
 -- synchronously to this handler: through 0x247510 (opener return 0x2932A4) or, the first time a menu shows help,
 -- through window creation 0x244F50 -> init message -> 0x292AD9 (opener return 0x293286). Either way the text
@@ -250,8 +250,10 @@ legacy_prof_equipment:
   jb legacy_prof_done
   cmp eax,0x400
   jae legacy_prof_done
-  bt dword ptr [r12],eax
-  jnc legacy_prof_done
+  movzx r13d,byte ptr [r12+rax]
+  test r13d,r13d
+  je legacy_prof_done
+  dec r13d
   mov rax,[0x0209AC30]
   test rax,rax
   je legacy_prof_done
@@ -266,6 +268,8 @@ legacy_prof_equipment:
   movzx eax,al
   cmp eax,0x40
   jae legacy_prof_done
+  imul eax,eax,0x03
+  add eax,r13d
   mov r12,[legacy_prof_table]
   test r12,r12
   je legacy_prof_done
@@ -325,43 +329,43 @@ local gear = {installed = false, failed = false, keys = {}, slots = {}, flip = {
 local function label(name, value)
   return '\n{scale:82}{rgb:90,90,90}' .. name .. ':{lowspace}{rgb:255,255,255}' .. value
 end
--- ONE added line (0.3.12): the Equipment help box (180,816 1400x216 at 1920x1080) holds four lines, weapons
--- already use three, and a fifth line throws the whole text off the left edge (seen in game, 0.3.11). The line
--- names the highest stage begun and its effect, e.g. "Pursuit I 1/4: +15% damage to foes with an ailment"
--- (longest 82 characters, inside the box); without the Apprentice's Writ it reads "Proficiency: Pursuit (no Writ yet...)".
+-- One added line per item: I on weapons, II on body armour, III on helmets. The effect remains job-based.
 local STAGES = {'I', 'II', 'III'}
-function R.gearSuffix(job, rank)
+function R.gearStage(category)
+  if type(category) ~= 'number' or category % 1 ~= 0 then return nil end
+  if category >= 0 and category <= 17 then return 1 end
+  if category == 20 then return 2 end
+  if category == 19 then return 3 end
+  return nil
+end
+function R.gearSuffix(job, rank, stage)
+  if not STAGES[stage] then return nil end
   local lines = P.gearLines(job, rank)
   local g = P.GEAR[job]
   if not lines or not g then return nil end
-  local L = P.levels(rank)
-  for k = 3, 1, -1 do
-    if L[k] >= 1 then
-      local head = g.line .. ' ' .. STAGES[k] .. ' ' .. L[k] .. '/4'
-      if lines[k + 1] then return label(head, lines[k + 1]) end
-      return label('Proficiency', head)
-    end
-  end
-  return label('Proficiency', lines[1])
+  local level = P.levels(rank)[stage]
+  local head = g.line .. ' ' .. STAGES[stage] .. ' ' .. level .. '/4'
+  return label(head, lines[stage + 1] or 'See Montblanc to unlock')
 end
 
--- Equipment help box position (0.3.13). Opening Equipment, the game builds the help text of every owned item in four
--- categories (0x3FCEE0) and hands the widest to the help window (0x3FF6CD mov ecx,eax -> call 0x2932F0, window
--- +0xCC); the window then slides the WHOLE box left until that widest text fits. One item with a long description
--- (1532 px against the 1400 px box, seen in game 2026-11-03) pushed every Equipment description off the left edge.
--- The width handed over is now 0 (xor ecx,ecx), so the box stays where the layout puts it; a long line runs further
--- right, still on screen. Equipment only: the other callers of 0x2932F0 are untouched. Confirmed live by Marco.
-local WIDTH_SITE, WIDTH_ORIGINAL = 0x003FF6CD, {0x8B, 0xC8}
+-- Help box position (0.3.13 for Equipment, 0.4.3 for every menu). Equipment (0x3FCEE0), Inventory (0x564430) and the
+-- shop (0x57BEE0) build the help text of every owned item, and hand the widest to the help window (0x2932F0, window
+-- +0xCC); the window's handler then slides the WHOLE box left until that widest text fits. One item with a long
+-- description (1532 px, seen in game 2026-11-03) pushed every description of that menu off the left edge.
+-- The handler's one read of the width is at 0x29244C; its comparison at 0x292452 is now xor eax,eax (the width counts
+-- as 0, and the jle after it is always taken), so the box stays where the layout puts it, in every menu. A long line
+-- runs further right, still on screen, as Marco confirmed for Equipment. eax is reloaded at 0x29245F.
+local WIDTH_SITE, WIDTH_ORIGINAL = 0x00292452, {0x3B, 0xC1}
 function R.installWidthFix()
   local raw = memory.readArray(WIDTH_SITE, 2)
   local b1 = type(raw) == 'string' and raw:byte(1) or (type(raw) == 'table' and raw[1]) or nil
   local b2 = type(raw) == 'string' and raw:byte(2) or (type(raw) == 'table' and raw[2]) or nil
   if b1 ~= WIDTH_ORIGINAL[1] or b2 ~= WIDTH_ORIGINAL[2] then
-    log('Equipment box width fix not applied: unexpected code at 0x3FF6CD')
+    log('Help box width fix not applied: unexpected code at 0x292452')
     return false
   end
-  local ok, err = pcall(memory.assemble, 'xor ecx,ecx', WIDTH_SITE)
-  log(ok and 'Equipment box width fix applied' or ('Equipment box width fix rejected (' .. tostring(err) .. ')'))
+  local ok, err = pcall(memory.assemble, 'xor eax,eax', WIDTH_SITE)
+  log(ok and 'Help box width fix applied' or ('Help box width fix rejected (' .. tostring(err) .. ')'))
   return ok
 end
 
@@ -378,19 +382,20 @@ local function installGear()
     log('gear text not installed: unexpected code at 0x29266C (another mod patches it?)')
     return false
   end
-  local bits = memory.alloc(0x80)
-  local table_ = memory.alloc(0x40 * 8)
+  local bits = memory.alloc(0x400)
+  local table_ = memory.alloc(0x40 * 3 * 8)
   local buffer = memory.alloc(0x800)
-  memory.writeArray(bits, {string.rep('\0', 0x80):byte(1, -1)})
-  memory.writeArray(table_, {string.rep('\0', 0x200):byte(1, -1)})
-  -- Weapons, shields, helms and armour: equipment categories 0-20 (accessories 21+, ammunition 23+ excluded).
+  memory.writeArray(bits, {string.rep('\0', 0x400):byte(1, -1)})
+  memory.writeArray(table_, {string.rep('\0', 0x40 * 3 * 8):byte(1, -1)})
+  -- One stage byte per equipment row; zero keeps the original description.
   local count = 0
   if type(bpack) == 'table' then
     for i = 0, 0x3FF do
       local ok, category = pcall(function() local r = bpack.section13[i]; return r and r.category end)
       if not ok or type(category) ~= 'number' then break end
-      if category <= 20 then
-        memory.u8[bits + (i >> 3)] = memory.u8[bits + (i >> 3)] | (1 << (i & 7))
+      local stage = R.gearStage(category)
+      if stage then
+        memory.u8[bits + i] = stage
         count = count + 1
       end
     end
@@ -423,15 +428,16 @@ local function installGear()
   return true
 end
 
--- One suffix per party member; two buffers each so the hook never reads a half-written text.
-local function setSuffix(member, text)
-  local at = gear.table + member * 8
+-- Three suffixes per member; two buffers each so the hook never reads a half-written text.
+local function setSuffix(member, stage, text)
+  local slot = member * 3 + stage - 1
+  local at = gear.table + slot * 8
   if not text then memory.u64[at] = 0; return end
   local bytes = message.convert(text)
   if type(bytes) ~= 'string' or #bytes + 1 > SUFFIX_SIZE then memory.u64[at] = 0; return end
-  gear.slots[member] = gear.slots[member] or {memory.alloc(SUFFIX_SIZE), memory.alloc(SUFFIX_SIZE)}
-  gear.flip[member] = 3 - (gear.flip[member] or 2)
-  local buf = gear.slots[member][gear.flip[member]]
+  gear.slots[slot] = gear.slots[slot] or {memory.alloc(SUFFIX_SIZE), memory.alloc(SUFFIX_SIZE)}
+  gear.flip[slot] = 3 - (gear.flip[slot] or 2)
+  local buf = gear.slots[slot][gear.flip[slot]]
   local arr = {bytes:byte(1, -1)}
   arr[#arr + 1] = 0
   memory.writeArray(buf, arr)
@@ -471,7 +477,9 @@ local function gearTick()
       local key = job and (job .. ':' .. rank) or 'none'
       if gear.keys[member] ~= key then
         gear.keys[member] = key
-        setSuffix(member, job and R.gearSuffix(job, rank) or nil)
+        for stage = 1, 3 do
+          setSuffix(member, stage, job and R.gearSuffix(job, rank, stage) or nil)
+        end
       end
     end
   end
@@ -700,7 +708,12 @@ function R.base(unit, flags, classes, helpers)
   return {job = unit.job1, actorId = actor, self = unit.address, party = R.party(classes, helpers),
           casterStatus = statusSet(flags), casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100,
           casterMp = unit.currentMp, casterMaxMp = unit.maxMp, selfMaxHp = unit.maxHp,
-          roll = function(percent) return helpers.getRandomNumber(100) < percent end}
+          roll = function(percent) return helpers.getRandomNumber(100) < percent end,
+          canLand = function(address, id)
+            if not address then return true end
+            local keep = classes.getBattleUnitKeep(address)
+            return R.mayAdd(keep, id, keep.temporaryStatusEffects, helpers)
+          end}
 end
 
 function R.element(action)
@@ -715,6 +728,7 @@ end
 function R.mayAdd(keep, id, flags, helpers)
   local record = bpack.section15[id]
   if keep.permanentStatusEffectImmunities[id] == 1 or keep.permanentStatusEffects[id] == 1 then return false end
+  if keep.temporaryStatusEffects[id] == 1 and record.flags1.isRefreshable == 0 then return false end
   if keep.type == 1 and record.flags1.isNotApplicableToFoes == 1 then return false end
   if record.flags1.isNegative == 1 and (keep.temporaryAugments.statusImmunity == 1 or keep.permanentAugments.statusImmunity == 1) then
     return false

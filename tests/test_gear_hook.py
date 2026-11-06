@@ -50,10 +50,13 @@ class GearHookTest(unittest.TestCase):
             entry = rsp + 0x130                            # the opener's text buffer (opener rsp+0x60)
         uc.mem_write(slots, struct.pack('<QQQQ', bits, table, buffer, probe))
         uc.mem_write(entry - 0x10, struct.pack('<I', 0x2B))
-        bitmap = bytearray(0x80)
-        bitmap[0] = 0b101                                  # equipment 0 and 2 are eligible, 1 is not
-        uc.mem_write(bits, bytes(bitmap))
-        uc.mem_write(table + 8 * member_of_index, struct.pack('<Q', suffix_at))
+        stages = bytearray(0x400)
+        stages[0], stages[2], stages[3] = 1, 2, 3            # weapon, body armour, helmet; others excluded
+        uc.mem_write(bits, bytes(stages))
+        for stage in range(1, 4):
+            stage_at = suffix_at + (stage - 1) * 0x100
+            uc.mem_write(table + 8 * (member_of_index * 3 + stage - 1), struct.pack('<Q', stage_at))
+            uc.mem_write(stage_at, (suffix if stage == 1 else bytes([0x20, 0x21 + stage - 1])) + b'\0')
         uc.mem_write(suffix_at, suffix + b'\0')
         uc.mem_write(text_at, text + b'\0')
         uc.mem_write(entry - 0x0A, struct.pack('<H', item_id))
@@ -91,8 +94,13 @@ class GearHookTest(unittest.TestCase):
         shown, text, buffer, _ = self.run_hook(0x1000)
         self.assertEqual((shown, text), (buffer, b'\x30\x31\x32\x20\x21'))
 
+    def test_body_armour_and_helmet_select_their_own_stage(self):
+        for item, suffix in ((0x1000, b'\x20\x21'), (0x1002, b'\x20\x22'), (0x1003, b'\x20\x23')):
+            shown, text, buffer, _ = self.run_hook(item)
+            self.assertEqual((shown, text), (buffer, b'\x30\x31\x32' + suffix))
+
     def test_other_items_are_left_alone(self):
-        for item in (0x1001, 0x0FFF, 0x2000, 0x1400):                            # not eligible, below, above
+        for item in (0x1001, 0x1004, 0x0FFF, 0x2000, 0x1400):                            # not eligible, below, above
             shown, text, _, original = self.run_hook(item)
             self.assertEqual((shown, text), (original, b'\x30\x31\x32'))
 

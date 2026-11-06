@@ -5,7 +5,7 @@
 -- Every level is built from operations already seen working in play; where a designed effect needed an engine detail
 -- nobody has proven, the level does the nearest thing those operations allow (reports/LEGACY-PROFICIENCY-040.md).
 local M = {}
-M.version = '0.4.1'
+M.version = '0.4.4'
 
 M.NO_JOB = 255
 M.JOB = {whiteMage = 0, lancer = 1, gunner = 2, greenMage = 3, knight = 4, mystic = 5, timeMage = 6, warrior = 7,
@@ -90,7 +90,7 @@ rules[M.JOB.hunter] = {hit = function(s, a)
     if L[1] >= 2 and m.prey == s.targetId then factor = factor + 0.05 end
     a.damage = (a.damage or 1) * factor
     m.prey = s.targetId
-    if L[1] >= 3 and s.kill and int(s.damage, 1, 99999) then a.healHp = math.max(1, s.damage // 10) end
+    if L[1] >= 3 and s.kill then a.healPct = 10 end
   elseif not prey then
     m.prey = nil
   end
@@ -106,7 +106,10 @@ rules[M.JOB.hunter] = {hit = function(s, a)
   end
   -- Libra only works on the party (foes cannot hold it): the Hunter gets it and sees the foes' details.
   if L[2] >= 3 and prey and not s.casterStatus.libra then add(a, 'casterAdd', M.STATUS.libra) end
-  if m.slowNext and L[3] >= 2 and not s.targetStatus.slow then add(a, 'targetAdd', M.STATUS.slow, 0.5); m.slowNext = nil end
+  if m.slowNext and L[3] >= 2 then
+    if not s.targetStatus.slow then add(a, 'targetAdd', M.STATUS.slow, 0.5) end
+    m.slowNext = nil
+  end
   if L[3] >= 1 and prey and s.kill then
     add(a, 'casterAdd', M.STATUS.haste, (L[3] >= 4 and 1.5 or 1) * 0.5)
     m.slowNext = true
@@ -126,8 +129,8 @@ rules[M.JOB.warrior] = {hit = function(s, a)
     end
   end
   local low = s.casterHpPct < 50 or (L[2] >= 3 and s.casterHpPct < 75)
-  if L[2] >= 1 and low and not brave then
-    add(a, 'casterAdd', M.STATUS.bravery)
+  if L[2] >= 1 and low then
+    if not brave and not (a.casterAdd and a.casterAdd[M.STATUS.bravery]) then add(a, 'casterAdd', M.STATUS.bravery) end
     if L[2] >= 2 then add(a, 'casterAdd', M.STATUS.protect, 0.5) end
     if L[2] >= 4 then
       for _, p in ipairs(s.party) do
@@ -135,10 +138,13 @@ rules[M.JOB.warrior] = {hit = function(s, a)
       end
     end
   end
-  if L[3] >= 1 and s.casterStatus.hpCritical and not s.targetStatus.sap then add(a, 'targetAdd', M.STATUS.sap, L[3] >= 4 and 1.5 or 1) end
+  if L[3] >= 1 and s.casterStatus.hpCritical and not s.targetStatus.sap then add(a, 'targetAdd', M.STATUS.sap) end
   if L[3] >= 2 and s.targetStatus.sap then a.damage = (a.damage or 1) * 1.15 end
-  if L[3] >= 3 and s.kill and s.targetStatus.sap and s.foes[1] then
-    other(a, {op = 'add', unit = s.foes[1].address, id = M.STATUS.sap, scale = L[3] >= 4 and 1.5 or 1})
+  if L[3] >= 3 and s.kill and s.targetStatus.sap then
+    for i = 1, (L[3] >= 4 and 2 or 1) do
+      local f = s.foes[i]
+      if f then other(a, {op = 'add', unit = f.address, id = M.STATUS.sap}) end
+    end
   end
 end}
 
@@ -181,7 +187,6 @@ rules[M.JOB.samurai] = {
       add(a, 'casterAdd', M.STATUS.haste, 0.5)
       if L[3] >= 2 then add(a, 'casterAdd', M.STATUS.bravery, 0.5) end
       if L[3] >= 3 then m.boost = true end
-      if L[3] >= 4 then m.carry = true end
     end
     if s.foe and L[2] >= 3 and s.casterStatus.haste and s.targetStatus.protect then a.damage = (a.damage or 1) / 0.75 end
     if s.foe and L[2] >= 4 and s.casterStatus.haste and s.charge then
@@ -200,6 +205,7 @@ rules[M.JOB.samurai] = {
       -- Haste cancels Slow by itself (status table), and misses never break the chain: only changing target does.
       add(a, 'casterAdd', M.STATUS.haste, L[1] >= 4 and 0.75 or 0.5)
     end
+    if s.foe and L[3] >= 4 and s.kill and s.casterStatus.haste then m.carry = true end
   end,
   -- Evasion setup (Forge 22) for the Samurai's own attacks during Haste.
   aim = function(s, a)
@@ -223,7 +229,7 @@ rules[M.JOB.gunner] = {hit = function(s, a)
     frac = frac + 0.10
     if L[2] >= 2 and not s.targetStatus.silence and s.roll(L[2] >= 3 and 25 or 15) then
       add(a, 'targetAdd', M.STATUS.silence, 0.5)
-      if L[2] >= 4 then
+      if L[2] >= 4 and s.canLand(s.target, M.STATUS.silence) then
         for _, p in ipairs(s.party) do
           if p.address ~= s.self and not p.status.faith then other(a, {op = 'add', unit = p.address, id = M.STATUS.faith, scale = 0.5}) break end
         end
@@ -248,7 +254,7 @@ rules[M.JOB.timeMage] = {hit = function(s, a)
   local held = s.targetStatus.slow or (L[1] >= 2 and s.targetStatus.immobilize) or (L[1] >= 3 and s.targetStatus.disable)
   if L[1] >= 1 and held and s.roll(L[1] >= 4 and 25 or 15) then
     add(a, 'targetAdd', M.STATUS.stop, 0.5)
-    if L[2] >= 1 then
+    if L[2] >= 1 and s.canLand(s.target, M.STATUS.stop) then
       for i = 1, (L[2] >= 2 and 2 or 1) do
         local f = s.foes[i]
         if f then
@@ -283,9 +289,16 @@ local function timeMageAura(s, a)
 end
 
 rules[M.JOB.greenMage] = {hit = function(s, a)
-  if not s.foe or not int(s.targetMp, 1, 99999) or not int(s.damage, 1, 99999) then return end
+  if not s.foe or not int(s.damage, 1, 99999) then return end
   local L = s.L
   if L[1] < 1 then return end
+  if L[3] >= 1 and s.charge then
+    local c = s.charge
+    if int(c.current, 1, 0x7FFFFFFF) and int(c.required, 1, 0x7FFFFFFF) and c.current < c.required and c.last == c.current then
+      a.chargeTo = math.max(1, c.current - math.floor(c.required * (0.04 + 0.02 * (L[3] - 1))))
+    end
+  end
+  if not int(s.targetMp, 1, 99999) then return end
   local drain = math.min(math.max(1, (s.damage * (L[1] >= 4 and 8 or 5)) // 100), s.targetMp)
   a.drainMp = drain
   if L[1] >= 2 and drain == s.targetMp and not s.targetStatus.silence then add(a, 'targetAdd', M.STATUS.silence) end
@@ -304,12 +317,6 @@ rules[M.JOB.greenMage] = {hit = function(s, a)
         if L[2] >= 2 and p.status.silence then other(a, {op = 'remove', unit = p.address, id = M.STATUS.silence}) end
         given = given + 1
       end
-    end
-  end
-  if L[3] >= 1 and s.charge then
-    local c = s.charge
-    if int(c.current, 1, 0x7FFFFFFF) and int(c.required, 1, 0x7FFFFFFF) and c.current < c.required and c.last == c.current then
-      a.chargeTo = math.max(1, c.current - math.floor(c.required * (0.04 + 0.02 * (L[3] - 1))))
     end
   end
 end}
@@ -380,7 +387,7 @@ rules[M.JOB.whiteMage] = {heal = function(s, a)
   local L = s.L
   if L[1] < 1 or (s.item and L[1] < 2) then return end
   local regen = L[1] >= 4 and 1.5 or 1
-  add(a, 'targetAdd', M.STATUS.regen, regen)  -- Regen cures Sap by itself (status table)
+  add(a, 'targetAdd', M.STATUS.regen, L[2] >= 4 and regen * 1.25 or regen)  -- Regen cures Sap by itself (status table)
   if L[1] >= 3 then other(a, {op = 'mp', unit = s.self, amount = math.max(1, s.overflow // 20)}) end
   local reach = L[2] >= 3 and 99 or (L[2] >= 2 and 2 or (L[2] >= 1 and 1 or 0))
   local n = 0
@@ -417,18 +424,16 @@ rules[M.JOB.blackMage] = {magick = function(s, a)
   end
   if L[2] >= 1 and m.full then
     if first then
-      local refund = math.max(1, (s.mpCost or 0) * (L[2] >= 4 and 50 or 30) // 100)
-      if L[2] >= 3 then refund = refund + math.max(1, (s.mpCost or 0) // 10) end
+      local refund = math.max(1, (s.mpCost or 0) * (L[2] >= 4 and 60 or (L[2] >= 3 and 40 or 30)) // 100)
       other(a, {op = 'mp', unit = s.self, amount = refund})
     end
     if L[2] >= 2 then a.damage = (a.damage or 1) * 1.15 end
     if L[3] >= 1 then
-      local oil = L[3] >= 4 and 0.75 or 0.5
-      if not s.targetStatus.oil then add(a, 'targetAdd', M.STATUS.oil, oil) end
+      if not s.targetStatus.oil then add(a, 'targetAdd', M.STATUS.oil, 0.5) end
       local near = s.foes[1]
       if near and first then
-        if L[3] >= 2 and not near.status.oil then other(a, {op = 'add', unit = near.address, id = M.STATUS.oil, scale = oil}) end
-        if L[3] >= 3 and int(s.damage, 1, 99999) then other(a, {op = 'hp', unit = near.address, amount = -math.max(1, s.damage // 4)}) end
+        if L[3] >= 2 and not near.status.oil then other(a, {op = 'add', unit = near.address, id = M.STATUS.oil, scale = 0.5}) end
+        if L[3] >= 3 then other(a, {op = 'hp', unit = near.address, damagePct = L[3] >= 4 and -35 or -25}) end
       end
     end
   end
@@ -444,7 +449,7 @@ rules[M.JOB.chemist] = {hit = function(s, a)
   for i = 1, (L[2] >= 4 and 2 or 1) do
     local p = hurt[i]
     if p then
-      other(a, {op = 'hp', unit = p.address, amount = math.max(1, s.damage * (L[2] >= 2 and 20 or 10) // 100)})
+      other(a, {op = 'hp', unit = p.address, damagePct = L[2] >= 2 and 20 or 10})
       if L[2] >= 3 and not p.status.protect then other(a, {op = 'add', unit = p.address, id = M.STATUS.protect, scale = 0.5}) end
     end
   end
@@ -459,7 +464,7 @@ end, status = function(s, a)
     if not f then break end
     for _, id in ipairs(s.landed) do
       local easy = L[1] >= 3 and (id == M.STATUS.oil or id == M.STATUS.poison)
-      if s.roll(easy and chance + 15 or chance) then
+      if s.canLand(f.address, id) and s.roll(easy and chance + 15 or chance) then
         other(a, {op = 'add', unit = f.address, id = id, scale = L[1] >= 2 and 1 or 0.75})
         if L[3] >= 2 then other(a, {op = 'hp', unit = f.address, amount = -math.max(1, (s.damage or 0) // 10)}) end
         if L[3] >= 3 and not s.casterStatus.libra then add(a, 'casterAdd', M.STATUS.libra) end
@@ -476,7 +481,14 @@ function M.decide(event, s, claimedRank)
   s.party, s.foes = s.party or {}, s.foes or {}
   s.casterStatus, s.targetStatus = s.casterStatus or {}, s.targetStatus or {}
   s.casterHpPct = s.casterHpPct or 100
-  s.roll = s.roll or function() return false end
+  s.canLand = s.canLand or function() return true end
+  -- A hit decided twice (see below) keeps the rolls of the first pass, or a second roll could undo the first.
+  local native, rolls, rolled = s.roll or function() return false end, {}, 0
+  s.roll = function(percent)
+    rolled = rolled + 1
+    if rolls[rolled] == nil then rolls[rolled] = native(percent) end
+    return rolls[rolled]
+  end
   local r = rules[s.job]
   local function pass()
     local a = {}
@@ -485,6 +497,17 @@ function M.decide(event, s, claimedRank)
       timeMageAura(s, a)
       if s.L[3] >= 4 and s.foe and M.LEGENDARY[s.weapon] and M.FAMILY_OWNER[s.category] == s.job then
         a.damage = (a.damage or 1) * M.MASTER_DAMAGE
+      end
+    end
+    local final = int(s.damage, 1, 9999999) and math.floor(s.damage * (a.damage or 1)) or 0
+    if a.healPct then
+      if final > 0 then a.healHp = math.max(1, final * a.healPct // 100) end
+      a.healPct = nil
+    end
+    for _, o in ipairs(a.others or {}) do
+      if o.damagePct then
+        local size = math.max(1, final * math.abs(o.damagePct) // 100)
+        o.amount, o.damagePct = o.damagePct < 0 and -size or size, nil
       end
     end
     return a
@@ -498,7 +521,7 @@ function M.decide(event, s, claimedRank)
   -- A hit only a bonus makes lethal is still a kill: decide again knowing that, from the same chain state.
   if saved and a.damage and not s.kill and int(s.damage, 1, 9999999) and int(s.targetHp, 1, 9999999)
       and math.floor(s.damage * a.damage) >= s.targetHp then
-    mem[s.actorId], s.kill = saved, true
+    mem[s.actorId], s.kill, rolled = saved, true, 0
     a = pass()
   end
   if next(a) == nil then return nil end
@@ -556,14 +579,14 @@ M.GEAR = {
     {'A Detonate Stop also Slows another foe', 'A Detonate Stop also Slows 2 other foes',
      'Detonate Stop: Slow 2 other foes and push their charge 10%', 'Detonate Stop: Slow (+50%) 2 other foes, push their charge 10%'},
     {'Party hits on a Stopped foe give the hitter Haste (half)', 'Party hits on Stopped foes: Haste (half), +15% damage',
-     'Party hits on Stopped foes: Haste, +15%, each hit extends Stop', 'Party hits on Stopped: Haste (3/4), +15%, each hit extends Stop'}},
+     'Party hits on Stopped: Haste, +15%, up to 4 hits extend Stop', 'Party hits on Stopped: Haste (3/4), +15%, 4 hits extend Stop'}},
   [M.JOB.warrior] = {line = 'Cleave',
     {'A kill grants Bravery', 'A kill or a greatsword sweep grants Bravery',
-     'A kill or a greatsword sweep grants Bravery (+50% duration)', 'Kill or sweep: Bravery (+50%), kills under it cure Slow/Disable'},
+     'A kill or a greatsword sweep grants Bravery (+50% duration)', 'Kill/sweep: Bravery +50%, Brave kills cure Slow/Disable/Immobilize'},
     {'Below 50% HP, hits grant Bravery', 'Below 50% HP, hits grant Bravery and Protect (half)',
      'Below 75% HP, hits grant Bravery and Protect (half)', 'Below 75% HP: Bravery, Protect (half), and an ally Bravery (half)'},
     {'Hits at critical HP inflict Sap', 'Critical-HP hits inflict Sap, +15% damage to Sapped foes',
-     'Critical-HP Sap, +15% vs Sapped, a kill spreads Sap', 'Critical-HP Sap (+50% duration), +15% vs Sapped, spreads'}},
+     'Critical-HP Sap, +15% vs Sapped, a kill spreads Sap', 'Critical-HP Sap, +15% vs Sapped, a kill spreads it to 2 foes'}},
   [M.JOB.hunter] = {line = 'Pursuit',
     {'+15% damage to foes with an ailment', '+15% to foes with an ailment, +5% more on the next hit in a row',
      '+15% (+5% in a row), killing that foe heals 10% of the damage', '+25% (+5% in a row), killing that foe heals 10% of the damage'},
@@ -572,12 +595,12 @@ M.GEAR = {
     {'Killing a foe with an ailment grants Haste (half duration)', 'That kill: Haste (half), the next foe hit is Slowed (half)',
      'That kill: Haste (half), next foe hit and another foe Slowed', 'That kill: Haste (3/4), next foe hit and another foe Slowed'}},
   [M.JOB.blackMage] = {line = 'Resonance',
-    {'Same element twice in a row: the next action charges 20% faster', 'Same element twice: next action +20%, 1 other spell keeps chain',
+    {'Same element twice: the next action charges 20% faster', 'Same element twice: next action +20%, 1 other element keeps chain',
      'Same element twice: next action +20%, also when the chain ends', 'Same element twice: next action +30%, also when the chain ends'},
     {'Every 3rd same-element cast refunds 30% of its MP', 'Every 3rd same-element cast: refunds 30% MP, +15% damage',
      'Every 3rd same-element cast: refunds 40% MP, +15% damage', 'Every 3rd same-element cast: refunds 60% MP, +15% damage'},
     {'Every 3rd same-element cast Oils the target (half duration)', 'Every 3rd same-element cast Oils the target and another foe',
-     'Every 3rd cast: Oil on both, the other foe takes 25% of the damage', 'Every 3rd: Oil on both (3/4), other foe takes 25% of the damage'}},
+     'Every 3rd cast: Oil on both, the other foe takes 25% of the damage', 'Every 3rd cast: Oil on both, the other foe takes 35% of the damage'}},
   [M.JOB.samurai] = {line = 'Zanshin',
     {'3 hits in a row on one foe grant Haste (half duration)', '2 hits in a row on one foe grant Haste (half duration)',
      '2 hits in a row: Haste (half), the chain survives one switch', '2 hits in a row: Haste (3/4), the chain survives one switch'},
