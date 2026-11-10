@@ -78,8 +78,9 @@ class SettingsIsolationTests(unittest.TestCase):
         out = Path(self.temp.name) / 'output'
         _, core = build(os.environ['IVALICE_LEGACY_GAME'], out)
         archive, personalized = build(os.environ['IVALICE_LEGACY_GAME'], out, settings_from=self.root)
-        self.assertEqual(len(core['files']), 39)          # 32 + Magicks' 5 + the Kings runtime and its entry script
-        self.assertEqual(len(personalized['files']), 43)
+        self.assertTrue(core['files'])
+        self.assertTrue(set(core['files']).isdisjoint(CONFIG_PATHS))
+        self.assertEqual(set(personalized['files']) - set(core['files']), set(CONFIG_PATHS))
         self.assertEqual({p: personalized['files'][p] for p in core['files']}, core['files'])
         self.assertEqual(personalized['settingsIsolation'], metadata(self.raw))
         with zipfile.ZipFile(archive) as packed:

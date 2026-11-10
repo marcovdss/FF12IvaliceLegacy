@@ -1,0 +1,36 @@
+{
+  "completeHookSet": true,
+  "scope": "Hybrid Boards 0.3.0: 66 pairs on BaseJobs 0.5.1; offline-validated candidate",
+  "sites": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18
+  ],
+  "adapterSize": 99968,
+  "adapterImageSha256": "2553738186f6d1fbd6edcc92d1221a1ef3f370b2b579382c3036b251437c3602",
+  "layoutsSha256": "32ed7741c28c059950066fe38799d1bc168a85f2dc38b0b232c7c254f472e82e",
+  "hookPlanSha256": "bc2473e7c3061e752e6c5213ba82d7523c6b6966959d9a43efec02b1bbcaa9ed",
+  "loaderSha256": "d39cd7a078ae826702166a684d393ba170df1affb3a98108f75c19ea80508d30",
+  "hooksSha256": "2c4afc99aeafc7c6db9cb8c343a02e521595a24fb6368d2ea191c48832d51a8a",
+  "specialLicensePairs": 66,
+  "specialLicenseChecks": 6666,
+  "hookAudit": {
+    "sites": 18,
+    "comparedRecordedRanges": 122
+  }
+}

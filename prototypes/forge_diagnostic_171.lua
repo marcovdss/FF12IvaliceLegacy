@@ -84,4 +84,19 @@ if resetRegistered ~= true or pathRegistered ~= true or newGameRegistered ~= tru
   return original
 end
 print('Ivalice Legacy diagnostic: Forge171 observer ready; bonuses=off')
-return observer:wrap(original)
+-- Family Afflict (prototypes/family_identities.lua): a crossbow doubles its on-hit status rate before
+-- function 175 rolls it. Outside the observer, which only reads.
+local Family = rawget(_G, 'IvaliceLegacyFamily')
+if not Family then
+  local chunk = loadfile('scripts/IvaliceLegacy/family_identities.lua', 't', _ENV)
+  local ok, mod = pcall(chunk or error)
+  if ok and type(mod) == 'table' and mod.register() == true then
+    Family = mod
+    rawset(_G, 'IvaliceLegacyFamily', Family)
+  end
+end
+if not Family then
+  print('Legacy Family: module not loaded; Forge 171 carries the observer only')
+  return observer:wrap(original)
+end
+return Family.wrap171(observer:wrap(original))

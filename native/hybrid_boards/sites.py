@@ -33,4 +33,5 @@ SITES=[
     _site(15,'single_tab_header',0x56029B,0x5602A0,_call(0x56029B,0x323630),emulate=True,call=0x323630),
     _site(16,'paladin_name',0x5602F8,0x5602FD,_call(0x5602F8,0x2F9860),emulate=True,call=0x2F9860),
     _site(17,'view_close',0x55CD84,0x55CD8B,'488b8928010000',emulate=True),
+    _site(18,'pair_label',0x556419,0x55641E,_call(0x556419,0x2F9860),emulate=True,call=0x2F9860),
 ]

@@ -14,4 +14,19 @@ if not R then
   rawset(_G, 'IvaliceLegacyProficiency', R)
   print('Legacy Proficiency: ' .. R.Proficiency.version .. ' ready')
 end
-return R.wrap(N, original)
+-- Family Mend (prototypes/family_identities.lua): a rod boosts the wielder's healing spells, inside
+-- Proficiency so its overflow logic judges the boosted amount.
+local Family = rawget(_G, 'IvaliceLegacyFamily')
+if not Family then
+  local chunk = loadfile('scripts/IvaliceLegacy/family_identities.lua', 't', _ENV)
+  local ok, mod = pcall(chunk or error)
+  if ok and type(mod) == 'table' and mod.register() == true then
+    Family = mod
+    rawset(_G, 'IvaliceLegacyFamily', Family)
+  end
+end
+if not Family then
+  print('Legacy Family: module not loaded; Forge 110 carries Proficiency only')
+  return R.wrap(N, original)
+end
+return R.wrap(N, Family.mendWrap(original))

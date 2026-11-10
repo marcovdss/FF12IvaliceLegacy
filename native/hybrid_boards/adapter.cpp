@@ -4,7 +4,7 @@
 
 struct HookFrame { uint64_t r[16],flags; uint8_t xmm[16][16]; uint64_t next,reject; };
 enum Reg { AX,CX,DX,BX,SP,BP,SI,DI,R8,R9,R10,R11,R12,R13,R14,R15 };
-enum Site { Geometry,Refresh,Extent,Remembered,Fallback,Party,Preview,Find,FindSelected,Refund,BeginRefresh,EndRefresh,Purchase,TabToggle,TabChooser,TabHeader,Name,Close,SiteCount };
+enum Site { Geometry,Refresh,Extent,Remembered,Fallback,Party,Preview,Find,FindSelected,Refund,BeginRefresh,EndRefresh,Purchase,TabToggle,TabChooser,TabHeader,Name,Close,PairLabel,SiteCount };
 struct ActorContext { uint64_t menu,keep; uint32_t actor,pair; };
 struct AdapterRequest { Request request; uint64_t keepRootSlot; };
 struct CacheBinding {
@@ -25,7 +25,7 @@ struct Adapter {
     uint64_t emptyPointer;
     Board refundBoards[6];
     uint64_t refundPointers[6];
-    uint8_t paladin[8];
+    uint8_t names[66][24]; // native-encoded hybrid names, NUL-terminated (0.3.0: all 66 pairs)
     uint32_t calls[SiteCount],routed[SiteCount],rejected[SiteCount];
 };
 using NativeGuard=uint32_t(*)(uint32_t,uint32_t,uint32_t);
@@ -148,9 +148,19 @@ API uint32_t HBX_init(Adapter*a,uint32_t size){
     for(uint32_t i=0;i<size;i++)reinterpret_cast<volatile uint8_t*>(a)[i]=0;
     a->magic=ADAPTER_MAGIC;a->emptyBoard.tag=0x6463696c;
     a->emptyPointer=reinterpret_cast<uint64_t>(&a->emptyBoard);
-    const uint8_t name[8]={0x2f,0x3a,0x45,0x3a,0x3d,0x42,0x47,0};
-    for(uint32_t i=0;i<8;i++)a->paladin[i]=name[i];
     return HB_init(&a->core,sizeof(State));
+}
+static bool hybrid(const Adapter*a,uint32_t pair){
+    return pair<66&&a->core.layouts[pair].generation&&a->names[pair][0];
+}
+API uint32_t HBX_name(Adapter*a,uint32_t j1,uint32_t j2,const uint8_t*name){
+    // One hybrid name per unordered pair; must be NUL-terminated within 24 bytes.
+    uint32_t pair=pairkey(j1,j2);
+    if(!a||a->magic!=ADAPTER_MAGIC||pair>=66||!name||!name[0])return 0;
+    uint32_t n=0;while(n<24&&name[n])++n;
+    if(n==24)return 0;
+    for(uint32_t i=0;i<24;i++)a->names[pair][i]=i<=n?name[i]:0;
+    return 1;
 }
 API uint64_t HBX_core(Adapter*a){return a&&a->magic==ADAPTER_MAGIC?reinterpret_cast<uint64_t>(&a->core):0;}
 API uint32_t HBX_config(Adapter*a,const AdapterRequest*config,uint64_t nativeBoards,uint64_t guard){
@@ -179,12 +189,25 @@ API uint32_t HBX_route(Adapter*a,uint32_t site,HookFrame*f){
         uint64_t view=f->r[CX];f->r[CX]=*reinterpret_cast<const uint64_t*>(view+0x128);
         if(a&&a->magic==ADAPTER_MAGIC){
             for(uint32_t i=0;i<8;i++)if(a->views[i].view==view){a->views[i].fresh=0;a->views[i].tiles=0;}
-            for(uint32_t i=0;i<6;i++)a->caches[i].generation=0;
+            // 0.2.1: closing a board view keeps the character-list caches (the list reuses them without a rebuild).
             ++a->calls[site];++a->routed[site];
         }
         return 1;
     }
     uint64_t continuation=f->next;
+    if(site==PairLabel){
+        // Shared "Job/Job" formatter (party menu, board header, job screen): R13D/R15D hold the two native jobs.
+        // A supported pair prints its hybrid name alone (R15D=-1 selects the native single-name branch).
+        f->next=f->reject; // exact native CALL fallback
+        if(!a||a->magic!=ADAPTER_MAGIC||!a->enabled)return 0;
+        ++a->calls[site];
+        uint32_t j1=uint32_t(f->r[R13]),j2=uint32_t(f->r[R15]),pair=pairkey(j1,j2);
+        if(hybrid(a,pair)){
+            f->next=continuation;f->r[AX]=reinterpret_cast<uint64_t>(a->names[pair]);f->r[R15]=0xffffffffull;
+            ++a->routed[site];return 1;
+        }
+        ++a->rejected[site];return 0;
+    }
     if(site>=TabToggle&&site<=Name)f->next=f->reject; // exact native CALL fallback
     if(site==Purchase&&(!a||a->magic!=ADAPTER_MAGIC||!a->enabled)){
         f->next=f->reject;return 2; // installed confirmation hook must still cancel
@@ -196,9 +219,9 @@ API uint32_t HBX_route(Adapter*a,uint32_t site,HookFrame*f){
         if(site==TabHeader)ok=menuContext(a,f->r[SI],ctx);
         else if(site==Name)ok=menuContext(a,*reinterpret_cast<const uint64_t*>(f->r[SP]+0x70),ctx);
         else ok=viewContext(a,f->r[DI],ctx);
-        if(!ok||ctx.pair!=pairkey(0,4)){++a->rejected[site];return 0;}
+        if(!ok||!hybrid(a,ctx.pair)){++a->rejected[site];return 0;}
         f->next=continuation;
-        f->r[AX]=site==Name?reinterpret_cast<uint64_t>(a->paladin):0xff;
+        f->r[AX]=site==Name?reinterpret_cast<uint64_t>(a->names[ctx.pair]):0xff;
         ++a->routed[site];return 1;
     }
     if(site==BeginRefresh||site==EndRefresh||site==Purchase){
@@ -272,9 +295,12 @@ API uint32_t HBX_route(Adapter*a,uint32_t site,HookFrame*f){
         if(!match->board&&rootCurrent(a)&&!menuContext(a,match->menu,ctx)){
             ++a->rejected[site];return 0; // Fresh native cache for an unsupported pair.
         }
+        // 0.2.1: the native character list reuses its caches after a board view closes, without a rebuild. The same
+        // actor, pair and layout generation still describe this cache's geometry, so draw it; ownership or LP changed
+        // since the cache was built is what the native list also shows for ordinary boards. A reconfiguration
+        // (new generation) still suppresses until the native party rebuild.
         if(match->board&&menuContext(a,match->menu,ctx)&&ctx.actor==match->actor&&ctx.pair==match->pair&&
-           a->core.layouts[ctx.pair].generation==match->generation&&
-           equal(match->snapshot,reinterpret_cast<const uint8_t*>(ctx.keep),0x1c8)){
+           a->core.layouts[ctx.pair].generation==match->generation){
             board=match->board;slot=reinterpret_cast<uint64_t>(&a->core.layouts[ctx.pair].pointer);ok=true;
         }else{
             // Zero dimensions suppress stale cache drawing, following native cleanup.

@@ -5,7 +5,7 @@
 -- Every level is built from operations already seen working in play; where a designed effect needed an engine detail
 -- nobody has proven, the level does the nearest thing those operations allow (reports/LEGACY-PROFICIENCY-040.md).
 local M = {}
-M.version = '0.4.5'
+M.version = '0.5.0'
 
 M.NO_JOB = 255
 M.JOB = {whiteMage = 0, lancer = 1, gunner = 2, greenMage = 3, knight = 4, mystic = 5, timeMage = 6, warrior = 7,
@@ -31,7 +31,9 @@ M.FAMILY_OWNER = {[1] = M.JOB.knight, [2] = M.JOB.warrior, [3] = M.JOB.samurai, 
 M.LEGENDARY = {[4130] = true, [4266] = true, [4267] = true, [4268] = true, [4270] = true, [4272] = true, [4288] = true,
                [4290] = true, [4291] = true, [4292] = true, [4293] = true, [4294] = true, [4295] = true}
 M.DISEASE = 16
-M.CAST_WINDOW = 200000   -- clock units (microseconds): one spell reaches all its targets within this
+M.CAST_WINDOW = 200000   -- clock units (microseconds): fallback only; area spells reach targets ~1 s apart, so the
+                         -- runtime's cast id (Forge 222, initial target) decides what is one cast
+M.HIT_MP_SHARE = 2       -- MP a weapon hit hands anyone from its damage: at most this % of the receiver's max MP
 M.STOP_EXTENDS = 4       -- Time Mage III-3: at most this many extensions per Stop, so a Stop always ends
 
 local function int(v, lo, hi) return type(v) == 'number' and v % 1 == 0 and v >= lo and v <= hi end
@@ -68,10 +70,17 @@ end
 -- Per-character memory (chains), cleared on load.
 local mem = {}
 function M.reset() mem = {} end
-local function slot(actor) mem[actor] = mem[actor] or {}; return mem[actor] end
+local function slot(actor, job)
+  if not mem[actor] or (job ~= nil and mem[actor].job ~= job) then mem[actor] = {job = job} end
+  return mem[actor]
+end
 
 -- Action helpers. a.targetAdd/casterAdd = {[statusId] = durationScale}; a.others = {{op, unit, ...}}.
-local function add(t, field, id, scale) t[field] = t[field] or {}; t[field][id] = scale or 1 end
+local function add(t, field, id, scale)
+  t[field] = t[field] or {}
+  -- Multiple passives may grant the same status in one decision; keep the longest before it reaches Forge.
+  t[field][id] = math.max(t[field][id] or 0, scale or 1)
+end
 local function push(t, field, v) t[field] = t[field] or {}; t[field][#t[field] + 1] = v end
 local function other(t, op) push(t, 'others', op) end
 
@@ -79,6 +88,10 @@ local function other(t, op) push(t, 'others', op) end
 -- foes = {{address, status}} (other engaged foes, alive), casterStatus, casterHpPct, roll(percent), self = address.
 -- 'hit' adds: targetId, foe, kill, bystander, category, damage, targetStatus, targetMp, charge, target (address).
 local rules = {}
+M.rules = rules
+-- Hybrid lines (hybrid_proficiency.lua) add rules for ids 12-77 and their two parent jobs here.
+M.PARENTS = {}
+local HELP = {slot = function(actor) return slot(actor) end, add = add, push = push, other = other}
 
 rules[M.JOB.hunter] = {hit = function(s, a)
   if not s.foe then return end
@@ -294,6 +307,31 @@ local function timeMageAura(s, a)
   end
 end
 
+-- Damage-based drain is finalized after all hit bonuses, as healing and splash are. The same drain feeds
+-- the caster's recovery, shared MP, and the empty-MP Silence condition.
+local function manaLeech(s, a, damage)
+  local L = s.L
+  local drain = math.min(math.max(1, (damage * (L[1] >= 4 and 8 or 5)) // 100), s.targetMp)
+  a.drainMp = drain
+  if L[1] >= 2 and drain == s.targetMp and not s.targetStatus.silence then add(a, 'targetAdd', M.STATUS.silence) end
+  if L[1] >= 3 then a.healHp = drain end
+  if L[2] >= 1 and s.casterMp and s.casterMaxMp and s.casterMp >= s.casterMaxMp then
+    a.drainMp = nil
+    -- The drain is shared, never multiplied: allies get what the foe lost. Level 4 makes the foe lose 50% more.
+    a.targetMpLoss = L[2] >= 4 and math.min(s.targetMp, drain + drain // 2) or drain
+    local sorted = {}
+    for _, p in ipairs(s.party) do if p.address ~= s.self and p.maxMp > 0 then sorted[#sorted + 1] = p end end
+    table.sort(sorted, function(x, y) return x.mp / x.maxMp < y.mp / y.maxMp end)
+    local n = math.min(L[2] >= 3 and 2 or 1, #sorted)
+    for i = 1, n do
+      local p = sorted[i]
+      local share = drain // n + (i == 1 and drain % n or 0)
+      if share > 0 then other(a, {op = 'mp', unit = p.address, amount = share, fromDamage = true}) end
+      if L[2] >= 2 and p.status.silence then other(a, {op = 'remove', unit = p.address, id = M.STATUS.silence}) end
+    end
+  end
+end
+
 rules[M.JOB.greenMage] = {hit = function(s, a)
   if not s.foe or not int(s.damage, 1, 99999) then return end
   local L = s.L
@@ -305,26 +343,7 @@ rules[M.JOB.greenMage] = {hit = function(s, a)
     end
   end
   if not int(s.targetMp, 1, 99999) then return end
-  local drain = math.min(math.max(1, (s.damage * (L[1] >= 4 and 8 or 5)) // 100), s.targetMp)
-  a.drainMp = drain
-  if L[1] >= 2 and drain == s.targetMp and not s.targetStatus.silence then add(a, 'targetAdd', M.STATUS.silence) end
-  if L[1] >= 3 then a.healHp = drain end
-  if L[2] >= 1 and s.casterMp and s.casterMaxMp and s.casterMp >= s.casterMaxMp then
-    a.drainMp = nil
-    a.targetMpLoss = drain
-    local given = 0
-    local sorted = {}
-    for _, p in ipairs(s.party) do if p.address ~= s.self and p.maxMp > 0 then sorted[#sorted + 1] = p end end
-    table.sort(sorted, function(x, y) return x.mp / x.maxMp < y.mp / y.maxMp end)
-    for i = 1, (L[2] >= 3 and 2 or 1) do
-      local p = sorted[i]
-      if p then
-        other(a, {op = 'mp', unit = p.address, amount = L[2] >= 4 and drain + drain // 2 or drain})
-        if L[2] >= 2 and p.status.silence then other(a, {op = 'remove', unit = p.address, id = M.STATUS.silence}) end
-        given = given + 1
-      end
-    end
-  end
+  a.manaLeech = true
 end}
 
 -- Knight: reactions when an attack on the Knight is parried, blocked or dodged (Forge 240), and when an ally is
@@ -394,8 +413,13 @@ rules[M.JOB.whiteMage] = {heal = function(s, a)
   if L[1] < 1 or (s.item and L[1] < 2) then return end
   local regen = L[1] >= 4 and 1.5 or 1
   add(a, 'targetAdd', M.STATUS.regen, L[2] >= 4 and regen * 1.25 or regen)  -- Regen cures Sap by itself (status table)
-  if L[1] >= 3 then other(a, {op = 'mp', unit = s.self, amount = math.max(1, s.overflow // 20)}) end
-  local reach = L[2] >= 3 and 99 or (L[2] >= 2 and 2 or (L[2] >= 1 and 1 or 0))
+  -- MP back from overflow: healing spells only (items cost gil, not MP: no gil-for-MP exchange).
+  if L[1] >= 3 and not s.item then other(a, {op = 'mp', unit = s.self, amount = math.max(1, s.overflow // 20)}) end
+  -- Regen for the others belongs to the cast: a Curaga reaching four allies gives it once (items have no cast id).
+  local m = slot(s.actorId)
+  local again = s.castId ~= nil and m.overflowCast == s.castId
+  if s.castId ~= nil then m.overflowCast = s.castId end
+  local reach = again and 0 or (L[2] >= 3 and 99 or (L[2] >= 2 and 2 or (L[2] >= 1 and 1 or 0)))
   local n = 0
   for _, p in ipairs(s.party) do
     if n >= reach then break end
@@ -413,7 +437,12 @@ rules[M.JOB.blackMage] = {magick = function(s, a)
   if not int(s.element, 1, 0xFF) then return end
   local L, m = s.L, slot(s.actorId)
   -- Forge calls this once per target: a spell hitting three foes is one cast, not three.
-  local first = not (m.castAt and s.now and s.now - m.castAt < M.CAST_WINDOW and m.castElement == s.element)
+  local first
+  if s.castId ~= nil then
+    first = not (m.castId == s.castId and m.castElement == s.element)
+  else
+    first = not (m.castAt and s.now and s.now - m.castAt < M.CAST_WINDOW and m.castElement == s.element)
+  end
   if first then
     local ended = false
     if m.element == s.element then m.chain, m.strayed = (m.chain or 1) + 1, nil
@@ -422,7 +451,7 @@ rules[M.JOB.blackMage] = {magick = function(s, a)
       ended = (m.chain or 0) >= 2
       m.element, m.chain, m.strayed = s.element, 1, nil
     end
-    m.castAt, m.castElement = s.now, s.element
+    m.castAt, m.castId, m.castElement = s.now, s.castId, s.element
     m.full = m.element == s.element and m.chain % 3 == 0
     if L[1] >= 1 and ((m.element == s.element and m.chain >= 2) or (L[1] >= 3 and ended)) then
       a.casterCharge = L[1] >= 4 and 0.30 or 0.20
@@ -480,10 +509,20 @@ end, status = function(s, a)
 end}
 
 -- Decide one event for one party member. Returns an action table or nil.
+-- Legendary mastery: the owning job, or a hybrid with that job as a parent.
+function M.masters(job, owner)
+  if owner == nil then return false end
+  if job == owner then return true end
+  local p = M.PARENTS[job]
+  return p ~= nil and (p[1] == owner or p[2] == owner)
+end
+
 function M.decide(event, s, claimedRank)
-  if type(s) ~= 'table' or not int(s.job, 0, 11) then return nil end
+  if type(s) ~= 'table' or not int(s.job, 0, 77) or not (s.job <= 11 or rules[s.job]) then return nil end
   s.L = M.levels(claimedRank)
   if s.L[1] < 1 then return nil end
+  -- Chain counters and armed bonuses belong to the current job, not the job used on the previous action.
+  if s.actorId ~= nil then slot(s.actorId, s.job) end
   s.party, s.foes = s.party or {}, s.foes or {}
   s.casterStatus, s.targetStatus = s.casterStatus or {}, s.targetStatus or {}
   s.casterHpPct = s.casterHpPct or 100
@@ -498,22 +537,56 @@ function M.decide(event, s, claimedRank)
   local r = rules[s.job]
   local function pass()
     local a = {}
-    if r and r[event] then r[event](s, a) end
+    if r and r[event] then r[event](s, a, HELP) end
     if event == 'hit' then
       timeMageAura(s, a)
-      if s.L[3] >= 4 and s.foe and M.LEGENDARY[s.weapon] and M.FAMILY_OWNER[s.category] == s.job then
+      if s.L[3] >= 4 and s.foe and M.LEGENDARY[s.weapon] and M.masters(s.job, M.FAMILY_OWNER[s.category]) then
         a.damage = (a.damage or 1) * M.MASTER_DAMAGE
       end
     end
+    -- A combo's follow-up hits (same foe, a fraction of a second later) give no MP or HP back: once per attack.
+    if event == 'hit' and s.comboFollow then
+      a.manaLeech, a.drainPct, a.healPct, a.healHp = nil, nil, nil, nil
+      local kept = {}
+      for _, o in ipairs(a.others or {}) do
+        local gain = (o.op == 'mp' and ((o.amount or 0) > 0 or (o.mpPct or 0) > 0))
+          or (o.op == 'hp' and ((o.amount or 0) > 0 or (o.damagePct or 0) > 0))
+        if not gain then kept[#kept + 1] = o end
+      end
+      a.others = kept[1] and kept or nil
+    end
     local final = int(s.damage, 1, 9999999) and math.floor(s.damage * (a.damage or 1)) or 0
+    if a.manaLeech then
+      a.manaLeech = nil
+      if final > 0 then manaLeech(s, a, final) end
+    end
+    if a.drainPct then
+      if final > 0 and int(s.targetMp, 1, 99999) then a.drainMp = math.min(math.max(1, final * a.drainPct // 100), s.targetMp) end
+      a.drainPct = nil
+    end
     if a.healPct then
       if final > 0 then a.healHp = math.max(1, final * a.healPct // 100) end
       a.healPct = nil
     end
     for _, o in ipairs(a.others or {}) do
+      if o.mpPct then
+        o.amount, o.mpPct, o.fromDamage = math.max(1, final * o.mpPct // 100), nil, true
+      end
       if o.damagePct then
         local size = math.max(1, final * math.abs(o.damagePct) // 100)
         o.amount, o.damagePct = o.damagePct < 0 and -size or size, nil
+      end
+    end
+    -- MP a weapon hit hands out from its damage is capped per hit: damage grows far faster than MP pools.
+    if event == 'hit' then
+      local function cap(maxMp) return math.max(1, maxMp * M.HIT_MP_SHARE // 100) end
+      if a.drainMp and int(s.casterMaxMp, 1, 99999) then a.drainMp = math.min(a.drainMp, cap(s.casterMaxMp)) end
+      for _, o in ipairs(a.others or {}) do
+        if o.op == 'mp' and o.fromDamage and type(o.amount) == 'number' and o.amount > 0 then
+          for _, p in ipairs(s.party) do
+            if p.address == o.unit and int(p.maxMp, 1, 99999) then o.amount = math.min(o.amount, cap(p.maxMp)) end
+          end
+        end
       end
     end
     return a
@@ -534,95 +607,169 @@ function M.decide(event, s, claimedRank)
   return a
 end
 
--- What each job's Proficiency does, for the gear descriptions: line name, then for each stage the sentence at
--- levels 1-4 (what the rules above do at that level).
+-- What each job's Proficiency does, for the gear descriptions: line name, then for each stage the text at levels 1-4
+-- (the whole effect at that level, as the rules above do it). '\n' starts the item's one extra line: the stage header
+-- and the first sentence share a line, the second line explains the details.
 M.GEAR = {
   [M.JOB.whiteMage] = {line = 'Overflow',
-    {'Healing past full HP gives the target Regen', 'Healing or potions past full HP give the target Regen',
-     'Overflow (potions too): Regen, 5% of the overflow back as MP', 'Overflow (potions too): Regen (+50%), 5% of the overflow as MP'},
-    {'Overflow Regen also reaches 1 more ally', 'Overflow Regen also reaches 2 more allies',
-     'Overflow Regen reaches the whole party', 'Overflow Regen reaches the whole party, +25% duration'},
-    {'Overflow also gives Shell (half duration)', 'Overflow also gives Shell and Protect (half duration)',
-     'Overflow also gives Shell, Protect and Faith (half duration)', 'Overflow gives Shell (3/4), Protect and Faith (half duration)'}},
+    {'Healing spells that heal past full HP give the target Regen',
+     'Healing past full HP gives the target Regen\nPotions and other healing items count too',
+     'Healing past full HP (items too) gives the target Regen\nHealing spells return 5% of the overflow as MP',
+     'Healing past full HP (items too) gives the target Regen\nRegen lasts 50% longer, spells return 5% of it as MP'},
+    {'Overflow Regen also reaches 1 other ally',
+     'Overflow Regen also reaches 2 other allies',
+     'Overflow Regen reaches the whole party',
+     'Overflow Regen reaches the whole party\nand lasts a further 25% longer'},
+    {'An overflowing heal also gives the target Shell\nShell at half its normal duration',
+     'An overflowing heal also gives Shell and Protect\nBoth at half their normal duration',
+     'An overflowing heal also gives Shell, Protect and Faith\nAll three at half their normal duration',
+     'An overflowing heal also gives Shell, Protect and Faith\nShell at 3/4 duration, Protect and Faith at half'}},
   [M.JOB.lancer] = {line = 'Grounding',
-    {'Hits remove Float and Haste', 'Hits remove Float, Haste and Faith', 'Hits remove Float, Haste, Faith and Regen',
-     'Hits remove Float, Haste, Faith, Regen and Bravery'},
-    {'Hits on foes with an ailment strip Protect or Shell', 'Hits on foes with an ailment strip Protect and Shell',
-     'Hits on foes with an ailment strip Protect, Shell, Reflect', 'Ailing foes lose Protect, Shell, Reflect, Bubble and Berserk'},
-    {'A foe left with no buffs is Immobilized (half duration)', 'A foe left with no buffs is Immobilized (3/4 duration)',
-     'Unbuffed foes Immobilized (3/4), +15% damage to Immobilized', 'Unbuffed foes Immobilized (3/4), +15% to them, and Slowed'}},
+    {'Your hits strip Float and Haste from the foe',
+     'Your hits strip Float, Haste and Faith from the foe',
+     'Your hits strip Float, Haste, Faith and Regen from the foe',
+     'Your hits strip Float, Haste, Faith, Regen and Bravery'},
+    {'Hits on a foe with an ailment strip its Protect\n(or its Shell, if it has no Protect)',
+     'Hits on a foe with an ailment strip Protect and Shell',
+     'Hits on a foe with an ailment strip Protect and Shell\nReflect is stripped too',
+     'Hits on a foe with an ailment strip Protect and Shell\nReflect, Bubble and Berserk are stripped too'},
+    {'A foe your hit leaves with no buffs is Immobilized\nImmobilize at half its normal duration',
+     'A foe your hit leaves with no buffs is Immobilized\nImmobilize at 3/4 of its normal duration',
+     'A foe your hit leaves with no buffs is Immobilized (3/4)\nYour hits deal +15% damage to Immobilized foes',
+     'A foe your hit leaves with no buffs is Immobilized (3/4)\nHits on Immobilized foes deal +15% and Slow them (half)'}},
   [M.JOB.gunner] = {line = 'Suppression',
-    {"Hits push the target's charge back 10%", "Hits push charge back 10%, Slowed foes 15%",
-     'Push charge 10% (Slowed 15%), another foe 5%', 'Push charge 15% (Slowed 20%), another foe 5%'},
-    {'Foes about to act are pushed back 10% more', 'Foes about to act: +10% push, 15% chance of Silence (half)',
-     'Foes about to act: +10% push, 25% chance of Silence (half)', 'About to act: +10% push, 25% Silence, which gives an ally Faith'},
-    {'3 hits in a row on one foe: +5% more push', '2 hits in a row on one foe: +5% more push',
-     '2 hits in a row: +5% push and Slow (half duration)', '2-hit chains: +5% push, Slow, the chain survives a kill'}},
+    {"Your hits push the foe's charge time back 10%",
+     "Your hits push the foe's charge time back 10%\n15% instead if the foe is Slowed",
+     "Your hits push the foe's charge back 10% (Slowed: 15%)\nThe nearest other foe is pushed back 5% as well",
+     "Your hits push the foe's charge back 15% (Slowed: 20%)\nThe nearest other foe is pushed back 5% as well"},
+    {'A foe that is about to act is pushed back 10% more\nAbout to act: its charge is at least 3/4 full',
+     'A foe about to act is pushed back 10% more\nand has a 15% chance to be Silenced (half duration)',
+     'A foe about to act is pushed back 10% more\nand has a 25% chance to be Silenced (half duration)',
+     'A foe about to act is pushed back 10% more, 25% Silence\nWhen that Silence lands, one ally gains Faith (half)'},
+    {'3 hits in a row on the same foe push it back 5% more',
+     '2 hits in a row on the same foe push it back 5% more',
+     '2 hits in a row on the same foe push it back 5% more\nand Slow it (half duration)',
+     '2 hits in a row on one foe: 5% more push and Slow (half)\nKilling that foe carries the count to your next target'}},
   [M.JOB.greenMage] = {line = 'Mana Leech',
-    {'Hits drain MP equal to 5% of the damage', 'Drain 5% of damage as MP, a foe drained to 0 MP is Silenced',
-     'Drain 5% as MP, healing as much HP, 0 MP foes are Silenced', 'Drain 8% as MP, healing as much HP, 0 MP foes are Silenced'},
-    {'At full MP, drained MP goes to the ally lowest on MP', 'Full MP: drain goes to the lowest-MP ally, cures their Silence',
-     'Full MP: drain goes to 2 low-MP allies, cures Silence', 'Full MP: 150% of the drain goes to 2 allies, cures Silence'},
-    {"Hits push the target's charge back 4%", "Hits push the target's charge back 6%",
-     "Hits push the target's charge back 8%", "Hits push the target's charge back 10%"}},
+    {'Hits drain 5% of damage as MP (max 2% of your MP)',
+     'Hits drain 5% of damage as MP (max 2% of your MP)\nA foe drained down to 0 MP is Silenced',
+     'Hits drain 5% of damage as MP (max 2% of your MP)\nYou heal 5% of the damage as HP, 0 MP foes are Silenced',
+     'Hits drain 8% of damage as MP (max 2% of your MP)\nYou heal 8% of the damage as HP, 0 MP foes are Silenced'},
+    {'While your MP is full, drained MP goes to the ally\nwho is lowest on MP instead',
+     'At full MP, drained MP goes to the ally lowest on MP\nand cures that ally of Silence',
+     'At full MP, the 2 allies lowest on MP share the drain\nand are cured of Silence',
+     'At full MP, the 2 allies lowest on MP share the drain\nand are cured of Silence, the foe loses 50% more MP'},
+    {"Your hits push the foe's charge time back 4%",
+     "Your hits push the foe's charge time back 6%",
+     "Your hits push the foe's charge time back 8%",
+     "Your hits push the foe's charge time back 10%"}},
   [M.JOB.knight] = {line = 'Bulwark',
-    {'A parry or block Lures the attacker (half duration)', 'A parry, block or dodge Lures the attacker (half duration)',
-     'A parry, block or dodge Lures the attacker (3/4 duration)', 'Parry, block or dodge Lures (3/4), parry or block pushes charge'},
-    {'Parry or block: Protect on the lowest-HP ally (half)', 'Parry or block: Protect and Shell on the lowest-HP ally (half)',
-     'Parry or block: Protect and Shell on the 2 lowest-HP allies', 'Parry or block: Protect, Shell, frees 2 allies from Immobilize'},
-    {'An ally at critical HP: the Knight Lures foes (half duration)', 'An ally at critical HP: the Knight Lures foes (3/4 duration)',
-     'Ally at critical HP: the Knight Lures foes, gains Bravery (half)', 'Ally critical: Knight Lures, gains Bravery, Protects that ally'}},
+    {'Parrying or blocking an attack gives you Lure\nFoes turn on you (Lure at half duration)',
+     'Parrying, blocking or dodging an attack gives you Lure\nFoes turn on you (Lure at half duration)',
+     'Parrying, blocking or dodging an attack gives you Lure\nFoes turn on you (Lure at 3/4 duration)',
+     'Parrying, blocking or dodging gives you Lure (3/4)\nA parry or block also pushes the attacker back 10%'},
+    {'A parry or block gives the most hurt ally Protect\nProtect at half its normal duration',
+     'A parry or block gives the most hurt ally Protect and Shell\nBoth at half their normal duration',
+     'A parry or block gives the 2 most hurt allies\nProtect and Shell (half duration)',
+     'A parry or block gives the 2 most hurt allies Protect\nand Shell (half), and frees them from Immobilize'},
+    {'When an ally drops to critical HP, you gain Lure\nFoes turn on you (Lure at half duration)',
+     'When an ally drops to critical HP, you gain Lure\nFoes turn on you (Lure at 3/4 duration)',
+     'When an ally drops to critical HP, you gain Lure (3/4)\nand Bravery (half duration)',
+     'Ally at critical HP: you gain Lure (3/4) and Bravery (half)\nThat ally gains Protect (half duration)'}},
   [M.JOB.mystic] = {line = 'Ki Flow',
-    {'Each counter heals the Mystic 5% of max HP', 'Counters heal 5% of max HP, and half that to a hurt ally',
-     'Counters heal 5% (half to an ally), push the attacker back 10%', 'Counters heal 8% (half to an ally), push the attacker back 10%'},
-    {'Each counter restores 4 MP', 'Counters restore 4 MP and cure Blind', 'Counters restore 4 MP and cure Blind and Sap',
-     'Counters restore 8 MP and cure Blind and Sap'},
-    {'Counters cure 1 ailment on the Mystic', 'Counters cure 1 ailment, give Protect (half duration)',
-     'Counters cure 1 ailment, give Protect and Haste (half)', 'Counters cure 2 ailments, give Protect and Haste (half)'}},
+    {'Each counterattack heals you for 5% of your max HP',
+     'Each counter heals you for 5% of your max HP\nOne hurt ally is healed for half that',
+     "Each counter heals you 5% of max HP (half to an ally)\nand pushes the attacker's charge back 10%",
+     "Each counter heals you 8% of max HP (half to an ally)\nand pushes the attacker's charge back 10%"},
+    {'Each counterattack restores 4 MP',
+     'Each counter restores 4 MP and cures your Blind',
+     'Each counter restores 4 MP and cures your Blind and Sap',
+     'Each counter restores 8 MP and cures your Blind and Sap'},
+    {'Each counterattack cures you of one ailment',
+     'Each counter cures you of one ailment\nand gives you Protect (half duration)',
+     'Each counter cures you of one ailment\nand gives you Protect and Haste (half duration)',
+     'Each counter cures you of two ailments\nand gives you Protect and Haste (half duration)'}},
   [M.JOB.timeMage] = {line = 'Detonate',
-    {'Hits have 15% to Stop a Slowed foe (half duration)', 'Hits: 15% to Stop a Slowed or Immobilized foe (half)',
-     'Hits: 15% to Stop a Slowed, Immobilized or Disabled foe', 'Hits: 25% to Stop a Slowed, Immobilized or Disabled foe'},
-    {'A Detonate Stop also Slows another foe', 'A Detonate Stop also Slows 2 other foes',
-     'Detonate Stop: Slow 2 other foes and push their charge 10%', 'Detonate Stop: Slow (+50%) 2 other foes, push their charge 10%'},
-    {'Party hits on a Stopped foe give the hitter Haste (half)', 'Party hits on Stopped foes: Haste (half), +15% damage',
-     'Party hits on Stopped: Haste, +15%, up to 4 hits extend Stop', 'Party hits on Stopped: Haste (3/4), +15%, 4 hits extend Stop'}},
+    {'Your hits on a Slowed foe have a 15% chance to Stop it\nStop at half its normal duration',
+     'Hits on a Slowed or Immobilized foe: 15% chance to Stop it\nStop at half its normal duration',
+     'Hits on a Slowed, Immobilized or Disabled foe: 15% Stop\nStop at half its normal duration',
+     'Hits on a Slowed, Immobilized or Disabled foe: 25% Stop\nStop at half its normal duration'},
+    {'When Detonate Stops a foe, another foe is Slowed',
+     'When Detonate Stops a foe, 2 other foes are Slowed',
+     'When Detonate Stops a foe, 2 other foes are Slowed\nand their charge is pushed back 10%',
+     'When Detonate Stops a foe, 2 other foes are Slowed\n(Slow lasts 50% longer) and pushed back 10%'},
+    {'Any party member who hits a Stopped foe gains Haste\nHaste at half duration. Works for the whole party',
+     'Party hits on a Stopped foe deal +15% damage\nand give the hitter Haste (half duration)',
+     'Party hits on a Stopped foe: +15% damage, Haste (half)\nand stretch the Stop a little, up to 4 times per Stop',
+     'Party hits on a Stopped foe: +15% damage, Haste (3/4)\nand stretch the Stop a little, up to 4 times per Stop'}},
   [M.JOB.warrior] = {line = 'Cleave',
-    {'A kill grants Bravery', 'A kill or a greatsword sweep grants Bravery',
-     'A kill or a greatsword sweep grants Bravery (+50% duration)', 'Kill/sweep: Bravery +50%, Brave kills cure Slow/Disable/Immobilize'},
-    {'Below 50% HP, hits grant Bravery', 'Below 50% HP, hits grant Bravery and Protect (half)',
-     'Below 75% HP, hits grant Bravery and Protect (half)', 'Below 75% HP: Bravery, Protect (half), and an ally Bravery (half)'},
-    {'Hits at critical HP inflict Sap', 'Critical-HP hits inflict Sap, +15% damage to Sapped foes',
-     'Critical-HP Sap, +15% vs Sapped, a kill spreads Sap', 'Critical-HP Sap, +15% vs Sapped, a kill spreads it to 2 foes'}},
+    {'Killing a foe gives you Bravery',
+     'Killing a foe gives you Bravery\nA greatsword swing that hits a second foe does too',
+     'Kills and two-foe greatsword swings give you Bravery\nBravery lasts 50% longer',
+     'Kills and two-foe greatsword swings give Bravery (+50%)\nA kill while Brave cures your Slow, Disable, Immobilize'},
+    {'While below 50% HP, your hits give you Bravery',
+     'While below 50% HP, your hits give you Bravery\nand Protect (half duration)',
+     'While below 75% HP, your hits give you Bravery\nand Protect (half duration)',
+     'Below 75% HP, hits give you Bravery and Protect (half)\nand give one ally Bravery (half duration)'},
+    {'While you are at critical HP, your hits inflict Sap',
+     'At critical HP, your hits inflict Sap\nYour hits deal +15% damage to Sapped foes',
+     'At critical HP your hits Sap, +15% damage to Sapped foes\nKilling a Sapped foe spreads Sap to another foe',
+     'At critical HP your hits Sap, +15% damage to Sapped foes\nKilling a Sapped foe spreads Sap to 2 other foes'}},
   [M.JOB.hunter] = {line = 'Pursuit',
-    {'+15% damage to foes with an ailment', '+15% to foes with an ailment, +5% more on the next hit in a row',
-     '+15% (+5% in a row), killing that foe heals 10% of the damage', '+25% (+5% in a row), killing that foe heals 10% of the damage'},
-    {'Hits on foes with an ailment renew one timed ailment', 'Hits on foes with an ailment renew two timed ailments',
-     'Hits renew two timed ailments and reveal foes (Libra)', 'Hits renew every timed ailment and reveal foes (Libra)'},
-    {'Killing a foe with an ailment grants Haste (half duration)', 'That kill: Haste (half), the next foe hit is Slowed (half)',
-     'That kill: Haste (half), next foe hit and another foe Slowed', 'That kill: Haste (3/4), next foe hit and another foe Slowed'}},
+    {'Your hits deal +15% damage to a foe with an ailment\nAilments: Poison, Slow, Blind, Silence, Sap, Oil...',
+     'Your hits deal +15% damage to a foe with an ailment\nEach further hit in a row on that foe adds +5% more',
+     'Hits on a foe with an ailment: +15% (+5% more in a row)\nKilling that foe heals you for 10% of the damage dealt',
+     'Hits on a foe with an ailment: +25% (+5% more in a row)\nKilling that foe heals you for 10% of the damage dealt'},
+    {'Hits on a foe with an ailment restart one ailment timer\nTimed ailments: Disable, Immobilize, Poison, Slow',
+     'Hits on a foe with an ailment restart two ailment timers\nTimed ailments: Disable, Immobilize, Poison, Slow',
+     "Hits on a foe with an ailment restart two ailment timers\nand give you Libra, so you can see the foes' details",
+     "Hits on a foe with an ailment restart all its timers\nand give you Libra, so you can see the foes' details"},
+    {'Killing a foe with an ailment gives you Haste\nHaste at half its normal duration',
+     'Killing a foe with an ailment gives you Haste (half)\nThe next foe you hit is Slowed (half duration)',
+     'Killing a foe with an ailment gives you Haste (half)\nYour next target and one other foe are Slowed (half)',
+     'Killing a foe with an ailment gives you Haste (3/4)\nYour next target and one other foe are Slowed (half)'}},
   [M.JOB.blackMage] = {line = 'Resonance',
-    {'Same element twice: the next action charges 20% faster', 'Same element twice: next action +20%, 1 other element keeps chain',
-     'Same element twice: next action +20%, also when the chain ends', 'Same element twice: next action +30%, also when the chain ends'},
-    {'Every 3rd same-element cast refunds 30% of its MP', 'Every 3rd same-element cast: refunds 30% MP, +15% damage',
-     'Every 3rd same-element cast: refunds 40% MP, +15% damage', 'Every 3rd same-element cast: refunds 60% MP, +15% damage'},
-    {'Every 3rd same-element cast Oils the target (half duration)', 'Every 3rd same-element cast Oils the target and another foe',
-     'Every 3rd cast: Oil on both, the other foe takes 25% of the damage', 'Every 3rd cast: Oil on both, the other foe takes 35% of the damage'}},
+    {'Casting the same element twice in a row makes\nyour next action charge 20% faster',
+     'Same element twice: next action charges 20% faster\nOne spell of another element does not break the chain',
+     'Same element twice: next action charges 20% faster\neven as a chain ends. One off-element spell is forgiven',
+     'Same element twice: next action charges 30% faster\neven as a chain ends. One off-element spell is forgiven'},
+    {'Every 3rd cast of the same element in a row\nrefunds 30% of its MP cost',
+     'Every 3rd same-element cast refunds 30% of its MP\nand deals +15% damage',
+     'Every 3rd same-element cast refunds 40% of its MP\nand deals +15% damage',
+     'Every 3rd same-element cast refunds 60% of its MP\nand deals +15% damage'},
+    {'Every 3rd same-element cast Oils the target\nOil at half its normal duration',
+     'Every 3rd same-element cast Oils the target\nand one other foe (half duration)',
+     'Every 3rd cast Oils the target and one other foe\nThat other foe also takes 25% of the damage',
+     'Every 3rd cast Oils the target and one other foe\nThat other foe also takes 35% of the damage'}},
   [M.JOB.samurai] = {line = 'Zanshin',
-    {'3 hits in a row on one foe grant Haste (half duration)', '2 hits in a row on one foe grant Haste (half duration)',
-     '2 hits in a row: Haste (half), the chain survives one switch', '2 hits in a row: Haste (3/4), the chain survives one switch'},
-    {'During Haste, attacks ignore weapon and shield evasion', 'During Haste, attacks ignore evasion and parry',
-     'During Haste, attacks ignore evasion, parry and Protect', 'During Haste: ignore evasion, parry, Protect, push charge 5%'},
-    {'A kill during Haste renews Haste (half duration)', 'A kill during Haste renews Haste and gives Bravery (half)',
-     'Kill in Haste: Haste, Bravery, the next hit deals +20%', 'Kill in Haste: Haste, Bravery, next hit +20%, the chain carries'}},
+    {'3 hits in a row on the same foe give you Haste\nHaste at half duration. Misses do not break the chain',
+     '2 hits in a row on the same foe give you Haste\nHaste at half duration. Misses do not break the chain',
+     '2 hits in a row on one foe give you Haste (half)\nThe chain survives one change of target',
+     '2 hits in a row on one foe give you Haste (3/4)\nThe chain survives one change of target'},
+    {"While Hasted, your attacks cannot be evaded\nby the foe's weapon or shield",
+     'While Hasted, your attacks ignore evasion and parry',
+     'While Hasted, your attacks ignore evasion and parry\nand go straight through Protect',
+     "While Hasted, attacks ignore evasion, parry and Protect\nand push the foe's charge back 5%"},
+    {'A kill while Hasted renews your Haste (half duration)',
+     'A kill while Hasted renews your Haste\nand gives you Bravery (both at half duration)',
+     'A kill while Hasted renews Haste, gives Bravery (half)\nYour next hit deals +20% damage',
+     'A kill while Hasted: Haste, Bravery, next hit +20%\nand your hit chain carries over to the next foe'}},
   [M.JOB.chemist] = {line = 'Contagion',
-    {'Statuses you land: 35% to spread to another foe (3/4)', 'Statuses you land: 35% to spread to another foe',
-     'Landed statuses: 35% to spread (Oil and Poison 50%)', 'Landed statuses: 50% to spread (Oil and Poison 65%)'},
-    {'Hits heal the most hurt ally for 10% of the damage', 'Hits heal the most hurt ally for 20% of the damage',
-     'Hits heal the most hurt ally 20% of the damage, add Protect', 'Hits heal the 2 most hurt allies 20% of the damage, add Protect'},
-    {'Spreads reach 2 other foes', 'Spreads reach 2 foes and deal 10% of the damage',
-     'Spreads reach 2 foes, deal 10% of the damage, reveal (Libra)', 'Spreads reach 3 foes, deal 10% of the damage, reveal (Libra)'}},
+    {'A status your attack lands has a 35% chance to spread\nto another foe (at 3/4 duration)',
+     'A status your attack lands has a 35% chance to spread\nto another foe, at full duration',
+     'A status your attack lands has a 35% chance to spread\nOil and Poison spread more easily: 50%',
+     'A status your attack lands has a 50% chance to spread\nOil and Poison spread more easily: 65%'},
+    {'Your hits heal the most hurt ally\nfor 10% of the damage dealt',
+     'Your hits heal the most hurt ally\nfor 20% of the damage dealt',
+     'Your hits heal the most hurt ally for 20% of the damage\nand give that ally Protect (half duration)',
+     'Your hits heal the 2 most hurt allies for 20% of damage\nand give them Protect (half duration)'},
+    {'Contagion can spread to 2 foes',
+     'Contagion can spread to 2 foes\nEach foe it spreads to takes 10% of the damage',
+     "Contagion spreads to 2 foes, dealing 10% of the damage\nA spread gives you Libra to see the foes' details",
+     "Contagion spreads to 3 foes, dealing 10% of the damage\nA spread gives you Libra to see the foes' details"}},
 }
-M.GEAR_LIMIT = 66
+M.GEAR_LIMIT = 60       -- characters on the stage header's line (the header itself takes about 16 more)
+M.GEAR_LINE_LIMIT = 60  -- characters on the one extra line
 -- The gear lines for one job at the effective rank: header, then stages I-III (nil = nothing to show).
 function M.gearLines(job, effectiveRank)
   local g = M.GEAR[job]

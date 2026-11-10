@@ -1,0 +1,1821 @@
+{
+  "sourcePins": {
+    "table": {
+      "path": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin.dir/section_007.bin",
+      "sha256": "a0d2aff470727f0aac24ed5c384ee24cc11965763402b8e77298b3744523b29c"
+    },
+    "names": {
+      "path": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin.dir/section_061.bin.dir/section_006.bin",
+      "sha256": "85eb69d12ef005920ce26c8b2dc2d9ae89dcf7f72c9b9d48ab8de22b22971852"
+    },
+    "help": {
+      "path": "ps2data/image/ff12/test_battle/us/binaryfile/listhelp_targetchip.bin",
+      "sha256": "a204b0b00178c8e12d889a83bf159531f6531e8e69489c19b077efbffd6fb1d7"
+    }
+  },
+  "fieldCorrections": [
+    {
+      "row": 72,
+      "field": "description",
+      "offset": 4,
+      "before": 16052,
+      "after": 16072,
+      "reason": "HP-Critical gambit incorrectly shares undead help52; intended help72 already exists"
+    },
+    {
+      "row": 155,
+      "field": "firstTargetCondition",
+      "offset": 8,
+      "before": 8990,
+      "after": 8249,
+      "reason": "Restore authored Status-Immunity meaning; use augment57 instead of no temporary ailments"
+    }
+  ],
+  "records": [
+    {
+      "row": 0,
+      "nameIndex": 0,
+      "helpIndex": 0,
+      "name": "Foe: any",
+      "help": "Target a foe."
+    },
+    {
+      "row": 1,
+      "nameIndex": 1,
+      "helpIndex": 1,
+      "name": "Foe: nearest visible",
+      "help": "Target the nearest foe visible on screen."
+    },
+    {
+      "row": 2,
+      "nameIndex": 2,
+      "helpIndex": 2,
+      "name": "Foe: HP = 100%",
+      "help": "Target a foe whose HP is full."
+    },
+    {
+      "row": 3,
+      "nameIndex": 3,
+      "helpIndex": 3,
+      "name": "Foe: targeting leader",
+      "help": "Target a foe targeting the party leader."
+    },
+    {
+      "row": 4,
+      "nameIndex": 4,
+      "helpIndex": 4,
+      "name": "Foe: targeting self",
+      "help": "Target a foe targeting the user."
+    },
+    {
+      "row": 5,
+      "nameIndex": 5,
+      "helpIndex": 5,
+      "name": "Foe: targeting an ally",
+      "help": "Target a foe targeting an ally."
+    },
+    {
+      "row": 6,
+      "nameIndex": 6,
+      "helpIndex": 6,
+      "name": "Foe: lowest Defense",
+      "help": "Target the foe with the lowest Defense."
+    },
+    {
+      "row": 7,
+      "nameIndex": 7,
+      "helpIndex": 7,
+      "name": "Foe: lowest Magick Resist",
+      "help": "Target the foe with the lowest Magick Resist."
+    },
+    {
+      "row": 8,
+      "nameIndex": 8,
+      "helpIndex": 8,
+      "name": "Foe: leader's target",
+      "help": "Target the foe targeted by the party leader."
+    },
+    {
+      "row": 9,
+      "nameIndex": 9,
+      "helpIndex": 9,
+      "name": "Foe: lowest HP",
+      "help": "Target the foe with the least remaining HP."
+    },
+    {
+      "row": 10,
+      "nameIndex": 10,
+      "helpIndex": 10,
+      "name": "Foe: highest HP",
+      "help": "Target the foe with the most remaining HP."
+    },
+    {
+      "row": 11,
+      "nameIndex": 11,
+      "helpIndex": 11,
+      "name": "Foe: highest max HP",
+      "help": "Target the foe with the highest maximum HP."
+    },
+    {
+      "row": 12,
+      "nameIndex": 12,
+      "helpIndex": 12,
+      "name": "Foe: lowest max HP",
+      "help": "Target the foe with the lowest maximum HP."
+    },
+    {
+      "row": 13,
+      "nameIndex": 13,
+      "helpIndex": 13,
+      "name": "Foe: HP ≥ 50,000",
+      "help": "Target a foe whose HP is at least 50,000."
+    },
+    {
+      "row": 14,
+      "nameIndex": 14,
+      "helpIndex": 14,
+      "name": "Foe: HP ≥ 10,000",
+      "help": "Target a foe whose HP is at least 10,000."
+    },
+    {
+      "row": 15,
+      "nameIndex": 15,
+      "helpIndex": 15,
+      "name": "Foe: HP ≥ 5,000",
+      "help": "Target a foe whose HP is at least 5,000."
+    },
+    {
+      "row": 16,
+      "nameIndex": 16,
+      "helpIndex": 16,
+      "name": "Foe: HP ≥ 3,000",
+      "help": "Target a foe whose HP is at least 3,000."
+    },
+    {
+      "row": 17,
+      "nameIndex": 17,
+      "helpIndex": 17,
+      "name": "Foe: HP ≥ 2,000",
+      "help": "Target a foe whose HP is at least 2,000."
+    },
+    {
+      "row": 18,
+      "nameIndex": 18,
+      "helpIndex": 18,
+      "name": "Foe: HP ≥ 1,000",
+      "help": "Target a foe whose HP is at least 1,000."
+    },
+    {
+      "row": 19,
+      "nameIndex": 19,
+      "helpIndex": 19,
+      "name": "Foe: HP ≥ 500",
+      "help": "Target a foe whose HP is at least 500."
+    },
+    {
+      "row": 20,
+      "nameIndex": 20,
+      "helpIndex": 20,
+      "name": "Foe: HP < 10,000",
+      "help": "Target a foe whose HP is less than 10,000."
+    },
+    {
+      "row": 21,
+      "nameIndex": 21,
+      "helpIndex": 21,
+      "name": "Foe: HP < 5,000",
+      "help": "Target a foe whose HP is less than 5,000."
+    },
+    {
+      "row": 22,
+      "nameIndex": 22,
+      "helpIndex": 22,
+      "name": "Foe: HP < 3,000",
+      "help": "Target a foe whose HP is less than 3,000."
+    },
+    {
+      "row": 23,
+      "nameIndex": 23,
+      "helpIndex": 23,
+      "name": "Foe: HP < 2,000",
+      "help": "Target a foe whose HP is less than 2,000."
+    },
+    {
+      "row": 24,
+      "nameIndex": 24,
+      "helpIndex": 24,
+      "name": "Foe: HP < 1,000",
+      "help": "Target a foe whose HP is less than 1,000."
+    },
+    {
+      "row": 25,
+      "nameIndex": 25,
+      "helpIndex": 25,
+      "name": "Foe: HP < 500",
+      "help": "Target a foe whose HP is less than 500."
+    },
+    {
+      "row": 26,
+      "nameIndex": 28,
+      "helpIndex": 26,
+      "name": "Foe: max HP ≥ 50,000, no Safety",
+      "help": "Target a foe whose max HP is at least 50,000\nwithout Safety protection."
+    },
+    {
+      "row": 27,
+      "nameIndex": 29,
+      "helpIndex": 27,
+      "name": "Foe: max HP ≥ 10,000, no Safety",
+      "help": "Target a foe whose max HP is at least 10,000\nwithout Safety protection."
+    },
+    {
+      "row": 28,
+      "nameIndex": 30,
+      "helpIndex": 28,
+      "name": "Foe: max HP ≥ 5,000, no Safety",
+      "help": "Target a foe whose max HP is at least 5,000\nwithout Safety protection."
+    },
+    {
+      "row": 29,
+      "nameIndex": 31,
+      "helpIndex": 29,
+      "name": "Foe: max HP ≥ 1,000, no Safety",
+      "help": "Target a foe whose max HP is at least 1,000\nwithout Safety protection."
+    },
+    {
+      "row": 30,
+      "nameIndex": 32,
+      "helpIndex": 30,
+      "name": "Foe: max HP ≥ 500, no Safety",
+      "help": "Target a foe whose max HP is at least 500\nwithout Safety protection."
+    },
+    {
+      "row": 31,
+      "nameIndex": 33,
+      "helpIndex": 31,
+      "name": "Foe: HP ≥ 90%, no Safety",
+      "help": "Target a foe whose HP is at least 90% without\nSafety protection."
+    },
+    {
+      "row": 32,
+      "nameIndex": 34,
+      "helpIndex": 32,
+      "name": "Foe: HP ≥ 70%, no Safety",
+      "help": "Target a foe whose HP is at least 70% without\nSafety protection."
+    },
+    {
+      "row": 33,
+      "nameIndex": 35,
+      "helpIndex": 33,
+      "name": "Foe: HP ≥ 50%, no Safety",
+      "help": "Target a foe whose HP is at least 50% without\nSafety protection."
+    },
+    {
+      "row": 34,
+      "nameIndex": 36,
+      "helpIndex": 34,
+      "name": "Foe: HP ≥ 30%, no Safety",
+      "help": "Target a foe whose HP is at least 30% without\nSafety protection."
+    },
+    {
+      "row": 35,
+      "nameIndex": 37,
+      "helpIndex": 35,
+      "name": "Foe: HP ≥ 70%",
+      "help": "Target a foe whose HP is at least 70%."
+    },
+    {
+      "row": 36,
+      "nameIndex": 38,
+      "helpIndex": 36,
+      "name": "Foe: HP ≥ 50%",
+      "help": "Target a foe whose HP is at least 50%."
+    },
+    {
+      "row": 37,
+      "nameIndex": 39,
+      "helpIndex": 37,
+      "name": "Foe: HP ≥ 30%",
+      "help": "Target a foe whose HP is at least 30%."
+    },
+    {
+      "row": 38,
+      "nameIndex": 40,
+      "helpIndex": 38,
+      "name": "Foe: HP ≥ 10%",
+      "help": "Target a foe whose HP is at least 10%."
+    },
+    {
+      "row": 39,
+      "nameIndex": 41,
+      "helpIndex": 39,
+      "name": "Foe: HP < 70%",
+      "help": "Target a foe whose HP is less than 70%."
+    },
+    {
+      "row": 40,
+      "nameIndex": 42,
+      "helpIndex": 40,
+      "name": "Foe: HP < 50%",
+      "help": "Target a foe whose HP is less than 50%."
+    },
+    {
+      "row": 41,
+      "nameIndex": 43,
+      "helpIndex": 41,
+      "name": "Foe: HP < 30%",
+      "help": "Target a foe whose HP is less than 30%."
+    },
+    {
+      "row": 42,
+      "nameIndex": 54,
+      "helpIndex": 42,
+      "name": "Foe: HP < 10%",
+      "help": "Target a foe whose HP is less than 10%."
+    },
+    {
+      "row": 43,
+      "nameIndex": 57,
+      "helpIndex": 43,
+      "name": "Foe: not flying",
+      "help": "Target a non-flying foe."
+    },
+    {
+      "row": 44,
+      "nameIndex": 59,
+      "helpIndex": 44,
+      "name": "Foe: no Safety",
+      "help": "Target a foe without Safety protection."
+    },
+    {
+      "row": 45,
+      "nameIndex": 61,
+      "helpIndex": 45,
+      "name": "Foe: not undead",
+      "help": "Target a foe that is not undead."
+    },
+    {
+      "row": 46,
+      "nameIndex": 74,
+      "helpIndex": 46,
+      "name": "Foe: no ailments, self afflicted",
+      "help": "Target a foe with no temporary ailments when the\nuser has a temporary ailment."
+    },
+    {
+      "row": 47,
+      "nameIndex": 75,
+      "helpIndex": 47,
+      "name": "Foe: user Blind, no Safety",
+      "help": "Target the nearest visible foe without Safety\nwhile the user has Blind."
+    },
+    {
+      "row": 48,
+      "nameIndex": 76,
+      "helpIndex": 48,
+      "name": "Foe: user has Blind",
+      "help": "Target the nearest visible foe while the user\nhas Blind."
+    },
+    {
+      "row": 49,
+      "nameIndex": 77,
+      "helpIndex": 49,
+      "name": "Foe: user has Bravery",
+      "help": "Target the nearest visible foe while the user\nhas Bravery."
+    },
+    {
+      "row": 50,
+      "nameIndex": 78,
+      "helpIndex": 50,
+      "name": "Foe: user has Faith",
+      "help": "Target the nearest visible foe while the user\nhas Faith."
+    },
+    {
+      "row": 51,
+      "nameIndex": 79,
+      "helpIndex": 51,
+      "name": "Foe: user has HP Critical",
+      "help": "Target the nearest visible foe while the user\nhas HP Critical."
+    },
+    {
+      "row": 52,
+      "nameIndex": 80,
+      "helpIndex": 52,
+      "name": "Foe: undead, no Safety",
+      "help": "Target an undead foe without Safety protection."
+    },
+    {
+      "row": 53,
+      "nameIndex": 81,
+      "helpIndex": 53,
+      "name": "Foe: Fire-weak, 3+ foes",
+      "help": "Target a foe weak to Fire when 3 or more foes\nare present."
+    },
+    {
+      "row": 54,
+      "nameIndex": 82,
+      "helpIndex": 54,
+      "name": "Foe: Sleep",
+      "help": "Target a foe with Sleep."
+    },
+    {
+      "row": 55,
+      "nameIndex": 83,
+      "helpIndex": 55,
+      "name": "Foe: Oil",
+      "help": "Target a foe with Oil."
+    },
+    {
+      "row": 56,
+      "nameIndex": 84,
+      "helpIndex": 56,
+      "name": "Foe: Slow",
+      "help": "Target a foe with Slow."
+    },
+    {
+      "row": 57,
+      "nameIndex": 85,
+      "helpIndex": 57,
+      "name": "Foe: 2+ foes present",
+      "help": "Target a foe when 2 or more foes are present."
+    },
+    {
+      "row": 58,
+      "nameIndex": 86,
+      "helpIndex": 58,
+      "name": "Foe: 3+ foes present",
+      "help": "Target a foe when 3 or more foes are present."
+    },
+    {
+      "row": 59,
+      "nameIndex": 87,
+      "helpIndex": 59,
+      "name": "Foe: 4+ foes present",
+      "help": "Target a foe when 4 or more foes are present."
+    },
+    {
+      "row": 60,
+      "nameIndex": 88,
+      "helpIndex": 60,
+      "name": "Foe: Reverse",
+      "help": "Target a foe with Reverse."
+    },
+    {
+      "row": 61,
+      "nameIndex": 89,
+      "helpIndex": 61,
+      "name": "Foe: Protect",
+      "help": "Target a foe with Protect."
+    },
+    {
+      "row": 62,
+      "nameIndex": 90,
+      "helpIndex": 62,
+      "name": "Foe: Shell",
+      "help": "Target a foe with Shell."
+    },
+    {
+      "row": 63,
+      "nameIndex": 91,
+      "helpIndex": 63,
+      "name": "Foe: Haste",
+      "help": "Target a foe with Haste."
+    },
+    {
+      "row": 64,
+      "nameIndex": 92,
+      "helpIndex": 64,
+      "name": "Foe: Bravery",
+      "help": "Target a foe with Bravery."
+    },
+    {
+      "row": 65,
+      "nameIndex": 93,
+      "helpIndex": 65,
+      "name": "Foe: Faith",
+      "help": "Target a foe with Faith."
+    },
+    {
+      "row": 66,
+      "nameIndex": 94,
+      "helpIndex": 66,
+      "name": "Foe: Reflect",
+      "help": "Target a foe with Reflect."
+    },
+    {
+      "row": 67,
+      "nameIndex": 250,
+      "helpIndex": 67,
+      "name": "Foe: without Slow",
+      "help": "Target a foe without Slow."
+    },
+    {
+      "row": 68,
+      "nameIndex": 96,
+      "helpIndex": 68,
+      "name": "Foe: Regen",
+      "help": "Target a foe with Regen."
+    },
+    {
+      "row": 69,
+      "nameIndex": 251,
+      "helpIndex": 69,
+      "name": "Foe: without Immobilize",
+      "help": "Target a foe without Immobilize."
+    },
+    {
+      "row": 70,
+      "nameIndex": 98,
+      "helpIndex": 70,
+      "name": "Foe: Berserk",
+      "help": "Target a foe with Berserk."
+    },
+    {
+      "row": 71,
+      "nameIndex": 253,
+      "helpIndex": 71,
+      "name": "Foe: fewest targeted",
+      "help": "Target the foe targeted by the fewest allies."
+    },
+    {
+      "row": 72,
+      "nameIndex": 100,
+      "helpIndex": 72,
+      "name": "Foe: HP Critical, no Safety",
+      "help": "Target a foe with HP Critical without Safety\nprotection."
+    },
+    {
+      "row": 73,
+      "nameIndex": 101,
+      "helpIndex": 73,
+      "name": "Foe: Fire-weak",
+      "help": "Target a foe weak to Fire."
+    },
+    {
+      "row": 74,
+      "nameIndex": 102,
+      "helpIndex": 74,
+      "name": "Foe: Lightning-weak",
+      "help": "Target a foe weak to Lightning."
+    },
+    {
+      "row": 75,
+      "nameIndex": 103,
+      "helpIndex": 75,
+      "name": "Foe: Ice-weak",
+      "help": "Target a foe weak to Ice."
+    },
+    {
+      "row": 76,
+      "nameIndex": 104,
+      "helpIndex": 76,
+      "name": "Foe: Earth-weak",
+      "help": "Target a foe weak to Earth."
+    },
+    {
+      "row": 77,
+      "nameIndex": 105,
+      "helpIndex": 77,
+      "name": "Foe: Water-weak",
+      "help": "Target a foe weak to Water."
+    },
+    {
+      "row": 78,
+      "nameIndex": 106,
+      "helpIndex": 78,
+      "name": "Foe: Wind-weak",
+      "help": "Target a foe weak to Wind."
+    },
+    {
+      "row": 79,
+      "nameIndex": 107,
+      "helpIndex": 79,
+      "name": "Foe: Holy-weak",
+      "help": "Target a foe weak to Holy."
+    },
+    {
+      "row": 80,
+      "nameIndex": 108,
+      "helpIndex": 80,
+      "name": "Foe: Dark-weak",
+      "help": "Target a foe weak to Dark."
+    },
+    {
+      "row": 81,
+      "nameIndex": 109,
+      "helpIndex": 81,
+      "name": "Foe: no Fire absorption",
+      "help": "Target a foe that does not absorb Fire damage."
+    },
+    {
+      "row": 82,
+      "nameIndex": 110,
+      "helpIndex": 82,
+      "name": "Foe: no Lightning absorption",
+      "help": "Target a foe that does not absorb Lightning\ndamage."
+    },
+    {
+      "row": 83,
+      "nameIndex": 111,
+      "helpIndex": 83,
+      "name": "Foe: no Ice absorption",
+      "help": "Target a foe that does not absorb Ice damage."
+    },
+    {
+      "row": 84,
+      "nameIndex": 112,
+      "helpIndex": 84,
+      "name": "Foe: no Earth absorption",
+      "help": "Target a foe that does not absorb Earth damage."
+    },
+    {
+      "row": 85,
+      "nameIndex": 113,
+      "helpIndex": 85,
+      "name": "Foe: no Water absorption",
+      "help": "Target a foe that does not absorb Water damage."
+    },
+    {
+      "row": 86,
+      "nameIndex": 114,
+      "helpIndex": 86,
+      "name": "Foe: no Wind absorption",
+      "help": "Target a foe that does not absorb Wind damage."
+    },
+    {
+      "row": 87,
+      "nameIndex": 115,
+      "helpIndex": 87,
+      "name": "Foe: no Holy absorption",
+      "help": "Target a foe that does not absorb Holy damage."
+    },
+    {
+      "row": 88,
+      "nameIndex": 116,
+      "helpIndex": 88,
+      "name": "Foe: no Dark absorption",
+      "help": "Target a foe that does not absorb Dark damage."
+    },
+    {
+      "row": 89,
+      "nameIndex": 26,
+      "helpIndex": 89,
+      "name": "Foe: undead",
+      "help": "Target an undead foe."
+    },
+    {
+      "row": 90,
+      "nameIndex": 27,
+      "helpIndex": 90,
+      "name": "Foe: flying",
+      "help": "Target a flying foe."
+    },
+    {
+      "row": 91,
+      "nameIndex": 256,
+      "helpIndex": 91,
+      "name": "Ally: no buffs, self buffed",
+      "help": "Target an ally with no temporary buffs when the\nuser has a temporary buff."
+    },
+    {
+      "row": 92,
+      "nameIndex": 257,
+      "helpIndex": 92,
+      "name": "Foe: Holy-weak, 3+ foes",
+      "help": "Target a foe weak to Holy when 3 or more foes\nare present."
+    },
+    {
+      "row": 93,
+      "nameIndex": 258,
+      "helpIndex": 93,
+      "name": "Foe: user MP < 10%",
+      "help": "Target the nearest visible foe when the user's\nMP is less than 10%."
+    },
+    {
+      "row": 94,
+      "nameIndex": 259,
+      "helpIndex": 94,
+      "name": "Foe: Lightning-weak, 3+ foes",
+      "help": "Target a foe weak to Lightning when 3 or more\nfoes are present."
+    },
+    {
+      "row": 95,
+      "nameIndex": 260,
+      "helpIndex": 95,
+      "name": "Foe: Ice-weak, 3+ foes",
+      "help": "Target a foe weak to Ice when 3 or more foes are\npresent."
+    },
+    {
+      "row": 96,
+      "nameIndex": 261,
+      "helpIndex": 96,
+      "name": "Foe: Earth-weak, 3+ foes",
+      "help": "Target a foe weak to Earth when 3 or more foes\nare present."
+    },
+    {
+      "row": 97,
+      "nameIndex": 262,
+      "helpIndex": 97,
+      "name": "Foe: Water-weak, 3+ foes",
+      "help": "Target a foe weak to Water when 3 or more foes\nare present."
+    },
+    {
+      "row": 98,
+      "nameIndex": 263,
+      "helpIndex": 98,
+      "name": "Foe: Wind-weak, 3+ foes",
+      "help": "Target a foe weak to Wind when 3 or more foes\nare present."
+    },
+    {
+      "row": 99,
+      "nameIndex": 264,
+      "helpIndex": 99,
+      "name": "Foe: Dark-weak, 3+ foes",
+      "help": "Target a foe weak to Dark when 3 or more foes\nare present."
+    },
+    {
+      "row": 100,
+      "nameIndex": 265,
+      "helpIndex": 100,
+      "name": "Foe: Fire absorption",
+      "help": "Target a foe that absorbs Fire damage."
+    },
+    {
+      "row": 101,
+      "nameIndex": 266,
+      "helpIndex": 101,
+      "name": "Foe: Lightning absorption",
+      "help": "Target a foe that absorbs Lightning damage."
+    },
+    {
+      "row": 102,
+      "nameIndex": 267,
+      "helpIndex": 102,
+      "name": "Foe: Ice absorption",
+      "help": "Target a foe that absorbs Ice damage."
+    },
+    {
+      "row": 103,
+      "nameIndex": 268,
+      "helpIndex": 103,
+      "name": "Foe: Earth absorption",
+      "help": "Target a foe that absorbs Earth damage."
+    },
+    {
+      "row": 104,
+      "nameIndex": 269,
+      "helpIndex": 104,
+      "name": "Foe: Water absorption",
+      "help": "Target a foe that absorbs Water damage."
+    },
+    {
+      "row": 105,
+      "nameIndex": 270,
+      "helpIndex": 105,
+      "name": "Foe: Wind absorption",
+      "help": "Target a foe that absorbs Wind damage."
+    },
+    {
+      "row": 106,
+      "nameIndex": 271,
+      "helpIndex": 106,
+      "name": "Foe: Holy absorption",
+      "help": "Target a foe that absorbs Holy damage."
+    },
+    {
+      "row": 107,
+      "nameIndex": 272,
+      "helpIndex": 107,
+      "name": "Foe: Dark absorption",
+      "help": "Target a foe that absorbs Dark damage."
+    },
+    {
+      "row": 108,
+      "nameIndex": 273,
+      "helpIndex": 108,
+      "name": "Foe: no Safety, 3+ foes",
+      "help": "Target a foe without Safety protection when 3 or\nmore foes are present."
+    },
+    {
+      "row": 109,
+      "nameIndex": 274,
+      "helpIndex": 109,
+      "name": "Foe: user HP = 100%",
+      "help": "Target the nearest visible foe when the user's\nHP is full."
+    },
+    {
+      "row": 110,
+      "nameIndex": 275,
+      "helpIndex": 110,
+      "name": "Foe: user HP ≥ 70%",
+      "help": "Target the nearest visible foe when the user's\nHP is at least 70%."
+    },
+    {
+      "row": 111,
+      "nameIndex": 276,
+      "helpIndex": 111,
+      "name": "Foe: user HP ≥ 50%",
+      "help": "Target the nearest visible foe when the user's\nHP is at least 50%."
+    },
+    {
+      "row": 112,
+      "nameIndex": 277,
+      "helpIndex": 112,
+      "name": "Foe: user HP ≥ 30%",
+      "help": "Target the nearest visible foe when the user's\nHP is at least 30%."
+    },
+    {
+      "row": 113,
+      "nameIndex": 278,
+      "helpIndex": 113,
+      "name": "Foe: user HP ≥ 10%",
+      "help": "Target the nearest visible foe when the user's\nHP is at least 10%."
+    },
+    {
+      "row": 114,
+      "nameIndex": 279,
+      "helpIndex": 114,
+      "name": "Foe: user HP < 100%",
+      "help": "Target the nearest visible foe when the user's\nHP is below 100%."
+    },
+    {
+      "row": 115,
+      "nameIndex": 280,
+      "helpIndex": 115,
+      "name": "Foe: user HP < 50%",
+      "help": "Target the nearest visible foe when the user's\nHP is less than 50%."
+    },
+    {
+      "row": 116,
+      "nameIndex": 281,
+      "helpIndex": 116,
+      "name": "Foe: user HP < 30%",
+      "help": "Target the nearest visible foe when the user's\nHP is less than 30%."
+    },
+    {
+      "row": 117,
+      "nameIndex": 282,
+      "helpIndex": 117,
+      "name": "Foe: user HP < 10%",
+      "help": "Target the nearest visible foe when the user's\nHP is less than 10%."
+    },
+    {
+      "row": 118,
+      "nameIndex": 283,
+      "helpIndex": 118,
+      "name": "Foe: user MP ≥ 75%",
+      "help": "Target the nearest visible foe when the user's\nMP is at least 75%."
+    },
+    {
+      "row": 119,
+      "nameIndex": 117,
+      "helpIndex": 119,
+      "name": "Ally: user HP = 100%",
+      "help": "Target an ally when the user's HP is full."
+    },
+    {
+      "row": 120,
+      "nameIndex": 118,
+      "helpIndex": 120,
+      "name": "Ally: user HP ≥ 70%",
+      "help": "Target an ally when the user's HP is at least\n70%."
+    },
+    {
+      "row": 121,
+      "nameIndex": 119,
+      "helpIndex": 121,
+      "name": "Ally: user HP ≥ 50%",
+      "help": "Target an ally when the user's HP is at least\n50%."
+    },
+    {
+      "row": 122,
+      "nameIndex": 120,
+      "helpIndex": 122,
+      "name": "Ally: user HP ≥ 30%",
+      "help": "Target an ally when the user's HP is at least\n30%."
+    },
+    {
+      "row": 123,
+      "nameIndex": 121,
+      "helpIndex": 123,
+      "name": "Self: HP < 70%",
+      "help": "Target self when your HP is less than 70%."
+    },
+    {
+      "row": 124,
+      "nameIndex": 122,
+      "helpIndex": 124,
+      "name": "Ally: user HP < 70%",
+      "help": "Target an ally when the user's HP is less than\n70%."
+    },
+    {
+      "row": 125,
+      "nameIndex": 123,
+      "helpIndex": 125,
+      "name": "Ally: user HP < 50%",
+      "help": "Target an ally when the user's HP is less than\n50%."
+    },
+    {
+      "row": 126,
+      "nameIndex": 124,
+      "helpIndex": 126,
+      "name": "Ally: user HP < 30%",
+      "help": "Target an ally when the user's HP is less than\n30%."
+    },
+    {
+      "row": 127,
+      "nameIndex": 125,
+      "helpIndex": 127,
+      "name": "Self: HP < 30%",
+      "help": "Target self when your HP is less than 30%."
+    },
+    {
+      "row": 128,
+      "nameIndex": 126,
+      "helpIndex": 128,
+      "name": "Ally: user MP ≥ 75%",
+      "help": "Target an ally when the user's MP is at least\n75%."
+    },
+    {
+      "row": 129,
+      "nameIndex": 127,
+      "helpIndex": 129,
+      "name": "Ally: user MP ≥ 50%",
+      "help": "Target an ally when the user's MP is at least\n50%."
+    },
+    {
+      "row": 130,
+      "nameIndex": 128,
+      "helpIndex": 130,
+      "name": "Ally: user MP ≥ 25%",
+      "help": "Target an ally when the user's MP is at least\n25%."
+    },
+    {
+      "row": 131,
+      "nameIndex": 129,
+      "helpIndex": 131,
+      "name": "Ally: user MP ≥ 10%",
+      "help": "Target an ally when the user's MP is at least\n10%."
+    },
+    {
+      "row": 132,
+      "nameIndex": 130,
+      "helpIndex": 132,
+      "name": "Ally: user MP < 75%",
+      "help": "Target an ally when the user's MP is less than\n75%."
+    },
+    {
+      "row": 133,
+      "nameIndex": 131,
+      "helpIndex": 133,
+      "name": "Ally: user MP < 50%",
+      "help": "Target an ally when the user's MP is less than\n50%."
+    },
+    {
+      "row": 134,
+      "nameIndex": 132,
+      "helpIndex": 134,
+      "name": "Ally: user MP < 25%",
+      "help": "Target an ally when the user's MP is less than\n25%."
+    },
+    {
+      "row": 135,
+      "nameIndex": 133,
+      "helpIndex": 135,
+      "name": "Ally: user MP < 10%",
+      "help": "Target an ally when the user's MP is less than\n10%."
+    },
+    {
+      "row": 136,
+      "nameIndex": 134,
+      "helpIndex": 136,
+      "name": "Self",
+      "help": "Target self."
+    },
+    {
+      "row": 137,
+      "nameIndex": 135,
+      "helpIndex": 137,
+      "name": "Self: HP ≥ 70%",
+      "help": "Target self when your HP is at least 70%."
+    },
+    {
+      "row": 138,
+      "nameIndex": 136,
+      "helpIndex": 138,
+      "name": "Self: HP ≥ 50%",
+      "help": "Target self when your HP is at least 50%."
+    },
+    {
+      "row": 139,
+      "nameIndex": 137,
+      "helpIndex": 139,
+      "name": "Self: HP ≥ 30%",
+      "help": "Target self when your HP is at least 30%."
+    },
+    {
+      "row": 140,
+      "nameIndex": 138,
+      "helpIndex": 140,
+      "name": "Self: HP ≥ 10%",
+      "help": "Target self when your HP is at least 10%."
+    },
+    {
+      "row": 141,
+      "nameIndex": 139,
+      "helpIndex": 141,
+      "name": "Ally: user HP ≥ 10%",
+      "help": "Target an ally when the user's HP is at least\n10%."
+    },
+    {
+      "row": 142,
+      "nameIndex": 140,
+      "helpIndex": 142,
+      "name": "Self: HP < 50%",
+      "help": "Target self when your HP is less than 50%."
+    },
+    {
+      "row": 143,
+      "nameIndex": 141,
+      "helpIndex": 143,
+      "name": "Ally: user HP < 10%",
+      "help": "Target an ally when the user's HP is less than\n10%."
+    },
+    {
+      "row": 144,
+      "nameIndex": 142,
+      "helpIndex": 144,
+      "name": "Self: HP < 10%",
+      "help": "Target self when your HP is less than 10%."
+    },
+    {
+      "row": 145,
+      "nameIndex": 143,
+      "helpIndex": 145,
+      "name": "Self: MP ≥ 75%",
+      "help": "Target self when your MP is at least 75%."
+    },
+    {
+      "row": 146,
+      "nameIndex": 144,
+      "helpIndex": 146,
+      "name": "Self: MP ≥ 50%",
+      "help": "Target self when your MP is at least 50%."
+    },
+    {
+      "row": 147,
+      "nameIndex": 145,
+      "helpIndex": 147,
+      "name": "Self: MP ≥ 25%",
+      "help": "Target self when your MP is at least 25%."
+    },
+    {
+      "row": 148,
+      "nameIndex": 146,
+      "helpIndex": 148,
+      "name": "Self: MP ≥ 10%",
+      "help": "Target self when your MP is at least 10%."
+    },
+    {
+      "row": 149,
+      "nameIndex": 147,
+      "helpIndex": 149,
+      "name": "Self: MP < 75%",
+      "help": "Target self when your MP is less than 75%."
+    },
+    {
+      "row": 150,
+      "nameIndex": 148,
+      "helpIndex": 150,
+      "name": "Self: MP < 50%",
+      "help": "Target self when your MP is less than 50%."
+    },
+    {
+      "row": 151,
+      "nameIndex": 149,
+      "helpIndex": 151,
+      "name": "Self: MP < 25%",
+      "help": "Target self when your MP is less than 25%."
+    },
+    {
+      "row": 152,
+      "nameIndex": 150,
+      "helpIndex": 152,
+      "name": "Self: MP < 10%",
+      "help": "Target self when your MP is less than 10%."
+    },
+    {
+      "row": 153,
+      "nameIndex": 151,
+      "helpIndex": 153,
+      "name": "Foe: physical-immune",
+      "help": "Target a foe immune to physical damage."
+    },
+    {
+      "row": 154,
+      "nameIndex": 152,
+      "helpIndex": 154,
+      "name": "Foe: magick-immune",
+      "help": "Target a foe immune to magick damage."
+    },
+    {
+      "row": 155,
+      "nameIndex": 153,
+      "helpIndex": 155,
+      "name": "Foe: status-immune",
+      "help": "Target a foe immune to negative statuses."
+    },
+    {
+      "row": 156,
+      "nameIndex": 154,
+      "helpIndex": 156,
+      "name": "Foe: without Petrify",
+      "help": "Target a foe without Petrify."
+    },
+    {
+      "row": 157,
+      "nameIndex": 155,
+      "helpIndex": 157,
+      "name": "Foe: without Stop",
+      "help": "Target a foe without Stop."
+    },
+    {
+      "row": 158,
+      "nameIndex": 156,
+      "helpIndex": 158,
+      "name": "Foe: without Sleep",
+      "help": "Target a foe without Sleep."
+    },
+    {
+      "row": 159,
+      "nameIndex": 157,
+      "helpIndex": 159,
+      "name": "Foe: without Confuse",
+      "help": "Target a foe without Confuse."
+    },
+    {
+      "row": 160,
+      "nameIndex": 158,
+      "helpIndex": 160,
+      "name": "Foe: without Doom",
+      "help": "Target a foe without Doom."
+    },
+    {
+      "row": 161,
+      "nameIndex": 159,
+      "helpIndex": 161,
+      "name": "Foe: without Blind",
+      "help": "Target a foe without Blind."
+    },
+    {
+      "row": 162,
+      "nameIndex": 160,
+      "helpIndex": 162,
+      "name": "Foe: without Poison",
+      "help": "Target a foe without Poison."
+    },
+    {
+      "row": 163,
+      "nameIndex": 161,
+      "helpIndex": 163,
+      "name": "Ally: any",
+      "help": "Target an ally."
+    },
+    {
+      "row": 164,
+      "nameIndex": 162,
+      "helpIndex": 164,
+      "name": "Ally: party leader",
+      "help": "Target the party leader."
+    },
+    {
+      "row": 165,
+      "nameIndex": 163,
+      "helpIndex": 165,
+      "name": "Ally: Vaan",
+      "help": "Target Vaan."
+    },
+    {
+      "row": 166,
+      "nameIndex": 164,
+      "helpIndex": 166,
+      "name": "Ally: Ashe",
+      "help": "Target Ashe."
+    },
+    {
+      "row": 167,
+      "nameIndex": 165,
+      "helpIndex": 167,
+      "name": "Ally: Fran",
+      "help": "Target Fran."
+    },
+    {
+      "row": 168,
+      "nameIndex": 166,
+      "helpIndex": 168,
+      "name": "Ally: Balthier",
+      "help": "Target Balthier."
+    },
+    {
+      "row": 169,
+      "nameIndex": 167,
+      "helpIndex": 169,
+      "name": "Ally: Basch",
+      "help": "Target Basch."
+    },
+    {
+      "row": 170,
+      "nameIndex": 168,
+      "helpIndex": 170,
+      "name": "Ally: Penelo",
+      "help": "Target Penelo."
+    },
+    {
+      "row": 171,
+      "nameIndex": 169,
+      "helpIndex": 171,
+      "name": "Ally: guest",
+      "help": "Target the guest."
+    },
+    {
+      "row": 172,
+      "nameIndex": 170,
+      "helpIndex": 172,
+      "name": "Ally: lowest HP",
+      "help": "Target the ally with the least remaining HP."
+    },
+    {
+      "row": 173,
+      "nameIndex": 171,
+      "helpIndex": 173,
+      "name": "Ally: targeted by a foe",
+      "help": "Target an ally targeted by a foe."
+    },
+    {
+      "row": 174,
+      "nameIndex": 172,
+      "helpIndex": 174,
+      "name": "Ally: most targeted",
+      "help": "Target the ally targeted by the most foes."
+    },
+    {
+      "row": 175,
+      "nameIndex": 173,
+      "helpIndex": 175,
+      "name": "Ally: HP and MP < 30%",
+      "help": "Target an ally with both HP and MP below 30%."
+    },
+    {
+      "row": 176,
+      "nameIndex": 174,
+      "helpIndex": 176,
+      "name": "Ally: HP < 60%, absorbs Holy",
+      "help": "Target an ally below 60% HP who absorbs Holy\ndamage."
+    },
+    {
+      "row": 177,
+      "nameIndex": 175,
+      "helpIndex": 177,
+      "name": "Ally: HP < 30%, absorbs Holy",
+      "help": "Target an ally below 30% HP who absorbs Holy\ndamage."
+    },
+    {
+      "row": 178,
+      "nameIndex": 176,
+      "helpIndex": 178,
+      "name": "Ally: HP < 60%, absorbs Dark",
+      "help": "Target an ally below 60% HP who absorbs Dark\ndamage."
+    },
+    {
+      "row": 179,
+      "nameIndex": 177,
+      "helpIndex": 179,
+      "name": "Ally: HP < 30%, absorbs Dark",
+      "help": "Target an ally below 30% HP who absorbs Dark\ndamage."
+    },
+    {
+      "row": 180,
+      "nameIndex": 178,
+      "helpIndex": 180,
+      "name": "Ally: HP < 100%",
+      "help": "Target an ally whose HP is below 100%."
+    },
+    {
+      "row": 181,
+      "nameIndex": 179,
+      "helpIndex": 181,
+      "name": "Ally: HP < 40%",
+      "help": "Target an ally whose HP is less than 40%."
+    },
+    {
+      "row": 182,
+      "nameIndex": 180,
+      "helpIndex": 182,
+      "name": "Ally: HP < 80%",
+      "help": "Target an ally whose HP is less than 80%."
+    },
+    {
+      "row": 183,
+      "nameIndex": 181,
+      "helpIndex": 183,
+      "name": "Ally: HP < 30%",
+      "help": "Target an ally whose HP is less than 30%."
+    },
+    {
+      "row": 184,
+      "nameIndex": 182,
+      "helpIndex": 184,
+      "name": "Ally: HP < 60%",
+      "help": "Target an ally whose HP is less than 60%."
+    },
+    {
+      "row": 185,
+      "nameIndex": 183,
+      "helpIndex": 185,
+      "name": "Ally: HP < 50%",
+      "help": "Target an ally whose HP is less than 50%."
+    },
+    {
+      "row": 186,
+      "nameIndex": 184,
+      "helpIndex": 186,
+      "name": "Ally: HP < 90%",
+      "help": "Target an ally whose HP is less than 90%."
+    },
+    {
+      "row": 187,
+      "nameIndex": 185,
+      "helpIndex": 187,
+      "name": "Ally: HP < 70%",
+      "help": "Target an ally whose HP is less than 70%."
+    },
+    {
+      "row": 188,
+      "nameIndex": 186,
+      "helpIndex": 188,
+      "name": "Ally: HP < 20%",
+      "help": "Target an ally whose HP is less than 20%."
+    },
+    {
+      "row": 189,
+      "nameIndex": 187,
+      "helpIndex": 189,
+      "name": "Ally: HP < 10%",
+      "help": "Target an ally whose HP is less than 10%."
+    },
+    {
+      "row": 190,
+      "nameIndex": 188,
+      "helpIndex": 190,
+      "name": "Ally: MP < 100%",
+      "help": "Target an ally whose MP is less than 100%."
+    },
+    {
+      "row": 191,
+      "nameIndex": 189,
+      "helpIndex": 191,
+      "name": "Ally: MP < 80%",
+      "help": "Target an ally whose MP is less than 80%."
+    },
+    {
+      "row": 192,
+      "nameIndex": 190,
+      "helpIndex": 192,
+      "name": "Ally: MP < 60%",
+      "help": "Target an ally whose MP is less than 60%."
+    },
+    {
+      "row": 193,
+      "nameIndex": 191,
+      "helpIndex": 193,
+      "name": "Ally: MP < 40%",
+      "help": "Target an ally whose MP is less than 40%."
+    },
+    {
+      "row": 194,
+      "nameIndex": 192,
+      "helpIndex": 194,
+      "name": "Ally: MP < 30%",
+      "help": "Target an ally whose MP is less than 30%."
+    },
+    {
+      "row": 195,
+      "nameIndex": 193,
+      "helpIndex": 195,
+      "name": "Ally: MP < 20%",
+      "help": "Target an ally whose MP is less than 20%."
+    },
+    {
+      "row": 196,
+      "nameIndex": 194,
+      "helpIndex": 196,
+      "name": "Ally: MP < 10%",
+      "help": "Target an ally whose MP is less than 10%."
+    },
+    {
+      "row": 197,
+      "nameIndex": 195,
+      "helpIndex": 197,
+      "name": "Ally: Slow + Blind",
+      "help": "Target an ally with both Slow and Blind."
+    },
+    {
+      "row": 198,
+      "nameIndex": 196,
+      "helpIndex": 198,
+      "name": "Ally: Slow + Sleep",
+      "help": "Target an ally with both Slow and Sleep."
+    },
+    {
+      "row": 199,
+      "nameIndex": 197,
+      "helpIndex": 199,
+      "name": "Ally: Poison + Sap",
+      "help": "Target an ally with both Poison and Sap."
+    },
+    {
+      "row": 200,
+      "nameIndex": 198,
+      "helpIndex": 200,
+      "name": "Ally: Poison + Confuse",
+      "help": "Target an ally with both Poison and Confuse."
+    },
+    {
+      "row": 201,
+      "nameIndex": 199,
+      "helpIndex": 201,
+      "name": "Ally: Disable",
+      "help": "Target an ally with Disable."
+    },
+    {
+      "row": 202,
+      "nameIndex": 200,
+      "helpIndex": 202,
+      "name": "Ally: Sleep",
+      "help": "Target an ally with Sleep."
+    },
+    {
+      "row": 203,
+      "nameIndex": 201,
+      "helpIndex": 203,
+      "name": "Ally: Stop",
+      "help": "Target an ally with Stop."
+    },
+    {
+      "row": 204,
+      "nameIndex": 202,
+      "helpIndex": 204,
+      "name": "Ally: Slow",
+      "help": "Target an ally with Slow."
+    },
+    {
+      "row": 205,
+      "nameIndex": 203,
+      "helpIndex": 205,
+      "name": "Ally: Berserk",
+      "help": "Target an ally with Berserk."
+    },
+    {
+      "row": 206,
+      "nameIndex": 204,
+      "helpIndex": 206,
+      "name": "Ally: HP Critical",
+      "help": "Target an ally with HP Critical."
+    },
+    {
+      "row": 207,
+      "nameIndex": 205,
+      "helpIndex": 207,
+      "name": "Ally: Immobilize",
+      "help": "Target an ally with Immobilize."
+    },
+    {
+      "row": 208,
+      "nameIndex": 206,
+      "helpIndex": 208,
+      "name": "Ally: Disease",
+      "help": "Target an ally with Disease."
+    },
+    {
+      "row": 209,
+      "nameIndex": 207,
+      "helpIndex": 209,
+      "name": "Ally: Lure",
+      "help": "Target an ally with Lure."
+    },
+    {
+      "row": 210,
+      "nameIndex": 208,
+      "helpIndex": 210,
+      "name": "Ally: Reflect",
+      "help": "Target an ally with Reflect."
+    },
+    {
+      "row": 211,
+      "nameIndex": 209,
+      "helpIndex": 211,
+      "name": "Ally: Reverse, HP < 70%",
+      "help": "Target an ally with Reverse and less than 70%\nHP."
+    },
+    {
+      "row": 212,
+      "nameIndex": 210,
+      "helpIndex": 212,
+      "name": "Ally: Reverse, HP < 50%",
+      "help": "Target an ally with Reverse and less than 50%\nHP."
+    },
+    {
+      "row": 213,
+      "nameIndex": 211,
+      "helpIndex": 213,
+      "name": "Ally: Reverse, HP < 30%",
+      "help": "Target an ally with Reverse and less than 30%\nHP."
+    },
+    {
+      "row": 214,
+      "nameIndex": 212,
+      "helpIndex": 214,
+      "name": "Ally: without Protect",
+      "help": "Target an ally without Protect."
+    },
+    {
+      "row": 215,
+      "nameIndex": 213,
+      "helpIndex": 215,
+      "name": "Ally: without Shell",
+      "help": "Target an ally without Shell."
+    },
+    {
+      "row": 216,
+      "nameIndex": 214,
+      "helpIndex": 216,
+      "name": "Ally: without Haste",
+      "help": "Target an ally without Haste."
+    },
+    {
+      "row": 217,
+      "nameIndex": 215,
+      "helpIndex": 217,
+      "name": "Ally: without Bravery",
+      "help": "Target an ally without Bravery."
+    },
+    {
+      "row": 218,
+      "nameIndex": 216,
+      "helpIndex": 218,
+      "name": "Ally: without Faith",
+      "help": "Target an ally without Faith."
+    },
+    {
+      "row": 219,
+      "nameIndex": 217,
+      "helpIndex": 219,
+      "name": "Ally: without Reflect",
+      "help": "Target an ally without Reflect."
+    },
+    {
+      "row": 220,
+      "nameIndex": 218,
+      "helpIndex": 220,
+      "name": "Ally: without Invisible",
+      "help": "Target an ally without Invisible."
+    },
+    {
+      "row": 221,
+      "nameIndex": 219,
+      "helpIndex": 221,
+      "name": "Ally: without Regen",
+      "help": "Target an ally without Regen."
+    },
+    {
+      "row": 222,
+      "nameIndex": 220,
+      "helpIndex": 222,
+      "name": "Ally: without Float",
+      "help": "Target an ally without Float."
+    },
+    {
+      "row": 223,
+      "nameIndex": 221,
+      "helpIndex": 223,
+      "name": "Ally: without Berserk",
+      "help": "Target an ally without Berserk."
+    },
+    {
+      "row": 224,
+      "nameIndex": 222,
+      "helpIndex": 224,
+      "name": "Ally: without Bubble",
+      "help": "Target an ally without Bubble."
+    },
+    {
+      "row": 225,
+      "nameIndex": 223,
+      "helpIndex": 225,
+      "name": "Ally: without Blind",
+      "help": "Target an ally without Blind."
+    },
+    {
+      "row": 226,
+      "nameIndex": 224,
+      "helpIndex": 226,
+      "name": "Foe: targeting Vaan",
+      "help": "Target a foe targeting Vaan."
+    },
+    {
+      "row": 227,
+      "nameIndex": 225,
+      "helpIndex": 227,
+      "name": "Foe: targeting Ashe",
+      "help": "Target a foe targeting Ashe."
+    },
+    {
+      "row": 228,
+      "nameIndex": 226,
+      "helpIndex": 228,
+      "name": "Foe: targeting Fran",
+      "help": "Target a foe targeting Fran."
+    },
+    {
+      "row": 229,
+      "nameIndex": 227,
+      "helpIndex": 229,
+      "name": "Foe: targeting Balthier",
+      "help": "Target a foe targeting Balthier."
+    },
+    {
+      "row": 230,
+      "nameIndex": 228,
+      "helpIndex": 230,
+      "name": "Foe: targeting Basch",
+      "help": "Target a foe targeting Basch."
+    },
+    {
+      "row": 231,
+      "nameIndex": 229,
+      "helpIndex": 231,
+      "name": "Foe: targeting Penelo",
+      "help": "Target a foe targeting Penelo."
+    },
+    {
+      "row": 232,
+      "nameIndex": 230,
+      "helpIndex": 232,
+      "name": "Foe: without Silence",
+      "help": "Target a foe without Silence."
+    },
+    {
+      "row": 233,
+      "nameIndex": 231,
+      "helpIndex": 233,
+      "name": "Foe: without Sap",
+      "help": "Target a foe without Sap."
+    },
+    {
+      "row": 234,
+      "nameIndex": 232,
+      "helpIndex": 234,
+      "name": "Foe: without Oil",
+      "help": "Target a foe without Oil."
+    },
+    {
+      "row": 235,
+      "nameIndex": 233,
+      "helpIndex": 235,
+      "name": "Foe: without Disable",
+      "help": "Target a foe without Disable."
+    },
+    {
+      "row": 236,
+      "nameIndex": 234,
+      "helpIndex": 236,
+      "name": "Ally: 2+ foes present",
+      "help": "Target an ally when 2 or more foes are present."
+    },
+    {
+      "row": 237,
+      "nameIndex": 235,
+      "helpIndex": 237,
+      "name": "Ally: 3+ foes present",
+      "help": "Target an ally when 3 or more foes are present."
+    },
+    {
+      "row": 238,
+      "nameIndex": 236,
+      "helpIndex": 238,
+      "name": "Ally: 4+ foes present",
+      "help": "Target an ally when 4 or more foes are present."
+    },
+    {
+      "row": 239,
+      "nameIndex": 237,
+      "helpIndex": 239,
+      "name": "Ally: 5+ foes present",
+      "help": "Target an ally when 5 or more foes are present."
+    },
+    {
+      "row": 240,
+      "nameIndex": 238,
+      "helpIndex": 240,
+      "name": "Foe: user MP ≥ 50%",
+      "help": "Target the nearest visible foe when the user's\nMP is at least 50%."
+    },
+    {
+      "row": 241,
+      "nameIndex": 239,
+      "helpIndex": 241,
+      "name": "Foe: user MP ≥ 25%",
+      "help": "Target the nearest visible foe when the user's\nMP is at least 25%."
+    },
+    {
+      "row": 242,
+      "nameIndex": 240,
+      "helpIndex": 242,
+      "name": "Foe: user MP ≥ 10%",
+      "help": "Target the nearest visible foe when the user's\nMP is at least 10%."
+    },
+    {
+      "row": 243,
+      "nameIndex": 241,
+      "helpIndex": 243,
+      "name": "Foe: user MP < 75%",
+      "help": "Target the nearest visible foe when the user's\nMP is less than 75%."
+    },
+    {
+      "row": 244,
+      "nameIndex": 242,
+      "helpIndex": 244,
+      "name": "Foe: user MP < 50%",
+      "help": "Target the nearest visible foe when the user's\nMP is less than 50%."
+    },
+    {
+      "row": 245,
+      "nameIndex": 243,
+      "helpIndex": 245,
+      "name": "Foe: user MP < 25%",
+      "help": "Target the nearest visible foe when the user's\nMP is less than 25%."
+    },
+    {
+      "row": 246,
+      "nameIndex": 245,
+      "helpIndex": 246,
+      "name": "Foe: without Disease",
+      "help": "Target a foe without Disease."
+    },
+    {
+      "row": 247,
+      "nameIndex": 55,
+      "helpIndex": 247,
+      "name": "Foe: Stop",
+      "help": "Target a foe with Stop."
+    },
+    {
+      "row": 248,
+      "nameIndex": 63,
+      "helpIndex": 248,
+      "name": "Foe: hunt/boss, no repeat",
+      "help": "Target a hunt or boss. Do not use this gambit\ntwice in a row."
+    },
+    {
+      "row": 249,
+      "nameIndex": 45,
+      "helpIndex": 249,
+      "name": "Foe: hunt/boss",
+      "help": "Target a hunt or boss."
+    },
+    {
+      "row": 250,
+      "nameIndex": 47,
+      "helpIndex": 250,
+      "name": "Foe: not hunt/boss, no repeat",
+      "help": "Target a foe that is neither a hunt nor a boss.\nDo not use this gambit twice in a row."
+    },
+    {
+      "row": 251,
+      "nameIndex": 49,
+      "helpIndex": 251,
+      "name": "Foe: not hunt/boss",
+      "help": "Target a foe that is neither a hunt nor a boss."
+    },
+    {
+      "row": 252,
+      "nameIndex": 51,
+      "helpIndex": 252,
+      "name": "Foe: casting magick, no repeat",
+      "help": "Target a foe casting magick. Do not use this\ngambit twice in a row."
+    },
+    {
+      "row": 253,
+      "nameIndex": 53,
+      "helpIndex": 253,
+      "name": "Foe: casting magick",
+      "help": "Target a foe casting magick."
+    },
+    {
+      "row": 254,
+      "nameIndex": 252,
+      "helpIndex": 254,
+      "name": "Foe: most targeted",
+      "help": "Target the foe targeted by the most allies."
+    }
+  ]
+}

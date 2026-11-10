@@ -1,5 +1,9 @@
 # Ivalice Legacy: twelve base jobs candidate 0.5.1
 
+> **Historical component notes.** Since 0.1.x, Base Jobs ships inside the single Ivalice Legacy package. This
+> page keeps the component's detailed numbers; for the current behaviour see the
+> [feature guide](../docs/FEATURES.md).
+
 Experimental offline build for the English Steam game, version 1.0.4.0.
 Twelve custom boards, English job names and descriptions, the job stat trainings
 (license prices, names, board help and a config for The Insurgent's Stat Lores),

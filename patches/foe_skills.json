@@ -1,0 +1,893 @@
+{
+ "version": "0.1.8",
+ "description": "Enemy skills: status riders and tells across the whole game (one status per family, element names the status, no KO or certain riders, MP/radius/targeting/power native). Consumables: every ailment gets a cheap item cure; Serum price; element riders on Fangs and damage Motes.",
+ "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
+ "actionSection": {
+  "section": 14,
+  "sourceSectionSha256": "3025d5e449620460d3aaf549e0256457ba755c41999efa69496de0c27ff9cd78",
+  "resultSectionSha256": "5d5e6eb3fd477fa0c126f9dec78653a4f9f50f998184e30efe6aa2cd4b2040a3",
+  "actions": [
+   {
+    "id": 280,
+    "name": "Fog",
+    "set": {
+     "onHitRate": [
+      0,
+      50
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Silence"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 288,
+    "name": "Blizzaja",
+    "set": {
+     "statusEffects": [
+      [
+       "Sap"
+      ],
+      [
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 291,
+    "name": "Darkja",
+    "set": {
+     "statusEffects": [
+      [
+       "KO",
+       "Blind"
+      ],
+      [
+       "Doom",
+       "Blind"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 306,
+    "name": "Focus",
+    "set": {
+     "onHitRate": [
+      0,
+      100
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Protect",
+       "Shell"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 327,
+    "name": "Darkness",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Blind"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 328,
+    "name": "Ice Break",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 329,
+    "name": "Water Spout",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Silence"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 330,
+    "name": "Shining Ray",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Blind"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 331,
+    "name": "Tremor",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Immobilize"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 332,
+    "name": "Tempest",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 333,
+    "name": "Sandstorm",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Blind"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 334,
+    "name": "Pyromania",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Oil"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 335,
+    "name": "Stone Gaze",
+    "set": {
+     "accuracy": [
+      50,
+      65
+     ]
+    }
+   },
+   {
+    "id": 336,
+    "name": "Phantasmal Gaze",
+    "set": {
+     "accuracy": [
+      50,
+      65
+     ]
+    }
+   },
+   {
+    "id": 337,
+    "name": "Flash",
+    "set": {
+     "accuracy": [
+      55,
+      75
+     ]
+    }
+   },
+   {
+    "id": 338,
+    "name": "Hawk Glare",
+    "set": {
+     "accuracy": [
+      45,
+      60
+     ]
+    }
+   },
+   {
+    "id": 339,
+    "name": "Fangs",
+    "set": {
+     "onHitRate": [
+      0,
+      20
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Poison"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 340,
+    "name": "Sonic Fangs",
+    "set": {
+     "onHitRate": [
+      5,
+      20
+     ],
+     "statusEffects": [
+      [
+       "KO"
+      ],
+      [
+       "Sap"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 343,
+    "name": "Scream",
+    "set": {
+     "accuracy": [
+      50,
+      60
+     ],
+     "statusEffects": [
+      [
+       "Blind",
+       "Silence"
+      ],
+      [
+       "Silence"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 344,
+    "name": "Wail",
+    "set": {
+     "onHitRate": [
+      50,
+      40
+     ],
+     "statusEffects": [
+      [
+       "Blind",
+       "Silence"
+      ],
+      [
+       "Silence"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 345,
+    "name": "Eerie Soundwave",
+    "set": {
+     "onHitRate": [
+      0,
+      15
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 346,
+    "name": "Joyous Soundwave",
+    "set": {
+     "onHitRate": [
+      0,
+      100
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Regen"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 359,
+    "name": "Gust",
+    "set": {
+     "onHitRate": [
+      0,
+      20
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 360,
+    "name": "Gale",
+    "set": {
+     "onHitRate": [
+      0,
+      20
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 372,
+    "name": "Blast Wave",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Immobilize"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 376,
+    "name": "Cloying Breath",
+    "set": {
+     "accuracy": [
+      40,
+      50
+     ]
+    }
+   },
+   {
+    "id": 377,
+    "name": "Bad Breath",
+    "set": {
+     "accuracy": [
+      45,
+      60
+     ],
+     "statusEffects": [
+      [
+       "Blind",
+       "Poison",
+       "Slow"
+      ],
+      [
+       "Confuse",
+       "Blind",
+       "Poison"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 378,
+    "name": "Putrid Breath",
+    "set": {
+     "statusEffects": [
+      [
+       "Petrify",
+       "Sleep",
+       "Confuse",
+       "Blind",
+       "Poison",
+       "Sap",
+       "Oil",
+       "Disable",
+       "Immobilize",
+       "Slow",
+       "Disease"
+      ],
+      [
+       "Petrify",
+       "Confuse",
+       "Blind",
+       "Poison",
+       "Sap",
+       "Immobilize",
+       "Disease"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 388,
+    "name": "Smite of Rage",
+    "set": {
+     "onHitRate": [
+      0,
+      25
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Berserk"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 392,
+    "name": "Self-Sacrifice",
+    "set": {
+     "chargeTime": [
+      3,
+      30
+     ]
+    }
+   },
+   {
+    "id": 397,
+    "name": "Mind Lash",
+    "set": {
+     "onHitRate": [
+      0,
+      20
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Confuse"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 407,
+    "name": "Self-Destruct",
+    "set": {
+     "onHitRate": [
+      100,
+      50
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Oil"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 408,
+    "name": "Mass-Destruct",
+    "set": {
+     "onHitRate": [
+      100,
+      50
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Oil"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 419,
+    "name": "Bunny Slam",
+    "set": {
+     "onHitRate": [
+      0,
+      25
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Berserk"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 439,
+    "name": "Kamikaze",
+    "set": {
+     "chargeTime": [
+      3,
+      30
+     ]
+    }
+   },
+   {
+    "id": 445,
+    "name": "Piercing Dispelga",
+    "set": {
+     "statusEffects": [
+      [
+       "Stop",
+       "Slow",
+       "Lure",
+       "Protect",
+       "Shell",
+       "Haste",
+       "Bravery",
+       "Faith",
+       "Reflect",
+       "Invisible",
+       "Regen",
+       "Float",
+       "Berserk",
+       "Bubble",
+       "Libra"
+      ],
+      [
+       "Lure",
+       "Protect",
+       "Shell",
+       "Haste",
+       "Bravery",
+       "Faith",
+       "Reflect",
+       "Invisible",
+       "Regen",
+       "Float",
+       "Bubble",
+       "Libra"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 459,
+    "name": "Sporefall",
+    "set": {
+     "accuracy": [
+      50,
+      60
+     ],
+     "statusEffects": [
+      [
+       "Confuse",
+       "Blind",
+       "Poison",
+       "Silence",
+       "Sap",
+       "Oil",
+       "Slow"
+      ],
+      [
+       "Blind",
+       "Poison",
+       "Silence",
+       "Sap",
+       "Oil",
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 469,
+    "name": "Dash",
+    "set": {
+     "onHitRate": [
+      0,
+      25
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 471,
+    "name": "Circle of Judgment",
+    "set": {
+     "onHitRate": [
+      0,
+      25
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Sap"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 479,
+    "name": "S-27 Tokamak",
+    "set": {
+     "onHitRate": [
+      0,
+      50
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Blind"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 480,
+    "name": "S-85 Cyclotrone",
+    "set": {
+     "onHitRate": [
+      0,
+      50
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Silence"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 89,
+    "name": "Gold Needle",
+    "set": {
+     "statusEffects": [
+      [
+       "Stone",
+       "Petrify"
+      ],
+      [
+       "Stone",
+       "Petrify",
+       "Doom"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 90,
+    "name": "Echo Herbs",
+    "set": {
+     "statusEffects": [
+      [
+       "Silence"
+      ],
+      [
+       "Silence",
+       "Berserk"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 91,
+    "name": "Antidote",
+    "set": {
+     "statusEffects": [
+      [
+       "Poison"
+      ],
+      [
+       "Poison",
+       "Sap"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 95,
+    "name": "Chronos Tear",
+    "set": {
+     "statusEffects": [
+      [
+       "Stop",
+       "Slow"
+      ],
+      [
+       "Stop",
+       "Slow",
+       "Disable",
+       "Immobilize"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 99,
+    "name": "Soleil Fang",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Oil"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 100,
+    "name": "Rime Fang",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 101,
+    "name": "Lightning Fang",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Disable"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 125,
+    "name": "Dark Mote",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Blind"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 126,
+    "name": "Aero Mote",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Slow"
+      ]
+     ]
+    }
+   },
+   {
+    "id": 127,
+    "name": "Aquara Mote",
+    "set": {
+     "onHitRate": [
+      0,
+      10
+     ],
+     "statusEffects": [
+      [],
+      [
+       "Silence"
+      ]
+     ]
+    }
+   }
+  ]
+ },
+ "itemSection": {
+  "section": 18,
+  "sourceSectionSha256": "825c3321e338cc2eb07dd385781ab33ad82437c3b76718b9fcd529f867990456",
+  "resultSectionSha256": "92a2f9fae728fc0ad7d8ba48b396801f1c5f16734b2e9d8900f9d21e7d691666",
+  "items": [
+   {
+    "id": 15,
+    "name": "Serum",
+    "gil": [
+     700,
+     150
+    ]
+   }
+  ]
+ },
+ "help": {
+  "help_action.bin": {
+   "sourceSha256": "a62f146a495ca50e2dae8092cea765023524fab6fa83511d54d8e96d2ada8a57",
+   "resultSha256": "970a89bfb7e0dd207dcbf396aa349483627a08466bcbbe09f1d07f473b600b7c",
+   "strings": {
+    "89": "Remove Stone, Petrify and Doom from one ally.",
+    "90": "Remove Silence and Berserk from one ally.",
+    "91": "Remove Poison and Sap from one ally.",
+    "95": "Remove Slow, Stop, Disable and Immobilize."
+   }
+  },
+  "listhelp_action.bin": {
+   "sourceSha256": "7b661d1ba0694d65935cb28337acf21867ac366942ec16e0f38acbfb89b0d2e4",
+   "resultSha256": "c0ad9b5f93b7dfb1d000f4d3015f830bf3f4bbad5a4d839f7c0f11f703c703a6",
+   "strings": {
+    "95": "Remove Stone, Petrify and Doom from one ally.",
+    "96": "Remove Silence and Berserk from one ally.",
+    "97": "Remove Poison and Sap from one ally.",
+    "101": "Remove Slow, Stop, Disable and Immobilize."
+   }
+  }
+ },
+ "itemNotes": {
+  "7": "Remove Stone, Petrify and Doom from one ally.",
+  "8": "Remove Silence and Berserk from one ally.",
+  "9": "Remove Poison and Sap from one ally.",
+  "13": "Remove Slow, Stop, Disable and Immobilize from one ally."
+ }
+}

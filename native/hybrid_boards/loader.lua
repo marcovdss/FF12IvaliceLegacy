@@ -30,7 +30,7 @@ local function write(memory,address,bytes)
 end
 
 function M.install(memory,arg,bundle,hooks,event)
-  if type(bundle) ~= 'table' or bundle.schemaVersion ~= 1 or bundle.completeHookSet ~= true then
+  if type(bundle) ~= 'table' or bundle.schemaVersion ~= 2 or bundle.completeHookSet ~= true then  -- 2 = 66 layouts + names
     return nil, 'native integration has not passed the complete-hook gate'
   end
   -- This build intentionally supports only the verified preferred mapping.
@@ -41,8 +41,16 @@ function M.install(memory,arg,bundle,hooks,event)
     assert(same(read(memory,moduleBase,2),{77,90}), 'game module not mapped at verified base')
     assert(type(bundle.hooks) == 'table' and #bundle.hooks > 0, 'missing hook plan')
     assert(type(bundle.image) == 'table' and #bundle.image > 0, 'missing native image')
-    assert(type(bundle.layout) == 'table' and #bundle.layout == 576, 'invalid layout')
-    assert(bundle.pair[1] == 0 and bundle.pair[2] == 4, 'unsupported pilot pair')
+    assert(type(bundle.layouts) == 'table' and #bundle.layouts >= 1 and #bundle.layouts <= 66, 'invalid layout set')
+    local pairs = {}
+    for _,entry in ipairs(bundle.layouts) do
+      local a, b = entry.pair and entry.pair[1], entry.pair and entry.pair[2]
+      assert(integer(a) and integer(b) and a >= 0 and a < b and b <= 11, 'invalid hybrid pair')
+      assert(not pairs[a*12+b], 'duplicate hybrid pair'); pairs[a*12+b] = true
+      assert(type(entry.layout) == 'table' and #entry.layout == 576, 'invalid layout')
+      assert(type(entry.name) == 'table' and #entry.name >= 2 and #entry.name <= 24 and entry.name[#entry.name] == 0,
+        'invalid hybrid name')
+    end
     assert(integer(bundle.adapterSize) and bundle.adapterSize > 0 and bundle.adapterSize < 0x100000,
       'invalid adapter ABI')
     assert(bundle.requestSize == 48 and bundle.objectCount == 9, 'unsupported configuration ABI')
@@ -91,15 +99,22 @@ function M.install(memory,arg,bundle,hooks,event)
     state = alloc(bundle.adapterSize,false)
     assert(call('HBX_init',arg.u32,arg.pointer,state,arg.u32,bundle.adapterSize) == 1, 'native initialization failed')
     request,input = alloc(48,false),alloc(1168,false)
-    local data = {}; append(data,0,4); append(data,4,4); append(data,24,4); append(data,24,4)
-    for _,value in ipairs(bundle.layout) do
-      assert(integer(value) and (value == 65535 or value >= 0 and value <= 360), 'invalid license ID')
-      append(data,value,2)
-    end
-    write(memory,input,data)
+    local nameBuffer = alloc(24,false)
     local core = call('HBX_core',arg.pointer,arg.pointer,state)
-    assert(core and core ~= 0 and call('HB_put',arg.u32,arg.pointer,core,arg.pointer,input) ~= 0,
-      'native layout upload failed')
+    assert(core and core ~= 0, 'native core unavailable')
+    for _,entry in ipairs(bundle.layouts) do
+      local data = {}; append(data,entry.pair[1],4); append(data,entry.pair[2],4); append(data,24,4); append(data,24,4)
+      for _,value in ipairs(entry.layout) do
+        assert(integer(value) and (value == 65535 or value >= 0 and value <= 360), 'invalid license ID')
+        append(data,value,2)
+      end
+      write(memory,input,data)
+      assert(call('HB_put',arg.u32,arg.pointer,core,arg.pointer,input) ~= 0, 'native layout upload failed')
+      local name = {}; for i = 1,24 do name[i] = entry.name[i] or 0 end
+      write(memory,nameBuffer,name)
+      assert(call('HBX_name',arg.u32,arg.pointer,state,arg.u32,entry.pair[1],arg.u32,entry.pair[2],
+        arg.pointer,nameBuffer) == 1, 'native hybrid name upload failed')
+    end
     if not configure() then error('game state is not ready; retry after loading a save') end
     local patches = {}
     for _,site in ipairs(bundle.hooks) do

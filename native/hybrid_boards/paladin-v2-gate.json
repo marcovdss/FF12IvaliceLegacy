@@ -1,0 +1,30 @@
+{
+  "completeHookSet": true,
+  "scope": "Paladin 0.2.1 (schema-2 board on BaseJobs 0.5.1; preview + pair_label); offline-validated candidate",
+  "sites": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18
+  ],
+  "adapterSize": 98392,
+  "adapterImageSha256": "688c1a7aaca011209b2b4a46358cd9eeeaad5ebccbf9cb1a46c0cd65a2889a8b",
+  "layoutSha256": "d52319fcf824bc7ff07be19835a59091cb5abc7da3cc971a83bdb8eaf1abd215",
+  "hookPlanSha256": "bc2473e7c3061e752e6c5213ba82d7523c6b6966959d9a43efec02b1bbcaa9ed",
+  "loaderSha256": "131481fce8b6fe37ccfaa343e2202420619a835d6e557c624b0962706c9e0bfe",
+  "hooksSha256": "2c4afc99aeafc7c6db9cb8c343a02e521595a24fb6368d2ea191c48832d51a8a"
+}

@@ -1,5 +1,9 @@
 # Ivalice Legacy: Arsenal 0.6.0 (experimental)
 
+> **Historical component notes.** Since 0.1.x, Arsenal ships inside the single Ivalice Legacy package. This
+> page keeps the component's detailed numbers; for the current behaviour see the
+> [feature guide](../docs/FEATURES.md).
+
 Weapon attack, weapon family identities and an armour rework for the English Steam game, version 1.0.4.0.
 
 **Armour and shields:** 105 of 140 pieces gain one strategic property: a ward or element focus chosen from what enemies

@@ -1,0 +1,23 @@
+{
+  "file": "ps2data/plan_master/us/plan_map/rbn_a/rbn_a14/global/rbn_a14.ebp",
+  "scriptSha256": "a1710dae8180207e4a9372d84b474c1dd465c3ea78c5bd66417a55a6d7a1d955",
+  "textSha256": "820f82cee085af22a5f97d612a453f69f7a98eff9391e2ab63eb88f358869486",
+  "thread": 29,
+  "codeBytes": 14774,
+  "instructionCount": 5162,
+  "labelCount": 479,
+  "textCount": 254,
+  "dispatchLabel": 136,
+  "dispatchOffset": 5004,
+  "marksLabel": 106,
+  "jobsLabel": 107,
+  "leaveLabel": 135,
+  "menuOffset": 4111,
+  "commands": {"mouth": 696, "nod": 755, "message": 325, "sync": 17},
+  "choice": "Tell me about Proficiency.",
+  "pages": [
+    "Your current job has three Proficiencies,\nkupo! Each grows through four levels as\nyou earn higher Clan ranks.",
+    "Proficiency I appears on your weapon,\nII on your armor, and III on your helmet.\nThe passives follow your job, not the item.",
+    "Apprentice's Writ - ranks 1 to 4.\nJourneyman's Writ - ranks 5 to 8.\nMaster's Writ - ranks 9 to 12, kupo!"
+  ]
+}

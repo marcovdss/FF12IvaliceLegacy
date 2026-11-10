@@ -4,21 +4,21 @@
 --
 -- Two small native pieces, each installed only when the original game is found:
 --   0x3504BE    script command 0x5A9 (the engine's "100% Spawn Rare Monster" debug switch), after the call at 0x3504B9
---               that Bountiful Bundle may patch. In a King's home it answers 1 to whoever asks while that King has never
---               been defeated (presence 2), the same answer Bountiful's option and the debug menu give. A spawner
---               recognised as a King's own answers for that King alone, so a defeated King stays out beside a living
---               neighbour. 0.0.15-0.0.17 answered only recognised spawners, and in game nothing was recognised (no yes in
---               a whole session, Greeden missing), so presence no longer depends on it. The log line "switch asked"
---               records what the hook sees, to find out why. On a map with two Kings the asker is told apart by its
---               thread index (K.SPAWNERS), so a defeated King stays out beside a living neighbour. Spawners that only the switch brings in stop asking
---               (patches/kings.json), so ordinary foes are not added. Hunt Club Kings are forced too, before the quest:
---               a dangerous monster in a low-level area is wanted. Their trophy state (save image + 0x200 + 0xC90 + slot:
---               0 quest not started, 1 active, 2 trophy earned) keeps them gone once the trophy is earned. Accepting the
---               quest sets every slot to 1, so a King killed before it can return once on its natural roll.
+--               that Bountiful Bundle may patch. Every asking thread that takes part in a King's chain answers for that
+--               King alone (K.SPAWNERS): yes while that King has never been defeated, the game's own answer afterwards.
+--               This includes the five Kings whose King row is held by a second thread (Ripe Rampager, Razorfin,
+--               Dreadguard, Crypt Bunny, Glaring Eye): their asking "writer" threads are mapped too, so the latch that
+--               brings the King in (a native roll OR this switch) settles deterministically while the King lives and
+--               keeps its native roll after defeat. Spawners and maps outside the table keep the per-location answer
+--               (K.HOMES presence 2), exactly as 0.7.0 gave them. The pairs are the 2026-11-08 effective-script study
+--               of all 230 switch-asking threads in the 103 King maps (reports/LEGACY-KINGS-SPAWN-MAP-2026-11-08.md).
 --   0x1F28B70   the handler of btlAtelCanselInitialSpawnFlag in the script command table. Presence 3 only (Grey Molter,
 --               whose map has no switch and whose entry is a play-time window): the command does nothing for the
 --               undefeated King in its home, on the inference that a unit enters by default unless this command ran.
---               For every other spawner, and after a defeat, the game's handler 0x5102D0 runs.
+--               0.7.0 keyed this on the asking thread's actor class, but at cancel time a never-entered spawner has no
+--               unit flag and no class row yet, so that key could never fire; 0.8.0 keys on (location, thread index),
+--               the same identity the 0x5A9 hook uses (K.CANCEL_SKIPS). For every other spawner, and after a defeat,
+--               the game's handler 0x5102D0 runs.
 -- Scripts (patches/kings.json, same-length edits, natural conditions intact when the switch says no): Cultsworn Lich and
 -- Evil Spirit are made to ask the switch. Several spawners can hold one King (Wary Wolf, Matriarch Bomb, Grimalkin, Disma,
 -- Evil Spirit): each selection tests their shared one-King flag first, flag < (natural roll OR switch), so the first
@@ -31,7 +31,7 @@
 -- at +0xB603+n. The class table's +0x52 counts from 0 (Nekhbet 330) while these count from 1 (331). The byte is encoded:
 -- 0 unknown, 1 recorded without a kill (0x315A90), otherwise kills + 1 (getter 0x315434, increment 0x31582D). So a King
 -- is defeated only when its byte is 2 or more.
-local K = {version = '0.7.0'}
+local K = {version = '0.8.0'}
 
 K.FIRST, K.LAST = 293, 372
 K.KILLS = 0x0216F883          -- 0x2164280 (save image) + 0xB603; entry n at K.KILLS + n
@@ -39,17 +39,20 @@ K.LOCATION = 0x021654C4       -- current location id (save image + 0x1244)
 K.RARE_SITE, K.RARE_RETURN = 0x003504BE, 0x003504C3
 K.ORIGINAL = {0x8B, 0xD0, 0x48, 0x8B, 0xCB}  -- mov edx,eax ; mov rcx,rbx
 K.CANCEL_SLOT, K.CANCEL_HANDLER = 0x01F28B70, 0x005102D0   -- set 3 table 0x1F281B0 + (0x4D + 1) * 32
-K.DATA_SIZE, K.ENTRY_AT, K.ENTRY_SIZE = 0x800, 0x40, 8
+K.DATA_SIZE, K.ENTRY_AT, K.ENTRY_SIZE = 0x1000, 0x40, 8
 K.SPAWNER_AT = 0x600
+K.CANCEL_COUNT = 0x2C
 -- Data block: +0 on (u8), +4 home count, +8 presence answers forced, +0xC cancels skipped, +0x14 last forced location,
 -- +0x18 times the switch was asked, +0x1C last Bestiary entry read from an asker, +0x20 askers with no class,
--- +0x24 two-King spawner count, +0x28 times one of them asked, +0x40 homes {u32 location, u16 Bestiary entry, u16 presence},
--- +0x600 two-King spawners {u32 location, u16 thread index, u16 Bestiary entry}.
+-- +0x24 recognised-spawner count, +0x28 times one of them asked, +0x2C cancel-skip pair count,
+-- +0x40 homes {u32 location, u16 Bestiary entry, u16 presence},
+-- +0x600 recognised spawners {u32 location, u16 thread index, u16 Bestiary entry},
+-- then the cancel-skip pairs in the same shape, directly after them.
 
 -- Home locations of every King (field maps whose scripts set the King's roster row; location ids from the map names).
--- Presence 0: natural spawn rules (Larva Eater's gil_e/f/g spawners have no way in at all). 1: forced until defeated,
--- a recognised own spawner only (no home uses this now). 2: anyone asking in this location gets yes until defeated.
--- 3: no switch on the map: its spawn cancel does nothing until defeated.
+-- Presence 0: natural spawn rules (Aeros, Ishteen's mic_e01 twin, Larva Eater's gil_e/f/g spawners). 1: forced until
+-- defeated, a recognised own spawner only (no home uses this now). 2: any unmapped asker in this location gets yes
+-- until defeated. 3: no switch on the map: its spawn cancel does nothing until defeated (K.CANCEL_SKIPS).
 K.HOMES = {  -- {location, Bestiary entry, presence}
   {505, 293, 2},  -- Aspidochelon (srb_b03)
   {358, 294, 2},  -- Aerieel (lus_a02)
@@ -162,19 +165,213 @@ K.HOMES = {  -- {location, Bestiary entry, presence}
   {385, 372, 2},  -- Urutan Exile (ene_a07)
 }
 
--- The maps with two Kings. Presence 2 says yes while any King of the location lives, so each of these spawners answers for
--- its own King alone: yes until that King is defeated, then the game's own answer. The thread index is u16 [thread]
--- (stored at 0x2665EB). These are the threads whose scripts run command 0x5A9 and set that King's unit (read from the
--- effective scripts, 2026-11-05). Each map's trophy thread also asks, sets no unit, and keeps the location answer.
+-- Every asking thread that takes part in a King's chain: the King's own spawners (including every spawner of the
+-- multi-spawner Kings), and the writers of the five indirect Kings. The thread index is u16 [thread] (stored at
+-- 0x2665EB). Each pair answers for its own King alone: yes until that King is defeated, then the game's own answer,
+-- so a defeated King stays out beside a living neighbour. Generated from kings-force-map.json, 2026-11-08; each
+-- (location, Bestiary) pair exists in K.HOMES with presence 2. Threads outside the table (trophy sequences, ordinary
+-- spawners that ask for their own gates) keep the location answer. Each map's trophy thread also asks, sets no unit,
+-- and keeps the location answer.
 K.SPAWNERS = {  -- {location, thread, Bestiary entry}
+  {133, 31, 330},  -- Terror Tyrant (dst_c02)
+  {137, 23, 329},  -- Grimalkin (pla_a01)
+  {137, 24, 329},  -- Grimalkin (pla_a01)
+  {137, 25, 329},  -- Grimalkin (pla_a01)
+  {139, 25, 324},  -- Kris (pla_a03)
+  {147, 22, 327},  -- Tarasque (pla_b04)
+  {154, 19, 313},  -- Spee (frs_a04)
+  {162, 24, 325},  -- Wood Toad (frs_c01)
+  {163, 27, 321},  -- Rageclaw (frs_c02)
+  {175, 26, 344},  -- Arioch (bog_b01)
+  {177, 12, 356},  -- Velelu (bog_b03)
+  {185, 32, 296},  -- Anubys (rui_a02)
+  {192, 53, 362},  -- Wendice (rui_b01)
+  {193, 18, 306},  -- Cubus (rui_b02)
+  {210, 23, 303},  -- Wary Wolf (mnt_a02)
+  {210, 24, 303},  -- Wary Wolf (mnt_a02)
+  {210, 25, 303},  -- Wary Wolf (mnt_a02)
+  {210, 26, 303},  -- Wary Wolf (mnt_a02)
+  {217, 19, 326},  -- Dheed (mnt_b03)
+  {228, 30, 316},  -- Ripe Rampager (dst_a02)
+  {229, 21, 331},  -- Nekhbet (dst_a03)
+  {230, 25, 297},  -- Greeden (dst_a04)
+  {247, 41, 349},  -- Nazarnir (sav_c01)
+  {254, 16, 315},  -- Rain Dancer (sav_d02)
+  {256, 20, 315},  -- Rain Dancer (sav_d04)
+  {266, 24, 315},  -- Rain Dancer (sav_f03)
+  {313, 0, 317},  -- Razorfin (grm_a03)
   {346, 21, 334},  -- Dustia (wdl_a02)
   {346, 22, 305},  -- Kaiser Wolf (wdl_a02)
+  {347, 28, 307},  -- Lindbur Wolf (wdl_a03)
+  {348, 20, 346},  -- Fideliant (wdl_a04)
+  {358, 21, 294},  -- Aerieel (lus_a02)
+  {374, 29, 353},  -- Gemhorn (lus_d03)
+  {380, 28, 308},  -- Pineapple (ene_a02)
+  {385, 29, 372},  -- Urutan Exile (ene_a07)
+  {387, 15, 361},  -- Bull Chocobo (ene_a09)
+  {391, 28, 359},  -- Imdugud (enw_a02)
+  {393, 28, 351},  -- Victanir (enw_a04)
+  {398, 19, 312},  -- Megabomb (enw_b01)
+  {410, 32, 298},  -- Barmuu (rwg_c01)
+  {411, 29, 335},  -- Cultsworn Lich (rwg_c02)
+  {412, 31, 352},  -- Zombie Lord (rwg_c03)
+  {421, 19, 367},  -- Helvinek (bds_a01)
+  {422, 26, 367},  -- Helvinek (bds_a02)
+  {426, 30, 367},  -- Helvinek (bds_b01)
   {430, 25, 338},  -- Vorres (bds_c01)
   {430, 26, 367},  -- Helvinek (bds_c01)
-  {940, 32, 342},  -- Larva Eater (gil_i02)
-  {940, 33, 348},  -- Crystal Knight (gil_i02)
+  {431, 19, 367},  -- Helvinek (bds_c02)
+  {447, 26, 347},  -- Midgardsormr (gol_a01)
+  {448, 32, 323},  -- Biding Mantis (gol_a02)
+  {453, 25, 350},  -- Grave Lord (gol_b01)
+  {459, 21, 371},  -- Phyllo (gol_d01)
   {470, 22, 364},  -- Anchag (pbc_b03)
   {470, 23, 360},  -- Ancbolder (pbc_b03)
+  {480, 21, 319},  -- Apsara (fon_a03)
+  {482, 21, 363},  -- Skullash (fon_a05)
+  {492, 29, 295},  -- Thalassinon (fon_c02)
+  {498, 37, 366},  -- Bluesang (srb_a02)
+  {505, 35, 293},  -- Aspidochelon (srb_b03)
+  {506, 40, 302},  -- Etherian (srb_b04)
+  {511, 21, 332},  -- Abelisk (rwf_a03)
+  {517, 19, 369},  -- Pallicant (rwf_b01)
+  {526, 23, 318},  -- Killbug (ozm_a02)
+  {536, 48, 299},  -- Bull Croc (ozm_c01)
+  {540, 32, 311},  -- Crypt Bunny (mfr_a02)
+  {540, 33, 311},  -- Crypt Bunny (mfr_a02)
+  {540, 34, 311},  -- Crypt Bunny (mfr_a02)
+  {540, 35, 311},  -- Crypt Bunny (mfr_a02)
+  {540, 36, 311},  -- Crypt Bunny (mfr_a02)
+  {541, 0, 309},  -- Dreadguard (mfr_a03)
+  {548, 27, 339},  -- Juggernaut (mfr_c01)
+  {578, 25, 341},  -- Molen (ztc_a03)
+  {581, 26, 370},  -- Alteci (ztc_b01)
+  {598, 29, 314},  -- Matriarch Bomb (mrm_b02)
+  {598, 30, 314},  -- Matriarch Bomb (mrm_b02)
+  {598, 31, 314},  -- Matriarch Bomb (mrm_b02)
+  {598, 32, 314},  -- Matriarch Bomb (mrm_b02)
+  {606, 27, 365},  -- Myath (mrm_d01)
+  {609, 21, 340},  -- Negalmuur (mrm_d04)
+  {717, 27, 304},  -- Melt (hne_a06)
+  {726, 23, 333},  -- Glaring Eye (hne_c02)
+  {726, 24, 333},  -- Glaring Eye (hne_c02)
+  {726, 25, 333},  -- Glaring Eye (hne_c02)
+  {726, 26, 333},  -- Glaring Eye (hne_c02)
+  {726, 27, 333},  -- Glaring Eye (hne_c02)
+  {728, 24, 333},  -- Glaring Eye (hne_c04)
+  {728, 25, 333},  -- Glaring Eye (hne_c04)
+  {728, 26, 333},  -- Glaring Eye (hne_c04)
+  {728, 27, 333},  -- Glaring Eye (hne_c04)
+  {728, 28, 333},  -- Glaring Eye (hne_c04)
+  {844, 23, 301},  -- Gavial (grm_e07)
+  {849, 22, 354},  -- Drowned (grm_e12)
+  {891, 18, 320},  -- Minibug (mic_e01)
+  {892, 39, 336},  -- Ishteen (mic_e02)
+  {895, 16, 322},  -- Ithuno (mic_e05)
+  {901, 12, 310},  -- Bombshell (lus_f01)
+  {902, 35, 358},  -- Disma (lus_f02)
+  {902, 36, 358},  -- Disma (lus_f02)
+  {902, 37, 358},  -- Disma (lus_f02)
+  {902, 38, 358},  -- Disma (lus_f02)
+  {903, 17, 358},  -- Disma (lus_f03)
+  {903, 18, 358},  -- Disma (lus_f03)
+  {903, 19, 358},  -- Disma (lus_f03)
+  {903, 20, 358},  -- Disma (lus_f03)
+  {903, 21, 358},  -- Disma (lus_f03)
+  {939, 24, 342},  -- Larva Eater (gil_i01)
+  {940, 32, 342},  -- Larva Eater (gil_i02)
+  {940, 33, 348},  -- Crystal Knight (gil_i02)
+  {947, 24, 337},  -- Evil Spirit (gil_i09)
+  {947, 25, 337},  -- Evil Spirit (gil_i09)
+  {947, 26, 337},  -- Evil Spirit (gil_i09)
+  {947, 27, 337},  -- Evil Spirit (gil_i09)
+  {947, 28, 337},  -- Evil Spirit (gil_i09)
+  {947, 29, 337},  -- Evil Spirit (gil_i09)
+  {947, 30, 337},  -- Evil Spirit (gil_i09)
+  {947, 31, 337},  -- Evil Spirit (gil_i09)
+  {947, 32, 337},  -- Evil Spirit (gil_i09)
+  {947, 33, 337},  -- Evil Spirit (gil_i09)
+  {947, 34, 337},  -- Evil Spirit (gil_i09)
+  {947, 35, 337},  -- Evil Spirit (gil_i09)
+  {952, 24, 342},  -- Larva Eater (gil_j01)
+  {953, 24, 342},  -- Larva Eater (gil_j02)
+  {971, 24, 342},  -- Larva Eater (gil_j20)
+  {972, 24, 337},  -- Evil Spirit (gil_j21)
+  {972, 25, 337},  -- Evil Spirit (gil_j21)
+  {972, 26, 337},  -- Evil Spirit (gil_j21)
+  {972, 27, 337},  -- Evil Spirit (gil_j21)
+  {972, 28, 337},  -- Evil Spirit (gil_j21)
+  {972, 29, 337},  -- Evil Spirit (gil_j21)
+  {972, 30, 337},  -- Evil Spirit (gil_j21)
+  {972, 31, 337},  -- Evil Spirit (gil_j21)
+  {972, 32, 337},  -- Evil Spirit (gil_j21)
+  {972, 33, 337},  -- Evil Spirit (gil_j21)
+  {972, 34, 337},  -- Evil Spirit (gil_j21)
+  {972, 35, 337},  -- Evil Spirit (gil_j21)
+  {973, 24, 337},  -- Evil Spirit (gil_j22)
+  {973, 25, 337},  -- Evil Spirit (gil_j22)
+  {973, 26, 337},  -- Evil Spirit (gil_j22)
+  {973, 27, 337},  -- Evil Spirit (gil_j22)
+  {973, 28, 337},  -- Evil Spirit (gil_j22)
+  {973, 29, 337},  -- Evil Spirit (gil_j22)
+  {973, 30, 337},  -- Evil Spirit (gil_j22)
+  {973, 31, 337},  -- Evil Spirit (gil_j22)
+  {973, 32, 337},  -- Evil Spirit (gil_j22)
+  {973, 33, 337},  -- Evil Spirit (gil_j22)
+  {973, 34, 337},  -- Evil Spirit (gil_j22)
+  {973, 35, 337},  -- Evil Spirit (gil_j22)
+  {979, 24, 342},  -- Larva Eater (gil_k01)
+  {984, 27, 337},  -- Evil Spirit (gil_k06)
+  {984, 28, 337},  -- Evil Spirit (gil_k06)
+  {984, 29, 337},  -- Evil Spirit (gil_k06)
+  {984, 30, 337},  -- Evil Spirit (gil_k06)
+  {984, 31, 337},  -- Evil Spirit (gil_k06)
+  {984, 32, 337},  -- Evil Spirit (gil_k06)
+  {984, 33, 337},  -- Evil Spirit (gil_k06)
+  {986, 24, 337},  -- Evil Spirit (gil_k08)
+  {986, 25, 337},  -- Evil Spirit (gil_k08)
+  {986, 26, 337},  -- Evil Spirit (gil_k08)
+  {986, 27, 337},  -- Evil Spirit (gil_k08)
+  {986, 28, 337},  -- Evil Spirit (gil_k08)
+  {986, 29, 337},  -- Evil Spirit (gil_k08)
+  {986, 30, 337},  -- Evil Spirit (gil_k08)
+  {986, 31, 337},  -- Evil Spirit (gil_k08)
+  {996, 24, 342},  -- Larva Eater (gil_k18)
+  {1002, 24, 337},  -- Evil Spirit (gil_l01)
+  {1002, 25, 337},  -- Evil Spirit (gil_l01)
+  {1002, 26, 337},  -- Evil Spirit (gil_l01)
+  {1002, 27, 337},  -- Evil Spirit (gil_l01)
+  {1002, 28, 337},  -- Evil Spirit (gil_l01)
+  {1002, 29, 337},  -- Evil Spirit (gil_l01)
+  {1002, 30, 337},  -- Evil Spirit (gil_l01)
+  {1002, 31, 337},  -- Evil Spirit (gil_l01)
+  {1004, 24, 337},  -- Evil Spirit (gil_l03)
+  {1004, 25, 337},  -- Evil Spirit (gil_l03)
+  {1004, 26, 337},  -- Evil Spirit (gil_l03)
+  {1004, 27, 337},  -- Evil Spirit (gil_l03)
+  {1004, 28, 337},  -- Evil Spirit (gil_l03)
+  {1004, 29, 337},  -- Evil Spirit (gil_l03)
+  {1004, 30, 337},  -- Evil Spirit (gil_l03)
+  {1004, 31, 337},  -- Evil Spirit (gil_l03)
+  {1005, 24, 337},  -- Evil Spirit (gil_l04)
+  {1005, 25, 337},  -- Evil Spirit (gil_l04)
+  {1005, 26, 337},  -- Evil Spirit (gil_l04)
+  {1005, 27, 337},  -- Evil Spirit (gil_l04)
+  {1005, 28, 337},  -- Evil Spirit (gil_l04)
+  {1005, 29, 337},  -- Evil Spirit (gil_l04)
+  {1005, 30, 337},  -- Evil Spirit (gil_l04)
+  {1005, 31, 337},  -- Evil Spirit (gil_l04)
+  {1119, 21, 300},  -- Vishno (rbl_e02)
+  {1128, 41, 355},  -- Luxollid (rbl_h03)
+  {1130, 44, 357},  -- Vagrant Soul (rbl_i02)
+  {1138, 31, 368},  -- Avenger (rbl_m01)
+  {1141, 56, 343},  -- Tower (rbl_n02)
+}
+
+-- The presence-3 pairs: spawner threads whose cancel is skipped while their King is undefeated. Grey Molter is the
+-- only such King; its thread never asks the switch, so it cannot appear in K.SPAWNERS.
+K.CANCEL_SKIPS = {  -- {location, thread, Bestiary entry}
+  {216, 20, 345},  -- Grey Molter: the only presence-3 King
 }
 
 local logged, LOG_LIMIT = 0, 200
@@ -212,7 +409,8 @@ function K.legacyMode()
     and matches(0xD113D4, text('LEGCY_\0')) and matches(0xD12200, text('%sLEGCY_%03d\0', true))
 end
 
--- Validates the table: every entry a King, every location a plain id, no duplicates.
+-- Validates the tables: every entry a King, every location a plain id, no duplicates, every pair a home,
+-- cancel skips only presence-3 homes, and the block big enough for all three tables.
 function K.validate(homes)
   local seen = {}
   for i, h in ipairs(homes) do
@@ -225,10 +423,25 @@ function K.validate(homes)
     seen[key] = true
   end
   if #homes * K.ENTRY_SIZE + K.ENTRY_AT > K.SPAWNER_AT then return false, 'too many homes' end
-  if #K.SPAWNERS * K.ENTRY_SIZE + K.SPAWNER_AT > K.DATA_SIZE then return false, 'too many spawners' end
+  local presence3 = {}
+  for _, h in ipairs(homes) do
+    if h[3] == 3 then presence3[h[1] * 1000 + h[2]] = true end
+  end
+  local seenThreads, after = {}, K.SPAWNER_AT + #K.SPAWNERS * K.ENTRY_SIZE
   for i, s in ipairs(K.SPAWNERS) do
     if homes == K.HOMES and not seen[s[1] * 1000 + s[3]] then return false, 'spawner without a home ' .. i end
+    local key = s[1] * 0x10000 + s[2]
+    if seenThreads[key] then return false, 'duplicate spawner ' .. i end
+    seenThreads[key] = true
   end
+  for i, s in ipairs(K.CANCEL_SKIPS) do
+    if homes == K.HOMES and not seen[s[1] * 1000 + s[3]] then return false, 'cancel skip without a home ' .. i end
+    if homes == K.HOMES and not presence3[s[1] * 1000 + s[3]] then return false, 'cancel skip not presence 3 ' .. i end
+    local key = s[1] * 0x10000 + s[2]
+    if seenThreads[key] then return false, 'duplicate cancel skip ' .. i end
+    seenThreads[key] = true
+  end
+  if after + #K.CANCEL_SKIPS * K.ENTRY_SIZE > K.DATA_SIZE then return false, 'too many spawners' end
   return true
 end
 
@@ -248,6 +461,11 @@ function K.dataBytes(homes, on)
   put(0x24, #K.SPAWNERS, 4)
   for i, s in ipairs(K.SPAWNERS) do
     local at = K.SPAWNER_AT + (i - 1) * K.ENTRY_SIZE
+    put(at, s[1], 4); put(at + 4, s[2], 2); put(at + 6, s[3], 2)
+  end
+  put(K.CANCEL_COUNT, #K.CANCEL_SKIPS, 4)
+  for i, s in ipairs(K.CANCEL_SKIPS) do
+    local at = K.SPAWNER_AT + #K.SPAWNERS * K.ENTRY_SIZE + (i - 1) * K.ENTRY_SIZE
     put(at, s[1], 4); put(at + 4, s[2], 2); put(at + 6, s[3], 2)
   end
   return b
@@ -359,36 +577,25 @@ legacy_kings_cancel:
   je legacy_kings_cancel_run
   test rdx,rdx
   je legacy_kings_cancel_run
-  mov r9,[rdx+0x30]
-  test r9,r9
-  je legacy_kings_cancel_run
-  test byte ptr [r9],0x04
-  je legacy_kings_cancel_run
-  mov r9,[r9+0xE68]
-  test r9,r9
-  je legacy_kings_cancel_run
-  movzx ecx,word ptr [r9+0x52]
-  inc ecx
-  cmp ecx,0x125
-  jb legacy_kings_cancel_run
-  cmp ecx,0x174
-  ja legacy_kings_cancel_run
-  mov r11d,0x0216F883
-  cmp byte ptr [r11+rcx],0x01
-  ja legacy_kings_cancel_run
-  mov r11d,0x021654C4
-  mov eax,[r11]
-  mov r9d,[r8+0x04]
-  lea r10,[r8+0x40]
+  movzx r11d,word ptr [rdx]
+  mov ecx,0x021654C4
+  mov eax,[rcx]
+  mov r9d,[r8+0x24]
+  shl r9d,3
+  lea r10,[r8+0x600]
+  add r10,r9
+  mov r9d,[r8+0x2C]
 legacy_kings_cancel_loop:
   test r9d,r9d
   je legacy_kings_cancel_run
-  cmp [r10],eax
+  cmp dword ptr [r10],eax
   jne legacy_kings_cancel_next
-  cmp word ptr [r10+0x04],cx
+  cmp word ptr [r10+0x04],r11w
   jne legacy_kings_cancel_next
-  cmp word ptr [r10+0x06],0x03
-  jne legacy_kings_cancel_run
+  movzx ecx,word ptr [r10+0x06]
+  mov r10d,0x0216F883
+  cmp byte ptr [r10+rcx],0x01
+  ja legacy_kings_cancel_run
   inc dword ptr [r8+0x0C]
   ret
 legacy_kings_cancel_next:
@@ -406,6 +613,8 @@ legacy_kings_data:
 -- registers other than rax (Keystone does), which would read the wrong address. rbx is the handler's calling thread
 -- (+0x30 its actor; flag 4 = has a unit; +0xE68 its class). The tail call at 0x26B4E0 reads only rcx and edx.
 -- legacy_kings_cancel replaces a handler (rdx = thread): the game's handler reads only rdx, so r8-r11, rax and rcx are free.
+-- It keys on the thread's own index (u16 [rdx], stored at 0x2665EB) and the live location - the same identity the rare
+-- hook uses - because a spawner that has never entered has no unit flag and no class row yet (2026-11-07 RE study, Q3).
 K.SYMBOLS = {'legacy_kings_rare', 'legacy_kings_cancel', 'legacy_kings_data'}
 K.RARE_PATCH = 'jmp %legacy_kings_rare%'
 

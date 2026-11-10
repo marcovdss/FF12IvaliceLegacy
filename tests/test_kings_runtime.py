@@ -2,10 +2,10 @@
 
 - Lua (Lupa): the home table is valid, the data block layout, and install() patches nothing unless the Legacy build,
   the original site and the original command table are found (block first, then site, then table).
-- Native (Keystone + Unicorn): both pieces run against stand-ins for the game's data at their real addresses: a King's
-  own spawner is forced, and its spawn cancel skipped, only until that King is defeated; other spawners only where a
-  King is gated through another thread; everything else keeps native behaviour; callee-saved registers and the stack
-  are untouched.
+- Native (Keystone + Unicorn): both pieces run against stand-ins for the game's data at their real addresses: every
+  recognised spawner (a King's own, or a writer thread of an indirect King) is forced for its own King only, and only
+  until that King is defeated; the spawn cancel is skipped only for the presence-3 pairs, keyed on (location, thread
+  index); everything else keeps native behaviour; callee-saved registers and the stack are untouched.
 - Game executable (when IVALICE_LEGACY_GAME is set): the site holds the bytes the hook displaces, and the code around
   it is what the pieces assume.
 """
@@ -45,6 +45,11 @@ def homes():
 
 def spawners():
     body = re.search(r'K\.SPAWNERS = \{[^\n]*\n(.*?)\n\}', SOURCE, re.S).group(1)
+    return [tuple(int(x) for x in m) for m in re.findall(r'\{(\d+), (\d+), (\d+)\}', body)]
+
+
+def cancel_skips():
+    body = re.search(r'K\.CANCEL_SKIPS = \{[^\n]*\n(.*?)\n\}', SOURCE, re.S).group(1)
     return [tuple(int(x) for x in m) for m in re.findall(r'\{(\d+), (\d+), (\d+)\}', body)]
 
 
@@ -182,6 +187,21 @@ class HomeTableTest(unittest.TestCase):
                     (137, 329, 2)):  # Grimalkin, Uazcuff Hills
             self.assertIn(row, h)
 
+    def test_spawner_table_covers_every_king_that_asks(self):
+        two = spawners()
+        self.assertEqual(len(two), len({(l, t) for l, t, _ in two}))       # one answer per (location, thread)
+        h = {(l, e) for l, e, _ in homes()}
+        for l, t, e in two:
+            self.assertIn((l, e), h)                                       # every pair sits in a declared home
+        covered = {e for _, _, e in two}
+        # Aeros (328) and Grey Molter (345) never ask the switch: Aeros follows Bull Croc's v22 chain, and Grey
+        # Molter's cancel is skipped instead (the 2026-11-07/08 RE studies).
+        self.assertEqual(covered | {328, 345}, set(range(293, 373)))
+        indirect = {316: 'Ripe Rampager', 317: 'Razorfin', 309: 'Dreadguard', 311: 'Crypt Bunny', 333: 'Glaring Eye'}
+        for entry, name in indirect.items():
+            self.assertIn(entry, covered, name)                            # the writer pairs of all five indirect Kings
+        self.assertEqual(cancel_skips(), [(216, 20, 345)])                 # Grey Molter alone skips its cancel
+
 
 @unittest.skipIf(LuaRuntime is None, 'requires lupa')
 class LuaTest(unittest.TestCase):
@@ -258,11 +278,18 @@ class LuaTest(unittest.TestCase):
         lua, K, *_ = self.runtime()
         self.assertIs(K.validate(K.HOMES), True)
         data = list(K.dataBytes(K.HOMES, True).values())
-        self.assertEqual(len(data), 0x800)
+        self.assertEqual(len(data), 0x1000)
         self.assertEqual(data[0], 1)
         self.assertEqual(struct.unpack_from('<I', bytes(data), 4)[0], len(homes()))
         for i, (loc, entry, presence) in enumerate(homes()):
             self.assertEqual(struct.unpack_from('<IHH', bytes(data), 0x40 + 8 * i), (loc, entry, presence))
+        two, skips = spawners(), cancel_skips()
+        self.assertEqual(struct.unpack_from('<I', bytes(data), 0x24)[0], len(two))
+        self.assertEqual(struct.unpack_from('<I', bytes(data), 0x2C)[0], len(skips))
+        for i, entry in enumerate(two):
+            self.assertEqual(struct.unpack_from('<IHH', bytes(data), 0x600 + 8 * i), entry)
+        for i, entry in enumerate(skips):
+            self.assertEqual(struct.unpack_from('<IHH', bytes(data), 0x600 + 8 * len(two) + 8 * i), entry)
         bad = lua.table_from([lua.table_from([228, 292, 1])])
         self.assertEqual(K.validate(bad), (False, 'entry 1'))    # 292 is a boss, not a rare game
 
@@ -357,7 +384,7 @@ class HookTest(unittest.TestCase):
             uc.mem_map(base, size)
         uc.mem_write(CODE_AT, blob)
         uc.mem_write(CODE_AT + len(blob) - 8, struct.pack('<Q', DATA_AT))          # legacy_kings_data
-        data = bytearray(0x800)
+        data = bytearray(0x1000)
         data[0] = 1 if on else 0
         h = homes()
         struct.pack_into('<I', data, 4, len(h))
@@ -367,6 +394,10 @@ class HookTest(unittest.TestCase):
         struct.pack_into('<I', data, 0x24, len(two))
         for i, entry in enumerate(two):
             struct.pack_into('<IHH', data, 0x600 + 8 * i, *entry)
+        skips = cancel_skips()
+        struct.pack_into('<I', data, 0x2C, len(skips))
+        for i, entry in enumerate(skips):
+            struct.pack_into('<IHH', data, 0x600 + 8 * len(two) + 8 * i, *entry)
         uc.mem_write(DATA_AT, bytes(data))
         uc.mem_write(LOCATION, struct.pack('<I', location))
         for entry in kills:
@@ -424,7 +455,7 @@ class HookTest(unittest.TestCase):
         eax, uc = self.rare(location=891, seen=(320,), own=320)
         self.assertEqual(eax, 1)
         self.assertEqual(self.rare(location=228, seen=(316,), own=2)[0], 1)                # another spawner, presence 2
-        self.assertFalse(self.cancel(location=216, seen=(345,), own=345)[0])               # the cancel is still skipped
+        self.assertFalse(self.cancel(thread=20, location=216, seen=(345,))[0])             # the cancel is still skipped
 
     def test_a_high_kill_count_is_defeated(self):
         for byte in (2, 3, 0x7F, 0x80, 0xFF):
@@ -514,6 +545,21 @@ class HookTest(unittest.TestCase):
         self.assertEqual(self.rare(location=228, own=316)[0], 1)
         self.assertEqual(self.rare(location=228, own=316, kills=(316,))[0], 0)
 
+    def test_indirect_writer_threads_answer_for_their_own_king(self):
+        # The five indirect Kings (2026-11-08 spawn map): the asking writer latches the variable the King's
+        # non-asking reader consumes, so it must answer for that King alone.
+        self.assertEqual(self.rare(location=228, thread=30, actor=False)[0], 1)                        # Rampager
+        self.assertEqual(self.rare(location=228, thread=30, actor=False, kills=(316,))[0], 0)
+        self.assertEqual(self.rare(location=313, thread=0, actor=False)[0], 1)                         # Razorfin
+        self.assertEqual(self.rare(location=313, thread=0, actor=False, kills=(317,))[0], 0)
+        self.assertEqual(self.rare(location=541, thread=0, actor=False)[0], 1)                         # Dreadguard
+        self.assertEqual(self.rare(location=541, thread=0, actor=False, kills=(309,))[0], 0)
+        self.assertEqual(self.rare(location=540, thread=32, actor=False)[0], 1)                        # Crypt Bunny
+        self.assertEqual(self.rare(location=540, thread=32, actor=False, kills=(311,))[0], 0)
+        self.assertEqual(self.rare(location=726, thread=23, actor=False)[0], 1)                        # Glaring Eye,
+        self.assertEqual(self.rare(location=728, thread=24, actor=False)[0], 1)                        # both home maps
+        self.assertEqual(self.rare(location=726, thread=23, actor=False, kills=(333,))[0], 0)
+
     def test_actors_without_a_battle_unit_count_as_other_spawners(self):
         # Party-style actors have no class, others no unit at all: +0xE68 must not be read without flag 4 (the
         # unmapped pointer would stop the emulator if it were), and a thread may have no actor.
@@ -549,13 +595,16 @@ class HookTest(unittest.TestCase):
         prefix = source[:source.index('legacy_kings_cancel:')]
         return CODE_AT + len(bytes(ks.asm(prefix + '\nlegacy_kings_data:\n', CODE_AT)[0]))
 
-    def cancel(self, thread=None, **kw):
-        uc = self.machine(**kw)
+    def cancel(self, rdx=None, thread=0, **kw):
+        """rdx: the handler's thread argument. None = a stand-in thread whose u16 [0] is `thread`;
+        0 = the null pointer (the hook must run the game's handler)."""
+        uc = self.machine(thread=thread, **kw)
         rsp = STACK_AT + 0x8000
         uc.mem_write(rsp - 8, struct.pack('<Q', self.RETURN))
         saved = dict(RBX=0x7777, RDI=0x8888, RSI=0x9999, RBP=0xAAAA, R12=0x1212, R13=0x1313, R14=0x1414, R15=0x1515)
         uc.reg_write(X.UC_X86_REG_RSP, rsp - 8)
-        for name, value in dict(saved, RDX=self.THREAD if thread is None else thread, RCX=self.THREAD).items():
+        rdx_value = self.THREAD if rdx is None else rdx
+        for name, value in dict(saved, RDX=rdx_value, RCX=self.THREAD).items():
             uc.reg_write(getattr(X, 'UC_X86_REG_' + name), value)
         uc.hook_add(unicorn.UC_HOOK_CODE, lambda u, a, s, d: u.emu_stop(), begin=CANCEL_HANDLER, end=CANCEL_HANDLER)
         uc.hook_add(unicorn.UC_HOOK_CODE, lambda u, a, s, d: u.emu_stop(), begin=self.RETURN, end=self.RETURN)
@@ -566,32 +615,48 @@ class HookTest(unittest.TestCase):
         self.assertIn(rip, (CANCEL_HANDLER, self.RETURN))
         if rip == CANCEL_HANDLER:
             self.assertEqual(uc.reg_read(X.UC_X86_REG_RSP), rsp - 8)            # a clean tail jump, rdx intact
-            self.assertEqual(uc.reg_read(X.UC_X86_REG_RDX), self.THREAD if thread is None else thread)
+            self.assertEqual(uc.reg_read(X.UC_X86_REG_RDX), rdx_value)
         else:
             self.assertEqual(uc.reg_read(X.UC_X86_REG_RSP), rsp)                # ret popped the return address
         return rip == CANCEL_HANDLER, uc
 
     def test_undefeated_king_skips_its_cancel(self):
-        ran, uc = self.cancel(location=216, own=345)         # Grey Molter
+        ran, uc = self.cancel(thread=20, location=216)       # Grey Molter's spawner: mnt_b02 thread 20
         self.assertFalse(ran)
         self.assertEqual(struct.unpack('<I', bytes(uc.mem_read(DATA_AT + 0xC, 4)))[0], 1)
 
+    def test_cancel_skips_without_reading_the_actor(self):
+        # 0.7.0 keyed on the actor's class, but a never-entered spawner has no unit flag and no class row yet
+        # (2026-11-07 RE study, Q3), so that key could never fire. The thread key must not dereference the actor.
+        ran, uc = self.cancel(thread=20, location=216, actor=False, flags=0)   # no actor at all
+        self.assertFalse(ran)
+        uc = self.machine(thread=20, location=216, flags=0x1)                  # unit flag clear, wild class pointer
+        uc.mem_write(self.ACTOR + 0xE68, struct.pack('<Q', 0x7000000000))
+        rsp, saved = STACK_AT + 0x8000, dict(RBX=0x7777, RDX=self.THREAD, RCX=self.THREAD)
+        uc.reg_write(X.UC_X86_REG_RSP, rsp - 8)
+        uc.mem_write(rsp - 8, struct.pack('<Q', self.RETURN))
+        for name, value in saved.items():
+            uc.reg_write(getattr(X, 'UC_X86_REG_' + name), value)
+        uc.hook_add(unicorn.UC_HOOK_CODE, lambda u, a, s, d: u.emu_stop(), begin=CANCEL_HANDLER, end=CANCEL_HANDLER)
+        uc.hook_add(unicorn.UC_HOOK_CODE, lambda u, a, s, d: u.emu_stop(), begin=self.RETURN, end=self.RETURN)
+        uc.emu_start(self.cancel_start(), 0, count=20000)
+        self.assertEqual(uc.reg_read(X.UC_X86_REG_RIP), self.RETURN)           # skipped, no actor read
+        self.assertEqual(struct.unpack('<I', bytes(uc.mem_read(DATA_AT + 0xC, 4)))[0], 1)
+
     def test_cancel_runs_for_everything_else(self):
-        cases = (dict(location=216, own=345, kills=(345,)),  # defeated: the game's rules again
-                 dict(location=302, own=345),                # outside its home
-                 dict(location=621, own=342),                # a natural home
-                 dict(location=947, own=337),                # Evil Spirit: skipping it would let all 12 spawners enter
-                 dict(location=210, own=303),                # Wary Wolf's spare spawners keep their cancel
-                 dict(location=229, own=331),                # a forced King enters through its own branch
-                 dict(location=216, own=2),                  # an ordinary foe
-                 dict(location=216, own=373),                # past the block
-                 dict(location=216, own=345, on=False),
-                 dict(location=216, cls=False),
-                 dict(location=216, actor=False))
+        evil = next((l, t) for l, t, e in spawners() if e == 337)              # an Evil Spirit spawner thread
+        cases = (dict(thread=20, location=216, kills=(345,)),  # defeated: the game's rules again
+                 dict(thread=20, location=302),                # outside its home
+                 dict(thread=20, location=621),                # a natural home
+                 dict(location=evil[0], thread=evil[1]),       # Evil Spirit: skipping it would let all spawners enter
+                 dict(thread=23, location=210),                # Wary Wolf's spare spawners keep their cancel
+                 dict(thread=21, location=229),                # a forced King enters through its own branch
+                 dict(thread=21, location=216),                # Grey Molter's map, another thread
+                 dict(thread=26, location=216),                # an ordinary mnt_b02 spawner (the RE census: 23-26)
+                 dict(thread=20, location=216, on=False),
+                 dict(rdx=0, thread=20, location=216))         # null thread
         for case in cases:
             self.assertTrue(self.cancel(**case)[0], case)
-        self.assertTrue(self.cancel(thread=0, location=216, own=345)[0])
-        self.assertTrue(self.cancel(location=216, own=345, flags=0x1)[0])     # no unit
 
 
 GAME = os.environ.get('IVALICE_LEGACY_GAME')

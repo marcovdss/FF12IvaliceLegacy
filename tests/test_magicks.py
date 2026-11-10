@@ -54,6 +54,8 @@ class AdapterTest(unittest.TestCase):
             if path.endswith('scripts/IvaliceLegacy/magicks.lua'):
                 return self.lua.eval('function(src) return load(src) end')(table)
             name = path.rsplit('/', 1)[-1][:-4]
+            if name not in originals:
+                return None  # like the real loadfile for a missing file (e.g. 181's Proficiency runtime)
             return self.lua.eval('function(src) return load(src) end')(originals[name])
         self.g.loadfile = fake_load
         self.lua.execute('IvaliceLegacyMagicks = nil')

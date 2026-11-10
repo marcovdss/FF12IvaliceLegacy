@@ -13,7 +13,7 @@ import zipfile
 from io import BytesIO
 
 from .formats import battle_pack_section
-from .hybrid_layout import validate_recipe
+from .hybrid_layout import validate_any
 from .vbf import VBF
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +22,15 @@ GAME_EXE_SHA256 = '73461d0896204b1c259c52f61aef4efbc95a2ffc388cadb36493d5d1d8972
 PREFERRED_BASE = 0x120000
 PACK = 'ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin'
 BOARD = 'ps2data/image/ff12/test_battle/in/binaryfile/board_{}.bin'
-PILOT_SITES = frozenset(range(9)) | frozenset(range(10, 18))
+PILOT_SITES = frozenset(range(9)) | frozenset(range(10, 19))
+CHANGES = {
+    '0.1.0': 'Initial authored Paladin pilot and native per-character board adapter (vanilla Knight/White Mage boards).',
+    '0.2.0': ('Paladin board redrawn from the current Legacy Knight and White Mage boards: all 163 licenses of both, '
+              'gear up, accessories left, passives right, commands down; Espers keep their zodiac-weapon islands. '
+              'Same board for either job order; bought licenses stay bought.'),
+    '0.2.1': ('The character-list board picture no longer goes blank after you leave a board. Party menu, board header '
+              'and the job screen now read "Paladin" instead of "Knight/White Mage" (shared two-job label).'),
+}
 STAMP = (2026, 1, 1, 0, 0, 0)
 NAME = 'IvaliceLegacy-Paladin-Pilot'
 SCRIPT_ROOT = 'x64/scripts/IvaliceLegacyHybrids/'
@@ -101,7 +109,7 @@ def source_inputs(game):
 
 
 def prepare_bundle(recipe, sources, licenses, image, image_manifest, hooks, gate, native=NATIVE):
-    board = validate_recipe(recipe, sources, licenses)
+    board = validate_any(recipe, sources, licenses)
     if recipe['pair'] != [0, 4]:
         raise ValueError('this pilot supports only native White Mage0 + Knight4')
     if {entry['site'] for entry in hooks} != PILOT_SITES or len(hooks) != len(PILOT_SITES):
@@ -206,7 +214,8 @@ unverified until a coherent in-game observation is recorded.
              SCRIPT_ROOT+'hooks.lua': (native/'hooks.lua').read_bytes(),
              SCRIPT_ROOT+'bundle.lua': ('return '+lua(bundle)+'\n').encode(),
              SCRIPT_ROOT+'README.md': readme.encode(),
-             SCRIPT_ROOT+'CHANGELOG.md': f'# {version}\n\nInitial authored Paladin pilot and native per-character board adapter.\n'.encode()}
+             SCRIPT_ROOT+'CHANGELOG.md': ''.join(f'# {v}\n\n{CHANGES[v]}\n\n' for v in sorted(CHANGES, reverse=True)
+                                                 if v <= version).encode()}
     manifest = {'name': NAME, 'version': version, 'pair': [0, 4],
                 'status': 'uninstalled review candidate; in-game validation pending',
                 'gameExeSha256': GAME_EXE_SHA256,

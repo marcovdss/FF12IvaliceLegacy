@@ -1,0 +1,10 @@
+{
+  "_comment": "Equipment-name sub-table rows. Stats, licenses, starting gear and collection access are unchanged.",
+  "renames": [
+    {"row": 169, "contentId": 4265, "before": "Nightmare", "name": "Nightmare II", "regularForms": false},
+    {"row": 468, "contentId": 4564, "before": "NOT USED", "name": "Lamont's Sword", "regularForms": true},
+    {"row": 469, "contentId": 4565, "before": "NOT USED", "name": "Lamont's Guard", "regularForms": true},
+    {"row": 485, "contentId": 4581, "before": "NOT USED", "name": "Reddas's Guard", "regularForms": true}
+  ],
+  "descriptionRows": 486
+}

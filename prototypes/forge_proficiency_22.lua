@@ -14,4 +14,19 @@ if not R then
   rawset(_G, 'IvaliceLegacyProficiency', R)
   print('Legacy Proficiency: ' .. R.Proficiency.version .. ' ready')
 end
-return R.wrap(N, original)
+-- Family Unseen/Marksman (prototypes/family_identities.lua): ninja swords ignore weapon and shield
+-- evasion, guns cannot be parried. Outside Proficiency, so the Samurai's aim stays its own decision.
+local Family = rawget(_G, 'IvaliceLegacyFamily')
+if not Family then
+  local chunk = loadfile('scripts/IvaliceLegacy/family_identities.lua', 't', _ENV)
+  local ok, mod = pcall(chunk or error)
+  if ok and type(mod) == 'table' and mod.register() == true then
+    Family = mod
+    rawset(_G, 'IvaliceLegacyFamily', Family)
+  end
+end
+if not Family then
+  print('Legacy Family: module not loaded; Forge 22 carries Proficiency only')
+  return R.wrap(N, original)
+end
+return Family.wrap22(R.wrap(N, original))

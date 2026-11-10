@@ -1,12 +1,20 @@
 -- Proficiency runtime shared by the Forge adapters (165 physical hits, 170 magick, 110 and 127 healing, 182 statuses,
--- 240 guard reactions, 22 evasion). Loaded once and kept in _G so all adapters see one campaign state.
+-- 240 guard reactions, 22 evasion, 222 target initialization). Loaded once and kept in _G so all adapters see one campaign state.
 -- Montblanc hands out the ranks: leaving the Clan hall (location 302) with an unrewarded rank makes him speak in
 -- native dialogue windows (Lua loader dialog plugin), and the rewarded rank is stored beside the Legacy save.
 local R = {}
 local Proficiency = assert(loadfile('scripts/IvaliceLegacy/proficiency.lua', 't', _ENV))()
 local ClanRank = assert(loadfile('scripts/IvaliceLegacy/clan_rank.lua', 't', _ENV))()
 local P = Proficiency
+-- The 66 hybrid lines: a character with two jobs uses its pair's line (ids 12-77) instead of either parent's.
+local Hybrid = assert(loadfile('scripts/IvaliceLegacy/hybrid_proficiency.lua', 't', _ENV))()
+Hybrid.attach(P)
+R.Hybrid = Hybrid
 R.Proficiency = P
+-- MP economy (mp_economy.lua): one Magick cast hands back at most half of what it cost. Missing module = no cap.
+local okEconomy, Economy = pcall(function() return assert(loadfile('scripts/IvaliceLegacy/mp_economy.lua', 't', _ENV))() end)
+if not okEconomy then Economy = nil end
+R.Economy = Economy
 
 local CLAN_HALL = 302
 local LOCATION = 0x021654C4
@@ -35,6 +43,7 @@ local function legacyMode()
 end
 
 local campaign, claimed, location, logged, rankLogged = nil, 0, nil, 0, false
+local freshGame = false  -- a New Game started this session: a Legacy campaign with no save file yet
 local foes = {}
 local writs, writsKnown = {false, false, false}, false
 local LOG_LIMIT = 1000
@@ -90,6 +99,9 @@ local function effective()
   return P.effective(claimed, writs)
 end
 function R.active() return effective() >= 1 end
+-- A Legacy campaign is loaded, whatever its Clan rank. Rules that belong to the campaign rather than to Proficiency (the
+-- MP economy's surcharge) use this, so a new campaign pays them before Montblanc's first reward.
+function R.inCampaign() return (campaign ~= nil or freshGame) and legacyMode() end
 function R.claimed() return claimed end
 function R.effective() return effective() end
 
@@ -323,7 +335,7 @@ legacy_prof_probe:
 ]]
 local GEAR_SYMBOLS = {'legacy_prof_code', 'legacy_prof_bits', 'legacy_prof_table', 'legacy_prof_buffer', 'legacy_prof_probe'}
 local MEMBERS, SUFFIX_SIZE, GEAR_POLL_MS = 16, 0x200, 500
-local MEMBER_KEEP, KEEP_JOB1 = 0x320A40, 0x1C3
+local MEMBER_KEEP, KEEP_JOB1, KEEP_JOB2 = 0x320A40, 0x1C3, 0x1C4
 local gear = {installed = false, failed = false, keys = {}, slots = {}, flip = {}}
 
 local function label(name, value)
@@ -345,7 +357,7 @@ function R.gearSuffix(job, rank, stage)
   if not lines or not g then return nil end
   local level = P.levels(rank)[stage]
   local head = g.line .. ' ' .. STAGES[stage] .. ' ' .. level .. '/4'
-  return label(head, lines[stage + 1] or 'See Montblanc to unlock')
+  return label(head, lines[stage + 1] or 'Unlocks at a higher Clan rank')
 end
 
 -- Help box position (0.3.13 for Equipment, 0.4.3 for every menu). Equipment (0x3FCEE0), Inventory (0x564430) and the
@@ -473,6 +485,8 @@ local function gearTick()
     for member = 0, MEMBERS - 1 do
       local ok, keep = pcall(memory.execute, MEMBER_KEEP, memory.arg.pointer, memory.arg.s32, member)
       local job = ok and type(keep) == 'number' and keep > 0 and memory.u8[keep + KEEP_JOB1] or nil
+      local job2 = job and memory.u8[keep + KEEP_JOB2] or nil
+      if type(job) == 'number' and type(job2) == 'number' and job2 ~= P.NO_JOB then job = R.lineOf(job, job2) end
       if type(job) ~= 'number' or not P.GEAR[job] then job = nil end
       local key = job and (job .. ':' .. rank) or 'none'
       if gear.keys[member] ~= key then
@@ -501,9 +515,9 @@ local function s32(a)
   local v = memory.u8[a] | (memory.u8[a + 1] << 8) | (memory.u8[a + 2] << 16) | (memory.u8[a + 3] << 24)
   return v >= 0x80000000 and v - 0x100000000 or v
 end
+-- (0.1.23: no memory.getSymbol('pit_ot') first. It never resolves across scripts and the loader logged
+-- "Symbol pit_ot is not registered" on every map jump.)
 local function companionsByte()
-  local ok, sym = pcall(memory.getSymbol, 'pit_ot')
-  if ok and type(sym) == 'number' and sym > 0 then return sym end
   if memory.u8[PIT_SITE] ~= 0xE9 then return nil end
   local code = PIT_SITE + 5 + s32(PIT_SITE + 1)
   if memory.u8[code] ~= 0x80 then return nil end
@@ -542,9 +556,19 @@ end
 local pendingCharge = {}
 local function reset()
   campaign, claimed, logged, rankLogged, foes = nil, 0, 0, false, {}
+  freshGame = false
   pendingCharge = {}
+  if R.resetBudgets then R.resetBudgets() end
+  if R.resetPushes then R.resetPushes() end
   writs, writsKnown, flagsLogged = {false, false, false}, false, false
   gear.keys = {}
+  -- The native text hook stays installed across save loads. Remove old campaign pointers immediately; a
+  -- non-Legacy save never enters gearTick's rebuild path, and must not inherit the previous character's text.
+  if gear.table then
+    for member = 0, MEMBERS - 1 do
+      for stage = 1, 3 do setSuffix(member, stage, nil) end
+    end
+  end
   P.reset()
 end
 
@@ -601,7 +625,7 @@ function R.register()
     end
   end
   local ok = event.registerEventSync('onSaveLoad', function() reset() return true end) == true
-  ok = event.registerEventSync('onNewGameStart', function() reset() return true end) == true and ok
+  ok = event.registerEventSync('onNewGameStart', function() reset(); freshGame = true return true end) == true and ok
   ok = event.registerLoadHandler(SAVE_ID, function(path, data)
     reset()
     if type(path) ~= 'string' or path:find('[%z\r\n]') then return end
@@ -631,6 +655,9 @@ function R.register()
     local from = location
     location = to
     foes = {}
+    -- Battle identifiers are reused by the next map. Old chains and Stop budgets must not follow those slots.
+    P.reset()
+    pendingCharge = {}
     writsKnown = false  -- the Writs are read again on the next use (a key item can come or go between maps)
     if campaign and not rankLogged then
       rankLogged = true
@@ -654,6 +681,53 @@ R.statusSet = statusSet
 
 local function clock() return event.getClock and event.getClock() or 0 end
 
+-- Casts. An area spell reaches its targets one after another, about a second apart (Cura on the party, logged
+-- 2026-11-10), so a time window cannot tell "the next target" from "the next cast". Forge's onCastPre (222) runs
+-- before each target's effects; the call for the spell's initial target starts a new cast for that caster. Every
+-- target of that cast then shares its id. P.CAST_WINDOW stays only as the fallback when no id was seen.
+-- Only Magicks (battle menu category 1) are casts here: 222 also runs in onHitPre, and a counter or weapon hit landing
+-- between a spell's targets must not split that spell.
+local castSeq = {}
+local function isMagick(action)
+  if type(action) ~= 'number' or type(bpack) ~= 'table' then return false end
+  local ok, record = pcall(function() return bpack.section14[action] end)
+  return ok and type(record) == 'table' and record.category == 1
+end
+function R.startCast(formula, caster, target)
+  if caster.type ~= 0 or caster.address == 0 or target.address == 0 or formula.causeType == 2 then return end
+  if formula.initialTarget.address ~= target.address or not isMagick(formula.action) then return end
+  castSeq[caster.address] = (castSeq[caster.address] or 0) + 1
+end
+-- The cast id of this action, or nil when it is not a Magick (weapon hits, items, Technicks are never one cast).
+function R.castId(caster, action)
+  if action ~= nil and not isMagick(action) then return nil end
+  return castSeq[caster.address]
+end
+
+-- Per-cast MP return budget, keyed by the caster: every target's Proficiency MP comes out of the same budget.
+-- Not a Magick (items, Technicks) = no budget, no cap.
+local budgets = {}
+function R.castBudget(caster, action, now)
+  if not Economy or type(action) ~= 'number' or type(bpack) ~= 'table' then return nil end
+  local ok, record = pcall(function() return bpack.section14[action] end)
+  if not ok or not Economy.priced(record) then return nil end
+  local b, id = budgets[caster.address], castSeq[caster.address]
+  if b and b.action == action then
+    if id ~= nil and b.cast == id then return b end
+    if id == nil and b.cast == nil and now - b.at < P.CAST_WINDOW then return b end
+  end
+  -- The cap is half of what the cast really cost this caster (mp_economy 0.2.0: Channeling, Parsimony, Spellspring and
+  -- Offering lower what the game charges, so they lower the cap too).
+  local paid = record.mpOrMistCost
+  if type(Economy.paid) == 'function' then
+    paid = Economy.paid(record.mpOrMistCost, Economy.reader({caster.permanentAugments, caster.temporaryAugments}))
+  end
+  b = {action = action, at = now, cast = id, left = Economy.returnCap(record.mpOrMistCost, caster.magickPower, paid)}
+  budgets[caster.address] = b
+  return b
+end
+function R.resetBudgets() budgets = {} end
+
 function R.partyActor(unit)
   local id = unit.identifier
   local root = memory.u64[0x02EBF190]
@@ -670,7 +744,7 @@ function R.party(classes, helpers)
       local addr = helpers.getBattleUnitKeep(id)
       local k = classes.getBattleUnitKeep(addr)
       if k.currentHp > 0 and k.maxHp > 0 then
-        out[#out + 1] = {address = addr, job = k.job2 == P.NO_JOB and k.job1 or -1,
+        out[#out + 1] = {address = addr, job = R.lineOf(k.job1, k.job2),
                          hpPct = 100 * k.currentHp // k.maxHp, mp = k.currentMp, maxMp = k.maxMp,
                          status = statusSet(k.temporaryStatusEffects)}
       end
@@ -701,11 +775,25 @@ function R.foes(classes, except)
 end
 
 -- Snapshot for one party member (`unit` = its battle unit keep, `flags` = its status flags).
+-- The Proficiency line of a character: its job's, or its job pair's hybrid line (nil = an invalid pair).
+function R.lineOf(job1, job2)
+  if job2 == nil or job2 == P.NO_JOB then return job1 end
+  return Hybrid.id(job1, job2)
+end
+-- Whether a line reacts to an event at all (the hooks skip everything else).
+function R.listens(job, event)
+  local rule = job and P.rules[job]
+  return rule ~= nil and rule[event] ~= nil
+end
+
 function R.base(unit, flags, classes, helpers)
-  if unit.type ~= 0 or unit.job2 ~= P.NO_JOB then return nil end  -- hybrids get their own lines later
+  if unit.type ~= 0 then return nil end
+  -- A character with a second job uses its pair's hybrid line, never either parent's.
+  local job = R.lineOf(unit.job1, unit.job2)
+  if not job then return nil end
   local actor = R.partyActor(unit)
   if not actor then return nil end
-  return {job = unit.job1, actorId = actor, self = unit.address, party = R.party(classes, helpers),
+  return {job = job, actorId = actor, self = unit.address, party = R.party(classes, helpers),
           casterStatus = statusSet(flags), casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100,
           casterMp = unit.currentMp, casterMaxMp = unit.maxMp, selfMaxHp = unit.maxHp,
           roll = function(percent) return helpers.getRandomNumber(100) < percent end,
@@ -797,16 +885,48 @@ function R.armCharge(address, fraction, classes, helpers)
   end
 end
 
+-- Charge push-back budget per foe: every Proficiency push on one foe together removes at most PUSH_SHARE of its charge
+-- per charge cycle (bosses, marks and Kings: PUSH_SHARE_TOUGH), so a party of pushers cannot keep it from ever acting.
+-- A new cycle starts when the foe acts (its own hit or spell lands) or its charge is found below where we left it.
+R.PUSH_SHARE, R.PUSH_SHARE_TOUGH = 0.25, 0.125
+local okKinds, KINDS = pcall(function() return assert(loadfile('scripts/DynamicFoes/Foes.lua', 't', _ENV))() end)
+if not okKinds or type(KINDS) ~= 'table' then KINDS = {} end
+local TOUGH = {boss = true, mark = true, rare = true}
+local pushes = {}
+function R.foeActed(address) pushes[address] = nil end
+function R.resetPushes() pushes = {} end
+function R.pushAllowance(address, w, wanted)
+  if type(wanted) ~= 'number' or wanted <= 0 then return 0 end
+  local cur, req = w.currentChargeTime, w.requiredChargeTime
+  local rec = pushes[address]
+  if not rec or cur < rec.after then rec = {spent = 0}; pushes[address] = rec end
+  local ok, name = pcall(function() return w.ardUnit.name end)
+  local share = (ok and TOUGH[KINDS[name]]) and R.PUSH_SHARE_TOUGH or R.PUSH_SHARE
+  local allowed = math.max(0, math.min(wanted, math.floor(req * share) - rec.spent))
+  rec.spent, rec.after = rec.spent + allowed, cur - allowed
+  return allowed
+end
+
 local function pushCharge(classes, helpers, unit, fraction)
   local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(unit))
   if w.address == 0 then return end
   local cur, req, last = w.currentChargeTime, w.requiredChargeTime, w.lastChargeTime
-  if cur > 0 and cur < req and last == cur then w.currentChargeTime = math.max(1, cur - math.floor(req * fraction)) end
+  if cur > 0 and cur < req and last == cur then
+    local wanted = cur - math.max(1, cur - math.floor(req * fraction))
+    w.currentChargeTime = cur - R.pushAllowance(unit, w, wanted)
+  end
 end
 
 -- Apply an action table for party member `member`. Formula fields are used only when `formula` is given and the
 -- member is that formula's caster; everything in a.others goes through Forge helpers with the member as source.
 function R.apply(a, formula, member, classes, helpers, target)
+  -- A spell's drain from a foe is MP the spell hands back too: it comes out of the same budget (a foe's MP pool is
+  -- deep, so a drain per foe on an area spell paid for the spell many times over). Clamped before anything is written.
+  if a.mpBudget and a.drainMp then
+    local paid = math.min(a.drainMp, math.max(0, a.mpBudget.left))
+    a.mpBudget.left = a.mpBudget.left - paid
+    a.drainMp = paid > 0 and paid or nil
+  end
   if formula then
     if a.damage and formula.target.removedHp ~= -1 then
       formula.target.removedHp = math.floor(formula.target.removedHp * a.damage)
@@ -831,19 +951,49 @@ function R.apply(a, formula, member, classes, helpers, target)
     end
     for _, id in ipairs(a.casterRemove or {}) do formula.caster.removedStatusEffects[id] = 1 end
     for _, id in ipairs(a.targetRemove or {}) do formula.target.removedStatusEffects[id] = 1 end
+    -- MP moves ADD to whatever an earlier stage already queued on this formula (a native MP drain, another Legacy
+    -- stage), as Family Spellbreak does; replacing them would erase that stage's MP change.
+    local function queued(side, field)
+      return side.mpUpdateState == 1 and (side[field] or 0) or 0
+    end
     if a.drainMp then
-      formula.target.mpUpdateState, formula.target.addedMp, formula.target.removedMp = 1, 0, a.drainMp
-      formula.caster.mpUpdateState, formula.caster.addedMp, formula.caster.removedMp = 1, a.drainMp, 0
+      local lost, gained = queued(formula.target, 'removedMp'), queued(formula.caster, 'addedMp')
+      local casterLoss = queued(formula.caster, 'removedMp')
+      formula.target.mpUpdateState, formula.target.addedMp, formula.target.removedMp = 1, queued(formula.target, 'addedMp'), lost + a.drainMp
+      formula.caster.mpUpdateState, formula.caster.addedMp, formula.caster.removedMp = 1, gained + a.drainMp, casterLoss
     elseif a.targetMpLoss then
-      formula.target.mpUpdateState, formula.target.addedMp, formula.target.removedMp = 1, 0, a.targetMpLoss
+      local lost = queued(formula.target, 'removedMp')
+      formula.target.mpUpdateState, formula.target.addedMp, formula.target.removedMp = 1, queued(formula.target, 'addedMp'), lost + a.targetMpLoss
     end
     if a.healHp and formula.caster.hpUpdateState ~= 1 then
       formula.caster.hpUpdateState, formula.caster.addedHp, formula.caster.removedHp = 1, a.healHp, 0
     end
-    if a.chargeTo then formula.target.battleUnitWork.currentChargeTime = a.chargeTo end
+    if a.chargeTo then
+      local w = formula.target.battleUnitWork
+      local wanted = w.currentChargeTime - a.chargeTo
+      if target and target.address and target.address ~= 0 then
+        w.currentChargeTime = w.currentChargeTime - R.pushAllowance(target.address, w, wanted)
+      else
+        w.currentChargeTime = a.chargeTo
+      end
+    end
   end
   if a.casterCharge then R.armCharge(member.address, a.casterCharge, classes, helpers) end
+  -- MP a spell hands back is capped by its cast's budget; MP taken from a foe's own pool by a reaction is free.
+  local freeMp = 0
+  if a.mpBudget then
+    for _, o in ipairs(a.others or {}) do
+      if o.op == 'mp' and type(o.amount) == 'number' and o.amount < 0 then freeMp = freeMp - o.amount end
+    end
+  end
   for _, o in ipairs(a.others or {}) do
+    if a.mpBudget and o.op == 'mp' and type(o.amount) == 'number' and o.amount > 0 then
+      local free = math.min(freeMp, o.amount)
+      freeMp = freeMp - free
+      local paid = math.min(o.amount - free, math.max(0, a.mpBudget.left))
+      a.mpBudget.left = a.mpBudget.left - paid
+      o.amount = free + paid
+    end
     if o.op == 'add' then
       local keep = classes.getBattleUnitKeep(o.unit)
       if R.mayAdd(keep, o.id, keep.temporaryStatusEffects, helpers) then
@@ -851,7 +1001,7 @@ function R.apply(a, formula, member, classes, helpers, target)
         if d then helpers.addStatusEffect(member.address, o.unit, o.id, d, helpers.getStatusEffectTickDuration(o.id)) end
       end
     elseif o.op == 'remove' then helpers.removeStatusEffect(o.unit, o.id)
-    elseif o.op == 'mp' then helpers.modifyMp(o.unit, o.amount)
+    elseif o.op == 'mp' then if o.amount ~= 0 then helpers.modifyMp(o.unit, o.amount) end
     elseif o.op == 'hp' then helpers.modifyHp(member.address, o.unit, o.amount, 0, 0, 0)
     elseif o.op == 'push' then pushCharge(classes, helpers, o.unit, o.fraction) end
   end
@@ -880,16 +1030,36 @@ end
 -- here clears an expired Stop's budget before a new Stop spell can hide that gap. A still-active Stop is untouched;
 -- our own extensions therefore never reset their cap. No native statuses or timers are written here.
 function R.hook222(formula, caster, target)
+  R.startCast(formula, caster, target)
   if target.type == 1 and target.address ~= 0 then
     P.observeStop(formula.target.identifier, target.temporaryStatusEffects[P.STATUS.stop] == 1)
   end
 end
 
+-- World distance between the formula's caster and target (Ultima's Seitengrat reads the same fields). nil = unknown.
+function R.distance(formula)
+  local function at(plus)
+    local ok, p = pcall(function() return plus.battleUnitWork.battleActorWork.battleActorModel.battleActorKeep.currentPosition end)
+    if not ok or p == nil then return nil end
+    local ok2, x, y, z = pcall(function() return p.x, p.y, p.z end)
+    if not ok2 or type(x) ~= 'number' or type(y) ~= 'number' or type(z) ~= 'number' then return nil end
+    return x, y, z
+  end
+  local cx, cy, cz = at(formula.caster)
+  local tx, ty, tz = at(formula.target)
+  if not cx or not tx then return nil end
+  return math.sqrt((tx - cx) ^ 2 + (ty - cy) ^ 2 + (tz - cz) ^ 2)
+end
+
 -- 165: every physical hit after damage. Party member hitting a foe gives 'hit'; a foe dropping a party member to
 -- critical HP gives the Knight's 'ally' reaction.
+-- Combo follow-ups: the same member hitting the same foe again within COMBO_WINDOW (logged combos land 0.13-0.2 s apart,
+-- separate attacks 0.75 s or more).
+R.COMBO_WINDOW = 350000
+local lastHit = {}
 function R.hook165(formula, caster, target, classes, helpers)
   if target.type == 1 then R.seeFoe(target.address) end
-  if caster.type == 1 then R.seeFoe(caster.address) end
+  if caster.type == 1 then R.seeFoe(caster.address); R.foeActed(caster.address) end
   if not R.active() then return end
   if caster.type == 0 and target.type == 1 then
     local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
@@ -902,7 +1072,12 @@ function R.hook165(formula, caster, target, classes, helpers)
     end
     s.targetId, s.foe, s.target, s.damage = formula.target.identifier, true, target.address, damage
     s.weapon = caster.weapon
+    local now, prev = clock(), lastHit[caster.address]
+    s.comboFollow = prev ~= nil and prev.target == target.address and now - prev.at < R.COMBO_WINDOW
+    lastHit[caster.address] = {at = now, target = target.address}
     s.kill, s.targetHp = damage >= target.currentHp, target.currentHp
+    s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
+    s.distance = R.distance(formula)
     s.bystander = formula.initialTargetPointer ~= 0 and formula.initialTargetPointer ~= target.address
     s.category, s.targetStatus, s.targetMp = category, statusSet(formula.target.statusEffects), target.currentMp
     if work.address ~= 0 then
@@ -913,9 +1088,20 @@ function R.hook165(formula, caster, target, classes, helpers)
     if a then R.apply(a, formula, caster, classes, helpers, target); R.report('hit', s, a) end
   elseif caster.type == 1 and target.type == 0 and formula.target.removedHp ~= -1 and target.maxHp > 0 then
     local quarter = target.maxHp // 4
-    if target.currentHp > quarter and target.currentHp - formula.target.removedHp <= quarter then
+    local dropped = target.currentHp > quarter and target.currentHp - formula.target.removedHp <= quarter
+    -- The struck member's own line (hybrids): reactions to being hit.
+    local mine = formula.target.removedHp > 0 and R.listens(R.lineOf(target.job1, target.job2), 'struck')
+      and R.base(target, formula.target.statusEffects, classes, helpers) or nil
+    if mine then
+      mine.attacker, mine.attackerStatus, mine.attackerMp = caster.address, statusSet(caster.temporaryStatusEffects), caster.currentMp
+      mine.damage, mine.dropCritical = formula.target.removedHp, dropped
+      mine.foes = R.foes(classes, caster.address)
+      local a = P.decide('struck', mine, effective())
+      if a then R.apply(a, nil, target, classes, helpers); R.report('struck', mine, a) end
+    end
+    if dropped then
       for _, p in ipairs(R.party(classes, helpers)) do
-        if p.job == P.JOB.knight and p.address ~= target.address then
+        if R.listens(p.job, 'ally') and p.address ~= target.address then
           local k = classes.getBattleUnitKeep(p.address)
           local s = R.base(k, k.temporaryStatusEffects, classes, helpers)
           if s then s.ally = target.address end
@@ -935,8 +1121,12 @@ function R.hook240(formula, caster, target, classes, helpers)
   local s = R.base(target, formula.target.statusEffects, classes, helpers)
   if not s then return end
   s.attacker = caster.address
+  s.attackerStatus, s.attackerMp = statusSet(caster.temporaryStatusEffects), caster.currentMp
+  s.foes = R.foes(classes, caster.address)
   if s.job == P.JOB.mystic then
     if formula.counterState ~= 1 then return end
+    s.outcome = 'counter'
+  elseif s.job >= Hybrid.FIRST_ID and formula.counterState == 1 then
     s.outcome = 'counter'
   else
     s.outcome = OUTCOME[formula.outcomeType]
@@ -950,11 +1140,17 @@ end
 function R.hook110(formula, caster, target, classes, helpers, _, item)
   if not R.active() or caster.type ~= 0 or target.type ~= 0 or formula.target.addedHp == -1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
-  if not s or s.job ~= P.JOB.whiteMage then return end
+  if not s or not R.listens(s.job, 'heal') then return end
   s.target = target.address
   s.overflow = math.floor(formula.target.addedHp) - (target.maxHp - target.currentHp)
   s.item = item
+  s.healAmount = math.floor(formula.target.addedHp)
+  s.targetStatus = statusSet(target.temporaryStatusEffects)
+  s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
+  s.foes = R.foes(classes)
+  if not item then s.castId, s.action = R.castId(caster, formula.action), formula.action end
   local a = P.decide('heal', s, effective())
+  if a and not item then a.mpBudget = R.castBudget(caster, formula.action, clock()) end
   if a then R.apply(a, formula, caster, classes, helpers, target); R.report('heal', s, a) end
 end
 
@@ -966,16 +1162,21 @@ end
 -- 170: magick damage (after the damage is known). A party Black Mage gives 'magick'.
 function R.hook170(formula, caster, target, classes, helpers)
   if target.type == 1 then R.seeFoe(target.address) end
-  if caster.type == 1 then R.seeFoe(caster.address) end
+  if caster.type == 1 then R.seeFoe(caster.address); R.foeActed(caster.address) end
   if not R.active() or caster.type ~= 0 or target.type ~= 1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
-  if not s or s.job ~= P.JOB.blackMage then return end
+  if not s or not R.listens(s.job, 'magick') then return end
   s.element, s.mpCost = R.element(formula.action)
+  s.castId, s.action = R.castId(caster, formula.action), formula.action
   s.foe, s.target, s.damage = true, target.address, formula.target.removedHp
+  s.targetId, s.targetMp = formula.target.identifier, target.currentMp
+  s.kill = s.damage ~= -1 and s.damage >= target.currentHp
+  s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
   s.now = clock()
   s.targetStatus = statusSet(formula.target.statusEffects)
   s.foes = R.foes(classes, target.address)
   local a = P.decide('magick', s, effective())
+  if a then a.mpBudget = R.castBudget(caster, formula.action, s.now) end
   if a then R.apply(a, formula, caster, classes, helpers, target); R.report('magick', s, a) end
 end
 
@@ -984,7 +1185,7 @@ local DISEASE = 16
 function R.hook182(formula, caster, target, classes, helpers, before)
   if not R.active() or caster.type ~= 0 or target.type ~= 1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
-  if not s or s.job ~= P.JOB.chemist then return end
+  if not s or not R.listens(s.job, 'status') then return end
   s.landed = {}
   for _, name in ipairs(P.AILMENTS) do
     local id = P.STATUS[name] or (name == 'disease' and DISEASE or nil)
@@ -992,16 +1193,45 @@ function R.hook182(formula, caster, target, classes, helpers, before)
   end
   if #s.landed == 0 then return end
   s.foe, s.target, s.damage = true, target.address, formula.target.removedHp
+  s.targetStatus, s.targetMp = statusSet(formula.target.statusEffects), target.currentMp
   s.foes = R.foes(classes, target.address)
+  -- Damage spells run 182 after 170 for their status riders (Bio, Dark...): one cast, one budget.
+  s.castId, s.action, s.now = R.castId(caster, formula.action), formula.action, clock()
   local a = P.decide('status', s, effective())
+  if a then a.mpBudget = R.castBudget(caster, formula.action, s.now) end
   if a then R.apply(a, formula, caster, classes, helpers, target); R.report('status', s, a) end
+end
+
+-- 181: status spells (formulas 2, 3, 44 end here; Legacy's Magicks adapter wraps it for Decoy first). A party member's
+-- status spell that newly lands statuses gives 'cast' (on a foe or an ally). `before` = added flags before it ran.
+function R.hook181(formula, caster, target, classes, helpers, before)
+  if not R.active() or caster.type ~= 0 or (target.type ~= 0 and target.type ~= 1) then return end
+  if not R.listens(R.lineOf(caster.job1, caster.job2), 'cast') then return end
+  local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
+  if not s then return end
+  s.landed = {}
+  for id = 0, 31 do
+    if formula.target.addedStatusEffects[id] == 1 and not before[id] then s.landed[#s.landed + 1] = id end
+  end
+  if #s.landed == 0 then return end
+  if target.type == 1 then R.seeFoe(target.address) end
+  s.allyTarget, s.target, s.targetId, s.action, s.now = target.type == 0, target.address, formula.target.identifier,
+    formula.action, clock()
+  s.castId = R.castId(caster, formula.action)
+  s.foe = target.type == 1
+  s.targetStatus, s.targetMp = statusSet(formula.target.statusEffects), target.currentMp
+  s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
+  s.foes = R.foes(classes, target.address)
+  local a = P.decide('cast', s, effective())
+  if a then a.mpBudget = R.castBudget(caster, formula.action, s.now) end
+  if a then R.apply(a, formula, caster, classes, helpers, target); R.report('cast', s, a) end
 end
 
 -- 22: evasion setup of a physical attack. A party Samurai's attack during Haste gives 'aim'.
 function R.hook22(formula, caster, target, classes, helpers)
   if not R.active() or caster.type ~= 0 or target.type ~= 1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
-  if not s or s.job ~= P.JOB.samurai then return end
+  if not s or not R.listens(s.job, 'aim') then return end
   local a = P.decide('aim', s, effective())
   if a and a.evade then
     if a.evade.weapon then formula.evadeWeapon = 0 end
@@ -1015,7 +1245,7 @@ function R.wrap(n, original)
   local hook = R['hook' .. n]
   return function(formula, caster, target, functions, classes, helpers)
     local before = nil
-    if n == 182 then
+    if n == 182 or n == 181 then
       before = {}
       for i = 0, 31 do if formula.target.addedStatusEffects[i] == 1 then before[i] = true end end
     end

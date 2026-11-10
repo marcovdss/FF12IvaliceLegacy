@@ -108,13 +108,15 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
         src = (ROOT / 'prototypes/forge_diagnostic_113.lua').read_text()
         self.assertIn("loadfile('scripts/TheInsurgentsForge/functions/113.lua'", src)
         self.assertIn('local observed = observer:wrap(original)', src)
-        self.assertIn('table.pack(observed(...))', src)
-        # The observer is read-only: no assignment to game memory or to Forge's pending results. The one write in
-        # the adapter is the charge pushback probe's setter for the target's current charge time.
+        self.assertIn('return observed', src)
+        # 0.1.23: the charge-pushback and attack-area test probes are gone; the pushback probe wrote foe charge
+        # timers in live play. The adapter now writes nothing: no game memory, no Forge pending result, no field.
+        self.assertNotIn('charge_pushback_probe', src)
+        self.assertNotIn('attack_area_probe', src)
         self.assertIsNone(re.search(r'memory\.\w+\[[^\]]+\]\s*=(?!=)', src))
         self.assertNotIn('formula.target.removedHp =', src)
         writes = re.findall(r'\b\w+\.\w+\s*=(?!=)\s*\S+', src)
-        self.assertEqual(writes, ['work.currentChargeTime = value'])
+        self.assertEqual(writes, [])
 
     def test_action_line_logs_foe_casts_and_is_capped(self):
         self.lua.execute('''
@@ -146,7 +148,7 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
     def test_action_adapter_wraps_unchanged_forge_261(self):
         src = (ROOT / 'prototypes/forge_diagnostic_261.lua').read_text()
         self.assertIn("loadfile('scripts/TheInsurgentsForge/functions/261.lua'", src)
-        self.assertIn('return observer:wrap_action(original)', src)
+        self.assertIn('return priced(observer:wrap_action(original))', src)
         self.assertIsNone(re.search(r'memory\.\w+\[[^\]]+\]\s*=(?!=)', src))
 
 

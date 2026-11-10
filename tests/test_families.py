@@ -37,6 +37,30 @@ class Swap(unittest.TestCase):
             apply(section(), [entry({'op': 'swap', 'rules': [3], 'before': [NEAREST], 'after': LOW_DEFENSE})])
 
 
+class IndexValidation(unittest.TestCase):
+    def test_rule_indices_cannot_be_negative_boolean_or_out_of_range(self):
+        for kind in ('swap', 'prefer'):
+            for index in (-3, True, 4, 1.5):
+                with self.subTest(kind=kind, index=index):
+                    op = {'op':kind, 'before':[NEAREST], 'after':LOW_DEFENSE}
+                    op['rules' if kind == 'swap' else 'rule'] = [index] if kind == 'swap' else index
+                    with self.assertRaises(ValueError):
+                        apply(section(), [entry(op)])
+
+    def test_reused_groups_must_be_jumpable_nonnegative_integers(self):
+        for group in (-31, True, 12, 1.5):
+            with self.subTest(group=group):
+                with self.assertRaises(ValueError):
+                    apply(section(), [entry({'op':'branch', 'group':1, 'reuse':group, 'when':[]})])
+
+    def test_script_indices_cannot_address_the_end_from_a_negative_index(self):
+        for index in (-1, True, 2, 0.5):
+            with self.subTest(index=index):
+                row = entry(); row['script'] = index
+                with self.assertRaises(ValueError):
+                    apply(section(), [row])
+
+
 class Prefer(unittest.TestCase):
     def test_the_copy_goes_first_and_the_original_stays(self):
         out = Bank.from_bytes(apply(section(), [entry({'op': 'prefer', 'rule': 1, 'before': [NEAREST], 'after': LOW_DEFENSE})])).scripts[0]

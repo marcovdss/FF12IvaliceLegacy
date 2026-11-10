@@ -1,0 +1,799 @@
+{
+ "schemaVersion": 1,
+ "status": "Provisional names from the hybrid concept sheets (HYBRID-3x4-v3); Marco may rename any.",
+ "source": "workspace/hybrid-proficiency-levels/HYBRID-3x4-v3.md",
+ "hybrids": [
+  {
+   "pair": [
+    0,
+    1
+   ],
+   "name": "Heaven Knight",
+   "parents": [
+    "Lancer",
+    "White Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    0,
+    2
+   ],
+   "name": "Chaplain",
+   "parents": [
+    "Gunner",
+    "White Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    0,
+    3
+   ],
+   "name": "Seer",
+   "parents": [
+    "Green Mage",
+    "White Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    0,
+    4
+   ],
+   "name": "Paladin",
+   "parents": [
+    "Knight",
+    "White Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    0,
+    5
+   ],
+   "name": "White Monk",
+   "parents": [
+    "Mystic",
+    "White Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    0,
+    6
+   ],
+   "name": "Skyseer",
+   "parents": [
+    "Time Mage",
+    "White Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    0,
+    7
+   ],
+   "name": "Monk",
+   "parents": [
+    "Warrior",
+    "White Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    0,
+    8
+   ],
+   "name": "Bard",
+   "parents": [
+    "Hunter",
+    "White Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    0,
+    9
+   ],
+   "name": "Red Mage",
+   "parents": [
+    "White Mage",
+    "Black Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    0,
+    10
+   ],
+   "name": "Sohei",
+   "parents": [
+    "Samurai",
+    "White Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    0,
+    11
+   ],
+   "name": "Bishop",
+   "parents": [
+    "Chemist",
+    "White Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    1,
+    2
+   ],
+   "name": "Cannoneer",
+   "parents": [
+    "Lancer",
+    "Gunner"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    1,
+    3
+   ],
+   "name": "Breaker",
+   "parents": [
+    "Lancer",
+    "Green Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    1,
+    4
+   ],
+   "name": "Templar",
+   "parents": [
+    "Knight",
+    "Lancer"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    1,
+    5
+   ],
+   "name": "Hell Knight",
+   "parents": [
+    "Lancer",
+    "Mystic"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    1,
+    6
+   ],
+   "name": "Uhlan",
+   "parents": [
+    "Lancer",
+    "Time Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    1,
+    7
+   ],
+   "name": "Ravager",
+   "parents": [
+    "Lancer",
+    "Warrior"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    1,
+    8
+   ],
+   "name": "Beastslayer",
+   "parents": [
+    "Lancer",
+    "Hunter"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    1,
+    9
+   ],
+   "name": "Elementalist",
+   "parents": [
+    "Lancer",
+    "Black Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    1,
+    10
+   ],
+   "name": "Dragoon",
+   "parents": [
+    "Lancer",
+    "Samurai"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    1,
+    11
+   ],
+   "name": "Saboteur",
+   "parents": [
+    "Lancer",
+    "Chemist"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    2,
+    3
+   ],
+   "name": "Trickster",
+   "parents": [
+    "Gunner",
+    "Green Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    2,
+    4
+   ],
+   "name": "Fusilier",
+   "parents": [
+    "Knight",
+    "Gunner"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    2,
+    5
+   ],
+   "name": "Hexgunner",
+   "parents": [
+    "Gunner",
+    "Mystic"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    2,
+    6
+   ],
+   "name": "Sharpshooter",
+   "parents": [
+    "Gunner",
+    "Time Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    2,
+    7
+   ],
+   "name": "Flintlock",
+   "parents": [
+    "Warrior",
+    "Gunner"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    2,
+    8
+   ],
+   "name": "Sniper",
+   "parents": [
+    "Hunter",
+    "Gunner"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    2,
+    9
+   ],
+   "name": "Artillerist",
+   "parents": [
+    "Gunner",
+    "Black Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    2,
+    10
+   ],
+   "name": "Gunslinger",
+   "parents": [
+    "Samurai",
+    "Gunner"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    2,
+    11
+   ],
+   "name": "Engineer",
+   "parents": [
+    "Gunner",
+    "Chemist"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    3,
+    4
+   ],
+   "name": "Warden",
+   "parents": [
+    "Knight",
+    "Green Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    3,
+    5
+   ],
+   "name": "Netherseer",
+   "parents": [
+    "Green Mage",
+    "Mystic"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    3,
+    6
+   ],
+   "name": "Oracle",
+   "parents": [
+    "Green Mage",
+    "Time Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    3,
+    7
+   ],
+   "name": "Reaver",
+   "parents": [
+    "Warrior",
+    "Green Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    3,
+    8
+   ],
+   "name": "Stalker",
+   "parents": [
+    "Hunter",
+    "Green Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    3,
+    9
+   ],
+   "name": "Warlock",
+   "parents": [
+    "Green Mage",
+    "Black Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    3,
+    10
+   ],
+   "name": "Assassin",
+   "parents": [
+    "Samurai",
+    "Green Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    3,
+    11
+   ],
+   "name": "Alchemist",
+   "parents": [
+    "Chemist",
+    "Green Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    4,
+    5
+   ],
+   "name": "Dark Knight",
+   "parents": [
+    "Knight",
+    "Mystic"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    4,
+    6
+   ],
+   "name": "Arc Knight",
+   "parents": [
+    "Knight",
+    "Time Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    4,
+    7
+   ],
+   "name": "Defender",
+   "parents": [
+    "Knight",
+    "Warrior"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    4,
+    8
+   ],
+   "name": "Sentinel",
+   "parents": [
+    "Knight",
+    "Hunter"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    4,
+    9
+   ],
+   "name": "Rune Knight",
+   "parents": [
+    "Knight",
+    "Black Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    4,
+    10
+   ],
+   "name": "Sword Saint",
+   "parents": [
+    "Knight",
+    "Samurai"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    4,
+    11
+   ],
+   "name": "Quartermaster",
+   "parents": [
+    "Knight",
+    "Chemist"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    5,
+    6
+   ],
+   "name": "Astrologer",
+   "parents": [
+    "Time Mage",
+    "Mystic"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    5,
+    7
+   ],
+   "name": "Fell Knight",
+   "parents": [
+    "Warrior",
+    "Mystic"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    5,
+    8
+   ],
+   "name": "Geomancer",
+   "parents": [
+    "Hunter",
+    "Mystic"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    5,
+    9
+   ],
+   "name": "Sage",
+   "parents": [
+    "Mystic",
+    "Black Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    5,
+    10
+   ],
+   "name": "Divine Knight",
+   "parents": [
+    "Samurai",
+    "Mystic"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    5,
+    11
+   ],
+   "name": "Shaman",
+   "parents": [
+    "Chemist",
+    "Mystic"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    6,
+    7
+   ],
+   "name": "Tempest",
+   "parents": [
+    "Warrior",
+    "Time Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    6,
+    8
+   ],
+   "name": "Ranger",
+   "parents": [
+    "Hunter",
+    "Time Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    6,
+    9
+   ],
+   "name": "Arcanist",
+   "parents": [
+    "Time Mage",
+    "Black Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    6,
+    10
+   ],
+   "name": "Kensei",
+   "parents": [
+    "Samurai",
+    "Time Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    6,
+    11
+   ],
+   "name": "Tinker",
+   "parents": [
+    "Chemist",
+    "Time Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    7,
+    8
+   ],
+   "name": "Viking",
+   "parents": [
+    "Warrior",
+    "Hunter"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    7,
+    9
+   ],
+   "name": "Battlemage",
+   "parents": [
+    "Warrior",
+    "Black Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    7,
+    10
+   ],
+   "name": "Berserker",
+   "parents": [
+    "Warrior",
+    "Samurai"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    7,
+    11
+   ],
+   "name": "Gladiator",
+   "parents": [
+    "Warrior",
+    "Chemist"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    8,
+    9
+   ],
+   "name": "Arcane Archer",
+   "parents": [
+    "Hunter",
+    "Black Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    8,
+    10
+   ],
+   "name": "Ninja",
+   "parents": [
+    "Samurai",
+    "Hunter"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    8,
+    11
+   ],
+   "name": "Trapper",
+   "parents": [
+    "Hunter",
+    "Chemist"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    9,
+    10
+   ],
+   "name": "Spellblade",
+   "parents": [
+    "Samurai",
+    "Black Mage"
+   ],
+   "newName": false
+  },
+  {
+   "pair": [
+    9,
+    11
+   ],
+   "name": "Grenadier",
+   "parents": [
+    "Chemist",
+    "Black Mage"
+   ],
+   "newName": true
+  },
+  {
+   "pair": [
+    10,
+    11
+   ],
+   "name": "Ronin",
+   "parents": [
+    "Samurai",
+    "Chemist"
+   ],
+   "newName": false
+  }
+ ]
+}

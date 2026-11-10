@@ -129,6 +129,17 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(op(P.decide('guard', S({job=5, outcome='counter', casterStatus={sap=true}}), 7), 'remove', 10))
           assert(P.decide('heal', S({job=0, overflow=50, item=true}), 1) == nil)          -- potions from level 2
           assert(P.decide('heal', S({job=0, overflow=50, item=true}), 2).targetAdd[25])
+          -- White Mage II: Regen for the others once per healing spell (an area Cura reaches each ally ~1 s apart)
+          local function regens(a) local n = 0
+            for _, o in ipairs(a and a.others or {}) do if o.op == 'add' and o.id == 25 then n = n + 1 end end
+            return n end
+          P.reset()
+          local first = regens(P.decide('heal', S({job=0, overflow=50, castId=3, target=200}), 6))
+          assert(first >= 1)
+          assert(regens(P.decide('heal', S({job=0, overflow=50, castId=3, target=300}), 6)) == 0)
+          assert(regens(P.decide('heal', S({job=0, overflow=50, castId=4, target=200}), 6)) == first)
+          assert(regens(P.decide('heal', S({job=0, overflow=50, item=true, target=200}), 6)) == first)
+          assert(regens(P.decide('heal', S({job=0, overflow=50, item=true, target=300}), 6)) == first)
           -- Chemist II: heals the most hurt ally.
           local m = P.decide('hit', S({job=11}), 5)
           o = op(m, 'hp')
@@ -222,6 +233,41 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(op(last(), 'hp').amount == -39)                                          -- 35% of the final 114
         ''')
 
+    def test_job_changes_do_not_borrow_another_jobs_chain(self):
+        self.run_lua('''
+          P.decide('hit', S({job=10}), 11) -- Samurai's first hit
+          local g = P.decide('hit', S({job=2}), 11) -- first Gunner hit, not a two-hit chain
+          assert(not (g.targetAdd and g.targetAdd[15]), 'Samurai hit leaked into Gunner chain')
+          P.decide('hit', S({job=10, kill=true, casterStatus={haste=true}}), 11) -- arm Samurai's next-hit boost
+          P.decide('heal', S({job=0, overflow=50}), 11) -- change jobs and heal
+          local back = P.decide('hit', S({job=10}), 11)
+          assert(not back or not back.damage, 'old Samurai boost survived another job')
+        ''')
+
+    def test_combined_haste_grants_keep_the_longer_duration(self):
+        self.run_lua('''
+          P.decide('hit', S({job=10}), 11) -- start the Samurai chain before the foe is Stopped
+          local a = P.decide('hit', S({job=10, targetStatus={stop=true}, casterStatus={}}), 11)
+          assert(a.casterAdd[20] == 0.75, 'Time Mage aura shortened Samurai Haste')
+        ''')
+
+    def test_mana_leech_uses_final_damage_and_can_drain_the_last_mp(self):
+        self.run_lua('''
+          local a = P.decide('hit', S({job=3, damage=200, targetStatus={stop=true}, targetMp=17, casterMaxMp=999}), 11)
+          assert(a.damage == 1.15 and a.drainMp == 17 and a.healHp == 17,
+            'Mana Leech ignored the final damage bonus')
+          assert(a.targetAdd[9], 'the final drain emptied the foe MP and should Silence it')
+          P.reset()
+          local rich = {{address=100, job=3, hpPct=100, mp=100, maxMp=100, status={}},
+                        {address=200, job=0, hpPct=40, mp=5, maxMp=999, status={silence=true}},
+                        {address=300, job=6, hpPct=90, mp=80, maxMp=999, status={}}}
+          a = P.decide('hit', S({job=3, damage=200, targetStatus={stop=true}, targetMp=50, casterMp=100, party=rich}), 11)
+          assert(a.targetMpLoss == 27 and a.healHp == 18)                 -- II at 4/4: the foe loses 50% more
+          local total = 0
+          for _, o in ipairs(a.others) do if o.op == 'mp' then total = total + o.amount end end
+          assert(total == 18, 'the two recipients share the drain, never more')
+        ''')
+
     def test_warrior(self):
         self.run_lua('''
           assert(P.decide('hit', S({job=7, kill=true}), 1).casterAdd[21] == 1)
@@ -279,9 +325,10 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(P.decide('hit', S({job=6, targetStatus={slow=true}, roll=function() return false end}), 4) == nil)
           a = P.decide('hit', S({job=4, targetStatus={stop=true}, party={{address=100, job=4, hpPct=100, mp=0, maxMp=0, status={}}, {address=300, job=6, hpPct=100, mp=0, maxMp=0, status={}}}}), 10)
           assert(a.casterAdd[20] and a.damage == 1.15)                                    -- Time Mage III aura
-          a = P.decide('hit', S({job=3, damage=200}), 4); assert(a.drainMp == 16 and a.healHp == 16)
-          a = P.decide('hit', S({job=3, damage=200, casterMp=100}), 8)                    -- II full: gives to allies
-          assert(a.drainMp == nil and a.targetMpLoss == 16 and others(a, 'mp') == 2 and others(a, 'remove') == 1)
+          a = P.decide('hit', S({job=3, damage=200}), 4); assert(a.drainMp == 2 and a.healHp == 16)  -- MP capped at 2% of 100
+          a = P.decide('hit', S({job=3, damage=200, casterMaxMp=999}), 4); assert(a.drainMp == 16)
+          a = P.decide('hit', S({job=3, damage=200, casterMp=100}), 8)                    -- II 4/4 full: allies share it
+          assert(a.drainMp == nil and a.targetMpLoss == 24 and others(a, 'mp') == 2 and others(a, 'remove') == 1)
           assert(P.decide('hit', S({job=3, damage=200}), 9).chargeTo)                     -- III slows charge
           assert(P.decide('hit', S({job=3, damage=200, targetMp=0}), 9).chargeTo)         -- even on a foe with no MP
         ''')
@@ -371,7 +418,7 @@ class ProficiencyApplyTest(unittest.TestCase):
     def setUp(self):
         self.lua = LuaRuntime(unpack_returned_tuples=True)
         sources = {f'scripts/IvaliceLegacy/{n}.lua': (ROOT/f'prototypes/{n}.lua').read_text(encoding='utf-8')
-                   for n in ('proficiency', 'proficiency_runtime', 'clan_rank')}
+                   for n in ('proficiency', 'proficiency_runtime', 'clan_rank', 'hybrid_proficiency')}
         self.lua.globals().sources = self.lua.table_from(sources)
         self.lua.execute('''
           local real_load = load
@@ -412,6 +459,18 @@ class ProficiencyApplyTest(unittest.TestCase):
           function apply(a, target) local f = {caster=plus(), target=plus()}
             R.apply(a, f, keep({address=100, type=0}), classes, helpers, target); return f end
         ''')
+
+    def test_second_job_uses_the_pair_hybrid_line(self):
+        r = self.lua.execute('''
+          memory.u64[0x02EBF190] = 1000
+          local function unit(job1, job2) return {type=0, identifier=2, address=1000 + 8 + 2 * 0x1C8,
+                                                  job1=job1, job2=job2, maxHp=100, currentHp=100} end
+          helpers.getActivePartyMember = function() return -1 end
+          local function job(u) local s = R.base(u, {}, classes, helpers); return s and s.job or 'none' end
+          return job(unit(4, 255)), job(unit(4, 0)), job(unit(4, 4)), job(unit(4, 12)), job(unit(4, -1))
+        ''')
+        # single job, Knight + White Mage = Paladin (pair 3, line 15), then a repeated or invalid second job is refused
+        self.assertEqual(r, (4, 15, 'none', 'none', 'none'))
 
     def test_immune_foes_stay_immune(self):
         self.lua.execute('''
@@ -549,7 +608,7 @@ class ProficiencyAdapterTest(unittest.TestCase):
     def test_adapters_share_one_runtime_and_always_run_original(self):
         lua = LuaRuntime(unpack_returned_tuples=True)
         sources = {f'scripts/IvaliceLegacy/{n}.lua': (ROOT/f'prototypes/{n}.lua').read_text(encoding='utf-8')
-                   for n in ('proficiency', 'proficiency_runtime', 'clan_rank')}
+                   for n in ('proficiency', 'proficiency_runtime', 'clan_rank', 'hybrid_proficiency')}
         lua.globals().sources = lua.table_from(sources)
         lua.execute('''
           printed, registered, calls = {}, 0, {}
@@ -578,6 +637,27 @@ class ProficiencyAdapterTest(unittest.TestCase):
           f222({target={identifier=9}}, {type=0}, {type=1, address=900, temporaryStatusEffects={[3]=0}}, {}, {}, {})
           assert(calls['165'] == 1 and calls['182'] == 1 and calls['222'] == 1)
         ''')
+        # 181 (status spells) lives in the package: Decoy inside, Proficiency outside, one shared runtime.
+        lua.globals().MAGICKS = "return {version='t', DECOY_ACTION=77, DECOY_STATUS=17, DECOY_TICKS=999}"
+        lua.execute('''
+          local real = loadfile
+          loadfile = function(p, mode, env)
+            if p == 'scripts/IvaliceLegacy/magicks.lua' then return load(MAGICKS) end
+            return real(p, mode, env)
+          end
+        ''')
+        f181 = lua.execute('return load(...)()',
+                           (ROOT/'package/x64/scripts/config/TheInsurgentsForgeConfig/functions/181.lua').read_text(encoding='utf-8'))
+        lua.globals().f181 = f181
+        lua.execute('''
+          local flags = function() return setmetatable({}, {__index=function() return 0 end}) end
+          local f = {action=77, target={addedStatusEffects=flags(), statusEffectDurations={}}}
+          f.target.addedStatusEffects[17] = 1
+          f181(f, {type=0, job1=0, job2=255}, {type=1}, {}, {}, {})
+          assert(calls['181'] == 1, 'original ran')
+          assert(f.target.statusEffectDurations[17] == 999, 'Decoy kept')
+          assert(registered == 2, 'still one runtime')
+        ''')
 
 
 @unittest.skipIf(LuaRuntime is None, 'requires Lupa Lua5.5')
@@ -587,7 +667,7 @@ class ProficiencyWritTest(unittest.TestCase):
     def setUp(self):
         self.lua = LuaRuntime(unpack_returned_tuples=True)
         sources = {f'scripts/IvaliceLegacy/{n}.lua': (ROOT/f'prototypes/{n}.lua').read_text(encoding='utf-8')
-                   for n in ('proficiency', 'proficiency_runtime')}
+                   for n in ('proficiency', 'proficiency_runtime', 'hybrid_proficiency')}
         sources['scripts/IvaliceLegacy/clan_rank.lua'] = 'return {MARKS_FN=0, read=function() return {rank=RANK} end}'
         self.lua.globals().sources = self.lua.table_from(sources)
         self.lua.execute(r'''
@@ -641,6 +721,34 @@ class ProficiencyWritTest(unittest.TestCase):
               assert(lines <= 3)
             end
           end
+        ''')
+
+    def test_map_changes_drop_chains_and_reused_foe_stop_budgets(self):
+        self.lua.execute('''
+          loadCampaign(11)
+          local P = R.Proficiency
+          local function hit(job, stopped)
+            return P.decide('hit', {job=job, actorId=job == 10 and 2 or 1, self=100, targetId=job == 10 and 10 or 9, foe=true, damage=100,
+              targetStatus=stopped and {stop=true} or {}, casterStatus={}, party={{job=6}}}, 11)
+          end
+          for i=1,4 do assert(hit(4, true).targetExtend) end
+          assert(not hit(4, true).targetExtend)
+          hit(10, false) -- a different character starts a Samurai chain on the old map's foe 10
+          handlers.onMapJump(50)
+          assert(hit(4, true).targetExtend, 'new map inherited the old foe slot Stop budget')
+          assert(hit(10, false) == nil, 'new map inherited an old attack chain')
+        ''')
+
+    def test_in_campaign_does_not_wait_for_a_clan_rank(self):
+        # 0.1.23: the MP surcharge asks R.inCampaign(), which is true for any loaded Legacy save or a fresh New Game.
+        self.lua.execute('''
+          assert(not R.inCampaign())                            -- title screen: nothing loaded
+          handlers.onNewGameStart()
+          assert(R.inCampaign() and not R.active())             -- New Game, no save yet, no rank
+          loadCampaign(0)
+          assert(R.inCampaign() and not R.active())             -- a rank-0 Legacy save
+          handlers.load('C:/saves/FFXII_000', {})
+          assert(not R.inCampaign())                            -- not a Legacy save name
         ''')
 
     def test_rank_claimed_before_the_writ_existed(self):
@@ -719,7 +827,12 @@ class ProficiencyWritTest(unittest.TestCase):
             local g = P.GEAR[job]; assert(g and g.line, job); jobs = jobs + 1
             for k = 1, 3 do
               assert(#g[k] == 4, job .. ':' .. k)
-              for l = 1, 4 do assert(#g[k][l] <= P.GEAR_LIMIT, g[k][l]); assert(not g[k][l]:find('[;<>{}]'), g[k][l]) end
+              for l = 1, 4 do
+                local t = g[k][l]
+                local first, extra = t:match('^([^\\n]*)\\n?(.*)$')
+                assert(#first <= P.GEAR_LIMIT and #extra <= P.GEAR_LINE_LIMIT and not extra:find('\\n'), t)
+                assert(first ~= '' and not t:find('[;<>{}]'), t)
+              end
             end
           end
           assert(jobs == 12)
@@ -762,6 +875,7 @@ class ProficiencyWritTest(unittest.TestCase):
           local cats = {[0] = 12, 21, 20, 19, 18, 23}
           bpack = {section13 = setmetatable({}, {__index = function(_, i) return cats[i] and {category = cats[i]} or nil end})}
           local jobs = {[0] = 8, [1] = 4}                                    -- member 0 Hunter, member 1 Knight
+          jobs2 = {}
           local baseExec = memory.execute
           memory.execute = function(fn, ret, t1, a1, ...)
             if fn == 0x320A40 then return jobs[a1] and (0x500000 + a1 * 0x1000) or 0 end
@@ -769,7 +883,10 @@ class ProficiencyWritTest(unittest.TestCase):
           end
           local baseU8 = getmetatable(memory.u8).__index
           getmetatable(memory.u8).__index = function(t, a)
-            for m, j in pairs(jobs) do if a == 0x500000 + m * 0x1000 + 0x1C3 then return j end end
+            for m, j in pairs(jobs) do
+              if a == 0x500000 + m * 0x1000 + 0x1C3 then return j end
+              if a == 0x500000 + m * 0x1000 + 0x1C4 then return (jobs2 or {})[m] or 255 end
+            end
             return baseU8(t, a)
           end
           R3 = load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime3', 't', _ENV)()
@@ -793,7 +910,7 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(suffix(1):find('Bulwark I 1/4:', 1, true) and suffix(2) == nil)
           assert(suffix(0, 2):find('Pursuit II 0/4:', 1, true))
           assert(suffix(0, 3):find('Pursuit III 0/4:', 1, true))
-          assert(suffix(0, 2):find('See Montblanc to unlock', 1, true))
+          assert(suffix(0, 2):find('Unlocks at a higher Clan rank', 1, true))
           for c = 0, 26 do
             local expected = c <= 17 and 1 or (c == 19 and 3 or (c == 20 and 2 or nil))
             assert(R3.gearStage(c) == expected, c)
@@ -803,9 +920,11 @@ class ProficiencyWritTest(unittest.TestCase):
           tick(); assert(memory.u64[tbl] == first)                            -- nothing changed: same buffer
           jobs[0] = 11; tick()
           assert(memory.u64[tbl] ~= first and suffix(0):find('Contagion', 1, true))   -- other buffer, new text
-          -- One added line only: the Equipment help box holds four lines and weapons already use three.
+          jobs[0], jobs2[0] = 10, 8; tick()                                  -- Samurai + Hunter = Ninja
+          assert(suffix(0):find('Kage I 1/4:', 1, true) and suffix(0, 3):find('Kage III 0/4:', 1, true))
+          jobs[0], jobs2[0] = 11, nil; tick()
           local one = R3.gearSuffix(8, 1, 1)
-          assert(one == '\n{scale:82}{rgb:90,90,90}Pursuit I 1/4:{lowspace}{rgb:255,255,255}+15% damage to foes with an ailment', one)
+          assert(one == '\n{scale:82}{rgb:90,90,90}Pursuit I 1/4:{lowspace}{rgb:255,255,255}Your hits deal +15% damage to a foe with an ailment\nAilments: Poison, Slow, Blind, Silence, Sap, Oil...', one)
           assert(R3.gearSuffix(8, 0, 1):find('Pursuit I 0/4:', 1, true))
           assert(R3.gearSuffix(8, 7, 1):find('Pursuit I 4/4:', 1, true))
           assert(R3.gearSuffix(8, 7, 2):find('Pursuit II 3/4:', 1, true))
@@ -815,12 +934,20 @@ class ProficiencyWritTest(unittest.TestCase):
             local s = R3.gearSuffix(job, rank, stage)
             local _, breaks = s:gsub('\n', '')
             local plain = s:gsub('{[^}]*}', '')
-            assert(breaks == 1 and #plain <= 96, job .. ':' .. rank .. ':' .. stage .. ' ' .. plain)
+            -- At most two added lines: weapons use three native lines; the box shows five since the 0.4.3 width fix.
+            assert(breaks >= 1 and breaks <= 2, job .. ':' .. rank .. ':' .. stage .. ' ' .. plain)
+            for line in plain:gmatch('[^\n]+') do assert(#line <= 80, job .. ':' .. rank .. ':' .. stage .. ' ' .. line) end
             local levels = R3.Proficiency.levels(rank)
             if levels[stage] > 0 then
               assert(s:find(R3.Proficiency.GEAR[job][stage][levels[stage]], 1, true))
-            else assert(s:find('See Montblanc to unlock', 1, true)) end
+            else assert(s:find('Unlocks at a higher Clan rank', 1, true)) end
           end end end
+          handlers.load('C:/saves/FFXII_000', nil)
+          for member=0,1 do for stage=1,3 do
+            assert(suffix(member, stage) == nil, 'Legacy suffix survived loading a normal save')
+          end end
+          handlers.load('C:/saves/LEGCY_001', {schema=1, campaign='LEGCY_001', claimedRank=1})
+          tick(); assert(suffix(0):find('Contagion', 1, true), 'Legacy text rebuilds after a new campaign load')
           site = {0xE9, 0, 0, 0, 0, 0x90}                                      -- someone else patched the site
           R4 = load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime4', 't', _ENV)()
           assembled = {}
@@ -855,7 +982,7 @@ class ProficiencyWritTest(unittest.TestCase):
                 for n in range(1, 6):
                     put(f'hook-previous-{n}.log', f'session -{n}')
                 self.lua.execute('R.rotateLogs(); R.copyLog()')
-                read = lambda name: open(name).read() if os.path.exists(name) else ''
+                read = lambda name: Path(name).read_text() if Path(name).exists() else ''
                 self.assertEqual([read(f'hook-previous-{n}.log') for n in range(1, 6)],
                                  ['session 0', 'session -1', 'session -2', 'session -3', 'session -4'])
                 self.assertEqual(read('hook-session.log'), 'this session')
@@ -896,7 +1023,13 @@ class ProficiencyWritTest(unittest.TestCase):
           for _, l in ipairs(printed) do if l:find('palace guard idle', 1, true) then count = count + 1 end end
           assert(count == 1)
           local PIT = 0x7000
-          memory.getSymbol = function(name) if name == 'pit_ot' then return PIT end end
+          -- the byte is found through Companions' patch (0.1.23 dropped the never-visible pit_ot symbol)
+          local CODE = 0x6000
+          local rel = CODE - (0x2838CC + 5)
+          for i, b in ipairs({0xE9, rel & 0xFF, (rel >> 8) & 0xFF, (rel >> 16) & 0xFF, (rel >> 24) & 0xFF}) do memory.u8[0x2838CC + i - 1] = b end
+          local disp = PIT - (CODE + 7)
+          for i, b in ipairs({0x80, 0x3D, disp & 0xFF, (disp >> 8) & 0xFF, (disp >> 16) & 0xFF, (disp >> 24) & 0xFF, 0x00}) do memory.u8[CODE + i - 1] = b end
+
           memory.u8[PIT] = 1                                        -- Full Party, as configured
           handlers.onMapJump(291)                                   -- East End: untouched
           assert(memory.u8[PIT] == 1)
@@ -942,6 +1075,62 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(R.effective() == 4)                            -- stage II waits for its Writ
           leaveHall()
           assert(keys[0x81F1] and R.effective() == 6 and said("Journeyman's Writ") and said('almost forgot'))
+        ''')
+
+    def test_hybrid_lines_reach_the_game_through_the_hooks(self):
+        self.lua.execute(r'''
+          RANK = 6; keys[0x81F0] = true; keys[0x81F1] = true
+          loadCampaign(6)
+          assert(R.effective() == 6)
+          local IDS = {lure=17, slow=15, blind=7, haste=20}
+          local function flags(t)
+            local f = setmetatable({}, {__index=function() return 0 end})
+            for name, on in pairs(t or {}) do f[name] = on; f[IDS[name]] = on end
+            return f
+          end
+          local function record() return {flags1={isNegative=0, isNotApplicableToFoes=0, isRefreshable=1},
+                                           absentStatusEffects=flags()} end
+          bpack = {section15=setmetatable({}, {__index=function() return record() end})}
+          local keeps = {}
+          local function unit(t)
+            local u = {type=t.type, identifier=t.id or 0, address=t.address, job1=t.job1 or 0, job2=t.job2 or 255,
+                       maxHp=100, currentHp=t.hp or 100, maxMp=50, currentMp=10,
+                       temporaryStatusEffects=flags(t.status), permanentStatusEffectImmunities=flags(),
+                       permanentStatusEffects=flags(), statusEffectDurations=flags(), temporaryAugments=flags(),
+                       permanentAugments=flags()}
+            keeps[u.address] = u
+            return u
+          end
+          memory.u64[0x02EBF190] = 1000
+          local added = {}
+          local helpers = {getActivePartyMember=function() return -1 end, getRandomNumber=function() return 0 end,
+            getStatusEffectDuration=function() return 100 end, getStatusEffectTickDuration=function() return 0 end,
+            getStatusEffectsMatch=function() return false end, removeStatusEffect=function() end,
+            addStatusEffect=function(c, u, id, d) added[#added+1] = {u=u, id=id} end,
+            modifyHp=function() end, modifyMp=function() end, getBattleUnitWork=function() return 0 end}
+          local classes = {getBattleUnitKeep=function(a) return keeps[a] end,
+                           getBattleUnitWork=function() return {address=0} end}
+          local function plus(t)
+            local p = {statusEffects=flags(t and t.status), addedStatusEffects=flags(), removedStatusEffects=flags(),
+                       statusEffectDurations=setmetatable({}, {__index=function() return -1 end})}
+            for k, v in pairs(t or {}) do if k ~= 'status' then p[k] = v end end
+            return p
+          end
+          -- Paladin (Knight + White Mage) heals a Slowed ally: Lure on the Paladin, Slow off the ally
+          local paladin = unit({type=0, id=2, address=1000 + 8 + 2 * 0x1C8, job1=4, job2=0})
+          local ally = unit({type=0, id=3, address=1000 + 8 + 3 * 0x1C8, hp=30, status={slow=1}})
+          local f = {caster=plus(), target=plus({addedHp=40, status={slow=1}})}
+          R.hook110(f, paladin, ally, classes, helpers)
+          assert(f.caster.addedStatusEffects[17] == 1, 'Lure')
+          assert(f.target.removedStatusEffects[15] == 1, 'Slow removed')
+          -- Warden (Knight + Green Mage) is struck while Lured: the attacker is Blinded (stage II)
+          local warden = unit({type=0, id=1, address=1000 + 8 + 1 * 0x1C8, job1=4, job2=3, status={lure=1}})
+          local foe = unit({type=1, address=7000})
+          local hit = {caster=plus(), target=plus({removedHp=10, status={lure=1}})}
+          R.hook165(hit, foe, warden, classes, helpers)
+          local blinded = false
+          for _, a in ipairs(added) do if a.u == 7000 and a.id == 7 then blinded = true end end
+          assert(blinded, 'attacker Blinded')
         ''')
 
 

@@ -15,8 +15,19 @@ from .formats import battle_pack_section
 
 # field: (byte offset in the row, struct format)
 FIELDS = {'range': (5, 'B'), 'aoeRange': (6, 'B'), 'aoePositioningRange': (7, 'B'), 'formula': (8, 'B'),
-          'chargeTime': (9, 'B'), 'power': (16, 'B')}
+          'chargeTime': (9, 'B'), 'power': (16, 'B'), 'accuracy': (18, 'B'), 'onHitRate': (20, 'B'),
+          'statusEffects': (24, '<I')}
+# Status bits of the u32 at +24, lowest bit first. statusEffects edits name them instead of giving raw masks.
+STATUS = ('KO', 'Stone', 'Petrify', 'Stop', 'Sleep', 'Confuse', 'Doom', 'Blind', 'Poison', 'Silence', 'Sap', 'Oil',
+          'Reverse', 'Disable', 'Immobilize', 'Slow', 'Disease', 'Lure', 'Protect', 'Shell', 'Haste', 'Bravery',
+          'Faith', 'Reflect', 'Invisible', 'Regen', 'Float', 'Berserk', 'Bubble', 'HP Critical', 'Libra', 'X-Zone')
 ACTION_COUNT = 543
+
+
+def status_mask(names, what='status list'):
+    if not isinstance(names, list) or any(n not in STATUS for n in names) or len(set(names)) != len(names):
+        raise ValueError(f'{what}: expected a list of distinct status names')
+    return sum(1 << STATUS.index(n) for n in names)
 
 
 def sha256(data):
@@ -33,18 +44,14 @@ def layout(section):
     return count, size, entry
 
 
-def action_fields(read, patch):
-    """Apply patch['actions']: [{'id', 'name', 'set': {field: [before, after]}}]."""
-    pack = read(patch['file'])
-    if sha256(pack) != patch['sourceFileSha256']:
-        raise ValueError(f"{patch['file']} differs from the supported game version")
-    original = battle_pack_section(pack, patch['section'])
-    if sha256(original) != patch['sourceSectionSha256']:
-        raise ValueError(f"{patch['file']} section {patch['section']} differs from the supported game version")
+def edit_rows(original, edits):
+    """Return the action table with edits applied: [{'id', 'name', 'set': {field: [before, after]}}].
+
+    statusEffects values are lists of status names. Every before value must match; nothing else may change."""
     count, size, entry = layout(original)
     out = bytearray(original)
     changed, seen = set(), set()
-    for action in patch['actions']:
+    for action in edits:
         index = action['id']
         what = action.get('name', f'action {index}')
         if type(index) is not int or not 0 <= index < count:
@@ -56,7 +63,11 @@ def action_fields(read, patch):
         for field, change in action['set'].items():
             if field not in FIELDS:
                 raise ValueError(f'{what}: unsupported field {field}')
-            if not isinstance(change, list) or len(change) != 2 or any(type(v) is not int for v in change):
+            if not isinstance(change, list) or len(change) != 2:
+                raise ValueError(f'{what} {field}: expected [before, after]')
+            if field == 'statusEffects':
+                change = [status_mask(v, f'{what} {field}') for v in change]
+            elif any(type(v) is not int for v in change):
                 raise ValueError(f'{what} {field}: expected [before, after]')
             offset, fmt = FIELDS[field]
             if not 0 <= change[1] < 1 << 8 * struct.calcsize(fmt):
@@ -68,6 +79,18 @@ def action_fields(read, patch):
     result = bytes(out)
     if any(a != b for i, (a, b) in enumerate(zip(original, result)) if i not in changed) or len(result) != len(original):
         raise AssertionError('bytes outside the listed fields changed')
+    return result
+
+
+def action_fields(read, patch):
+    """Apply patch['actions'] to the game's action table (see edit_rows)."""
+    pack = read(patch['file'])
+    if sha256(pack) != patch['sourceFileSha256']:
+        raise ValueError(f"{patch['file']} differs from the supported game version")
+    original = battle_pack_section(pack, patch['section'])
+    if sha256(original) != patch['sourceSectionSha256']:
+        raise ValueError(f"{patch['file']} section {patch['section']} differs from the supported game version")
+    result = edit_rows(original, patch['actions'])
     if sha256(result) != patch['resultSectionSha256']:
         raise ValueError(f"section {patch['section']} result differs from the reviewed recipe")
     return {f"{patch['file']}.dir/section_{patch['section']:03d}.bin": result}

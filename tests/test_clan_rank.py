@@ -91,6 +91,9 @@ class DiagnosticClanLineTests(unittest.TestCase):
             ['scripts/IvaliceLegacy/clan_diagnostic.lua']=[[return {new=function()
               return {reset=function() end, load=function() return true end,
                       wrap=function(_, f) return f end} end}]],
+            -- a benign Family module: this sandbox tests the diagnostic line, not the identities
+            ['scripts/IvaliceLegacy/family_identities.lua']=[[return {register=function() return true end,
+              wrap171=function(_, f) return f end}]],
           }
           local realLoadfile=loadfile
           loadfile=function(path, mode, env)

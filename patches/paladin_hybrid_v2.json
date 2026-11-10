@@ -1,0 +1,1005 @@
+{
+ "schemaVersion": 2,
+ "name": "Paladin",
+ "status": "Design candidate for Marco; not approved, not installed",
+ "pair": [
+  0,
+  4
+ ],
+ "width": 24,
+ "height": 24,
+ "sourceBoards": [
+  {
+   "job": 0,
+   "basejobs": "0.5.1",
+   "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+  },
+  {
+   "job": 4,
+   "basejobs": "0.5.1",
+   "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+  }
+ ],
+ "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+ "boardSha256": "d52319fcf824bc7ff07be19835a59091cb5abc7da3cc971a83bdb8eaf1abd215",
+ "cells": [
+  {
+   "x": 6,
+   "y": 3,
+   "licenseId": 331,
+   "region": "Esper island"
+  },
+  {
+   "x": 6,
+   "y": 4,
+   "licenseId": 29,
+   "region": "Esper"
+  },
+  {
+   "x": 9,
+   "y": 4,
+   "licenseId": 49,
+   "region": "Esper island"
+  },
+  {
+   "x": 11,
+   "y": 4,
+   "licenseId": 52,
+   "region": "Esper island"
+  },
+  {
+   "x": 12,
+   "y": 4,
+   "licenseId": 18,
+   "region": "Esper"
+  },
+  {
+   "x": 13,
+   "y": 4,
+   "licenseId": 160,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 15,
+   "y": 4,
+   "licenseId": 95,
+   "region": "Esper island"
+  },
+  {
+   "x": 5,
+   "y": 5,
+   "licenseId": 0,
+   "region": "Quickening"
+  },
+  {
+   "x": 6,
+   "y": 5,
+   "licenseId": 350,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 7,
+   "y": 5,
+   "licenseId": 135,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 9,
+   "y": 5,
+   "licenseId": 30,
+   "region": "Esper"
+  },
+  {
+   "x": 13,
+   "y": 5,
+   "licenseId": 158,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 14,
+   "y": 5,
+   "licenseId": 352,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 15,
+   "y": 5,
+   "licenseId": 19,
+   "region": "Esper"
+  },
+  {
+   "x": 6,
+   "y": 6,
+   "licenseId": 349,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 7,
+   "y": 6,
+   "licenseId": 133,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 8,
+   "y": 6,
+   "licenseId": 125,
+   "region": "Shields"
+  },
+  {
+   "x": 9,
+   "y": 6,
+   "licenseId": 124,
+   "region": "Shields"
+  },
+  {
+   "x": 10,
+   "y": 6,
+   "licenseId": 329,
+   "region": "Swords"
+  },
+  {
+   "x": 12,
+   "y": 6,
+   "licenseId": 100,
+   "region": "Rods"
+  },
+  {
+   "x": 13,
+   "y": 6,
+   "licenseId": 156,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 14,
+   "y": 6,
+   "licenseId": 159,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 16,
+   "y": 6,
+   "licenseId": 1,
+   "region": "Quickening"
+  },
+  {
+   "x": 18,
+   "y": 6,
+   "licenseId": 335,
+   "region": "Esper island"
+  },
+  {
+   "x": 4,
+   "y": 7,
+   "licenseId": 76,
+   "region": "Esper island"
+  },
+  {
+   "x": 5,
+   "y": 7,
+   "licenseId": 28,
+   "region": "Esper"
+  },
+  {
+   "x": 6,
+   "y": 7,
+   "licenseId": 134,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 7,
+   "y": 7,
+   "licenseId": 131,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 8,
+   "y": 7,
+   "licenseId": 123,
+   "region": "Shields"
+  },
+  {
+   "x": 9,
+   "y": 7,
+   "licenseId": 122,
+   "region": "Shields"
+  },
+  {
+   "x": 10,
+   "y": 7,
+   "licenseId": 38,
+   "region": "Swords"
+  },
+  {
+   "x": 11,
+   "y": 7,
+   "licenseId": 36,
+   "region": "Swords"
+  },
+  {
+   "x": 12,
+   "y": 7,
+   "licenseId": 99,
+   "region": "Rods"
+  },
+  {
+   "x": 13,
+   "y": 7,
+   "licenseId": 154,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 14,
+   "y": 7,
+   "licenseId": 157,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 15,
+   "y": 7,
+   "licenseId": 231,
+   "region": "Passives"
+  },
+  {
+   "x": 16,
+   "y": 7,
+   "licenseId": 265,
+   "region": "Passives"
+  },
+  {
+   "x": 18,
+   "y": 7,
+   "licenseId": 20,
+   "region": "Esper"
+  },
+  {
+   "x": 6,
+   "y": 8,
+   "licenseId": 132,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 7,
+   "y": 8,
+   "licenseId": 129,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 8,
+   "y": 8,
+   "licenseId": 348,
+   "region": "Shields"
+  },
+  {
+   "x": 9,
+   "y": 8,
+   "licenseId": 120,
+   "region": "Shields"
+  },
+  {
+   "x": 10,
+   "y": 8,
+   "licenseId": 37,
+   "region": "Swords"
+  },
+  {
+   "x": 11,
+   "y": 8,
+   "licenseId": 35,
+   "region": "Swords"
+  },
+  {
+   "x": 12,
+   "y": 8,
+   "licenseId": 98,
+   "region": "Rods"
+  },
+  {
+   "x": 13,
+   "y": 8,
+   "licenseId": 152,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 14,
+   "y": 8,
+   "licenseId": 155,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 15,
+   "y": 8,
+   "licenseId": 259,
+   "region": "Passives"
+  },
+  {
+   "x": 16,
+   "y": 8,
+   "licenseId": 272,
+   "region": "Passives"
+  },
+  {
+   "x": 17,
+   "y": 8,
+   "licenseId": 226,
+   "region": "Passives"
+  },
+  {
+   "x": 18,
+   "y": 8,
+   "licenseId": 301,
+   "region": "Passives"
+  },
+  {
+   "x": 19,
+   "y": 8,
+   "licenseId": 315,
+   "region": "Passives"
+  },
+  {
+   "x": 20,
+   "y": 8,
+   "licenseId": 304,
+   "region": "Passives"
+  },
+  {
+   "x": 4,
+   "y": 9,
+   "licenseId": 341,
+   "region": "Esper island"
+  },
+  {
+   "x": 5,
+   "y": 9,
+   "licenseId": 27,
+   "region": "Esper"
+  },
+  {
+   "x": 6,
+   "y": 9,
+   "licenseId": 130,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 7,
+   "y": 9,
+   "licenseId": 127,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 8,
+   "y": 9,
+   "licenseId": 121,
+   "region": "Shields"
+  },
+  {
+   "x": 9,
+   "y": 9,
+   "licenseId": 118,
+   "region": "Shields"
+  },
+  {
+   "x": 10,
+   "y": 9,
+   "licenseId": 39,
+   "region": "Swords"
+  },
+  {
+   "x": 11,
+   "y": 9,
+   "licenseId": 33,
+   "region": "Swords"
+  },
+  {
+   "x": 12,
+   "y": 9,
+   "licenseId": 97,
+   "region": "Rods"
+  },
+  {
+   "x": 13,
+   "y": 9,
+   "licenseId": 150,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 14,
+   "y": 9,
+   "licenseId": 153,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 15,
+   "y": 9,
+   "licenseId": 252,
+   "region": "Passives"
+  },
+  {
+   "x": 16,
+   "y": 9,
+   "licenseId": 262,
+   "region": "Passives"
+  },
+  {
+   "x": 17,
+   "y": 9,
+   "licenseId": 234,
+   "region": "Passives"
+  },
+  {
+   "x": 18,
+   "y": 9,
+   "licenseId": 227,
+   "region": "Passives"
+  },
+  {
+   "x": 19,
+   "y": 9,
+   "licenseId": 302,
+   "region": "Passives"
+  },
+  {
+   "x": 20,
+   "y": 9,
+   "licenseId": 322,
+   "region": "Passives"
+  },
+  {
+   "x": 6,
+   "y": 10,
+   "licenseId": 128,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 7,
+   "y": 10,
+   "licenseId": 126,
+   "region": "Heavy armour"
+  },
+  {
+   "x": 8,
+   "y": 10,
+   "licenseId": 119,
+   "region": "Shields"
+  },
+  {
+   "x": 9,
+   "y": 10,
+   "licenseId": 117,
+   "region": "Shields"
+  },
+  {
+   "x": 10,
+   "y": 10,
+   "licenseId": 34,
+   "region": "Swords"
+  },
+  {
+   "x": 11,
+   "y": 10,
+   "licenseId": 32,
+   "region": "Swords"
+  },
+  {
+   "x": 12,
+   "y": 10,
+   "licenseId": 96,
+   "region": "Rods"
+  },
+  {
+   "x": 13,
+   "y": 10,
+   "licenseId": 149,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 14,
+   "y": 10,
+   "licenseId": 151,
+   "region": "Mystic armour"
+  },
+  {
+   "x": 15,
+   "y": 10,
+   "licenseId": 220,
+   "region": "Passives"
+  },
+  {
+   "x": 16,
+   "y": 10,
+   "licenseId": 253,
+   "region": "Passives"
+  },
+  {
+   "x": 17,
+   "y": 10,
+   "licenseId": 269,
+   "region": "Passives"
+  },
+  {
+   "x": 18,
+   "y": 10,
+   "licenseId": 237,
+   "region": "Passives"
+  },
+  {
+   "x": 19,
+   "y": 10,
+   "licenseId": 274,
+   "region": "Passives"
+  },
+  {
+   "x": 20,
+   "y": 10,
+   "licenseId": 275,
+   "region": "Passives"
+  },
+  {
+   "x": 21,
+   "y": 10,
+   "licenseId": 21,
+   "region": "Esper"
+  },
+  {
+   "x": 22,
+   "y": 10,
+   "licenseId": 330,
+   "region": "Esper island"
+  },
+  {
+   "x": 3,
+   "y": 11,
+   "licenseId": 337,
+   "region": "Esper island"
+  },
+  {
+   "x": 4,
+   "y": 11,
+   "licenseId": 26,
+   "region": "Esper"
+  },
+  {
+   "x": 5,
+   "y": 11,
+   "licenseId": 175,
+   "region": "Accessories"
+  },
+  {
+   "x": 6,
+   "y": 11,
+   "licenseId": 171,
+   "region": "Accessories"
+  },
+  {
+   "x": 7,
+   "y": 11,
+   "licenseId": 166,
+   "region": "Accessories"
+  },
+  {
+   "x": 8,
+   "y": 11,
+   "licenseId": 169,
+   "region": "Accessories"
+  },
+  {
+   "x": 9,
+   "y": 11,
+   "licenseId": 162,
+   "region": "Accessories"
+  },
+  {
+   "x": 10,
+   "y": 11,
+   "licenseId": 161,
+   "region": "Accessories"
+  },
+  {
+   "x": 11,
+   "y": 11,
+   "licenseId": 31,
+   "region": "hub"
+  },
+  {
+   "x": 12,
+   "y": 11,
+   "licenseId": 266,
+   "region": "Passives"
+  },
+  {
+   "x": 13,
+   "y": 11,
+   "licenseId": 261,
+   "region": "Passives"
+  },
+  {
+   "x": 14,
+   "y": 11,
+   "licenseId": 267,
+   "region": "Passives"
+  },
+  {
+   "x": 15,
+   "y": 11,
+   "licenseId": 230,
+   "region": "Passives"
+  },
+  {
+   "x": 16,
+   "y": 11,
+   "licenseId": 233,
+   "region": "Passives"
+  },
+  {
+   "x": 17,
+   "y": 11,
+   "licenseId": 254,
+   "region": "Passives"
+  },
+  {
+   "x": 18,
+   "y": 11,
+   "licenseId": 280,
+   "region": "Passives"
+  },
+  {
+   "x": 19,
+   "y": 11,
+   "licenseId": 264,
+   "region": "Passives"
+  },
+  {
+   "x": 20,
+   "y": 11,
+   "licenseId": 300,
+   "region": "Passives"
+  },
+  {
+   "x": 5,
+   "y": 12,
+   "licenseId": 179,
+   "region": "Accessories"
+  },
+  {
+   "x": 6,
+   "y": 12,
+   "licenseId": 176,
+   "region": "Accessories"
+  },
+  {
+   "x": 7,
+   "y": 12,
+   "licenseId": 172,
+   "region": "Accessories"
+  },
+  {
+   "x": 8,
+   "y": 12,
+   "licenseId": 167,
+   "region": "Accessories"
+  },
+  {
+   "x": 9,
+   "y": 12,
+   "licenseId": 164,
+   "region": "Accessories"
+  },
+  {
+   "x": 10,
+   "y": 12,
+   "licenseId": 163,
+   "region": "Accessories"
+  },
+  {
+   "x": 11,
+   "y": 12,
+   "licenseId": 182,
+   "region": "Commands"
+  },
+  {
+   "x": 12,
+   "y": 12,
+   "licenseId": 183,
+   "region": "Commands"
+  },
+  {
+   "x": 13,
+   "y": 12,
+   "licenseId": 185,
+   "region": "Commands"
+  },
+  {
+   "x": 14,
+   "y": 12,
+   "licenseId": 268,
+   "region": "Passives"
+  },
+  {
+   "x": 15,
+   "y": 12,
+   "licenseId": 236,
+   "region": "Passives"
+  },
+  {
+   "x": 16,
+   "y": 12,
+   "licenseId": 256,
+   "region": "Passives"
+  },
+  {
+   "x": 17,
+   "y": 12,
+   "licenseId": 270,
+   "region": "Passives"
+  },
+  {
+   "x": 18,
+   "y": 12,
+   "licenseId": 273,
+   "region": "Passives"
+  },
+  {
+   "x": 19,
+   "y": 12,
+   "licenseId": 232,
+   "region": "Passives"
+  },
+  {
+   "x": 20,
+   "y": 12,
+   "licenseId": 303,
+   "region": "Passives"
+  },
+  {
+   "x": 3,
+   "y": 13,
+   "licenseId": 339,
+   "region": "Esper island"
+  },
+  {
+   "x": 4,
+   "y": 13,
+   "licenseId": 25,
+   "region": "Esper"
+  },
+  {
+   "x": 5,
+   "y": 13,
+   "licenseId": 354,
+   "region": "Accessories"
+  },
+  {
+   "x": 6,
+   "y": 13,
+   "licenseId": 180,
+   "region": "Accessories"
+  },
+  {
+   "x": 7,
+   "y": 13,
+   "licenseId": 177,
+   "region": "Accessories"
+  },
+  {
+   "x": 8,
+   "y": 13,
+   "licenseId": 173,
+   "region": "Accessories"
+  },
+  {
+   "x": 9,
+   "y": 13,
+   "licenseId": 170,
+   "region": "Accessories"
+  },
+  {
+   "x": 10,
+   "y": 13,
+   "licenseId": 165,
+   "region": "Accessories"
+  },
+  {
+   "x": 11,
+   "y": 13,
+   "licenseId": 184,
+   "region": "Commands"
+  },
+  {
+   "x": 12,
+   "y": 13,
+   "licenseId": 186,
+   "region": "Commands"
+  },
+  {
+   "x": 13,
+   "y": 13,
+   "licenseId": 187,
+   "region": "Commands"
+  },
+  {
+   "x": 14,
+   "y": 13,
+   "licenseId": 251,
+   "region": "Passives"
+  },
+  {
+   "x": 15,
+   "y": 13,
+   "licenseId": 257,
+   "region": "Passives"
+  },
+  {
+   "x": 16,
+   "y": 13,
+   "licenseId": 263,
+   "region": "Passives"
+  },
+  {
+   "x": 17,
+   "y": 13,
+   "licenseId": 314,
+   "region": "Passives"
+  },
+  {
+   "x": 18,
+   "y": 13,
+   "licenseId": 235,
+   "region": "Passives"
+  },
+  {
+   "x": 6,
+   "y": 14,
+   "licenseId": 181,
+   "region": "Accessories"
+  },
+  {
+   "x": 7,
+   "y": 14,
+   "licenseId": 353,
+   "region": "Accessories"
+  },
+  {
+   "x": 8,
+   "y": 14,
+   "licenseId": 178,
+   "region": "Accessories"
+  },
+  {
+   "x": 9,
+   "y": 14,
+   "licenseId": 174,
+   "region": "Accessories"
+  },
+  {
+   "x": 10,
+   "y": 14,
+   "licenseId": 168,
+   "region": "Accessories"
+  },
+  {
+   "x": 11,
+   "y": 14,
+   "licenseId": 205,
+   "region": "Commands"
+  },
+  {
+   "x": 12,
+   "y": 14,
+   "licenseId": 188,
+   "region": "Commands"
+  },
+  {
+   "x": 13,
+   "y": 14,
+   "licenseId": 299,
+   "region": "Commands"
+  },
+  {
+   "x": 14,
+   "y": 14,
+   "licenseId": 258,
+   "region": "Passives"
+  },
+  {
+   "x": 15,
+   "y": 14,
+   "licenseId": 271,
+   "region": "Passives"
+  },
+  {
+   "x": 16,
+   "y": 14,
+   "licenseId": 321,
+   "region": "Passives"
+  },
+  {
+   "x": 18,
+   "y": 14,
+   "licenseId": 22,
+   "region": "Esper"
+  },
+  {
+   "x": 19,
+   "y": 14,
+   "licenseId": 343,
+   "region": "Esper island"
+  },
+  {
+   "x": 7,
+   "y": 15,
+   "licenseId": 3,
+   "region": "Quickening"
+  },
+  {
+   "x": 11,
+   "y": 15,
+   "licenseId": 189,
+   "region": "Commands"
+  },
+  {
+   "x": 12,
+   "y": 15,
+   "licenseId": 355,
+   "region": "Commands"
+  },
+  {
+   "x": 13,
+   "y": 15,
+   "licenseId": 209,
+   "region": "Commands"
+  },
+  {
+   "x": 15,
+   "y": 15,
+   "licenseId": 2,
+   "region": "Quickening"
+  },
+  {
+   "x": 9,
+   "y": 16,
+   "licenseId": 342,
+   "region": "Esper island"
+  },
+  {
+   "x": 10,
+   "y": 16,
+   "licenseId": 24,
+   "region": "Esper"
+  },
+  {
+   "x": 11,
+   "y": 16,
+   "licenseId": 208,
+   "region": "Commands"
+  },
+  {
+   "x": 12,
+   "y": 16,
+   "licenseId": 210,
+   "region": "Commands"
+  },
+  {
+   "x": 13,
+   "y": 16,
+   "licenseId": 211,
+   "region": "Commands"
+  },
+  {
+   "x": 14,
+   "y": 16,
+   "licenseId": 23,
+   "region": "Esper"
+  },
+  {
+   "x": 11,
+   "y": 17,
+   "licenseId": 360,
+   "region": "Second board"
+  },
+  {
+   "x": 14,
+   "y": 17,
+   "licenseId": 347,
+   "region": "Esper island"
+  }
+ ]
+}

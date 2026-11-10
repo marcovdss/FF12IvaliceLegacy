@@ -1,295 +1,179 @@
 # Ivalice Legacy
 
-An overhaul for **FINAL FANTASY XII THE ZODIAC AGE** (PC, Steam), built for co-op play with
-[Ivalice Together](https://www.nexusmods.com/finalfantasy12/mods/548) and just as playable solo.
+![Game](https://img.shields.io/badge/FINAL%20FANTASY%20XII-The%20Zodiac%20Age%20(PC)-1f4e79)
+![Version](https://img.shields.io/badge/version-0.1.23-2e7d32)
+![Status](https://img.shields.io/badge/status-early%20development-c77c02)
 
-The goal is an Ivalice where preparation wins: jobs that combine instead of overlapping, gear that changes how you
-play, enemies that act instead of just hitting harder, rare monsters that rule their zones, a Clan worth climbing,
-and progression you can't steamroll.
+**An overhaul for FINAL FANTASY XII THE ZODIAC AGE where preparation wins.**
 
-> **Status: early development.** Ivalice Legacy ships as several packages that are developed and tested together.
-> Expect large changes between versions. Updates are intended to continue your existing Legacy campaign; any
-> migration or restart requirement will be stated before installation.
+Jobs combine instead of overlapping, gear changes how you play, and enemies act instead of just hitting harder.
+Rare monsters rule their zones, the Clan is worth climbing, and progression can't be steamrolled. Legacy is balanced
+as a hard game for a party of four, where choices matter and bosses push the party to the wall.
 
-| Package | Version | What it is | Tested in game |
-|---|---|---|---|
-| Ivalice Legacy (main) | 0.0.21 | Shops, story stock, ability chests, early loot moves, Kings, Estersand hunts, Magicks, separate save files | 0.0.11 yes (Estersand); 0.0.12 Kings spawn yes, defeated Kings did not stay gone; 0.0.13 crashed entering a defeated King's map (fixed in 0.0.14); defeated Kings came back on every visit in 0.0.14 (0.0.15: they follow the game's own conditions; 0.0.16: nearly all 80 guaranteed until defeated; 0.0.17: an undefeated King was often missing, its spawner went unrecognised; 0.0.18: the yes is per map again, seen working on three Kings of the Estersand) |
-| Base Jobs | 0.5.1 | Twelve job boards, legendary-weapon islands, job stat trainings | Early game, feels good |
-| Arsenal | 0.6.0 | Weapon attack curve and family identities, accessory identities, armour rework | Early game; armour text seen, effects not yet measured |
-| Proficiency | 0.4.5 | Clan-rank job lines handed out by Montblanc, with the Writs as key items, a Clan Primer tip, the line shown on gear and full legendary power for masters | Stage I at rank 1; stages II and III not yet |
-| Attack Area Experiment | 0.0.2 | Greatswords sweep foes next to the target | Yes |
+It plays solo, and alongside [Ivalice Together](https://www.nexusmods.com/finalfantasy12/mods/548) for couch co-op.
 
-## Main package (0.0.21)
+> **Early development.** Expect large changes between versions. Updates are meant to continue your existing Legacy
+> campaign; any restart a version needs will be stated before you install it. There is no public download yet; see
+> [Building from source](#building-from-source).
 
-**Opening stock.** Rabanastre's merchants sell a wider set of opening tools from the very start. Items they
-already stocked later in the story move to the start instead of appearing twice. Prices are unchanged.
+---
 
-| Merchant | New from the start |
+## Highlights
+
+### Twelve jobs, sixty-six hybrids
+Knight, Lancer, Warrior, Samurai, Hunter, Gunner, Chemist, Green Mage, Time Mage, Mystic, White Mage and Black Mage,
+each with a compact board of its own and job stat trainings that grow the stats its role uses. When a character
+takes a second job, both boards fuse into **one board named for the hybrid**: Knight + White Mage is a Paladin.
+Every board carries the thirteen legendary weapons, each behind its Esper.
+
+### A Clan worth climbing
+**Montblanc** awards each job its Clan **Proficiency** line, which works with whatever weapon the character holds.
+Twelve Clan ranks raise three stages of four levels, so every rank is a reward. Writs arrive as key items, and each
+stage's current effect is shown on the gear. Lines follow the job, so changing jobs never loses progress. At rank 12,
+a master of a legendary weapon's family deals +25% with it.
+
+### Weapons with a style of play
+A gentle damage climb replaces the late-game spike. Every weapon family has one identity, always on: axes **Sunder**
+Defence, spears **Pierce** it, katana **Chain** longer combos, guns can't be parried, maces burn MP, rods boost
+healing, fists build up with each hit. No hit can be reduced to nothing by Defence, for foes or for the party.
+
+### Armour that asks questions
+105 of the 140 armour pieces gain one strategic property, such as an element ward or a stat trade, chosen for what
+foes cast at that point in the story. Accessories become each character's wildcard edge.
+
+### Magick has a price
+Party attack spells are set individually so they keep pace with weapons. A stronger caster pays more MP, and no spell
+can pay for itself. Expose and Shear now take a real 30%, and the Technicks that wasted turns became more reliable.
+
+### Enemies that fight back
+More than a thousand added behaviours: support foes rescue their allies, foes punish clustered parties, wounded foes
+escalate, and bosses change their moves. Monster families fight in their own way. Enemy skills carry new riders, and
+everyday items answer them. All 29 story bosses are crowned, scale to your party, and reward you for the fight.
+
+### Kings of the zone
+Every rare game is the King of its zone. It is there on every visit until you defeat it once, and only rarely
+returns after that.
+
+### A world that grows with you
+Rabanastre opens with a wider set of tools. Shops add stock as the story advances. Key ability chests always appear,
+and weapons that could be found far too early now wait their turn.
+
+### Your own save files
+Legacy saves are `LEGCY_###` files, kept apart from your normal `FFXII_###` saves, with separate settings for several
+companion mods.
+
+**[Read the full feature guide &rarr;](docs/FEATURES.md)**
+
+---
+
+## What has been played
+
+| System | State |
 |---|---|
-| Amal's Weaponry | Bowgun, Iron Hammer, Rod, Oak Staff, Mace, Hornito |
-| Panamis's Protectives | Bangle, Orrachea Armlet |
-| Migelo's Sundries | Phoenix Down, Antidote, Onion Bolts, Onion Bombs |
-| Yugri's Magicks | Thunder, Blizzard, Blind, Silence |
-| Batahn's Technicks | First Aid, Steal |
+| Twelve jobs, boards, trainings | Played (early game) |
+| Shops, story stock, loot, separate saves | Played |
+| Weapon curve, greatsword sweep | Played |
+| Kings of the zone | Played on the Estersand; other zones not yet |
+| Clan Proficiency | Stage I played; stages II-III and hybrid lines offline |
+| Hybrid boards | Installed, not yet played |
+| Weapon family identities (runtime) | Offline |
+| Armour and accessories | Armour text seen; effects not yet measured |
+| Magicks, MP economy, Technicks | Offline; MP costs confirmed in the game log |
+| Enemy behaviours, boss crown, stat pass | In the campaign; not yet checked one by one |
 
-**Story stock.** As the story advances, shops add the gear, ammunition, magicks and Technicks of that stage, so
-the shop shelf grows with the journey instead of all at once. Timing follows the item progression of established
-overhauls, and items that replace a consumable come after it (Phoenix Down before Raise, Gold Needle before Stona).
-Prices are unchanged.
+*Offline* means built and covered by tests, but not yet confirmed in play.
 
-**Reliable ability chests.** Cleanse (Cerobi Steppe), Addle (Henne Mines) and Wither (Pharos) always appear.
-
-**Early loot moves.** Three weapons that could be found far ahead of their time now wait later in the journey. Seitengrat
-moves from the Skyferry to a Pharos at Ridorana chest (Diamond Armlet branch), Burning Bow from the desert Dive Talons to
-the Cerobi Steppe Bellwyvern, and Gladius from two early chests (Estersand, Barheim) and the Westersand Lindbur Wolf to
-a steal from the Paramina Rift Feral Retriever. Every early slot they leave keeps a weapon of its own tier: Aevis Killer, Silver Bow, Mage Masher or Dagger.
-
-**Kings of the zone.** Every rare game (the Bestiary's 80 rare-game entries) is the King of its zone: it is there on
-every visit until you defeat it once. After that it follows the game's own conditions (a roll, play time, a chain and
-so on), so it can return, but rarely. "Defeated" is the game's own Bestiary count, so Kings you defeated before this
-version already count. Rain Dancer only exists in Giza Plains' rainy season. Hunt Club Kings are there from the start too, quest or no quest,
-and once you earn their trophy they stay gone. Aeros appears after Bull Croc falls. Each King's own fight and reward
-are planned.
-
-How it works: `x64/scripts/IvaliceLegacyKings.lua` loads `x64/scripts/IvaliceLegacy/kings_runtime.lua`, which changes
-two things only when it finds the original game at both places (and logs the reason otherwise): the engine's rare-game
-switch answers "yes" in a King's home until the King is defeated, and Grey Molter's cancel command does nothing until
-then. Spawners that only that switch brings in stop asking, so ordinary foes keep their own rules. `patches/kings.json` makes Cultsworn Lich's and Evil
-Spirit's scripts ask the switch as well, natural conditions intact. Where several spawners hold one King, the first one
-you trigger takes it and the rest keep their ordinary foes, so such a King appears as you reach that spot, not always on
-entering the map. Keep Bountiful Bundle's "Always Spawn Rare Game" off: it answers
-"yes" everywhere, so every defeated King would return on every visit.
-
-On the four maps with two Kings, each King's spawner is checked separately, so a living neighbour no longer forces a
-King you already defeated. This is installed and tested offline; the latest spawner changes still need play checks.
-
-**Decoy.** The party's Decoy targets about two minutes; its duration is an estimate pending a timed cast. The timer
-change does not affect enemy casts or Knight's Proficiency Lure. Always-hit Decoy and the fix for enemy-only spells
-occupying the gambit picker are provided by the separate personal-use Foe Base package, whose copied data is not
-included in this repository.
-
-**Magicks.** The party's attack spells climb with the weapons. Arsenal lowered late weapons, and spells had kept their
-native power, so by the last shops a spell hit 4 to 7 times as hard as a swing. Each spell is now set on its own, in
-`x64/scripts/IvaliceLegacy/magicks.lua` with the reason beside it. A spell still beats a swing, more when it hits one
-foe, less when it hits many: Flare is about 3 weapon hits and Firaga about 2 on each foe. Fire, Thunder and Blizzard
-stay native. MP, area and targeting stay native. Foes cast the same spells at full power, because this works in Forge
-function 62 and only for the party, without touching the action table. Expose and Shear now take 30% from a foe,
-like Wither and Addle, instead of 10%, so armoured and warded foes have a real answer.
-
-**Estersand hunts.** Flowering Cactoid no longer uses 1000 Needles (an ordinary attack takes its place) and casts
-Cure at most once per stage of the fight; its two Potions were already once-only. Ripe Rampager starts recovering
-below 60% HP (was 50%) and stops at 70% (was 60%). Enemy AI lives in `patches/area_ai.json`, one entry per area. Family signatures, such as rats
-going for the lowest Defense and wounded Mimics turning on the furthest party member, live in `patches/families.json`.
-
-**Separate save files.** An early-init script (`x64/scripts/init/IvaliceLegacySaves.lua`, FF12 LUA Loader 2.0.1)
-makes the game list and write `LEGCY_000`, `LEGCY_001`, ... instead of `FFXII_###`. Normal saves are left alone.
-Disabling the main package and restarting restores the normal namespace. The script never copies, renames or
-converts saves. If activation fails it logs **FATAL** and restores its own changes: stop before loading or saving.
-
-## Base Jobs (0.5.1)
-
-Twelve standalone jobs, each with a compact board: Knight, Lancer, Warrior, Samurai, Hunter, Gunner, Chemist,
-Green Mage, Time Mage, Mystic, White Mage and Black Mage.
-
-- **Boards** are compact regions around Essentials: gear above, accessories to the left, passive augments to the
-  right, magicks and Technicks below, cheaper licenses nearest the centre.
-- **Legendary islands.** Every board carries the same thirteen islands: each Esper gates the zodiac weapon of its
-  sign, and Zodiark gates Masamune. An island opens only for a character who owns that Esper (use
-  [Summons For All](https://www.nexusmods.com/finalfantasy12/mods/381) so anyone can license any Esper).
-- **Shared basic tools** where another role needs them (Decoy and Oil for Knight and Warrior, Libra for Gunner,
-  Green Mage and Mystic, and so on). Schools and signature Technicks stay with their job.
-- **Job stat trainings.** The deep, repeated Battle and Magick Lores become two licenses of each job's own
-  (I at 50 LP, II at 100 LP) that raise the stats its weapons and role use. Totals stay close to the base game's;
-  what changes is which stats grow. The board help states each training's effect. Requires
-  [The Insurgent's Stat Lores](https://www.nexusmods.com/finalfantasy12/mods/299); the package's Stat Lores config
-  must win over Stat Lores' own.
-
-| Job | Board names | I | II |
-|---|---|---|---|
-| Knight | Bulwark Lore I / II | Defense +3, shield evasion +5 | Defense +4, magick shield evasion +5 |
-| Lancer | Dragoon Lore I / II | Strength +3, Magick Resist +3 | Strength +4, Magick Resist +4 |
-| Warrior | Juggernaut Lore I / II | HP +435, Strength +2, Vitality +4 | HP +500, Strength +3, Vitality +6 |
-| Samurai | Bushido Lore I / II | Strength +2, MP +40 | Strength +2, Magick +1, MP +60 |
-| Hunter | Fleetfoot Lore I / II | Strength +2, Speed +2 | Strength +3, Speed +3 |
-| Gunner | Deadeye Lore I / II | Speed +2, Attack +1 | Speed +2, Attack +1 |
-| Chemist | Field Medic Lore I / II | Vitality +3, Magick Resist +3, Strength +2 | Vitality +4, Magick Resist +4, Strength +2 |
-| Green Mage | Hexcraft Lore I / II | Magick +5, MP +30 | Magick +7, MP +50 |
-| Time Mage | Chronomancy Lore I / II | Magick +2, Speed +2 | Magick +4, Speed +2 |
-| Mystic | Mysticism Lore I / II | Strength +2, Magick +2 | Strength +2, Magick +2 |
-| White Mage | Devotion Lore I / II | Magick +4, Magick Resist +3 | Magick +5, Magick Resist +4 |
-| Black Mage | Sorcery Lore I / II | Magick +6 | Magick +8 |
-
-Existing saved slot IDs and acquired licenses persist; there is no automatic respec. Hybrid jobs (66 combinations)
-are being designed and are not part of this package.
-
-## Arsenal (0.6.0)
-
-- **A gentle damage climb.** The opening weapons keep their attack; every later weapon is lower than native, so a
-  typical hit grows from about 47 at the start to about 830 by the last shops (native: about 1,375). Each weapon
-  keeps its place in its stage of the story; rewards are set for where they're found; the legendary weapons still
-  lead their families; story and guest weapons are unchanged.
-- **Family identities** change how weapons play, not their damage over time: daggers fastest, katana longest
-  chains, bows the highest critical rate, greatswords slow and heavy, swords the best evade, hammers knockback and
-  Disable, hand-bombs Slow or Oil, ninja swords Blind, spears reach. Speed, combo and critical identities are offset
-  in attack.
-- **Accessory identities** inspired by established overhauls where they add a new answer, with renamed items.
-- **Armour rework.** 105 of the 140 armour and shield pieces gain one strategic property, such as an element ward or a
-  stat trade, chosen for what foes cast at that stage of the story. Defence, magick resist and augments stay native.
-  The effects are real item data, not description text.
-
-See [package_arsenal/README.md](package_arsenal/README.md) for every weapon's numbers.
-
-## Proficiency (0.4.5)
-
-Each job's Clan line, earned from **Montblanc** and applied to whatever the character wields.
-
-- **12 Clan ranks = 3 stages x 4 levels.** Ranks 1-4 raise stage I, 5-8 stage II, 9-12 stage III, so every new
-  rank is a reward. Montblanc gives an Apprentice's, Journeyman's and Master's Writ at ranks 1, 5 and 9, and stamps
-  it at every other rank.
-- **It follows the job.** A character uses the line of the job they have now, at the levels the Clan has earned;
-  changing jobs never loses progress.
-- **Montblanc speaks.** When the party leaves the Clan hall with a rank he hasn't rewarded yet, he speaks in the
-  game's own dialogue windows. Saves that were already ranked catch up once. The rewarded rank is stored beside
-  each Legacy save.
-- **The Writs are key items.** Montblanc hands the Writ over first, and a stage only works while its Writ is in
-  Key Items. A rank rewarded before the Writs existed gets its Writ on the next visit to the Clan hall.
-- **A Clan Primer tip.** "Clan Proficiency" joins the Traveler's Tips (The Ways of Strength) once the Apprentice's
-  Writ is in Key Items.
-- **Shown on the gear.** In the Equipment menu weapons show stage I, body armour stage II, and helmets stage III,
-  with that stage's current level and effect for the selected character. Locked stages point to Montblanc. Shields,
-  accessories and ammunition keep their plain descriptions. The passives still follow the character's job. Inventory,
-  shops and other menus show the plain description. Help boxes retain their layout position even with long text.
-- **Status durations.** A short Proficiency proc preserves a longer status already running or queued by the current
-  action, including Forge's default full-duration grant. Stop extensions preserve longer queued grants too. An expired
-  Stop's four-hit extension budget clears before a new spell can reapply it; extending an active Stop keeps its cap.
-  These 0.4.5 edge-case fixes pass offline regressions and still need native play checks.
-- **Palace sneak-in guard (temporary home).** With The Insurgent's Companions showing the full party in towns, the
-  solo sneak-in at the Royal Palace restarts forever. While the party is in the palace (locations 567-572) its
-  party-in-towns setting is held at Leader Only, and your setting returns on leaving. It moves to the main package
-  at its next release.
-
-| Job | Line | Stage I in short |
-|---|---|---|
-| Knight | Bulwark | A parry or block draws the attacker to the Knight |
-| Lancer | Grounding | Hits strip Float and Haste, then Faith, Regen and Bravery |
-| Warrior | Cleave | A kill grants Bravery |
-| Samurai | Zanshin | Hits in a row on one target grant Haste |
-| Hunter | Pursuit | More damage to targets hindered by an ailment |
-| Gunner | Suppression | Hits push back the target's next action |
-| Chemist | Contagion | Statuses it lands can spread to another foe |
-| Green Mage | Mana Leech | Hits drain MP to her |
-| Time Mage | Detonate | Hits can briefly Stop a Slowed target |
-| Mystic | Ki Flow | Counterattacks heal the Mystic |
-| White Mage | Overflow | Healing past full HP becomes Regen |
-| Black Mage | Resonance | Casting the same element twice makes the next action charge faster |
-
-Stages II and III add new facets of the same idea, and every one of the 144 levels now has an effect, built from
-statuses, HP and MP changes, damage scaling and charge pushback. At rank 12, a character whose job owns a legendary
-weapon's family deals +25% with it; everyone else wields it at base power. Statuses Proficiency adds respect the same
-immunities as the game's own on-hit statuses, and a shorter one never cuts a longer one short. Not yet tested in game. Requires [The Insurgent's Forge](https://www.nexusmods.com/finalfantasy12/mods/386)
-and FF12 LUA Loader 2.0.1 with its dialog plugin. The package is seven Forge `config/functions` adapters (110, 127,
-165, 170, 182, 22, 240), a shared runtime, the rules and a Clan rank reader; each adapter runs Forge's original function
-first.
-
-## Attack Area Experiment (0.0.2)
-
-The basic Attack gets an area (a half circle around the target). A Forge filter keeps the sweep for a party member's
-greatsword only; every other Attack, foes' included, hits just the unit it was aimed at. Tested in game: the
-Claymore hits the foes next to its target and other weapons don't. Disable the package to restore the native
-single-target Attack. Ivalice Together's co-op menus still list Attack as single-target.
-
-## Planned
-
-- Hybrid jobs for the 66 job combinations, stronger than base jobs, with their own Proficiency and armour lines.
-- Armour lines, gear with real trade-offs, and legendary weapons at full power for a Clan master of their job.
-- Enemy behavior: roles in every group, reactions to what the party does, boss phases.
-- More Kings of the zone, a reworked Clan Centurio, hunts and rewards.
-- Progression paced so preparation matters more than grinding.
+---
 
 ## Requirements
 
-- FINAL FANTASY XII THE ZODIAC AGE, Steam version 1.0.4.0, **English** game language.
+- **FINAL FANTASY XII THE ZODIAC AGE**, Steam version 1.0.4.0, with the game language set to **English**.
 - [FF12 External File Loader](https://www.nexusmods.com/finalfantasy12/mods/170) and
-  [FF12 LUA Loader](https://www.nexusmods.com/finalfantasy12/mods/171) (2.0.1).
-- Base Jobs: [The Insurgent's Stat Lores](https://www.nexusmods.com/finalfantasy12/mods/299). Proficiency and the
-  Attack Area Experiment: [The Insurgent's Forge](https://www.nexusmods.com/finalfantasy12/mods/386).
-- Optional: [Ivalice Together](https://www.nexusmods.com/finalfantasy12/mods/548) for local co-op. Ivalice Legacy
-  does not change Ivalice Together's files or settings.
-- Recommended: [The Insurgent's Companions](https://www.nexusmods.com/finalfantasy12/mods/217) for a party of four,
-  which Ivalice Legacy is being balanced around, plus [Second Accessory](https://www.nexusmods.com/finalfantasy12/mods/436),
-  [Gambit Rework](https://www.nexusmods.com/finalfantasy12/mods/471) and
-  [Summons For All](https://www.nexusmods.com/finalfantasy12/mods/381).
-- Do not combine with other content overhauls (Struggle for Freedom, The Planetary Age, Horizontal Progression
-  Overhaul and similar). They replace the same game data.
+  [FF12 LUA Loader](https://www.nexusmods.com/finalfantasy12/mods/171) 2.0.1 with its dialog plugin.
+- [The Insurgent's Forge](https://www.nexusmods.com/finalfantasy12/mods/386): Proficiency, weapon identities, damage,
+  magicks and MP.
+- [The Insurgent's Stat Lores](https://www.nexusmods.com/finalfantasy12/mods/299): job stat trainings.
+- [Dynamic Description](https://www.nexusmods.com/finalfantasy12/mods/466) and
+  [The Insurgent's Descriptive Inventory](https://www.nexusmods.com/finalfantasy12/mods/319): item and gear text.
+- [Dynamic Bosses](https://www.nexusmods.com/finalfantasy12/mods/503) and
+  [Instanced Foes](https://www.nexusmods.com/finalfantasy12/mods/528): the enemy foundation.
 
-## Building
+**Recommended**, and what Legacy is tested with:
+[The Insurgent's Companions](https://www.nexusmods.com/finalfantasy12/mods/217) for a party of four,
+[Second Accessory](https://www.nexusmods.com/finalfantasy12/mods/436),
+[Gambit Rework](https://www.nexusmods.com/finalfantasy12/mods/471) and
+[Summons For All](https://www.nexusmods.com/finalfantasy12/mods/381).
 
-This repository contains only the overhaul's own code and patch definitions. No game files are included: the
-packages are built from your own installed game. Python 3.10 or newer, no other packages.
+**Optional:** [Ivalice Together](https://www.nexusmods.com/finalfantasy12/mods/548) for local co-op. Legacy never
+changes Ivalice Together's files or settings.
 
-```
-python -m ivalice_legacy build --game "<game folder>"                        # main package
-python -m ivalice_legacy build-base-jobs --game "<game folder>"              # Base Jobs
-python -m ivalice_legacy build-arsenal --game "<game folder>"                # Arsenal
-python -m ivalice_legacy build-attack-area-experiment --game "<game folder>" # Attack Area Experiment
-python -m ivalice_legacy build-proficiency --game "<game folder>"            # Proficiency
-```
-
-Each command writes a zip plus a manifest of file hashes to `dist/`. A build stops with an error if your game files
-differ from the supported version, or if another mod already replaces the same data. The Proficiency package holds
-its Lua, the three Writ key-item resources (names, item rows and Key Items descriptions) and the four Clan Primer
-files of its tip.
-
-Run the tests with `python -m unittest discover -s tests`. Set `IVALICE_LEGACY_GAME` to your game folder to include
-the full build tests; the Lua tests need [Lupa](https://pypi.org/project/lupa/).
+**Not compatible** with other content overhauls (Struggle for Freedom, The Planetary Age, Horizontal Progression
+Overhaul and similar): they replace the same game data. Keep Bountiful Bundle's "Always Spawn Rare Game" **off**, or
+defeated Kings return on every visit.
 
 ## Installing
 
-- **Vortex:** install each built zip as a mod and deploy. A separate Vortex profile keeps other mod collections
-  intact. Let Base Jobs win `TheInsurgentsStatLoresConfig.lua` over The Insurgent's Stat Lores.
-- **Manually:** copy the zip's `mods` and `x64` folders into the game folder, merging them with the existing ones.
+- **Vortex (recommended):** install the package as a mod in its own profile, so your other setups stay intact. Let
+  Ivalice Legacy win every file it shares with the mods it builds on (Stat Lores, Dynamic Bosses, Dynamic Description,
+  Descriptive Inventory, Gambit Rework and the settings files of Bountiful Bundle, Global Gameplay Settings, Vision
+  and Orderkeeper), then deploy.
+- **Manually:** copy the package's `mods` and `x64` folders into the game folder, merging them with the existing ones.
 
-Ivalice Legacy keeps its own save files (see above). To continue a Legacy game started before 0.0.6, copy its
-`FFXII_###` file (and its `FFXII_###.dir` folder, if present) to `LEGCY_###` in the same save folder.
+**Uninstalling:** disable the mod in Vortex, or delete only the files that came from the package, keeping the rest of
+the `mods` and `x64` folders. Your normal saves were never touched. Licenses bought on Legacy boards stay bought.
 
-To uninstall, disable or remove the mods in Vortex, or delete only the files copied from these packages. Preserve
-the existing `mods` and `x64` folders and their other contents.
+## Building from source
 
-### Separate personal settings while Legacy is enabled
+This repository contains only Ivalice Legacy's own code and patch definitions. No game files are included: packages
+are built from your own installed game. You need Python 3.10 or newer, with no other packages.
 
-`python -m ivalice_legacy build --game "<game folder>" --settings-from "<settings source folder>"` adds exact copies
-of Bountiful Bundle's JSON, Global Gameplay Settings' Lua config, Vision's JSON and `Orderkeeper/modMenu.json` to the
-main package, so those mods keep separate settings while Legacy is enabled. Install it with Legacy winning those
-four paths, and carry the Legacy-owned copies forward before any later upgrade.
+```
+python -m ivalice_legacy build --game "<game folder>"              # shops, loot, Kings, magicks, saves
+python -m ivalice_legacy build-base-jobs --game "<game folder>"    # the twelve jobs
+python -m ivalice_legacy build-arsenal --game "<game folder>"      # weapons and armour
+python -m ivalice_legacy build-proficiency --game "<game folder>"  # Clan Proficiency
+```
 
-## Experimental addons
+Each command writes a zip plus a manifest of file hashes to `dist/`. A build stops with an error if your game files
+differ from the supported version, or if another mod already replaces the same data.
 
-These build separately and are not part of the normal packages:
+These commands build the systems as separate component packages. The combined 0.1.x release, which also holds the
+enemy rework, is not yet reproducible from this repository alone. A single build command for the whole release is
+planned before the first public download.
 
-- **Rampager pilot** (`build-rampager-pilot`): retired; its change is part of the main package from 0.0.11 (Estersand
-  hunts). Do not enable it together with 0.0.11: both write the same Estersand AI section.
-- **Estersand numbers pilot** (`build-estersand-pilot`): Dalmasca Estersand's five early foes take three to five
-  hits instead of one to three.
-- **Paladin pilot** (`python -m ivalice_legacy.hybrid_pilot`): native White Mage + Knight shown as one authored
-  board, with a pinned native adapter in `native/hybrid_boards/`. A design candidate awaiting in-game validation.
-- **Clan progression and status prototypes** (`ivalice_legacy/clan_progression.py`, `prototypes/`): offline
-  contracts, excluded from installable packages unless a package section above says otherwise.
+Run the tests with `python -m unittest discover -s tests`. Set `IVALICE_LEGACY_GAME` to your game folder to include
+the full build tests. The Lua tests need [Lupa](https://pypi.org/project/lupa/).
 
-## Repository layout
+<details>
+<summary>Repository layout</summary>
 
 | Path | Contents |
 |---|---|
-| `patches/` | Readable patch definitions (shops, chests, Kings, jobs, weapons, trainings): what changes, plus hashes of the expected source and result |
+| `patches/` | Readable patch definitions: what changes, plus hashes of the expected source and result |
 | `ivalice_legacy/` | Archive reader, file formats, writers and the build commands |
-| `package/`, `package_base_jobs/`, `package_arsenal/` | Files and documentation shipped with each package |
-| `prototypes/` | Lua for Proficiency, the Attack area filter and diagnostics, plus offline prototypes |
+| `package/` | Lua runtime and configuration shipped with the game package |
+| `package_base_jobs/`, `package_arsenal/` | Documentation and changelogs for jobs and weapons |
+| `prototypes/` | Lua for Proficiency, weapon identities, the MP economy and the damage formula |
+| `native/hybrid_boards/` | The fused hybrid-board core and its build tools |
 | `tests/` | Tests for the writers, the Lua modules and the full builds |
-| `native/hybrid_boards/` | Experimental C++ hybrid-board core and build tools, excluded from installable packages |
+| `docs/` | The feature guide |
+
+</details>
+
+## Planned
+
+- Each King's own fight and reward, and a reworked Clan Centurio with its hunts.
+- Job armour lines with their own immunities, and more gear with real trade-offs.
+- A signature command for every hybrid.
+- Boss phases and group roles beyond the current strategies.
+- Espers, exploration and the Bazaar revisited.
+- Progression paced so preparation matters more than grinding.
 
 ## Credits
 
 File formats build on the FFXII modding community's work, including The Insurgent's Workshop and Toolkit (Xeavin),
-the FF12 External File Loader and Lua Loader (ffgriever), FehDead's dialog system, and VBFTool (topher-au).
+the FF12 External File Loader and Lua Loader (ffgriever), FehDead's dialog system, and VBFTool (topher-au). Thanks to
+the authors of the mods Legacy builds on, listed under [Requirements](#requirements).
 
-FINAL FANTASY XII is a trademark of Square Enix. This is an unofficial fan project; no game files are distributed
+FINAL FANTASY XII is a trademark of Square Enix. This is an unofficial fan project, and no game files are distributed
 here.

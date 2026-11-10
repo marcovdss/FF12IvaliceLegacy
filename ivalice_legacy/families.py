@@ -47,6 +47,12 @@ def _swap(rule, before, after, param=0):
     return replace(rule, conditions=tuple(conditions))
 
 
+def _index(value, length, what):
+    if type(value) is not int or not 0 <= value < length:
+        raise ValueError(f'{what} must be an integer in 0..{length - 1}')
+    return value
+
+
 def _group_start(script, group):
     return sum(script.group_sizes[:group])
 
@@ -68,15 +74,16 @@ def _apply_script(script, ops):
         kind = op['op']
         if kind == 'swap':
             for at in op['rules']:
+                _index(at, len(rules), 'rule index')
                 rules[at] = _swap(rules[at], op['before'], op['after'])
         elif kind == 'prefer':
-            at = op['rule']
+            at = _index(op['rule'], len(rules), 'rule index')
             source = rules[at]
             copy = _swap(source, op['before'], op['after'], op.get('param', 0))
             inserts.setdefault(at, []).append((group_of(at), copy))
         elif kind == 'branch':
-            entry = op['group']
-            if not 0 <= entry < JUMPABLE_GROUPS or not sizes[entry]:
+            entry = _index(op['group'], JUMPABLE_GROUPS, 'branch entry group')
+            if not sizes[entry]:
                 raise ValueError(f'branch entry group {entry} is empty')
             target = op.get('reuse')
             if target is None:
@@ -86,8 +93,10 @@ def _apply_script(script, ops):
                 steps = [Rule(s[0], s[1], s[2], _conditions(s[3])) for s in op['steps']]
                 steps.append(Rule(JUMP_BASE + entry, 100, 0, _conditions([])))
                 appended.append((target, steps))
-            elif not sizes[target]:
-                raise ValueError(f'branch reuses empty group {target}')
+            else:
+                _index(target, JUMPABLE_GROUPS, 'reused group')
+                if not sizes[target]:
+                    raise ValueError(f'branch reuses empty group {target}')
             jump = Rule(JUMP_BASE + target, op.get('chance', 100), op.get('flags', 0x40), _conditions(op['when']))
             inserts.setdefault(_group_start(script, entry), []).insert(0, (entry, jump))
         else:
@@ -108,7 +117,7 @@ def apply(section, entries, unit_links=()):
     """Return the section with each entry's operations applied; every other script stays byte for byte."""
     bank = Bank.from_bytes(section)
     before = [s.to_bytes() for s in bank.scripts]
-    touched = {entry['script'] for entry in entries}
+    touched = {_index(entry['script'], len(bank.scripts), 'script index') for entry in entries}
     if len(touched) != len(entries):
         raise ValueError('script edited twice')
     for entry in entries:

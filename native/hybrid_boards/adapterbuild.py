@@ -18,7 +18,7 @@ subprocess.run(command,check=True,env=env)
 # Adapter adds exports to the core; reuse strict PE checks with the expected count.
 import image
 raw=(out/'hybrid_adapter.dll').read_bytes()
-flat,layout=image.mapped_image(raw,expected_exports=18)
+flat,layout=image.mapped_image(raw,expected_exports=19)
 (out/'hybrid_adapter.image').write_bytes(flat)
 layout['sha256']=hashlib.sha256(flat).hexdigest()
 (out/'adapter-image-manifest.json').write_text(json.dumps(layout,indent=2)+'\n')
