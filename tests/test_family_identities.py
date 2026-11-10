@@ -579,6 +579,18 @@ class FamilyIdentityTests(unittest.TestCase):
           assert(found, table.concat(prints, '|'))
         ''')
 
+    def test_family_lines_cover_every_category(self):
+        self.lua.execute('''
+          for _, name in ipairs(module.CATEGORY_NAMES) do
+            local line = module.familyLine(name)
+            assert(type(line) == 'table' and type(line[1]) == 'string' and #line[1] >= 3 and
+                   type(line[2]) == 'string' and #line[2] >= 10, tostring(name))
+            assert(not line[2]:find('\10', 1, true), name)  -- one line only; the help box adds the second
+          end
+          assert(module.familyLine('notAFamily') == nil)
+          assert(module.familyLine(7) == nil and module.familyLine(nil) == nil)
+        ''')
+
     def test_report_limit_is_per_identity(self):
         self.lua.execute('''
           event={registerEventSync=function() return true end, registerEventAsync=function() return true end}

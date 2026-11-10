@@ -991,6 +991,27 @@ class ProficiencyWritTest(unittest.TestCase):
               assert(s:find(R3.Proficiency.GEAR[job][stage][levels[stage]], 1, true))
             else assert(s:find('Unlocks at a higher Clan rank', 1, true)) end
           end end end
+          -- Family line (0.5.3): hover a weapon in the Equipment menu and the weapon suffix gains the
+          -- identity line ahead of the Proficiency text. This also exercises the probe read (calls/item).
+          -- Item 0x1000 is category 12 in this fake bpack: a dagger.
+          IvaliceLegacyFamily = {CATEGORY_NAMES = {'unarmed','sword','greatsword','katana','ninjaSword','spear','pole','bow',
+            'crossbow','gun','axe','hammer','dagger','rod','staff','mace','measure','handBomb'},
+            familyLine = function(name) return name == 'dagger' and {'Swift', 'the fastest charge'} or nil end}
+          memory.u32 = setmetatable({}, {__index = function(_, a) return mem['w' .. a] or 0 end,
+                                        __newindex = function(_, a, v) mem['w' .. a] = v end})
+          local probe = memory.u64[symbols.legacy_prof_probe]
+          memory.u32[probe + 0x1C] = 1          -- one description call since the last tick
+          memory.u32[probe + 0x18] = 0x1000     -- hovering the dagger (item 0x1000, category 12)
+          tick()
+          assert(suffix(0):find('Swift:', 1, true), 'family line missing from weapon suffix')
+          assert(suffix(0):find('Contagion I 1/4:', 1, true), 'proficiency line missing from weapon suffix')
+          assert(not suffix(0, 2):find('Swift', 1, true), 'family line leaked to armour suffix')
+          memory.u32[probe + 0x18] = 0x1005     -- item 5: category 23, not a weapon
+          memory.u32[probe + 0x1C] = 2
+          tick()
+          assert(not suffix(0):find('Swift', 1, true), 'family line stuck after leaving the weapon')
+          assert(suffix(0):find('Contagion I 1/4:', 1, true), 'proficiency line lost after leaving the weapon')
+          IvaliceLegacyFamily = nil
           handlers.load('C:/saves/FFXII_000', nil)
           for member=0,1 do for stage=1,3 do
             assert(suffix(member, stage) == nil, 'Legacy suffix survived loading a normal save')

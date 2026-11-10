@@ -192,8 +192,9 @@ holds.
 - **The Writs are key items.** He hands over an Apprentice's, Journeyman's and Master's Writ at ranks 1, 5 and 9, and
   stamps it at every other rank. A stage only works while its Writ is in Key Items.
 - **A Clan Primer tip.** "Clan Proficiency" joins the Traveler's Tips once the Apprentice's Writ is in Key Items.
-- **Shown on the gear.** In the Equipment menu, weapons show stage I, body armour stage II and helmets stage III,
-  with that stage's current level and effect for the selected character. Locked stages point to Montblanc.
+- **Shown on the gear.** In the Equipment menu, weapons show their family's identity line and stage I, body armour
+  stage II and helmets stage III, with that stage's current level and effect for the selected character. Locked
+  stages point to Montblanc.
 - **Fair statuses.** Statuses that Proficiency adds respect the same immunities as the game's own, and a shorter grant
   never cuts a longer one short. A spell that hits several foes gives its self, ally and party rewards once per cast.
 - **Legendary mastery.** At rank 12, a character whose job owns a legendary weapon's family deals +25% with it. A

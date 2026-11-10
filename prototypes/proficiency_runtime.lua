@@ -454,7 +454,7 @@ legacy_prof_probe:
 local GEAR_SYMBOLS = {'legacy_prof_code', 'legacy_prof_bits', 'legacy_prof_table', 'legacy_prof_buffer', 'legacy_prof_probe'}
 local MEMBERS, SUFFIX_SIZE, GEAR_POLL_MS = 16, 0x200, 500
 local MEMBER_KEEP, KEEP_JOB1, KEEP_JOB2 = 0x320A40, 0x1C3, 0x1C4
-local gear = {installed = false, failed = false, keys = {}, slots = {}, flip = {}}
+local gear = {installed = false, failed = false, keys = {}, slots = {}, flip = {}, stageText = {}}
 
 local function label(name, value)
   return '\n{scale:82}{rgb:90,90,90}' .. name .. ':{lowspace}{rgb:255,255,255}' .. value
@@ -476,6 +476,38 @@ function R.gearSuffix(job, rank, stage)
   local level = P.levels(rank)[stage]
   local head = g.line .. ' ' .. STAGES[stage] .. ' ' .. level .. '/4'
   return label(head, lines[stage + 1] or 'Unlocks at a higher Clan rank')
+end
+
+-- The weapon family line (0.5.3): every weapon shows its family's identity under its own description,
+-- ahead of the Proficiency line. Loaded from family_identities itself if no battle adapter loaded it yet,
+-- so the Equipment menu works before a battle ever runs. Section 13 categories 0-17 are the weapon families.
+local FAMILY_FILE = 'scripts/IvaliceLegacy/family_identities.lua'
+function R.familyModule()
+  local F = rawget(_G, 'IvaliceLegacyFamily')
+  if type(F) == 'table' and type(F.familyLine) == 'function' then return F end
+  local chunk = loadfile(FAMILY_FILE, 't', _ENV)
+  if not chunk then return nil end
+  local ok, mod = pcall(chunk)
+  if ok and type(mod) == 'table' and type(mod.familyLine) == 'function' then
+    rawset(_G, 'IvaliceLegacyFamily', mod)
+    pcall(mod.register)
+    return mod
+  end
+  return nil
+end
+function R.familySuffix(item)
+  if type(item) ~= 'number' or item < 0x1000 or item >= 0x1400 or type(bpack) ~= 'table' then return nil end
+  local F = R.familyModule()
+  if not F then return nil end
+  local okCat, category = pcall(function()
+    local r = bpack.section13[item - 0x1000]
+    return r and r.category
+  end)
+  if not okCat or type(category) ~= 'number' or category < 0 or category > 17 then return nil end
+  local name = type(F.CATEGORY_NAMES) == 'table' and F.CATEGORY_NAMES[category + 1] or nil
+  local okLine, identity = pcall(F.familyLine, name)
+  if not okLine or type(identity) ~= 'table' then return nil end
+  return label(identity[1], identity[2])
 end
 
 -- Help box position (0.3.13 for Equipment, 0.4.3 for every menu). Equipment (0x3FCEE0), Inventory (0x564430) and the
@@ -574,6 +606,22 @@ local function setSuffix(member, stage, text)
   memory.u64[at] = buf
 end
 
+-- Stage-1 composition (0.5.3): the hovered weapon's family line first, then the member's Proficiency I text.
+local function composeStage(member, stage)
+  local base = gear.stageText[member] and gear.stageText[member][stage]
+  if stage == 1 and gear.familySuffix then
+    return base and gear.familySuffix .. base or gear.familySuffix
+  end
+  return base
+end
+local function refreshFamily()
+  -- Legacy-only: after loading a normal save no Legacy text may survive, family line included.
+  gear.familySuffix = (campaign and legacyMode() and gear.familyItem) and R.familySuffix(gear.familyItem) or nil
+  for member = 0, MEMBERS - 1 do
+    if gear.stageText[member] then setSuffix(member, 1, composeStage(member, 1)) end
+  end
+end
+
 -- Logs each distinct description caller once (cap 20), so a menu that should or should not show the line can be
 -- named from hook.log without a special test visit.
 local EQUIPMENT_CALLERS = {[0x3FE2DA] = true, [0x3FF978] = true}
@@ -585,6 +633,11 @@ local function probeTick()
   gear.lastCalls = calls
   local handler, sender, caller = memory.u64[at] or 0, memory.u64[at + 0x08] or 0, memory.u64[at + 0x10] or 0
   local item = (memory.u32[at + 0x18] or 0) & 0xFFFF
+  -- The hovered item changed: rebuild the weapon-slot suffixes so the family line follows the cursor.
+  if item ~= gear.familyItem then
+    gear.familyItem = item
+    if gear.installed then pcall(refreshFamily) end
+  end
   local key = string.format('%X:%X:%X', handler, sender, caller)
   gear.seen = gear.seen or {}
   if gear.seen[key] or (gear.probeLogs or 0) >= 20 then return end
@@ -609,8 +662,12 @@ local function gearTick()
       local key = job and (job .. ':' .. rank) or 'none'
       if gear.keys[member] ~= key then
         gear.keys[member] = key
+        gear.stageText[member] = {}
         for stage = 1, 3 do
-          setSuffix(member, stage, job and R.gearSuffix(job, rank, stage) or nil)
+          gear.stageText[member][stage] = job and R.gearSuffix(job, rank, stage) or nil
+        end
+        for stage = 1, 3 do
+          setSuffix(member, stage, composeStage(member, stage))
         end
       end
     end

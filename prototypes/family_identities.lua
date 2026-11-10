@@ -617,6 +617,34 @@ end
 M.CATEGORY_NAMES = {'unarmed', 'sword', 'greatsword', 'katana', 'ninjaSword', 'spear', 'pole', 'bow',
                     'crossbow', 'gun', 'axe', 'hammer', 'dagger', 'rod', 'staff', 'mace', 'measure', 'handBomb'}
 
+-- One Equipment-menu line per family, shown by the gear-text hook under the weapon's own description
+-- (rule 8: if the player can't see it, it isn't there). Identity first, then the cost where a family
+-- has one. Wording matches docs/FEATURES.md; the game language Legacy supports is English.
+M.FAMILY_LINES = {
+  unarmed = {'Cadence', 'consecutive hits on one foe deal +6% more (up to +30%) and charge the next action faster'},
+  sword = {'Guard', 'the best weapon evade; a parry or block pushes your next charge back 10%'},
+  greatsword = {'Sweep', 'Attack cleaves a half circle around the target for half damage'},
+  katana = {'Chain', 'combos run two hits longer; after a combo, the next attack on you can\'t be evaded'},
+  ninjaSword = {'Unseen', 'your hits can\'t be parried or blocked (the dodge still applies); Blind 10%'},
+  spear = {'Pierce', 'every hit ignores 30% of Defence; a spear never parries'},
+  pole = {'Counterflow', 'counters even without the Counter licence, and blows taken build the next counter; strikes Magick Resist'},
+  bow = {'Volley', 'the highest critical rate and the longest reach'},
+  crossbow = {'Afflict', 'on-hit status chance doubled, up to 100%'},
+  gun = {'Marksman', 'shots ignore Defence and the target\'s dodge; a gun\'s damage scales with the gun alone'},
+  axe = {'Sunder', 'every hit dents Defence 5% for the rest of the fight, down to half'},
+  hammer = {'Concussion', 'Disable 15% on hit, and the knockback pushes the foe out of melee'},
+  dagger = {'Swift', 'the fastest charge, frequent combos, a little evade'},
+  rod = {'Mend', 'healing spells heal +20% while it is held'},
+  staff = {'Channel', 'element potency, and the most Magick of the caster weapons'},
+  mace = {'Spellbreak', 'hits burn foe MP equal to 10% of the damage, at most 10% of its pool'},
+  measure = {'Tempo', 'hitting an ally grants Protect, Shell, Bravery, Haste, Invisible or Bubble'},
+  handBomb = {'Barrage', 'Slow or Oil 20% on hit'},
+}
+function M.familyLine(name)
+  if type(name) ~= 'string' then return nil end
+  return M.FAMILY_LINES[name]
+end
+
 -- Build the shared deps and register the resets once; every adapter calls this on load.
 function M.register()
   if registered then return true end
