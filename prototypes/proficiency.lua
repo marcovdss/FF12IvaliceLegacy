@@ -5,7 +5,7 @@
 -- Every level is built from operations already seen working in play; where a designed effect needed an engine detail
 -- nobody has proven, the level does the nearest thing those operations allow (reports/LEGACY-PROFICIENCY-040.md).
 local M = {}
-M.version = '0.5.0'
+M.version = '0.5.3'
 
 M.NO_JOB = 255
 M.JOB = {whiteMage = 0, lancer = 1, gunner = 2, greenMage = 3, knight = 4, mystic = 5, timeMage = 6, warrior = 7,
@@ -24,10 +24,11 @@ M.GREATSWORD = 2
 M.MAX_RANK = 12
 -- Legendary weapons: any job wields them at base power; full power needs Clan mastery in the job that owns the family.
 M.MASTER_DAMAGE = 1.25
+-- BaseJobs 0.6.0 (Marco 2026-11-10): hammers moved from Warrior to Time Mage, measures from Time Mage to Chemist.
 M.FAMILY_OWNER = {[1] = M.JOB.knight, [2] = M.JOB.warrior, [3] = M.JOB.samurai, [4] = M.JOB.samurai, [5] = M.JOB.lancer,
                   [6] = M.JOB.mystic, [7] = M.JOB.hunter, [8] = M.JOB.chemist, [9] = M.JOB.gunner, [10] = M.JOB.warrior,
-                  [11] = M.JOB.warrior, [12] = M.JOB.hunter, [13] = M.JOB.whiteMage, [14] = M.JOB.blackMage,
-                  [15] = M.JOB.greenMage, [16] = M.JOB.timeMage, [17] = M.JOB.timeMage}
+                  [11] = M.JOB.timeMage, [12] = M.JOB.hunter, [13] = M.JOB.whiteMage, [14] = M.JOB.blackMage,
+                  [15] = M.JOB.greenMage, [16] = M.JOB.chemist, [17] = M.JOB.timeMage}
 M.LEGENDARY = {[4130] = true, [4266] = true, [4267] = true, [4268] = true, [4270] = true, [4272] = true, [4288] = true,
                [4290] = true, [4291] = true, [4292] = true, [4293] = true, [4294] = true, [4295] = true}
 M.DISEASE = 16
@@ -197,7 +198,7 @@ rules[M.JOB.samurai] = {
     local L, m = s.L, slot(s.actorId)
     if s.foe and m.boost then a.damage = (a.damage or 1) * 1.20; m.boost = nil end
     if s.foe and L[3] >= 1 and s.kill and s.casterStatus.haste then
-      add(a, 'casterAdd', M.STATUS.haste, 0.5)
+      add(a, 'casterAdd', M.STATUS.haste, L[3] >= 4 and 0.75 or 0.5)
       if L[3] >= 2 then add(a, 'casterAdd', M.STATUS.bravery, 0.5) end
       if L[3] >= 3 then m.boost = true end
     end
@@ -208,17 +209,15 @@ rules[M.JOB.samurai] = {
         a.chargeTo = math.max(1, c.current - c.required // 20)
       end
     end
-    if L[1] < 1 then return end
-    if m.target == s.targetId or m.carry then m.count = (m.count or 0) + 1; m.carry = nil
-    elseif L[1] >= 3 and m.target and not m.switched then m.count, m.switched = (m.count or 0) + 1, true
-    else m.count, m.switched = 1, nil end
-    m.target = s.targetId
-    if m.count >= (L[1] >= 2 and 2 or 3) then
-      m.count, m.switched = 0, nil
-      -- Haste cancels Slow by itself (status table), and misses never break the chain: only changing target does.
-      add(a, 'casterAdd', M.STATUS.haste, L[1] >= 4 and 0.75 or 0.5)
-    end
-    if s.foe and L[3] >= 4 and s.kill and s.casterStatus.haste then m.carry = true end
+    if L[1] < 1 or not s.foe then return end
+    -- Zanshin I (0.5.1, Marco 2026-11-10): a combo, or from 2/4 a critical hit, gives Haste, once per Attack. It used
+    -- to count hits in a row on one foe, which is the fists' Cadence trigger; the blade's own moment is the combo.
+    -- A combo's follow-up hits arrive with s.comboFollow; a fresh hit opens a new Attack.
+    if not s.comboFollow then m.fired = nil end
+    if m.fired or not (s.comboFollow or (L[1] >= 2 and s.critical)) then return end
+    m.fired = true
+    add(a, 'casterAdd', M.STATUS.haste, L[1] >= 3 and 0.75 or 0.5)
+    if L[1] >= 4 then a.damage = (a.damage or 1) * 1.15 end
   end,
   -- Evasion setup (Forge 22) for the Samurai's own attacks during Haste.
   aim = function(s, a)
@@ -742,18 +741,18 @@ M.GEAR = {
      'Every 3rd cast Oils the target and one other foe\nThat other foe also takes 25% of the damage',
      'Every 3rd cast Oils the target and one other foe\nThat other foe also takes 35% of the damage'}},
   [M.JOB.samurai] = {line = 'Zanshin',
-    {'3 hits in a row on the same foe give you Haste\nHaste at half duration. Misses do not break the chain',
-     '2 hits in a row on the same foe give you Haste\nHaste at half duration. Misses do not break the chain',
-     '2 hits in a row on one foe give you Haste (half)\nThe chain survives one change of target',
-     '2 hits in a row on one foe give you Haste (3/4)\nThe chain survives one change of target'},
-    {"While Hasted, your attacks cannot be evaded\nby the foe's weapon or shield",
-     'While Hasted, your attacks ignore evasion and parry',
-     'While Hasted, your attacks ignore evasion and parry\nand go straight through Protect',
-     "While Hasted, attacks ignore evasion, parry and Protect\nand push the foe's charge back 5%"},
+    {'Landing a combo gives you Haste\nHaste at half its normal duration',
+     'A combo or a critical hit gives you Haste\nHaste at half its normal duration',
+     'A combo or a critical hit gives you Haste\nHaste at 3/4 of its normal duration',
+     'A combo or a critical hit gives you Haste (3/4)\nand that hit deals +15% damage'},
+    {'While Hasted, your attacks cannot be parried\nor blocked',
+     'While Hasted, your attacks cannot be parried,\nblocked or dodged',
+     'While Hasted, your attacks cannot be evaded\nand go straight through Protect',
+     "While Hasted, attacks cannot be evaded, pierce Protect\nand push the foe's charge back 5%"},
     {'A kill while Hasted renews your Haste (half duration)',
      'A kill while Hasted renews your Haste\nand gives you Bravery (both at half duration)',
      'A kill while Hasted renews Haste, gives Bravery (half)\nYour next hit deals +20% damage',
-     'A kill while Hasted: Haste, Bravery, next hit +20%\nand your hit chain carries over to the next foe'}},
+     'A kill while Hasted: Haste (3/4), Bravery (half)\nand your next hit deals +20% damage'}},
   [M.JOB.chemist] = {line = 'Contagion',
     {'A status your attack lands has a 35% chance to spread\nto another foe (at 3/4 duration)',
      'A status your attack lands has a 35% chance to spread\nto another foe, at full duration',
@@ -787,6 +786,14 @@ end
 -- Montblanc's lines for newly rewarded ranks (from+1 .. to). Returns a list of dialogue boxes.
 local WRIT = {"Apprentice's Writ", "Journeyman's Writ", "Master's Writ"}
 local function gold(text) return '{color:gold}' .. text .. '{color:none}' end
+-- Montblanc's Proficiency topic (asked for in the Clan hall; the runtime shows these through the dialog plugin).
+M.TOPIC_PAGES = {
+  'Your current job has three ' .. gold('Proficiencies') .. ',\nkupo! Each grows through four levels as\nyou earn higher Clan ranks.',
+  'Proficiency I appears on your weapon,\nII on your armor, and III on your helmet.\nThe passives follow your job, not the item.',
+  gold("Apprentice's Writ") .. ' - ranks 1 to 4.\n' .. gold("Journeyman's Writ") .. ' - ranks 5 to 8.\n' .. gold("Master's Writ") .. ' - ranks 9 to 12, kupo!',
+  'When your Clan rank rises, come and ask\nme if you have earned anything new.\nI hand out nothing unasked, kupo!',
+}
+M.REMINDER = 'Kupo! Before you go: your Clan rank has\nrisen. Ask me about ' .. gold('Proficiency') .. '!'
 function M.speech(from, to)
   if not int(from, 0, M.MAX_RANK) or not int(to, 0, M.MAX_RANK) or to <= from then return {} end
   local boxes = {}
@@ -797,7 +804,7 @@ function M.speech(from, to)
   local level = to - 4 * (stage - 1)
   local roman = ({'I', 'II', 'III'})[stage]
   if from < 1 and to >= 1 then
-    boxes[#boxes + 1] = 'Kupo! Before you go! Every member of Clan\nCenturio trains in the way of their own job.\nTake this ' .. gold(WRIT[1]) .. ', kupo!'
+    boxes[#boxes + 1] = 'Kupo! You asked at the right time! Clan\nCenturio trains every member in their job.\nTake this ' .. gold(WRIT[1]) .. ', kupo!'
     boxes[#boxes + 1] = 'Whatever job you take up, the Writ unlocks its\n' .. gold('Proficiency') .. ': your weapons and armour fight\nthe way that job does, whatever you wield!'
     boxes[#boxes + 1] = 'Rise through the ranks and I\'ll stamp it for\nyou each time. A Writ full of stamps is a\nhunter\'s pride, kupo!'
   end

@@ -21,6 +21,8 @@ from .formats import battle_pack_section
 NAME = 'IvaliceLegacy-HybridBoards'
 ENTRY = 'x64/scripts/IvaliceLegacyHybridBoards.lua'
 CHANGES = {
+    '0.3.1': ('BaseJobs 0.6.0: hammers belong to Time Mage and measures to Chemist (axes stay with Warrior), so the 30 '
+              'boards with Warrior, Time Mage or Chemist are laid out again. The other 36 boards are unchanged.'),
     '0.3.0': ('All 66 job pairs fuse into one board named for the hybrid (Knight + White Mage = Paladin, Lancer + '
               'Samurai = Dragoon, ...). Both parents\' licenses once each with native costs; gear up, accessories '
               'left, passives right, commands down; Espers keep their zodiac-weapon islands. Paladin keeps its 0.2.1 '

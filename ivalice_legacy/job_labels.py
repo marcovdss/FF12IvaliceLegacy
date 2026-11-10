@@ -13,8 +13,9 @@ def sha(raw):
 
 
 def encode_label(text):
+    # Digits 1-9 as the native names use them ("Axes & Hammers 1" is 0x86); 0 is left out until seen in a native name.
     glyphs = {' ': 4, **{chr(65+i): 32+i for i in range(26)},
-              **{chr(97+i): 58+i for i in range(26)}}
+              **{chr(97+i): 58+i for i in range(26)}, **{str(d): 0x85 + d for d in range(1, 10)}}
     require(isinstance(text, str) and bool(text), 'Expected a nonempty label')
     require(all(c in glyphs for c in text), 'Unsupported English label glyph')
     return bytes(glyphs[c] for c in text) + b'\0'

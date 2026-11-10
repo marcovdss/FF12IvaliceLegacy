@@ -115,8 +115,8 @@ class AdapterTest(unittest.TestCase):
           return f.target.statusEffectDurations[17], f.target.addedStatusEffects[17], f.skipState
         ''')
 
-    def test_party_decoy_lasts_two_minutes(self):
-        self.assertEqual(self.decoy(), (72000, 1, None))
+    def test_party_decoy_lasts_about_45_seconds(self):
+        self.assertEqual(self.decoy(), (27000, 1, None))
 
     def test_only_the_partys_decoy_is_longer(self):
         self.assertEqual(self.decoy(caster=1), (None, 1, None))       # a foe's Decoy keeps the status table's time

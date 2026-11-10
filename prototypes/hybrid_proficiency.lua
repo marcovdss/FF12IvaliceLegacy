@@ -32,10 +32,9 @@ H.LINES = {
      {'self', 'faith', h, f = 2}, {'quick', 20, f = 3}}}},
   -- 2 Seer (Green Mage + White Mage)
   {line = 'Foresight',
+   {'hit', nil, 'Your hits', 'p', {{'drain', {5, 5, 5, 8}}, {'allyHeal', 10, f = 2}, {'heal', 5, f = 3}}},
    {'heal', {'overflow'}, 'Healing past full HP', 's', {{'ally', 'bubble', {h, h, h, t}}, {'overflowMp', 5, f = 2},
      {'ally', 'faith', h, f = 3}}},
-   {'heal', {'allyWarded'}, 'Healing an ally with Bubble or Regen', 's', {{'cureAlly', {1, 1, 2, 2}},
-     {'ally', 'protect', h, f = 2}, {'allyMp', 5, f = 4}}},
    {'ally', nil, 'An ally dropping to critical HP', 's', {{'ally', 'bubble', {h, h, h, t}}, {'ally', 'regen', h, f = 2},
      {'ally', 'shell', h, f = 3}, {'mp', 5, f = 4}}}},
   -- 3 Paladin (Knight + White Mage)
@@ -55,12 +54,12 @@ H.LINES = {
      {'party', 'shell', h, f = 3}}}},
   -- 5 Skyseer (Time Mage + White Mage)
   {line = 'Dawnwind',
-   {'heal', {'overflow'}, 'Healing past full HP', 's', {{'ally', 'haste', {h, h, h, t}}, {'ally', 'bravery', h, f = 2},
+   {'heal', {'overflow'}, 'Healing past full HP', 's', {{'ally', 'haste', {h, h, h, t}}, {'other', 'slow', h, f = 2},
      {'overflowMp', 5, f = 3}}},
    {'heal', {'allyHasted'}, 'Healing a Hasted ally', 's', {{'ally', 'regen', {h, h, h, t}}, {'ally', 'shell', h, f = 2},
      {'quick', 15, f = 3}}},
    {'ally', nil, 'An ally dropping to critical HP', 's', {{'ally', 'haste', {h, h, h, t}}, {'party', 'regen', h, f = 2},
-     {'other', 'slow', h, f = 3}}}},
+     {'ally', 'bravery', h, f = 3}}}},
   -- 6 Monk (Warrior + White Mage)
   {line = 'Chakra',
    {'hit', {'low50'}, 'Below half HP, your hits', 'p', {{'heal', {10, 10, 10, 15}}, {'self', 'regen', h, f = 2},
@@ -126,10 +125,10 @@ H.LINES = {
      {'party', 'protect', h, f = 3}}}},
   -- 14 Hell Knight (Lancer + Mystic)
   {line = 'Hellfire',
+   {'counter', nil, 'Each counter', 's', {{'strip', {'protect', 'haste'}}, {'hp', {5, 5, 5, 8}},
+     {'foe', 'immobilize', h, f = 2}, {'strip', {'bravery', 'faith'}, f = 3}}},
    {'magick', nil, 'Your damage spells', 'p', {{'strip', {'shell'}}, {'drain', {5, 5, 5, 8}, f = 2},
      {'foe', 'silence', h, f = 3}}},
-   {'counter', nil, 'Each counter', 's', {{'strip', {'protect', 'haste'}}, {'foe', 'immobilize', h, f = 2},
-     {'push', 10, f = 3}, {'strip', {'bravery', 'faith'}, f = 4}}},
    {'hit', {'buffless', 'ailing'}, 'Hits on a bare foe with an ailment', 'p', {{'dmg', {20, 20, 20, 30}},
      {'self', 'faith', h, f = 2}, {'allyHeal', 10, f = 3}}}},
   -- 15 Uhlan (Lancer + Time Mage)
@@ -213,8 +212,8 @@ H.LINES = {
      {'party', 'haste', h, f = 4}}}},
   -- 25 Flintlock (Warrior + Gunner)
   {line = 'Point Blank',
-   {'hit', {'near', 'low50'}, 'Up close below half HP, your hits', 'p', {{'dmg', {15, 15, 15, 25}}, {'foe', 'slow', h, f = 2},
-     {'drain', 5, f = 3}}},
+   {'hit', {'near', 'low50'}, 'Up close below half HP, your hits', 'p', {{'dmg', {15, 15, 15, 25}}, {'push', 10, f = 2},
+     {'foe', 'slow', h, f = 3}}},
    {'hit', {'kill'}, 'A kill', 's', {{'quick', {20, 20, 20, 30}}, {'heal', 10, f = 2}, {'pushOther', 15, f = 3}}},
    {'hit', {'critical'}, 'At critical HP, your hits', 'p', {{'dmg', {25, 25, 25, 35}}, {'self', 'protect', h, f = 2},
      {'foe', 'immobilize', h, f = 3}}}},
@@ -273,8 +272,8 @@ H.LINES = {
      {'party', 'faith', h, f = 3}}}},
   -- 33 Reaver (Warrior + Green Mage)
   {line = 'Leech',
-   {'status', {'low50'}, 'An ailment you land below half HP', 's', {{'heal', {10, 10, 10, 15}}, {'ally', 'shell', h, f = 2},
-     {'push', 10, f = 3}}},
+   {'hit', {'low50'}, 'Below half HP, your hits', 'p', {{'drain', {5, 5, 5, 8}}, {'heal', 10, f = 2},
+     {'self', 'bravery', h, f = 3}}},
    {'hit', {'oiled'}, 'Hits on an Oiled foe', 'p', {{'dmg', {15, 15, 15, 25}}, {'drain', 5, f = 2},
      {'foe', 'disable', h, f = 3}}},
    {'status', {'critical'}, 'An ailment you land at critical HP', 's', {{'self', 'regen', {h, h, h, t}},
@@ -297,7 +296,7 @@ H.LINES = {
      {'party', 'shell', h, f = 3}}}},
   -- 36 Assassin (Samurai + Green Mage)
   {line = 'Ansatsu',
-   {'hit', {'ailing'}, 'Hits on a foe with an ailment', 'p', {{'dmg', {15, 15, 15, 25}}, {'self', 'bravery', h, f = 2},
+   {'hit', {'chain2'}, '2 hits in a row on one foe', 'p', {{'drain', {5, 5, 5, 8}}, {'self', 'haste', h, f = 2},
      {'heal', 10, f = 3}}},
    {'hit', {'disabled'}, 'Hits on a Disabled foe', 'p', {{'extend', 'disable', 10}, {'push', 10, f = 2},
      {'ally', 'haste', {h, h, h, t}, f = 3}}},
@@ -312,10 +311,10 @@ H.LINES = {
      {'party', 'regen', h, f = 3}}}},
   -- 38 Dark Knight (Knight + Mystic)
   {line = 'Abyss',
-   {'magick', nil, 'Your damage spells', 'p', {{'self', 'lure', {h, h, t, t}}, {'dmg', 10, f = 2}, {'drain', {5, 5, 5, 8}, f = 3}}},
+   {'counter', nil, 'Each counter', 's', {{'self', 'lure', {h, h, t, t}}, {'hp', {5, 5, 5, 8}, f = 2}, {'drainFoe', 5, f = 3}}},
    {'magick', {'foeFaith'}, 'Spells on a foe with Faith', 'p', {{'strip', {'faith'}}, {'self', 'faith', h},
      {'push', {10, 10, 10, 15}, f = 2}, {'ally', 'shell', h, f = 3}}},
-   {'struck', nil, 'Being struck', 's', {{'quick', {10, 10, 10, 20}}, {'drainFoe', 5, f = 2}, {'self', 'haste', h, f = 3}}}},
+   {'struck', nil, 'Being struck', 's', {{'quick', {10, 10, 10, 20}}, {'self', 'protect', h, f = 2}, {'self', 'haste', h, f = 3}}}},
   -- 39 Arc Knight (Knight + Time Mage)
   {line = 'Tempo Guard',
    {'castFoe', {'slowCast'}, 'Casting Slow on a foe', 's', {{'self', 'lure', {h, h, t, t}}, {'self', 'protect', h, f = 2},
@@ -350,7 +349,7 @@ H.LINES = {
      {'foe', 'immobilize', h, f = 3}}}},
   -- 43 Sword Saint (Knight + Samurai)
   {line = 'Iai',
-   {'guard', {'parryBlock'}, 'A parry or block', 's', {{'self', 'lure', h}, {'mp', {3, 3, 3, 5}}, {'self', 'protect', h, f = 2},
+   {'guard', {'parryBlock'}, 'A parry or block', 's', {{'self', 'lure', h}, {'self', 'haste', {h, h, h, t}}, {'mp', 3, f = 2},
      {'foe', 'disable', h, f = 3}}},
    {'hit', {'afterGuard'}, 'Your first hit after a parry or block', 's', {{'dmg', {20, 20, 20, 30}}, {'heal', 10, f = 2},
      {'push', 10, f = 3}}},
@@ -374,8 +373,7 @@ H.LINES = {
      {'pushOther', 10, f = 3}}}},
   -- 46 Fell Knight (Warrior + Mystic)
   {line = 'Blood Price',
-   {'magick', {'low50'}, 'Below half HP, your spells', 'p', {{'dmg', {15, 15, 15, 25}}, {'foe', 'silence', h, f = 2},
-     {'self', 'protect', h, f = 3}}},
+   {'counter', nil, 'Each counter', 's', {{'hp', {5, 5, 5, 8}}, {'self', 'bravery', h, f = 2}, {'dmgNext', 15, f = 3}}},
    {'magick', {'low50'}, 'Below half HP, your spells', 'p', {{'strip', {'shell'}}, {'heal', {10, 10, 15, 20}, f = 2},
      {'self', 'bravery', h, f = 3}}},
    {'magick', {'critical'}, 'At critical HP, your spells', 'p', {{'mp', {3, 3, 3, 5}}, {'foe', 'immobilize', h, f = 2},
@@ -390,14 +388,14 @@ H.LINES = {
      {'party', 'protect', h, f = 3}}}},
   -- 48 Sage (Mystic + Black Mage)
   {line = 'Omniscience',
-   {'counter', nil, 'Each counter', 's', {{'hp', {5, 5, 5, 8}}, {'mp', 3, f = 2}, {'self', 'faith', h, f = 3}}},
+   {'counter', nil, 'Each counter', 's', {{'hp', {5, 5, 5, 8}}, {'quick', 15, f = 2}, {'mp', 3, f = 3}}},
    {'magick', {'newElement'}, 'A spell of a different element', 's', {{'dmg', {10, 10, 15, 20}}, {'mp', 2, f = 2},
      {'self', 'haste', h, f = 3}, {'foe', 'disable', h, f = 4}}},
    {'magick', {'sameElement'}, 'The same element twice in a row', 's', {{'quick', {20, 20, 20, 30}},
      {'ally', 'protect', h, f = 2}, {'party', 'faith', h, f = 3}}}},
   -- 49 Divine Knight (Samurai + Mystic)
   {line = 'Mind Blade',
-   {'counter', nil, 'Each counter', 's', {{'mp', {3, 3, 3, 5}}, {'dmgNext', 15, f = 2}, {'self', 'faith', h, f = 3}}},
+   {'counter', nil, 'Each counter', 's', {{'mp', {3, 3, 3, 5}}, {'self', 'haste', h, f = 2}, {'dmgNext', 15, f = 3}}},
    {'hit', nil, 'Your hits', 'p', {{'drain', {4, 4, 6, 6}}, {'zeroBonus', 15, f = 2}, {'self', 'haste', h, f = 4}}},
    {'hit', {'fullMp'}, 'At full MP, your hits', 'p', {{'strip', {'shell'}}, {'self', 'faith', {h, h, h, t}, f = 2},
      {'party', 'shell', h, f = 3}}}},
@@ -435,8 +433,8 @@ H.LINES = {
      {'party', 'haste', h, f = 3}}}},
   -- 54 Kensei (Samurai + Time Mage)
   {line = 'Ma',
-   {'cast', {'slowOrHaste'}, 'Casting Slow or Haste', 's', {{'mp', {3, 3, 3, 5}}, {'quick', 15, f = 2},
-     {'self', 'bravery', h, f = 3}}},
+   {'hit', {'slowed'}, 'Hits on a Slowed foe', 'p', {{'self', 'haste', {h, h, h, t}}, {'push', 10, f = 2},
+     {'dmg', 15, f = 3}}},
    {'hit', {'hasted', 'chain2'}, 'While Hasted, 2 hits in a row on one foe', 'p', {{'push', {10, 10, 10, 15}},
      {'self', 'haste', h, f = 2}, {'ally', 'protect', h, f = 3}}},
    {'hit', {'slowed', 'kill'}, 'Killing a Slowed foe', 's', {{'other', 'slow', {h, h, h, t}}, {'party', 'haste', h, f = 2},
@@ -451,7 +449,8 @@ H.LINES = {
      {'party', 'faith', h, f = 3}}}},
   -- 56 Viking (Warrior + Hunter)
   {line = 'Raid',
-   {'hit', {'low50'}, 'Below half HP, your hits', 'p', {{'steal'}, {'dmg', {10, 10, 15, 20}, f = 2}, {'self', 'bravery', h, f = 3}}},
+   {'hit', {'ailing'}, 'Hits on a foe with an ailment', 'p', {{'dmg', {10, 10, 15, 20}}, {'self', 'bravery', h, f = 2},
+     {'steal', f = 3}}},
    {'hit', {'wounded'}, 'Hits on a foe below half HP', 'p', {{'dmg', {15, 15, 15, 25}}, {'foe', 'silence', h, f = 2},
      {'allyHeal', 10, f = 3}}},
    {'hit', {'wounded', 'kill'}, 'Killing a wounded foe', 's', {{'quick', {20, 20, 20, 30}}, {'self', 'haste', h, f = 2},
@@ -520,7 +519,8 @@ H.LINES = {
      {'self', 'faith', h, f = 2}, {'party', 'haste', h, f = 3}}}},
   -- 65 Ronin (Samurai + Chemist)
   {line = 'Wanderer',
-   {'heal', {'selfTarget'}, 'Healing yourself', 's', {{'mp', {3, 3, 3, 5}}, {'dmgNext', 20, f = 2}, {'self', 'faith', h, f = 3}}},
+   {'hit', {'chain2'}, '2 hits in a row on one foe', 'p', {{'allyHeal', {10, 10, 10, 15}}, {'self', 'haste', h, f = 2},
+     {'mp', 3, f = 3}}},
    {'hit', {'ailing'}, 'Hits on a foe with an ailment', 'p', {{'dmg', {10, 10, 15, 20}}, {'foe', 'disable', h, f = 2},
      {'allyMp', 5, f = 3}}},
    {'hit', {'kill'}, 'A kill', 's', {{'mp', {5, 5, 5, 8}}, {'pushOther', 10, f = 2}, {'party', 'bravery', h, f = 3}}}},

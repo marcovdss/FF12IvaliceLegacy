@@ -67,21 +67,6 @@ local function profile(formula, caster, target)
   }
 end
 
--- Charge timers of both sides (battle unit work +0x75C idle, +0x768 current, +0x76C required, +0x770 last;
--- Forge classes/getBattleUnitWork.lua). Read after the original function, never written.
-local function timers(work)
-  if type(work) ~= 'table' and type(work) ~= 'userdata' then return nil end
-  if work.address == 0 then return nil end
-  return {current = work.currentChargeTime, required = work.requiredChargeTime,
-          last = work.lastChargeTime, idle = work.idleChargeTime}
-end
-
-local function charge(formula, caster, target)
-  return {clock = event.getClock and event.getClock() or nil, action = formula.action,
-          casterType = caster.type, targetType = target.type,
-          caster = timers(formula.caster.battleUnitWork), target = timers(formula.target.battleUnitWork)}
-end
-
 -- One hit after Forge 113 ran: base damage dealt and the target's level/max HP; foe names from the area unit table.
 local function hit(formula, caster, target)
   local function name(side, unit)
@@ -95,7 +80,8 @@ local function hit(formula, caster, target)
           targetLevel = target.level, targetMaxHp = target.maxHp, removed = formula.target.removedHp}
 end
 
-local observer = Diagnostic.new({profile = profile, charge = charge, hit = hit, emit = function(line) print(line) end})
+-- 0.1.32: the per-hit charge samples are no longer logged (they crowded everything else out of the session log).
+local observer = Diagnostic.new({profile = profile, hit = hit, emit = function(line) print(line) end})
 local resetRegistered = event.registerEventSync('onSaveLoad', function()
   observer:reset()
   return true
@@ -105,7 +91,7 @@ if resetRegistered ~= true then
   return original
 end
 print('Legacy foe profile: diagnostic ' .. Diagnostic.version .. ' Forge113 observer ready; bonuses=off')
-print(Damage and ('Legacy damage: formula ' .. Damage.version .. ' ready (all hits: attack - defense, floor attack/' .. Damage.FLOOR_DIVISOR .. ')')
+print(Damage and ('Legacy damage: formula ' .. Damage.version .. ' ready (attack - defense; floor attack/' .. Damage.FLOOR_DIVISOR .. ', foes on the party attack/' .. Damage.FOE_FLOOR_DIVISOR .. ')')
   or 'Legacy damage: formula not loaded; native attack - defense')
 local observed = observer:wrap(original)
 return observed

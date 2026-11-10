@@ -129,6 +129,24 @@ class HybridProficiencyTest(unittest.TestCase):
           assert(math.abs(a.damage - 1.40) < 1e-9 and a.chargeTo and a.drainMp)   -- III 4/4 opening hit
         ''')
 
+    def test_seer_keeps_the_green_mage_leech_from_stage_one(self):
+        # Marco 2026-11-10: picking White Mage as second job must not erase Green Mage's sustain.
+        self.lua.execute(r'''
+          local a = P.decide('hit', S(14, {damage=400}), 1)
+          assert(a and a.drainMp == 2, 'I-1: hits drain MP (5%, capped at 2% of max MP)')
+          a = P.decide('hit', S(14, {damage=400, targetId=12}), 4)
+          assert(a.drainMp == 2 and a.healHp == 20, 'I-4: drain, and heal you 5% of the damage')
+          assert(others(a, 'hp', 200) == 1, 'I-4: heal the weakest ally too')
+          a = P.decide('heal', S(14, {overflow=300, target=200, foe=false}), 6)
+          assert(others(a, 'mp', 100) == 1, 'II-2: overflow still returns MP')
+        ''')
+
+    def test_hell_knight_counters_strip_and_heal(self):
+        self.lua.execute(r'''
+          local a = P.decide('guard', S(26, {outcome='counter', attacker=901, attackerStatus={protect=true}}), 4)
+          assert(others(a, 'remove', 901) == 1 and others(a, 'hp', 100) == 1 and others(a, 'add', 901) == 1)
+        ''')
+
     def test_seer_ally_at_critical_gets_bubble(self):
         a = self.lua.execute('return P.decide("ally", S(14, {ally=200}), 12)')
         self.assertEqual(self.lua.eval('others')(a, 'add', 200, 28), 1)   # Bubble

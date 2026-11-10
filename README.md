@@ -1,7 +1,7 @@
 # Ivalice Legacy
 
 ![Game](https://img.shields.io/badge/FINAL%20FANTASY%20XII-The%20Zodiac%20Age%20(PC)-1f4e79)
-![Version](https://img.shields.io/badge/version-0.1.23-2e7d32)
+![Version](https://img.shields.io/badge/version-0.1.31-2e7d32)
 ![Status](https://img.shields.io/badge/status-early%20development-c77c02)
 
 **An overhaul for FINAL FANTASY XII THE ZODIAC AGE where preparation wins.**
@@ -34,7 +34,7 @@ a master of a legendary weapon's family deals +25% with it.
 
 ### Weapons with a style of play
 A gentle damage climb replaces the late-game spike. Every weapon family has one identity, always on: axes **Sunder**
-Defence, spears **Pierce** it, katana **Chain** longer combos, guns can't be parried, maces burn MP, rods boost
+Defence, spears **Pierce** it, katana **Chain** longer combos, guns can't be dodged, maces burn MP, rods boost
 healing, fists build up with each hit. No hit can be reduced to nothing by Defence, for foes or for the party.
 
 ### Armour that asks questions
@@ -74,10 +74,11 @@ companion mods.
 | Shops, story stock, loot, separate saves | Played |
 | Weapon curve, greatsword sweep | Played |
 | Kings of the zone | Played on the Estersand; other zones not yet |
-| Clan Proficiency | Stage I played; stages II-III and hybrid lines offline |
-| Hybrid boards | Installed, not yet played |
-| Weapon family identities (runtime) | Offline |
-| Armour and accessories | Armour text seen; effects not yet measured |
+| Clan Proficiency | Stage I played to rank 4; first hybrid lines seen in play; stages II-III offline |
+| Hybrid boards | Installed; the Seer line has fired in play |
+| Weapon family identities (runtime) | Played since 0.1.24: Spellbreak, Afflict, Marksman and pole counters seen; Sunder, Unseen, Chain and Mend not yet seen |
+| Guard fatigue, Braced, Open, Long haft | In the campaign since 0.1.26-0.1.28; guard fatigue measured once |
+| Armour and accessories, armour triangle | Text seen; effects and the triangle not yet measured |
 | Magicks, MP economy, Technicks | Offline; MP costs confirmed in the game log |
 | Enemy behaviours, boss crown, stat pass | In the campaign; not yet checked one by one |
 

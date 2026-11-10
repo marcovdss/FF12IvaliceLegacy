@@ -105,7 +105,7 @@ def build(game, out):
     from .vbf import VBF
     game = Path(game)
     recipe = json.loads((ROOT/'patches/base_jobs.json').read_text(encoding='utf-8'))
-    require(recipe['version'] == '0.5.1', 'Unsupported base-job version')
+    require(recipe['version'] == '0.6.0', 'Unsupported base-job version')
     require(sha((game/'x64/FFXII_TZA.exe').read_bytes()) == recipe['gameExeSha256'],
             'Unsupported game executable')
     archive = VBF(game/'FFXII_TZA.vbf')

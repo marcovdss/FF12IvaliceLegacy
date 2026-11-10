@@ -41,19 +41,6 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
           foe.level=20; foe.story=70000; assert(observer:observe()); assert(logs[2]:find('story=%? '))
         ''')
 
-    def test_charge_probe_logs_both_sides_and_is_capped(self):
-        self.lua.execute('''
-          sample={clock=12, action=150, casterType=0, targetType=1,
-                  caster={current=40,required=100,last=90,idle=0}, target={current=7,required=60,last=55,idle=3}}
-          assert(observer:charge(sample))
-          assert(logs[1]:find('action=150 casterType=0 caster=40/100/90/0 targetType=1 target=7/60/55/3 bonuses=off$'))
-          sample.target.current=-1; assert(not observer:charge(sample)); sample.target.current=7
-          assert(not observer:charge({caster=sample.caster}))
-          for i=1,1200 do observer:charge(sample) end
-          assert(#logs==1000)
-          observer:reset(); assert(observer:charge(sample))
-        ''')
-
     def test_hit_line_logs_both_directions_and_is_capped(self):
         self.lua.execute('''
           s={story=68, action=150, casterType=0, targetType=1, targetName=16542, targetLevel=2, targetMaxHp=170, removed=46}
@@ -68,13 +55,16 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
           observer:reset(); assert(observer:hit(s))
         ''')
 
-    def test_wrap_runs_charge_probe_after_profile(self):
+    def test_wrap_runs_profile_then_hit(self):
         self.lua.execute('''
-          deps.charge=function() return {clock=1, action=2, casterType=0, targetType=1,
-            caster={current=1,required=2,last=3,idle=4}, target={current=5,required=6,last=7,idle=8}} end
           local wrapped=observer:wrap(function() return 'r' end)
           assert(wrapped()=='r')
-          assert(#logs==2 and logs[1]:find('foe profile') and logs[2]:find('charge probe'))
+          assert(#logs==1 and logs[1]:find('foe profile'))
+          deps.hit=function() return {story=1, action=2, casterType=0, targetType=1,
+            targetLevel=2, targetMaxHp=10, removed=5} end
+          assert(wrapped()=='r')
+          -- The same foe is not profiled twice (the seen-key dedupe), so only the hit line is added.
+          assert(#logs==2 and logs[1]:find('foe profile') and logs[2]:find('Legacy hit:'))
         ''')
 
     def test_rejects_party_and_malformed_profiles(self):
@@ -110,9 +100,12 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
         self.assertIn('local observed = observer:wrap(original)', src)
         self.assertIn('return observed', src)
         # 0.1.23: the charge-pushback and attack-area test probes are gone; the pushback probe wrote foe charge
-        # timers in live play. The adapter now writes nothing: no game memory, no Forge pending result, no field.
+        # timers in live play. 0.1.7: the per-hit charge-timer samples are gone too (log noise; research done).
+        # The adapter now writes nothing: no game memory, no Forge pending result, no field.
         self.assertNotIn('charge_pushback_probe', src)
         self.assertNotIn('attack_area_probe', src)
+        self.assertNotIn('deps.charge', src)
+        self.assertNotIn('observer:charge', src)
         self.assertIsNone(re.search(r'memory\.\w+\[[^\]]+\]\s*=(?!=)', src))
         self.assertNotIn('formula.target.removedHp =', src)
         writes = re.findall(r'\b\w+\.\w+\s*=(?!=)\s*\S+', src)

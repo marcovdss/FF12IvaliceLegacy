@@ -16,8 +16,9 @@ class MontblancTests(unittest.TestCase):
         self.spec = json.loads((ROOT/'patches/montblanc.json').read_text())
 
     def test_pages_are_compact_and_encodable(self):
-        self.assertEqual(len(self.spec['pages']), 3)
-        for page in self.spec['pages']:
+        self.assertEqual(self.spec['pages'], [])           # 0.2.0: the pages are spoken by the Lua topic
+        self.assertEqual(len(self.spec['topicPages']), 3)
+        for page in self.spec['topicPages']:
             self.assertTrue(encode_body(page))
         with self.assertRaises(ValueError):
             encode_body('a'*45)
@@ -30,7 +31,7 @@ class MontblancTests(unittest.TestCase):
         for i, item in enumerate(originals):
             struct.pack_into('<I', raw, i*4, len(raw))
             raw += item
-        spec = dict(self.spec, textSha256=hashlib.sha256(raw).hexdigest())
+        spec = dict(self.spec, textSha256=hashlib.sha256(raw).hexdigest(), pages=self.spec['topicPages'], signal=None)
         result = patch_text(bytes(raw), spec)
         pointers, strings = field_strings(result)
         self.assertEqual(len(strings), 257)
@@ -56,7 +57,8 @@ class MontblancTests(unittest.TestCase):
         struct.pack_into('<3I', raw, 288, 2, 0, 1)
         struct.pack_into('<I', raw, 304, 0)
         struct.pack_into('<2I', raw, 320, 1, 1234)
-        spec = dict(self.spec, scriptSha256=hashlib.sha256(raw).hexdigest(), thread=0,
+        spec = dict(self.spec, pages=self.spec['topicPages'], signal=None,
+                    scriptSha256=hashlib.sha256(raw).hexdigest(), thread=0,
                     labelCount=2, codeBytes=2, instructionCount=2, dispatchLabel=0,
                     dispatchOffset=0, marksLabel=0, jobsLabel=1, leaveLabel=1, menuOffset=1)
         sizes = [1 if i < 0x47 else 3 for i in range(0x64)]

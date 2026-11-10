@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
- "basejobs": "0.5.1",
- "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+ "basejobs": "0.6.0",
+ "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
  "boards": [
   {
    "schemaVersion": 2,
@@ -24,7 +24,7 @@
      "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 13,
@@ -944,7 +944,7 @@
      "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 13,
@@ -1810,7 +1810,7 @@
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 9,
@@ -2610,7 +2610,7 @@
      "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -3614,7 +3614,7 @@
      "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -4549,10 +4549,10 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -4633,12 +4633,6 @@
      "region": "Mystic armour"
     },
     {
-     "x": 10,
-     "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
-    },
-    {
      "x": 12,
      "y": 7,
      "licenseId": 99,
@@ -4683,14 +4677,14 @@
     {
      "x": 10,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 11,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 12,
@@ -4713,14 +4707,14 @@
     {
      "x": 10,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 11,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 12,
@@ -4773,14 +4767,14 @@
     {
      "x": 10,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 11,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 12,
@@ -5365,7 +5359,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "905f5eaa12042c83fdafa59572bda0b5ab60a524869ea5097e8da62621b764b7"
+   "boardSha256": "06254c9262ebf87a4834cc1815acfbc57cb4b1924de57e34df6260bda825a06a"
   },
   {
    "schemaVersion": 2,
@@ -5385,11 +5379,23 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
+    {
+     "x": 7,
+     "y": 3,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
+     "y": 3,
+     "licenseId": 49,
+     "region": "Esper island"
+    },
     {
      "x": 13,
      "y": 3,
@@ -5399,8 +5405,26 @@
     {
      "x": 6,
      "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 4,
      "licenseId": 351,
      "region": "Light armour"
+    },
+    {
+     "x": 11,
+     "y": 4,
+     "licenseId": 52,
+     "region": "Esper island"
+    },
+    {
+     "x": 12,
+     "y": 4,
+     "licenseId": 18,
+     "region": "Esper"
     },
     {
      "x": 13,
@@ -5409,40 +5433,16 @@
      "region": "Mystic armour"
     },
     {
-     "x": 5,
-     "y": 5,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
-    },
-    {
-     "x": 8,
-     "y": 5,
-     "licenseId": 30,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
-    },
-    {
-     "x": 11,
-     "y": 5,
-     "licenseId": 52,
-     "region": "Esper island"
     },
     {
      "x": 13,
@@ -5471,20 +5471,20 @@
     {
      "x": 6,
      "y": 6,
-     "licenseId": 147,
-     "region": "Light armour"
+     "licenseId": 0,
+     "region": "Quickening"
     },
     {
      "x": 7,
      "y": 6,
-     "licenseId": 144,
+     "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 11,
+     "x": 8,
      "y": 6,
-     "licenseId": 18,
-     "region": "Esper"
+     "licenseId": 144,
+     "region": "Light armour"
     },
     {
      "x": 12,
@@ -5505,34 +5505,22 @@
      "region": "Mystic armour"
     },
     {
-     "x": 4,
-     "y": 7,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 7,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 89,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -5553,40 +5541,46 @@
      "region": "Mystic armour"
     },
     {
+     "x": 5,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 8,
-     "licenseId": 88,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -5619,46 +5613,34 @@
      "region": "Esper island"
     },
     {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -5679,40 +5661,46 @@
      "region": "Mystic armour"
     },
     {
-     "x": 6,
+     "x": 4,
+     "y": 10,
+     "licenseId": 76,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 10,
+     "licenseId": 28,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -5743,18 +5731,6 @@
      "y": 10,
      "licenseId": 330,
      "region": "Esper island"
-    },
-    {
-     "x": 3,
-     "y": 11,
-     "licenseId": 76,
-     "region": "Esper island"
-    },
-    {
-     "x": 4,
-     "y": 11,
-     "licenseId": 28,
-     "region": "Esper"
     },
     {
      "x": 5,
@@ -6327,7 +6303,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "3325b3a58ba3bce7a3e03b5de114f2a662abf8e228d0c71a09f83a01e34094b1"
+   "boardSha256": "cfc6003286f39b8599f9104ceb45a78ebadc7a3f584d661dad272c0e75620366"
   },
   {
    "schemaVersion": 2,
@@ -6350,7 +6326,7 @@
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 13,
@@ -7300,7 +7276,7 @@
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 9,
@@ -8118,7 +8094,7 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -8969,10 +8945,10 @@
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 13,
@@ -8981,16 +8957,22 @@
      "region": "Quickening"
     },
     {
-     "x": 9,
+     "x": 6,
+     "y": 4,
+     "licenseId": 49,
+     "region": "Esper island"
+    },
+    {
+     "x": 7,
+     "y": 4,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 4,
      "licenseId": 351,
      "region": "Light armour"
-    },
-    {
-     "x": 11,
-     "y": 4,
-     "licenseId": 52,
-     "region": "Esper island"
     },
     {
      "x": 13,
@@ -8999,25 +8981,13 @@
      "region": "Mystic armour"
     },
     {
-     "x": 7,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 5,
-     "licenseId": 30,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
@@ -9025,8 +8995,8 @@
     {
      "x": 11,
      "y": 5,
-     "licenseId": 18,
-     "region": "Esper"
+     "licenseId": 52,
+     "region": "Esper island"
     },
     {
      "x": 13,
@@ -9053,16 +9023,28 @@
      "region": "Esper island"
     },
     {
-     "x": 9,
+     "x": 7,
+     "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 8,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
+    },
+    {
+     "x": 11,
+     "y": 6,
+     "licenseId": 18,
+     "region": "Esper"
     },
     {
      "x": 12,
@@ -9085,20 +9067,20 @@
     {
      "x": 8,
      "y": 7,
-     "licenseId": 0,
-     "region": "Quickening"
+     "licenseId": 145,
+     "region": "Light armour"
     },
     {
      "x": 9,
      "y": 7,
-     "licenseId": 145,
+     "licenseId": 142,
      "region": "Light armour"
     },
     {
      "x": 10,
      "y": 7,
-     "licenseId": 142,
-     "region": "Light armour"
+     "licenseId": 346,
+     "region": "Measures"
     },
     {
      "x": 12,
@@ -9119,16 +9101,34 @@
      "region": "Mystic armour"
     },
     {
-     "x": 9,
+     "x": 6,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
+     "x": 7,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 8,
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -9167,28 +9167,22 @@
      "region": "Esper island"
     },
     {
-     "x": 7,
-     "y": 9,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 9,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -9227,16 +9221,22 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 8,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 10,
+     "licenseId": 111,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -9881,7 +9881,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "3ff93a23ea6401a1cf180b4ce82a63367ce525ce0d01e02407289e323a43f8e8"
+   "boardSha256": "8c88ca40a66f10de8f02e73d926d1db46d8739a6aa8bdaa97ca762aa73ed1a14"
   },
   {
    "schemaVersion": 2,
@@ -9904,7 +9904,7 @@
      "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -10728,7 +10728,7 @@
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 13,
@@ -11618,7 +11618,7 @@
      "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -12484,7 +12484,7 @@
      "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 14,
@@ -13407,23 +13407,11 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
-    {
-     "x": 14,
-     "y": 3,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 15,
-     "y": 3,
-     "licenseId": 95,
-     "region": "Esper island"
-    },
     {
      "x": 7,
      "y": 4,
@@ -13497,6 +13485,18 @@
      "region": "Heavy armour"
     },
     {
+     "x": 12,
+     "y": 6,
+     "licenseId": 95,
+     "region": "Esper island"
+    },
+    {
+     "x": 13,
+     "y": 6,
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
      "x": 14,
      "y": 6,
      "licenseId": 156,
@@ -13531,12 +13531,6 @@
      "y": 7,
      "licenseId": 59,
      "region": "Spears"
-    },
-    {
-     "x": 13,
-     "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
     },
     {
      "x": 14,
@@ -13589,14 +13583,14 @@
     {
      "x": 12,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -13649,14 +13643,14 @@
     {
      "x": 12,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -13709,14 +13703,14 @@
     {
      "x": 12,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -14319,7 +14313,7 @@
      "region": "Second board"
     }
    ],
-   "boardSha256": "f904acc24c214952374a20412948e673b37ce209cebf0bb98f441287d4aaa5ee"
+   "boardSha256": "103fecee99928a363f57626caf9032bc69ceb1d2fe687c42eb387efa0952807c"
   },
   {
    "schemaVersion": 2,
@@ -14339,10 +14333,10 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -14357,19 +14351,7 @@
      "region": "Esper"
     },
     {
-     "x": 14,
-     "y": 4,
-     "licenseId": 95,
-     "region": "Esper island"
-    },
-    {
      "x": 15,
-     "y": 4,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 16,
      "y": 4,
      "licenseId": 148,
      "region": "Light armour"
@@ -14399,16 +14381,34 @@
      "region": "Esper island"
     },
     {
-     "x": 16,
+     "x": 13,
+     "y": 5,
+     "licenseId": 95,
+     "region": "Esper island"
+    },
+    {
+     "x": 14,
+     "y": 5,
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 15,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 5,
      "licenseId": 351,
      "region": "Light armour"
+    },
+    {
+     "x": 17,
+     "y": 5,
+     "licenseId": 1,
+     "region": "Quickening"
     },
     {
      "x": 7,
@@ -14431,32 +14431,14 @@
     {
      "x": 15,
      "y": 6,
-     "licenseId": 1,
-     "region": "Quickening"
-    },
-    {
-     "x": 16,
-     "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
-    },
-    {
-     "x": 18,
-     "y": 6,
-     "licenseId": 20,
-     "region": "Esper"
-    },
-    {
-     "x": 19,
-     "y": 6,
-     "licenseId": 335,
-     "region": "Esper island"
     },
     {
      "x": 8,
@@ -14479,20 +14461,32 @@
     {
      "x": 12,
      "y": 7,
-     "licenseId": 88,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
-     "x": 16,
+     "x": 15,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
+    },
+    {
+     "x": 17,
+     "y": 7,
+     "licenseId": 20,
+     "region": "Esper"
+    },
+    {
+     "x": 18,
+     "y": 7,
+     "licenseId": 335,
+     "region": "Esper island"
     },
     {
      "x": 6,
@@ -14533,35 +14527,29 @@
     {
      "x": 12,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 13,
-     "y": 8,
-     "licenseId": 89,
-     "region": "Axes & hammers"
-    },
-    {
-     "x": 14,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 15,
+     "x": 14,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 16,
+     "x": 15,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
@@ -14594,34 +14582,28 @@
      "x": 12,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 13,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
-     "x": 14,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 15,
+     "x": 14,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 16,
+     "x": 15,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
@@ -14666,34 +14648,28 @@
      "x": 12,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 13,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
-     "x": 14,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 15,
+     "x": 14,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 16,
+     "x": 15,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
@@ -15203,7 +15179,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "ec74d1d800fe9aecaef665ad80cfb22bfdadb0c50e671fa0ca99e7bede7faec2"
+   "boardSha256": "c363c3dc4175cfedd8332805a03ac7b2cede688aaf4ce968ad1221805df512f9"
   },
   {
    "schemaVersion": 2,
@@ -15226,7 +15202,7 @@
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -16110,7 +16086,7 @@
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -17030,7 +17006,7 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 8,
@@ -17905,16 +17881,22 @@
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
-     "x": 13,
+     "x": 14,
      "y": 3,
-     "licenseId": 1,
-     "region": "Quickening"
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 15,
+     "y": 3,
+     "licenseId": 95,
+     "region": "Esper island"
     },
     {
      "x": 7,
@@ -17929,19 +17911,7 @@
      "region": "Esper"
     },
     {
-     "x": 11,
-     "y": 4,
-     "licenseId": 52,
-     "region": "Esper island"
-    },
-    {
-     "x": 12,
-     "y": 4,
-     "licenseId": 18,
-     "region": "Esper"
-    },
-    {
-     "x": 13,
+     "x": 14,
      "y": 4,
      "licenseId": 148,
      "region": "Light armour"
@@ -17959,28 +17929,28 @@
      "region": "Heavy armour"
     },
     {
-     "x": 13,
+     "x": 10,
+     "y": 5,
+     "licenseId": 18,
+     "region": "Esper"
+    },
+    {
+     "x": 11,
+     "y": 5,
+     "licenseId": 52,
+     "region": "Esper island"
+    },
+    {
+     "x": 14,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 5,
      "licenseId": 351,
      "region": "Light armour"
-    },
-    {
-     "x": 15,
-     "y": 5,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 16,
-     "y": 5,
-     "licenseId": 95,
-     "region": "Esper island"
     },
     {
      "x": 7,
@@ -18001,16 +17971,22 @@
      "region": "Heavy armour"
     },
     {
-     "x": 13,
+     "x": 14,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
+    },
+    {
+     "x": 16,
+     "y": 6,
+     "licenseId": 1,
+     "region": "Quickening"
     },
     {
      "x": 8,
@@ -18033,11 +18009,17 @@
     {
      "x": 13,
      "y": 7,
+     "licenseId": 346,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
@@ -18087,23 +18069,29 @@
     {
      "x": 13,
      "y": 8,
-     "licenseId": 140,
-     "region": "Light armour"
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 14,
      "y": 8,
-     "licenseId": 143,
+     "licenseId": 140,
      "region": "Light armour"
     },
     {
      "x": 15,
      "y": 8,
+     "licenseId": 143,
+     "region": "Light armour"
+    },
+    {
+     "x": 16,
+     "y": 8,
      "licenseId": 20,
      "region": "Esper"
     },
     {
-     "x": 16,
+     "x": 17,
      "y": 8,
      "licenseId": 335,
      "region": "Esper island"
@@ -18141,11 +18129,17 @@
     {
      "x": 13,
      "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
@@ -18195,11 +18189,17 @@
     {
      "x": 13,
      "y": 10,
+     "licenseId": 111,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
@@ -18757,7 +18757,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "804160e17dc92481b039166cfe82cb3262e1f519588fc17f7931070a5decd724"
+   "boardSha256": "fc5c198eb12b203a37b5e5cdf88cbd0508e57e6a46256ee2ba36065446b0d2f5"
   },
   {
    "schemaVersion": 2,
@@ -18780,7 +18780,7 @@
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 8,
@@ -19604,7 +19604,7 @@
      "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -20518,7 +20518,7 @@
      "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 8,
@@ -21333,10 +21333,10 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 8,
@@ -21465,12 +21465,6 @@
      "region": "Esper"
     },
     {
-     "x": 13,
-     "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
-    },
-    {
      "x": 14,
      "y": 7,
      "licenseId": 154,
@@ -21521,14 +21515,14 @@
     {
      "x": 12,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -21581,14 +21575,14 @@
     {
      "x": 12,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -21641,14 +21635,14 @@
     {
      "x": 12,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -22185,7 +22179,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "e8264b4683e4c7a6629ac1eadd69c0034d0981c73a9b0dacbd37e55f27fbc89c"
+   "boardSha256": "ee4fa3ce8fdea445e8081abc7913743cc4935720891dbba547ecc1c51d8baffe"
   },
   {
    "schemaVersion": 2,
@@ -22205,100 +22199,94 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
-     "x": 6,
-     "y": 4,
-     "licenseId": 351,
-     "region": "Light armour"
-    },
-    {
-     "x": 5,
-     "y": 5,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
-     "y": 5,
-     "licenseId": 148,
-     "region": "Light armour"
-    },
-    {
      "x": 7,
-     "y": 5,
-     "licenseId": 146,
-     "region": "Light armour"
-    },
-    {
-     "x": 8,
-     "y": 5,
+     "y": 3,
      "licenseId": 30,
      "region": "Esper"
     },
     {
-     "x": 9,
-     "y": 5,
+     "x": 8,
+     "y": 3,
      "licenseId": 49,
      "region": "Esper island"
     },
     {
      "x": 6,
+     "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 4,
+     "licenseId": 351,
+     "region": "Light armour"
+    },
+    {
+     "x": 7,
+     "y": 5,
+     "licenseId": 148,
+     "region": "Light armour"
+    },
+    {
+     "x": 8,
+     "y": 5,
+     "licenseId": 146,
+     "region": "Light armour"
+    },
+    {
+     "x": 6,
+     "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 6,
      "licenseId": 18,
      "region": "Esper"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 6,
      "licenseId": 52,
      "region": "Esper island"
     },
     {
-     "x": 4,
-     "y": 7,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 7,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 89,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
      "x": 13,
@@ -22313,40 +22301,46 @@
      "region": "Esper island"
     },
     {
+     "x": 5,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 8,
-     "licenseId": 88,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -22361,46 +22355,34 @@
      "region": "Guns"
     },
     {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -22427,40 +22409,46 @@
      "region": "Esper island"
     },
     {
-     "x": 6,
+     "x": 4,
+     "y": 10,
+     "licenseId": 76,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 10,
+     "licenseId": 28,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -22491,18 +22479,6 @@
      "y": 10,
      "licenseId": 330,
      "region": "Esper island"
-    },
-    {
-     "x": 3,
-     "y": 11,
-     "licenseId": 76,
-     "region": "Esper island"
-    },
-    {
-     "x": 4,
-     "y": 11,
-     "licenseId": 28,
-     "region": "Esper"
     },
     {
      "x": 5,
@@ -22967,7 +22943,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "0da1a3726cc4379f08d9a39cac3e479d0fab4db90139815e9a4798b624a3e992"
+   "boardSha256": "610c3f2cff3c25747261c10176c7c50ddf5a264613e0774d6e0ff481620dbd4e"
   },
   {
    "schemaVersion": 2,
@@ -22990,7 +22966,7 @@
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -23754,7 +23730,7 @@
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 8,
@@ -24614,7 +24590,7 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -25465,10 +25441,10 @@
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -25525,6 +25501,18 @@
      "region": "Esper island"
     },
     {
+     "x": 13,
+     "y": 6,
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 14,
+     "y": 6,
+     "licenseId": 95,
+     "region": "Esper island"
+    },
+    {
      "x": 8,
      "y": 7,
      "licenseId": 145,
@@ -25541,6 +25529,12 @@
      "y": 7,
      "licenseId": 18,
      "region": "Esper"
+    },
+    {
+     "x": 13,
+     "y": 7,
+     "licenseId": 346,
+     "region": "Measures"
     },
     {
      "x": 6,
@@ -25587,14 +25581,8 @@
     {
      "x": 13,
      "y": 8,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 14,
-     "y": 8,
-     "licenseId": 95,
-     "region": "Esper island"
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 8,
@@ -25625,6 +25613,18 @@
      "y": 9,
      "licenseId": 74,
      "region": "Crossbows"
+    },
+    {
+     "x": 13,
+     "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 9,
+     "licenseId": 20,
+     "region": "Esper"
     },
     {
      "x": 15,
@@ -25675,13 +25675,13 @@
      "region": "Crossbows"
     },
     {
-     "x": 15,
+     "x": 13,
      "y": 10,
-     "licenseId": 20,
-     "region": "Esper"
+     "licenseId": 111,
+     "region": "Measures"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 10,
      "licenseId": 1,
      "region": "Quickening"
@@ -26203,7 +26203,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "9e42c13fc902bf8ed60e146db561d33e7759030f42f9219c178693843b8b2591"
+   "boardSha256": "653e1b1da3a47248668de0d483901c7a145e7a7ced335fdb085764c6cc861967"
   },
   {
    "schemaVersion": 2,
@@ -26226,7 +26226,7 @@
      "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 13,
@@ -27200,7 +27200,7 @@
      "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 9,
@@ -28093,10 +28093,10 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 9,
@@ -28129,12 +28129,6 @@
      "region": "Mystic armour"
     },
     {
-     "x": 12,
-     "y": 5,
-     "licenseId": 52,
-     "region": "Esper island"
-    },
-    {
      "x": 9,
      "y": 6,
      "licenseId": 159,
@@ -28157,6 +28151,12 @@
      "y": 6,
      "licenseId": 18,
      "region": "Esper"
+    },
+    {
+     "x": 13,
+     "y": 6,
+     "licenseId": 52,
+     "region": "Esper island"
     },
     {
      "x": 8,
@@ -28183,24 +28183,6 @@
      "region": "Maces"
     },
     {
-     "x": 13,
-     "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
-    },
-    {
-     "x": 14,
-     "y": 7,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 15,
-     "y": 7,
-     "licenseId": 95,
-     "region": "Esper island"
-    },
-    {
      "x": 9,
      "y": 8,
      "licenseId": 155,
@@ -28221,14 +28203,26 @@
     {
      "x": 12,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
+    },
+    {
+     "x": 14,
+     "y": 8,
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 15,
+     "y": 8,
+     "licenseId": 95,
+     "region": "Esper island"
     },
     {
      "x": 7,
@@ -28263,23 +28257,17 @@
     {
      "x": 12,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
-     "x": 14,
-     "y": 9,
-     "licenseId": 20,
-     "region": "Esper"
-    },
-    {
-     "x": 15,
+     "x": 16,
      "y": 9,
      "licenseId": 335,
      "region": "Esper island"
@@ -28317,20 +28305,20 @@
     {
      "x": 12,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 16,
      "y": 10,
-     "licenseId": 1,
-     "region": "Quickening"
+     "licenseId": 20,
+     "region": "Esper"
     },
     {
      "x": 19,
@@ -28523,6 +28511,12 @@
      "y": 12,
      "licenseId": 323,
      "region": "Passives"
+    },
+    {
+     "x": 20,
+     "y": 12,
+     "licenseId": 1,
+     "region": "Quickening"
     },
     {
      "x": 3,
@@ -28885,7 +28879,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "f5abad30ecd85d9daef8b4d4fb9f658a19f3b2ca75a50237fcbed8a1b57faeac"
+   "boardSha256": "2d5eed51276988d592adc307990d54faec76ae7cf400f6d987b9453d2c300e64"
   },
   {
    "schemaVersion": 2,
@@ -28905,11 +28899,23 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
+    {
+     "x": 7,
+     "y": 3,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
+     "y": 3,
+     "licenseId": 49,
+     "region": "Esper island"
+    },
     {
      "x": 13,
      "y": 3,
@@ -28919,8 +28925,26 @@
     {
      "x": 6,
      "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 4,
      "licenseId": 351,
      "region": "Light armour"
+    },
+    {
+     "x": 11,
+     "y": 4,
+     "licenseId": 52,
+     "region": "Esper island"
+    },
+    {
+     "x": 12,
+     "y": 4,
+     "licenseId": 18,
+     "region": "Esper"
     },
     {
      "x": 13,
@@ -28929,40 +28953,16 @@
      "region": "Mystic armour"
     },
     {
-     "x": 5,
-     "y": 5,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
-    },
-    {
-     "x": 8,
-     "y": 5,
-     "licenseId": 30,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
-    },
-    {
-     "x": 11,
-     "y": 5,
-     "licenseId": 52,
-     "region": "Esper island"
     },
     {
      "x": 13,
@@ -28991,20 +28991,20 @@
     {
      "x": 6,
      "y": 6,
-     "licenseId": 147,
-     "region": "Light armour"
+     "licenseId": 0,
+     "region": "Quickening"
     },
     {
      "x": 7,
      "y": 6,
-     "licenseId": 144,
+     "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 11,
+     "x": 8,
      "y": 6,
-     "licenseId": 18,
-     "region": "Esper"
+     "licenseId": 144,
+     "region": "Light armour"
     },
     {
      "x": 12,
@@ -29025,34 +29025,22 @@
      "region": "Mystic armour"
     },
     {
-     "x": 4,
-     "y": 7,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 7,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 89,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -29073,40 +29061,46 @@
      "region": "Mystic armour"
     },
     {
+     "x": 5,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 8,
-     "licenseId": 88,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -29139,46 +29133,34 @@
      "region": "Esper island"
     },
     {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -29199,40 +29181,46 @@
      "region": "Mystic armour"
     },
     {
-     "x": 6,
+     "x": 4,
+     "y": 10,
+     "licenseId": 76,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 10,
+     "licenseId": 28,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -29263,18 +29251,6 @@
      "y": 10,
      "licenseId": 330,
      "region": "Esper island"
-    },
-    {
-     "x": 3,
-     "y": 11,
-     "licenseId": 76,
-     "region": "Esper island"
-    },
-    {
-     "x": 4,
-     "y": 11,
-     "licenseId": 28,
-     "region": "Esper"
     },
     {
      "x": 5,
@@ -29805,7 +29781,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "f07fe94357bab51c3df574738947463c043c03d891ba95cdc61d9c866d59cbeb"
+   "boardSha256": "9e8a3f8a435d280af3af1db7c5a60f1f854ba52ad592e356b87d240035d37332"
   },
   {
    "schemaVersion": 2,
@@ -29828,7 +29804,7 @@
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 13,
@@ -30736,7 +30712,7 @@
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 9,
@@ -31530,7 +31506,7 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -32345,10 +32321,10 @@
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 13,
@@ -32357,16 +32333,22 @@
      "region": "Quickening"
     },
     {
-     "x": 9,
+     "x": 6,
+     "y": 4,
+     "licenseId": 49,
+     "region": "Esper island"
+    },
+    {
+     "x": 7,
+     "y": 4,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 4,
      "licenseId": 351,
      "region": "Light armour"
-    },
-    {
-     "x": 11,
-     "y": 4,
-     "licenseId": 52,
-     "region": "Esper island"
     },
     {
      "x": 13,
@@ -32375,25 +32357,13 @@
      "region": "Mystic armour"
     },
     {
-     "x": 7,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 5,
-     "licenseId": 30,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
@@ -32401,8 +32371,8 @@
     {
      "x": 11,
      "y": 5,
-     "licenseId": 18,
-     "region": "Esper"
+     "licenseId": 52,
+     "region": "Esper island"
     },
     {
      "x": 13,
@@ -32429,16 +32399,28 @@
      "region": "Esper island"
     },
     {
-     "x": 9,
+     "x": 7,
+     "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 8,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
+    },
+    {
+     "x": 11,
+     "y": 6,
+     "licenseId": 18,
+     "region": "Esper"
     },
     {
      "x": 12,
@@ -32461,20 +32443,20 @@
     {
      "x": 8,
      "y": 7,
-     "licenseId": 0,
-     "region": "Quickening"
+     "licenseId": 145,
+     "region": "Light armour"
     },
     {
      "x": 9,
      "y": 7,
-     "licenseId": 145,
+     "licenseId": 142,
      "region": "Light armour"
     },
     {
      "x": 10,
      "y": 7,
-     "licenseId": 142,
-     "region": "Light armour"
+     "licenseId": 346,
+     "region": "Measures"
     },
     {
      "x": 12,
@@ -32495,16 +32477,34 @@
      "region": "Mystic armour"
     },
     {
-     "x": 9,
+     "x": 6,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
+     "x": 7,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 8,
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -32543,28 +32543,22 @@
      "region": "Esper island"
     },
     {
-     "x": 7,
-     "y": 9,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 9,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -32603,16 +32597,22 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 8,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 10,
+     "licenseId": 111,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -33227,7 +33227,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "00a279f73dd524aac95042a9c9ee20d8272dd34f411cf489b4c67564fa9aad02"
+   "boardSha256": "b68946845cc4b8c678ba90d8d3c9105a8c47157f3bcce4693764496c3c31c720"
   },
   {
    "schemaVersion": 2,
@@ -33250,7 +33250,7 @@
      "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 14,
@@ -34263,23 +34263,11 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
-    {
-     "x": 14,
-     "y": 3,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 15,
-     "y": 3,
-     "licenseId": 95,
-     "region": "Esper island"
-    },
     {
      "x": 7,
      "y": 4,
@@ -34371,6 +34359,18 @@
      "region": "Swords"
     },
     {
+     "x": 12,
+     "y": 6,
+     "licenseId": 95,
+     "region": "Esper island"
+    },
+    {
+     "x": 13,
+     "y": 6,
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
      "x": 14,
      "y": 6,
      "licenseId": 156,
@@ -34437,12 +34437,6 @@
      "region": "Swords"
     },
     {
-     "x": 13,
-     "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
-    },
-    {
      "x": 14,
      "y": 7,
      "licenseId": 154,
@@ -34493,14 +34487,14 @@
     {
      "x": 12,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -34571,14 +34565,14 @@
     {
      "x": 12,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -34631,14 +34625,14 @@
     {
      "x": 12,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -35265,7 +35259,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "3378c07a7f0b8d703aa9c4258d1acdb74308d51e52efc06274485a78933299fa"
+   "boardSha256": "5183faf04817b9580253bef850253d5d36d9a189dde2fe01e79d416c06e5f764"
   },
   {
    "schemaVersion": 2,
@@ -35285,10 +35279,10 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -35303,19 +35297,7 @@
      "region": "Esper island"
     },
     {
-     "x": 14,
-     "y": 4,
-     "licenseId": 95,
-     "region": "Esper island"
-    },
-    {
      "x": 15,
-     "y": 4,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 16,
      "y": 4,
      "licenseId": 148,
      "region": "Light armour"
@@ -35351,16 +35333,34 @@
      "region": "Esper island"
     },
     {
-     "x": 16,
+     "x": 13,
+     "y": 5,
+     "licenseId": 95,
+     "region": "Esper island"
+    },
+    {
+     "x": 14,
+     "y": 5,
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 15,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 5,
      "licenseId": 351,
      "region": "Light armour"
+    },
+    {
+     "x": 17,
+     "y": 5,
+     "licenseId": 1,
+     "region": "Quickening"
     },
     {
      "x": 6,
@@ -35395,32 +35395,14 @@
     {
      "x": 15,
      "y": 6,
-     "licenseId": 1,
-     "region": "Quickening"
-    },
-    {
-     "x": 16,
-     "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
-    },
-    {
-     "x": 18,
-     "y": 6,
-     "licenseId": 20,
-     "region": "Esper"
-    },
-    {
-     "x": 19,
-     "y": 6,
-     "licenseId": 335,
-     "region": "Esper island"
     },
     {
      "x": 4,
@@ -35473,20 +35455,32 @@
     {
      "x": 12,
      "y": 7,
-     "licenseId": 88,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
-     "x": 16,
+     "x": 15,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
+    },
+    {
+     "x": 17,
+     "y": 7,
+     "licenseId": 20,
+     "region": "Esper"
+    },
+    {
+     "x": 18,
+     "y": 7,
+     "licenseId": 335,
+     "region": "Esper island"
     },
     {
      "x": 6,
@@ -35527,35 +35521,29 @@
     {
      "x": 12,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 13,
-     "y": 8,
-     "licenseId": 89,
-     "region": "Axes & hammers"
-    },
-    {
-     "x": 14,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 15,
+     "x": 14,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 16,
+     "x": 15,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
@@ -35606,34 +35594,28 @@
      "x": 12,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 13,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
-     "x": 14,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 15,
+     "x": 14,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 16,
+     "x": 15,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
@@ -35678,34 +35660,28 @@
      "x": 12,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 13,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
-     "x": 14,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 15,
+     "x": 14,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 16,
+     "x": 15,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
@@ -36233,7 +36209,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "01957898ec3fe1c1f1733e5c883ac29bdf4ac9aef60ad220ad6a71ac801da4f5"
+   "boardSha256": "6aeddc8a8d863a5afe6e96692993979b674bb5a63269bf47cd479341dcfa317d"
   },
   {
    "schemaVersion": 2,
@@ -36256,7 +36232,7 @@
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -37230,7 +37206,7 @@
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -38240,7 +38216,7 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -39205,16 +39181,22 @@
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
-     "x": 13,
+     "x": 14,
      "y": 3,
-     "licenseId": 1,
-     "region": "Quickening"
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 15,
+     "y": 3,
+     "licenseId": 95,
+     "region": "Esper island"
     },
     {
      "x": 7,
@@ -39229,19 +39211,7 @@
      "region": "Esper island"
     },
     {
-     "x": 11,
-     "y": 4,
-     "licenseId": 52,
-     "region": "Esper island"
-    },
-    {
-     "x": 12,
-     "y": 4,
-     "licenseId": 18,
-     "region": "Esper"
-    },
-    {
-     "x": 13,
+     "x": 14,
      "y": 4,
      "licenseId": 148,
      "region": "Light armour"
@@ -39265,28 +39235,28 @@
      "region": "Heavy armour"
     },
     {
-     "x": 13,
+     "x": 10,
+     "y": 5,
+     "licenseId": 18,
+     "region": "Esper"
+    },
+    {
+     "x": 11,
+     "y": 5,
+     "licenseId": 52,
+     "region": "Esper island"
+    },
+    {
+     "x": 14,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 5,
      "licenseId": 351,
      "region": "Light armour"
-    },
-    {
-     "x": 15,
-     "y": 5,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 16,
-     "y": 5,
-     "licenseId": 95,
-     "region": "Esper island"
     },
     {
      "x": 6,
@@ -39319,16 +39289,22 @@
      "region": "Swords"
     },
     {
-     "x": 13,
+     "x": 14,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
+    },
+    {
+     "x": 16,
+     "y": 6,
+     "licenseId": 1,
+     "region": "Quickening"
     },
     {
      "x": 4,
@@ -39381,11 +39357,17 @@
     {
      "x": 13,
      "y": 7,
+     "licenseId": 346,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
@@ -39435,23 +39417,29 @@
     {
      "x": 13,
      "y": 8,
-     "licenseId": 140,
-     "region": "Light armour"
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 14,
      "y": 8,
-     "licenseId": 143,
+     "licenseId": 140,
      "region": "Light armour"
     },
     {
      "x": 15,
      "y": 8,
+     "licenseId": 143,
+     "region": "Light armour"
+    },
+    {
+     "x": 16,
+     "y": 8,
      "licenseId": 20,
      "region": "Esper"
     },
     {
-     "x": 16,
+     "x": 17,
      "y": 8,
      "licenseId": 335,
      "region": "Esper island"
@@ -39507,11 +39495,17 @@
     {
      "x": 13,
      "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
@@ -39561,11 +39555,17 @@
     {
      "x": 13,
      "y": 10,
+     "licenseId": 111,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
@@ -40147,7 +40147,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "8f9c689bb0bdec80788d2a9498e7bf0700b721712fd2807a242da2c5fcee99c8"
+   "boardSha256": "d05fdc3657638c536fab6844ddff83f0c09e951594f6cb60d805b8f7526d48a3"
   },
   {
    "schemaVersion": 2,
@@ -40167,10 +40167,10 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 14,
@@ -40293,12 +40293,6 @@
      "region": "Mystic armour"
     },
     {
-     "x": 10,
-     "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
-    },
-    {
      "x": 12,
      "y": 7,
      "licenseId": 338,
@@ -40343,14 +40337,14 @@
     {
      "x": 10,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 11,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 12,
@@ -40403,14 +40397,14 @@
     {
      "x": 10,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 11,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 12,
@@ -40463,14 +40457,14 @@
     {
      "x": 10,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 11,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 12,
@@ -41091,7 +41085,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "c3f8298a88832b171d62fa1f3cd0a287c4913840e7c84f92bd631f1b4f4b95e1"
+   "boardSha256": "90b9cf310609e1d8c2f217997fbb625d44ae4fd8518ec8692fc7d08da5e42962"
   },
   {
    "schemaVersion": 2,
@@ -41111,55 +41105,61 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
-     "x": 6,
-     "y": 4,
-     "licenseId": 351,
-     "region": "Light armour"
-    },
-    {
-     "x": 5,
-     "y": 5,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
-     "y": 5,
-     "licenseId": 148,
-     "region": "Light armour"
-    },
-    {
      "x": 7,
-     "y": 5,
-     "licenseId": 146,
-     "region": "Light armour"
-    },
-    {
-     "x": 8,
-     "y": 5,
+     "y": 3,
      "licenseId": 30,
      "region": "Esper"
     },
     {
-     "x": 9,
-     "y": 5,
+     "x": 8,
+     "y": 3,
      "licenseId": 49,
      "region": "Esper island"
     },
     {
      "x": 6,
+     "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 4,
+     "licenseId": 351,
+     "region": "Light armour"
+    },
+    {
+     "x": 7,
+     "y": 5,
+     "licenseId": 148,
+     "region": "Light armour"
+    },
+    {
+     "x": 8,
+     "y": 5,
+     "licenseId": 146,
+     "region": "Light armour"
+    },
+    {
+     "x": 6,
+     "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
@@ -41167,14 +41167,14 @@
     {
      "x": 10,
      "y": 6,
-     "licenseId": 18,
-     "region": "Esper"
+     "licenseId": 52,
+     "region": "Esper island"
     },
     {
      "x": 11,
      "y": 6,
-     "licenseId": 52,
-     "region": "Esper island"
+     "licenseId": 18,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -41183,34 +41183,22 @@
      "region": "Esper island"
     },
     {
-     "x": 4,
-     "y": 7,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 7,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 89,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -41225,40 +41213,46 @@
      "region": "Esper"
     },
     {
+     "x": 5,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 8,
-     "licenseId": 88,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -41297,46 +41291,34 @@
      "region": "Esper island"
     },
     {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -41363,40 +41345,46 @@
      "region": "Mystic armour"
     },
     {
-     "x": 6,
+     "x": 4,
+     "y": 10,
+     "licenseId": 76,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 10,
+     "licenseId": 28,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -41439,18 +41427,6 @@
      "y": 10,
      "licenseId": 330,
      "region": "Esper island"
-    },
-    {
-     "x": 3,
-     "y": 11,
-     "licenseId": 76,
-     "region": "Esper island"
-    },
-    {
-     "x": 4,
-     "y": 11,
-     "licenseId": 28,
-     "region": "Esper"
     },
     {
      "x": 5,
@@ -41975,7 +41951,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "38fe78a100c887aa5034ac3c4429687fd13039ab7389e0cb4889722246a2ce04"
+   "boardSha256": "2caadf2fbf52109a02ac9c730f6140434ed7fd41e02a103c078a531a47370a96"
   },
   {
    "schemaVersion": 2,
@@ -41998,7 +41974,7 @@
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -42876,7 +42852,7 @@
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -43808,7 +43784,7 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -44701,64 +44677,76 @@
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
-     "x": 9,
+     "x": 6,
+     "y": 4,
+     "licenseId": 49,
+     "region": "Esper island"
+    },
+    {
+     "x": 7,
+     "y": 4,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 4,
      "licenseId": 351,
      "region": "Light armour"
     },
     {
-     "x": 7,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 5,
-     "licenseId": 30,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
     },
     {
-     "x": 11,
+     "x": 10,
      "y": 5,
      "licenseId": 18,
      "region": "Esper"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 5,
      "licenseId": 52,
      "region": "Esper island"
     },
     {
-     "x": 9,
+     "x": 7,
+     "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 8,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
+    },
+    {
+     "x": 12,
+     "y": 6,
+     "licenseId": 1,
+     "region": "Quickening"
     },
     {
      "x": 14,
@@ -44769,20 +44757,20 @@
     {
      "x": 8,
      "y": 7,
-     "licenseId": 0,
-     "region": "Quickening"
+     "licenseId": 145,
+     "region": "Light armour"
     },
     {
      "x": 9,
      "y": 7,
-     "licenseId": 145,
+     "licenseId": 142,
      "region": "Light armour"
     },
     {
      "x": 10,
      "y": 7,
-     "licenseId": 142,
-     "region": "Light armour"
+     "licenseId": 346,
+     "region": "Measures"
     },
     {
      "x": 12,
@@ -44797,16 +44785,34 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 6,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
+     "x": 7,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 8,
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -44851,28 +44857,22 @@
      "region": "Esper island"
     },
     {
-     "x": 7,
-     "y": 9,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 9,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -44917,16 +44917,22 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 8,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 10,
+     "licenseId": 111,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -44957,12 +44963,6 @@
      "y": 10,
      "licenseId": 151,
      "region": "Mystic armour"
-    },
-    {
-     "x": 17,
-     "y": 10,
-     "licenseId": 1,
-     "region": "Quickening"
     },
     {
      "x": 19,
@@ -45553,7 +45553,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "d082d64ebb7a4b05a185c82a0f517704038acd372db7fa62aa9ff45591841703"
+   "boardSha256": "0c04fd478ca9f49b77fdc8d2c9e926882efe55c0fc0109b2b0ae8f6d12365427"
   },
   {
    "schemaVersion": 2,
@@ -45568,16 +45568,28 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
+    {
+     "x": 7,
+     "y": 3,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
+     "y": 3,
+     "licenseId": 49,
+     "region": "Esper island"
+    },
     {
      "x": 14,
      "y": 3,
@@ -45593,6 +45605,12 @@
     {
      "x": 6,
      "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 4,
      "licenseId": 351,
      "region": "Light armour"
     },
@@ -45603,34 +45621,16 @@
      "region": "Mystic armour"
     },
     {
-     "x": 5,
-     "y": 5,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
-    },
-    {
-     "x": 8,
-     "y": 5,
-     "licenseId": 30,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
     },
     {
      "x": 14,
@@ -45647,23 +45647,29 @@
     {
      "x": 6,
      "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 6,
      "licenseId": 18,
      "region": "Esper"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 6,
      "licenseId": 52,
      "region": "Esper island"
@@ -45687,40 +45693,22 @@
      "region": "Quickening"
     },
     {
-     "x": 4,
-     "y": 7,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 7,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 89,
-     "region": "Axes & hammers"
-    },
-    {
-     "x": 13,
-     "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
      "x": 14,
@@ -45735,52 +45723,58 @@
      "region": "Mystic armour"
     },
     {
+     "x": 5,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 8,
-     "licenseId": 88,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 12,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -45807,58 +45801,46 @@
      "region": "Esper island"
     },
     {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -45873,52 +45855,58 @@
      "region": "Mystic armour"
     },
     {
-     "x": 6,
+     "x": 4,
+     "y": 10,
+     "licenseId": 76,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 10,
+     "licenseId": 28,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -45943,18 +45931,6 @@
      "y": 10,
      "licenseId": 330,
      "region": "Esper island"
-    },
-    {
-     "x": 3,
-     "y": 11,
-     "licenseId": 76,
-     "region": "Esper island"
-    },
-    {
-     "x": 4,
-     "y": 11,
-     "licenseId": 28,
-     "region": "Esper"
     },
     {
      "x": 5,
@@ -46521,7 +46497,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "2b14a429e5aba17d1452280b68d430bb76970d07f9b9344098abfb9dee6bc93b"
+   "boardSha256": "578349861655fca90eb172405352273dbf6b9372fa82df479e73e7cc02d9607b"
   },
   {
    "schemaVersion": 2,
@@ -46536,7 +46512,7 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 8,
@@ -46544,7 +46520,7 @@
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 14,
@@ -46691,12 +46667,6 @@
      "region": "Bows"
     },
     {
-     "x": 13,
-     "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
-    },
-    {
      "x": 14,
      "y": 7,
      "licenseId": 154,
@@ -46747,14 +46717,14 @@
     {
      "x": 12,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -46825,14 +46795,14 @@
     {
      "x": 12,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -46885,14 +46855,14 @@
     {
      "x": 12,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -47477,7 +47447,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "765c85f87519db0c52ecd2ccd51d46c4e9d5ecd47cc3d46bb4abe073315247fc"
+   "boardSha256": "aa15c3644196597b670032595a0eafce88f066bdaf4e1bb000b3c8a2e9ebd016"
   },
   {
    "schemaVersion": 2,
@@ -47492,7 +47462,7 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 9,
@@ -47500,7 +47470,7 @@
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -47533,18 +47503,6 @@
      "region": "Mystic armour"
     },
     {
-     "x": 10,
-     "y": 5,
-     "licenseId": 18,
-     "region": "Esper"
-    },
-    {
-     "x": 11,
-     "y": 5,
-     "licenseId": 52,
-     "region": "Esper island"
-    },
-    {
      "x": 7,
      "y": 6,
      "licenseId": 0,
@@ -47563,6 +47521,12 @@
      "region": "Mystic armour"
     },
     {
+     "x": 11,
+     "y": 6,
+     "licenseId": 52,
+     "region": "Esper island"
+    },
+    {
      "x": 8,
      "y": 7,
      "licenseId": 157,
@@ -47575,10 +47539,10 @@
      "region": "Mystic armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
+     "licenseId": 18,
+     "region": "Esper"
     },
     {
      "x": 13,
@@ -47619,14 +47583,14 @@
     {
      "x": 10,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 11,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 12,
@@ -47655,14 +47619,14 @@
     {
      "x": 10,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 11,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 12,
@@ -47715,14 +47679,14 @@
     {
      "x": 10,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 11,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 12,
@@ -48307,7 +48271,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "f74cec51bdd63789831baea9cf58dcd3faeabf503260cd238f72235e85204f0f"
+   "boardSha256": "db1020fedaa144bfc1f208eab5bd237e8db9ee9d6b036e2f29afa624473f14c8"
   },
   {
    "schemaVersion": 2,
@@ -48322,7 +48286,7 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 10,
@@ -48330,7 +48294,7 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -48405,18 +48369,6 @@
      "region": "Katana"
     },
     {
-     "x": 13,
-     "y": 6,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 14,
-     "y": 6,
-     "licenseId": 95,
-     "region": "Esper island"
-    },
-    {
      "x": 7,
      "y": 7,
      "licenseId": 157,
@@ -48437,8 +48389,14 @@
     {
      "x": 13,
      "y": 7,
-     "licenseId": 346,
-     "region": "Measures"
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 14,
+     "y": 7,
+     "licenseId": 95,
+     "region": "Esper island"
     },
     {
      "x": 5,
@@ -48479,14 +48437,14 @@
     {
      "x": 12,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 7,
@@ -48515,14 +48473,14 @@
     {
      "x": 12,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -48581,14 +48539,14 @@
     {
      "x": 12,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 16,
@@ -49167,7 +49125,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "a7400c7822fa0a454d0150aa9ec0c2ae93236b56933eeb7fe0f4c160655eb25f"
+   "boardSha256": "1106606fa53808acbc2f8d63a689e9f14873dcb89e20013bbeebcfa8ce3323e5"
   },
   {
    "schemaVersion": 2,
@@ -49182,30 +49140,30 @@
     {
      "job": 6,
      "basejobs": "0.5.1",
-     "sha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35"
+     "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
-     "x": 14,
-     "y": 3,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 15,
-     "y": 3,
-     "licenseId": 95,
+     "x": 6,
+     "y": 4,
+     "licenseId": 49,
      "region": "Esper island"
     },
     {
-     "x": 9,
+     "x": 7,
+     "y": 4,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 4,
      "licenseId": 351,
      "region": "Light armour"
@@ -49217,28 +49175,28 @@
      "region": "Mystic armour"
     },
     {
-     "x": 7,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 5,
-     "licenseId": 30,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 5,
+     "licenseId": 18,
+     "region": "Esper"
+    },
+    {
+     "x": 11,
+     "y": 5,
+     "licenseId": 52,
+     "region": "Esper island"
     },
     {
      "x": 14,
@@ -49253,28 +49211,34 @@
      "region": "Mystic armour"
     },
     {
-     "x": 9,
+     "x": 7,
+     "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 8,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 11,
-     "y": 6,
-     "licenseId": 18,
-     "region": "Esper"
-    },
-    {
      "x": 12,
      "y": 6,
-     "licenseId": 52,
+     "licenseId": 95,
      "region": "Esper island"
+    },
+    {
+     "x": 13,
+     "y": 6,
+     "licenseId": 19,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -49297,23 +49261,17 @@
     {
      "x": 8,
      "y": 7,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 9,
-     "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 13,
+     "x": 10,
      "y": 7,
      "licenseId": 346,
      "region": "Measures"
@@ -49331,16 +49289,34 @@
      "region": "Mystic armour"
     },
     {
-     "x": 9,
+     "x": 6,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
+     "x": 7,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 8,
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -49351,14 +49327,14 @@
     {
      "x": 12,
      "y": 8,
-     "licenseId": 116,
-     "region": "Hand-bombs"
+     "licenseId": 89,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 8,
-     "licenseId": 113,
-     "region": "Measures"
+     "licenseId": 116,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -49385,28 +49361,22 @@
      "region": "Esper island"
     },
     {
-     "x": 7,
-     "y": 9,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 9,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -49417,14 +49387,14 @@
     {
      "x": 12,
      "y": 9,
-     "licenseId": 115,
-     "region": "Hand-bombs"
+     "licenseId": 88,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 9,
-     "licenseId": 112,
-     "region": "Measures"
+     "licenseId": 115,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -49451,16 +49421,22 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 8,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 10,
+     "licenseId": 111,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -49471,14 +49447,14 @@
     {
      "x": 12,
      "y": 10,
-     "licenseId": 114,
-     "region": "Hand-bombs"
+     "licenseId": 87,
+     "region": "Hammers"
     },
     {
      "x": 13,
      "y": 10,
-     "licenseId": 111,
-     "region": "Measures"
+     "licenseId": 114,
+     "region": "Hand-bombs"
     },
     {
      "x": 14,
@@ -50111,7 +50087,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "2635ffd0e32ec477ca47fe9a80029aab50ad9b2d0abdb1bc0b60dfb05586142f"
+   "boardSha256": "f23ea5dc81ff5b103e9bcdbba3a31a55f9c8784caa86b206c27949ca628db7a0"
   },
   {
    "schemaVersion": 2,
@@ -50126,7 +50102,7 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     },
     {
      "job": 8,
@@ -50134,52 +50110,58 @@
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
-     "x": 6,
-     "y": 4,
-     "licenseId": 351,
-     "region": "Light armour"
-    },
-    {
-     "x": 5,
-     "y": 5,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
-     "y": 5,
-     "licenseId": 148,
-     "region": "Light armour"
-    },
-    {
      "x": 7,
-     "y": 5,
-     "licenseId": 146,
-     "region": "Light armour"
-    },
-    {
-     "x": 8,
-     "y": 5,
+     "y": 3,
      "licenseId": 30,
      "region": "Esper"
     },
     {
-     "x": 9,
-     "y": 5,
+     "x": 8,
+     "y": 3,
      "licenseId": 49,
      "region": "Esper island"
     },
     {
      "x": 6,
+     "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 4,
+     "licenseId": 351,
+     "region": "Light armour"
+    },
+    {
+     "x": 7,
+     "y": 5,
+     "licenseId": 148,
+     "region": "Light armour"
+    },
+    {
+     "x": 8,
+     "y": 5,
+     "licenseId": 146,
+     "region": "Light armour"
+    },
+    {
+     "x": 6,
+     "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
@@ -50187,14 +50169,14 @@
     {
      "x": 10,
      "y": 6,
-     "licenseId": 18,
-     "region": "Esper"
+     "licenseId": 52,
+     "region": "Esper island"
     },
     {
      "x": 11,
      "y": 6,
-     "licenseId": 52,
-     "region": "Esper island"
+     "licenseId": 18,
+     "region": "Esper"
     },
     {
      "x": 13,
@@ -50209,34 +50191,22 @@
      "region": "Esper island"
     },
     {
-     "x": 4,
-     "y": 7,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 7,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 89,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -50257,40 +50227,46 @@
      "region": "Quickening"
     },
     {
+     "x": 5,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 8,
-     "licenseId": 88,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -50329,46 +50305,34 @@
      "region": "Esper island"
     },
     {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -50395,40 +50359,46 @@
      "region": "Daggers"
     },
     {
-     "x": 6,
+     "x": 4,
+     "y": 10,
+     "licenseId": 76,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 10,
+     "licenseId": 28,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -50465,18 +50435,6 @@
      "y": 10,
      "licenseId": 330,
      "region": "Esper island"
-    },
-    {
-     "x": 3,
-     "y": 11,
-     "licenseId": 76,
-     "region": "Esper island"
-    },
-    {
-     "x": 4,
-     "y": 11,
-     "licenseId": 28,
-     "region": "Esper"
     },
     {
      "x": 5,
@@ -50947,7 +50905,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "4454ecd375e7c737c4629144130953a23d0441cb72d376dd7d01763d5d18c1f8"
+   "boardSha256": "c2d027b054cb2ba0fd06a88c51bbb8f272d97e585d9f074d3f3c5a9f486edee1"
   },
   {
    "schemaVersion": 2,
@@ -50962,7 +50920,7 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     },
     {
      "job": 9,
@@ -50970,8 +50928,20 @@
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
+    {
+     "x": 7,
+     "y": 3,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
+     "y": 3,
+     "licenseId": 49,
+     "region": "Esper island"
+    },
     {
      "x": 14,
      "y": 3,
@@ -50987,6 +50957,12 @@
     {
      "x": 6,
      "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 4,
      "licenseId": 351,
      "region": "Light armour"
     },
@@ -50997,34 +50973,16 @@
      "region": "Mystic armour"
     },
     {
-     "x": 5,
-     "y": 5,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
-    },
-    {
-     "x": 8,
-     "y": 5,
-     "licenseId": 30,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
     },
     {
      "x": 14,
@@ -51041,23 +50999,29 @@
     {
      "x": 6,
      "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 6,
      "licenseId": 18,
      "region": "Esper"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 6,
      "licenseId": 52,
      "region": "Esper island"
@@ -51081,34 +51045,22 @@
      "region": "Quickening"
     },
     {
-     "x": 4,
-     "y": 7,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 7,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 89,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
      "x": 14,
@@ -51123,40 +51075,46 @@
      "region": "Mystic armour"
     },
     {
+     "x": 5,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 8,
-     "licenseId": 88,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -51195,46 +51153,34 @@
      "region": "Esper island"
     },
     {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -51261,40 +51207,46 @@
      "region": "Mystic armour"
     },
     {
-     "x": 6,
+     "x": 4,
+     "y": 10,
+     "licenseId": 76,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 10,
+     "licenseId": 28,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -51331,18 +51283,6 @@
      "y": 10,
      "licenseId": 330,
      "region": "Esper island"
-    },
-    {
-     "x": 3,
-     "y": 11,
-     "licenseId": 76,
-     "region": "Esper island"
-    },
-    {
-     "x": 4,
-     "y": 11,
-     "licenseId": 28,
-     "region": "Esper"
     },
     {
      "x": 5,
@@ -51903,7 +51843,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "662068b084510f685aa4dea65f7259a7ea408da68d6a28eba0bdc35488cd1703"
+   "boardSha256": "3ddc5e99dbeb408d3d97828896f9d3393d4b72addb169a2d6ac2883937b27f90"
   },
   {
    "schemaVersion": 2,
@@ -51918,7 +51858,7 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     },
     {
      "job": 10,
@@ -51926,10 +51866,40 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
+     "x": 7,
+     "y": 3,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
+     "y": 3,
+     "licenseId": 49,
+     "region": "Esper island"
+    },
+    {
+     "x": 15,
+     "y": 3,
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 16,
+     "y": 3,
+     "licenseId": 95,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
+     "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
      "y": 4,
      "licenseId": 351,
      "region": "Light armour"
@@ -51941,52 +51911,28 @@
      "region": "Mystic armour"
     },
     {
-     "x": 5,
-     "y": 5,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 12,
      "y": 5,
-     "licenseId": 30,
+     "licenseId": 18,
      "region": "Esper"
-    },
-    {
-     "x": 9,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
-    },
-    {
-     "x": 11,
-     "y": 5,
-     "licenseId": 52,
-     "region": "Esper island"
     },
     {
      "x": 13,
      "y": 5,
-     "licenseId": 95,
+     "licenseId": 52,
      "region": "Esper island"
-    },
-    {
-     "x": 14,
-     "y": 5,
-     "licenseId": 19,
-     "region": "Esper"
     },
     {
      "x": 15,
@@ -52009,20 +51955,20 @@
     {
      "x": 6,
      "y": 6,
-     "licenseId": 147,
-     "region": "Light armour"
+     "licenseId": 0,
+     "region": "Quickening"
     },
     {
      "x": 7,
      "y": 6,
-     "licenseId": 144,
+     "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 11,
+     "x": 8,
      "y": 6,
-     "licenseId": 18,
-     "region": "Esper"
+     "licenseId": 144,
+     "region": "Light armour"
     },
     {
      "x": 12,
@@ -52043,34 +51989,22 @@
      "region": "Mystic armour"
     },
     {
-     "x": 4,
-     "y": 7,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 7,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 89,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -52103,40 +52037,46 @@
      "region": "Esper island"
     },
     {
+     "x": 5,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 8,
-     "licenseId": 88,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -52163,46 +52103,34 @@
      "region": "Mystic armour"
     },
     {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -52229,40 +52157,46 @@
      "region": "Mystic armour"
     },
     {
-     "x": 6,
+     "x": 4,
+     "y": 10,
+     "licenseId": 76,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 10,
+     "licenseId": 28,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -52305,18 +52239,6 @@
      "y": 10,
      "licenseId": 330,
      "region": "Esper island"
-    },
-    {
-     "x": 3,
-     "y": 11,
-     "licenseId": 76,
-     "region": "Esper island"
-    },
-    {
-     "x": 4,
-     "y": 11,
-     "licenseId": 28,
-     "region": "Esper"
     },
     {
      "x": 5,
@@ -52811,7 +52733,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "bc3b704c62ba2f6fd8b306fbc4efc4f98d073fc5bfc254bfc328f237b6839022"
+   "boardSha256": "b3c7a2ef724eba7cc8197c9033c222ccd0cc371659c7d7664835267ce9ca772d"
   },
   {
    "schemaVersion": 2,
@@ -52826,147 +52748,159 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2"
+     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
     },
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
-     "x": 6,
-     "y": 4,
-     "licenseId": 351,
-     "region": "Light armour"
-    },
-    {
-     "x": 5,
-     "y": 5,
-     "licenseId": 0,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
-     "y": 5,
-     "licenseId": 148,
-     "region": "Light armour"
-    },
-    {
      "x": 7,
-     "y": 5,
-     "licenseId": 146,
-     "region": "Light armour"
-    },
-    {
-     "x": 8,
-     "y": 5,
+     "y": 3,
      "licenseId": 30,
      "region": "Esper"
     },
     {
-     "x": 9,
-     "y": 5,
+     "x": 8,
+     "y": 3,
      "licenseId": 49,
      "region": "Esper island"
     },
     {
      "x": 6,
+     "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
+     "y": 4,
+     "licenseId": 351,
+     "region": "Light armour"
+    },
+    {
+     "x": 7,
+     "y": 5,
+     "licenseId": 148,
+     "region": "Light armour"
+    },
+    {
+     "x": 8,
+     "y": 5,
+     "licenseId": 146,
+     "region": "Light armour"
+    },
+    {
+     "x": 6,
+     "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 7,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 6,
      "licenseId": 18,
      "region": "Esper"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 6,
      "licenseId": 52,
      "region": "Esper island"
     },
     {
-     "x": 4,
-     "y": 7,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 7,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 11,
      "y": 7,
-     "licenseId": 89,
-     "region": "Axes & hammers"
+     "licenseId": 86,
+     "region": "Axes"
     },
     {
-     "x": 12,
+     "x": 13,
      "y": 7,
-     "licenseId": 1,
-     "region": "Quickening"
+     "licenseId": 346,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 7,
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 15,
+     "y": 7,
+     "licenseId": 95,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
     },
     {
      "x": 6,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 8,
      "licenseId": 44,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 8,
      "licenseId": 332,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 8,
-     "licenseId": 88,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 8,
-     "licenseId": 86,
-     "region": "Axes & hammers"
+     "licenseId": 85,
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -52977,56 +52911,38 @@
     {
      "x": 13,
      "y": 8,
-     "licenseId": 19,
-     "region": "Esper"
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
-     "x": 14,
-     "y": 8,
-     "licenseId": 95,
-     "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
+     "x": 7,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 9,
      "licenseId": 43,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 9,
      "licenseId": 41,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 9,
-     "licenseId": 87,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 9,
      "licenseId": 84,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -53035,46 +52951,64 @@
      "region": "Crossbows"
     },
     {
+     "x": 13,
+     "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 9,
+     "licenseId": 20,
+     "region": "Esper"
+    },
+    {
      "x": 15,
      "y": 9,
      "licenseId": 335,
      "region": "Esper island"
     },
     {
-     "x": 6,
+     "x": 4,
+     "y": 10,
+     "licenseId": 76,
+     "region": "Esper island"
+    },
+    {
+     "x": 5,
+     "y": 10,
+     "licenseId": 28,
+     "region": "Esper"
+    },
+    {
+     "x": 7,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 7,
+     "x": 8,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 8,
+     "x": 9,
      "y": 10,
      "licenseId": 42,
      "region": "Greatswords"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 10,
      "licenseId": 40,
      "region": "Greatswords"
     },
     {
-     "x": 10,
-     "y": 10,
-     "licenseId": 85,
-     "region": "Axes & hammers"
-    },
-    {
      "x": 11,
      "y": 10,
      "licenseId": 83,
-     "region": "Axes & hammers"
+     "region": "Axes"
     },
     {
      "x": 12,
@@ -53083,10 +53017,16 @@
      "region": "Crossbows"
     },
     {
-     "x": 15,
+     "x": 13,
      "y": 10,
-     "licenseId": 20,
-     "region": "Esper"
+     "licenseId": 111,
+     "region": "Measures"
+    },
+    {
+     "x": 16,
+     "y": 10,
+     "licenseId": 1,
+     "region": "Quickening"
     },
     {
      "x": 19,
@@ -53099,18 +53039,6 @@
      "y": 10,
      "licenseId": 330,
      "region": "Esper island"
-    },
-    {
-     "x": 3,
-     "y": 11,
-     "licenseId": 76,
-     "region": "Esper island"
-    },
-    {
-     "x": 4,
-     "y": 11,
-     "licenseId": 28,
-     "region": "Esper"
     },
     {
      "x": 5,
@@ -53635,7 +53563,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "94be0e560e6ea8e75ee644c34d42b33163cb1ab0e28469da5b9e2d3ce9b3166f"
+   "boardSha256": "48d08057ca5334635c4ca1cc425784b6266ac429ef609db1339855c2890a120e"
   },
   {
    "schemaVersion": 2,
@@ -53658,7 +53586,7 @@
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 14,
@@ -54602,7 +54530,7 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -55507,10 +55435,10 @@
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 6,
@@ -55609,6 +55537,24 @@
      "region": "Bows"
     },
     {
+     "x": 13,
+     "y": 7,
+     "licenseId": 346,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 7,
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 15,
+     "y": 7,
+     "licenseId": 95,
+     "region": "Esper island"
+    },
+    {
      "x": 6,
      "y": 8,
      "licenseId": 143,
@@ -55653,14 +55599,8 @@
     {
      "x": 13,
      "y": 8,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 14,
-     "y": 8,
-     "licenseId": 95,
-     "region": "Esper island"
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 5,
@@ -55711,6 +55651,18 @@
      "region": "Crossbows"
     },
     {
+     "x": 13,
+     "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 9,
+     "licenseId": 20,
+     "region": "Esper"
+    },
+    {
      "x": 15,
      "y": 9,
      "licenseId": 335,
@@ -55759,13 +55711,13 @@
      "region": "Crossbows"
     },
     {
-     "x": 15,
+     "x": 13,
      "y": 10,
-     "licenseId": 20,
-     "region": "Esper"
+     "licenseId": 111,
+     "region": "Measures"
     },
     {
-     "x": 17,
+     "x": 16,
      "y": 10,
      "licenseId": 1,
      "region": "Quickening"
@@ -56299,7 +56251,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "2ac9801cd4940f2886d06bed6d5e8c25888a048a23cf38227afb23ce1305b223"
+   "boardSha256": "2631b2d1bae549057b80f08fb983221ee3b9dacb91e670b9003c828ffd48994f"
   },
   {
    "schemaVersion": 2,
@@ -56322,7 +56274,7 @@
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -57167,25 +57119,25 @@
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
-     "x": 14,
-     "y": 3,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 15,
-     "y": 3,
-     "licenseId": 95,
+     "x": 6,
+     "y": 4,
+     "licenseId": 49,
      "region": "Esper island"
     },
     {
-     "x": 9,
+     "x": 7,
+     "y": 4,
+     "licenseId": 30,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 4,
      "licenseId": 351,
      "region": "Light armour"
@@ -57197,28 +57149,28 @@
      "region": "Mystic armour"
     },
     {
-     "x": 7,
-     "y": 5,
-     "licenseId": 49,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 5,
-     "licenseId": 30,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 5,
      "licenseId": 148,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 5,
+     "licenseId": 18,
+     "region": "Esper"
+    },
+    {
+     "x": 11,
+     "y": 5,
+     "licenseId": 52,
+     "region": "Esper island"
     },
     {
      "x": 14,
@@ -57233,28 +57185,34 @@
      "region": "Mystic armour"
     },
     {
-     "x": 9,
+     "x": 7,
+     "y": 6,
+     "licenseId": 0,
+     "region": "Quickening"
+    },
+    {
+     "x": 8,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 11,
-     "y": 6,
-     "licenseId": 18,
-     "region": "Esper"
-    },
-    {
      "x": 12,
      "y": 6,
-     "licenseId": 52,
+     "licenseId": 95,
      "region": "Esper island"
+    },
+    {
+     "x": 13,
+     "y": 6,
+     "licenseId": 19,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -57277,20 +57235,20 @@
     {
      "x": 8,
      "y": 7,
-     "licenseId": 0,
-     "region": "Quickening"
+     "licenseId": 145,
+     "region": "Light armour"
     },
     {
      "x": 9,
      "y": 7,
-     "licenseId": 145,
+     "licenseId": 142,
      "region": "Light armour"
     },
     {
      "x": 10,
      "y": 7,
-     "licenseId": 142,
-     "region": "Light armour"
+     "licenseId": 346,
+     "region": "Measures"
     },
     {
      "x": 14,
@@ -57305,16 +57263,34 @@
      "region": "Mystic armour"
     },
     {
-     "x": 9,
+     "x": 6,
+     "y": 8,
+     "licenseId": 331,
+     "region": "Esper island"
+    },
+    {
+     "x": 7,
+     "y": 8,
+     "licenseId": 29,
+     "region": "Esper"
+    },
+    {
+     "x": 8,
      "y": 8,
      "licenseId": 143,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 8,
      "licenseId": 140,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 8,
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -57359,28 +57335,22 @@
      "region": "Esper island"
     },
     {
-     "x": 7,
-     "y": 9,
-     "licenseId": 331,
-     "region": "Esper island"
-    },
-    {
      "x": 8,
-     "y": 9,
-     "licenseId": 29,
-     "region": "Esper"
-    },
-    {
-     "x": 9,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 9,
      "licenseId": 138,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -57425,16 +57395,22 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 8,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 10,
      "licenseId": 137,
      "region": "Light armour"
+    },
+    {
+     "x": 10,
+     "y": 10,
+     "licenseId": 111,
+     "region": "Measures"
     },
     {
      "x": 11,
@@ -58079,7 +58055,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "449edd9f321b7c659f9ce69136e7c1239d9a765da65bf8535754a0d8e172280d"
+   "boardSha256": "b1d0811017ee5faab4bdf3409cad4de33e258a500e16d0233fa8fdb0000c9a03"
   },
   {
    "schemaVersion": 2,
@@ -58099,10 +58075,10 @@
     {
      "job": 11,
      "basejobs": "0.5.1",
-     "sha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07"
+     "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
-   "licenseTableSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
+   "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
     {
      "x": 7,
@@ -58117,10 +58093,16 @@
      "region": "Esper island"
     },
     {
-     "x": 13,
+     "x": 14,
      "y": 3,
-     "licenseId": 1,
-     "region": "Quickening"
+     "licenseId": 19,
+     "region": "Esper"
+    },
+    {
+     "x": 15,
+     "y": 3,
+     "licenseId": 95,
+     "region": "Esper island"
     },
     {
      "x": 7,
@@ -58129,7 +58111,7 @@
      "region": "Mystic armour"
     },
     {
-     "x": 13,
+     "x": 14,
      "y": 4,
      "licenseId": 148,
      "region": "Light armour"
@@ -58147,40 +58129,28 @@
      "region": "Mystic armour"
     },
     {
-     "x": 10,
-     "y": 5,
-     "licenseId": 52,
-     "region": "Esper island"
-    },
-    {
      "x": 11,
      "y": 5,
      "licenseId": 18,
      "region": "Esper"
     },
     {
-     "x": 13,
+     "x": 12,
+     "y": 5,
+     "licenseId": 52,
+     "region": "Esper island"
+    },
+    {
+     "x": 14,
      "y": 5,
      "licenseId": 146,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 5,
      "licenseId": 351,
      "region": "Light armour"
-    },
-    {
-     "x": 15,
-     "y": 5,
-     "licenseId": 19,
-     "region": "Esper"
-    },
-    {
-     "x": 16,
-     "y": 5,
-     "licenseId": 95,
-     "region": "Esper island"
     },
     {
      "x": 6,
@@ -58207,16 +58177,22 @@
      "region": "Katana"
     },
     {
-     "x": 13,
+     "x": 14,
      "y": 6,
      "licenseId": 144,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 6,
      "licenseId": 147,
      "region": "Light armour"
+    },
+    {
+     "x": 16,
+     "y": 6,
+     "licenseId": 1,
+     "region": "Quickening"
     },
     {
      "x": 7,
@@ -58239,11 +58215,17 @@
     {
      "x": 13,
      "y": 7,
+     "licenseId": 346,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 7,
      "licenseId": 142,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 7,
      "licenseId": 145,
      "region": "Light armour"
@@ -58293,23 +58275,29 @@
     {
      "x": 13,
      "y": 8,
-     "licenseId": 140,
-     "region": "Light armour"
+     "licenseId": 113,
+     "region": "Measures"
     },
     {
      "x": 14,
      "y": 8,
-     "licenseId": 143,
+     "licenseId": 140,
      "region": "Light armour"
     },
     {
      "x": 15,
      "y": 8,
+     "licenseId": 143,
+     "region": "Light armour"
+    },
+    {
+     "x": 16,
+     "y": 8,
      "licenseId": 20,
      "region": "Esper"
     },
     {
-     "x": 16,
+     "x": 17,
      "y": 8,
      "licenseId": 335,
      "region": "Esper island"
@@ -58347,11 +58335,17 @@
     {
      "x": 13,
      "y": 9,
+     "licenseId": 112,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 9,
      "licenseId": 138,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 9,
      "licenseId": 141,
      "region": "Light armour"
@@ -58407,11 +58401,17 @@
     {
      "x": 13,
      "y": 10,
+     "licenseId": 111,
+     "region": "Measures"
+    },
+    {
+     "x": 14,
+     "y": 10,
      "licenseId": 137,
      "region": "Light armour"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 10,
      "licenseId": 139,
      "region": "Light armour"
@@ -58975,7 +58975,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "2039e4c00f0bf9bc5bc9e87c47fab04ef632f07371e85c0d6ac6f500f97d43c9"
+   "boardSha256": "fbbda61c5e230dd574059d46e72114de1a1bb27bbea459732a40e8ffdd41279f"
   }
  ]
 }

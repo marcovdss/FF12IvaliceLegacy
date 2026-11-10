@@ -2,6 +2,11 @@
 
 The original conversation code remains byte-exact in a new code region. Its
 relative function targets survive; only its main menu dispatch label changes.
+
+With spec['signal'] (0.2.0) the new choice hands the conversation to Lua: the branch writes 1 to a script variable
+of class 4 (a byte at 0x02099DF0 + offset; the mechanism Clan Centurio Equipment Progression's own Montblanc script
+uses for its startTalk byte, offset 0x99) and leaves. The Proficiency runtime polls that byte in the Clan hall and
+runs the topic menu through the loader's dialog plugin. The variable table is copied to the end with one more entry.
 """
 import hashlib
 import struct
@@ -54,7 +59,7 @@ def patch_text(raw, spec):
     require(len(prefix) == 10, 'Unexpected Montblanc speaker prefix')
     new = list(old)
     new[55] = updated
-    new += [prefix + encode_body(page) + b'\0' for page in spec['pages']]
+    new += [prefix + encode_body(page) + b'\0' for page in spec.get('pages', [])]
     count = len(new)
     output = bytearray(count * 4)
     for index, value in enumerate(new):
@@ -66,7 +71,9 @@ def patch_text(raw, spec):
     output += bytes((-len(output)) % 64)
     result = bytes(output)
     _, check = field_strings(result)
-    require(all(check[i] == old[i] for i in range(len(old)) if i != 55), 'Unselected field text changed')
+    # The last string's slice runs into the file's zero padding, whose length changes with the text before it.
+    pad = lambda value: value.rstrip(bytes(1))
+    require(all(pad(check[i]) == pad(old[i]) for i in range(len(old)) if i != 55), 'Unselected field text changed')
     return result
 
 
@@ -107,7 +114,20 @@ def patch_script(raw, spec, sizes):
     pool_at = struct.unpack_from('<I', raw, 0x20)[0]
     pool_count = struct.unpack_from('<I', raw, pool_at)[0]
     pool = list(struct.unpack_from(f'<{pool_count}i', raw, pool_at + 4))
-    require(pool_count + len(spec['pages']) <= 65536, 'Integer pool exceeds VM operand range')
+    pages = spec.get('pages', [])
+    signal = spec.get('signal')
+    require(pool_count + len(pages) <= 65536, 'Integer pool exceeds VM operand range')
+    variables = None
+    if signal:
+        require(not pages, 'A signalled topic carries no native pages')
+        require(signal.get('class') == 4 and type(signal.get('offset')) is int and 0 <= signal['offset'] < 0x100,
+                'Signal must be a class-4 byte variable')
+        variable_at = struct.unpack_from('<I', raw, 0x28)[0]
+        nvars = struct.unpack_from('<I', raw, variable_at)[0]
+        require(nvars == spec['variableCount'] and variable_at + 4 + 8 * nvars <= logical_end, 'Variable table changed')
+        variables = list(struct.unpack_from(f'<{2 * nvars}I', raw, variable_at + 4))
+        require(not any((variables[i] >> 24) == 4 for i in range(0, 2 * nvars, 2)), 'Script already has class-4 variables')
+        require(nvars < 0xFFFF, 'Variable table full')
     help_label, menu_label = nlabels, nlabels + 1
     extra = bytearray()
 
@@ -121,7 +141,11 @@ def patch_script(raw, spec, sizes):
     emit(0x51, spec['leaveLabel'])
     help_offset = len(code) + len(extra)
     commands = spec['commands']
-    for index, _ in enumerate(spec['pages']):
+    if signal:
+        emit(0x4f, 1)
+        emit(0x49, len(variables) // 2)   # setvar <new variable>: the byte Lua polls
+        emit(0x51, spec['leaveLabel'])
+    for index, _ in enumerate(pages):
         for command in ('mouth', 'nod'):
             emit(0x4f, 1)
             emit(0x5d, commands[command])
@@ -137,7 +161,7 @@ def patch_script(raw, spec, sizes):
     emit(0x51, menu_label)
     labels[spec['dispatchLabel']] = dispatch_offset
     labels += [help_offset, spec['menuOffset']]
-    pool += [0x01000000 + spec['textCount'] + i for i in range(len(spec['pages']))]
+    pool += [0x01000000 + spec['textCount'] + i for i in range(len(pages))]
     new_code = code + extra
     decoded = instructions(new_code, sizes)
     boundaries = {o for o, _, _ in decoded}
@@ -156,9 +180,15 @@ def patch_script(raw, spec, sizes):
     struct.pack_into('<II', out, descriptor + 8, new_start, len(decoded))
     struct.pack_into('<I', out, descriptor + 20, new_labels)
     struct.pack_into('<I', out, 0x20, new_pool)
+    allowed_extra = set()
+    if signal:
+        variables += [(4 << 24) | signal['offset'], 0]
+        new_variables = append(struct.pack('<I', len(variables) // 2) + struct.pack(f'<{len(variables)}I', *variables))
+        struct.pack_into('<I', out, 0x28, new_variables)
+        allowed_extra = set(range(0x28, 0x2c))
     out += bytes((-len(out)) % 16)
     struct.pack_into('<I', out, 4, len(out))
     out += bytes((-len(out)) % 64)
-    allowed = set(range(4, 8)) | set(range(0x20, 0x24)) | set(range(descriptor + 8, descriptor + 16)) | set(range(descriptor + 20, descriptor + 24))
+    allowed = set(range(4, 8)) | set(range(0x20, 0x24)) | set(range(descriptor + 8, descriptor + 16)) | set(range(descriptor + 20, descriptor + 24)) | allowed_extra
     require(all(a == b for i, (a, b) in enumerate(zip(raw[:logical_end], out)) if i not in allowed), 'Original VM data changed')
     return bytes(out)

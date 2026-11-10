@@ -3775,87 +3775,62 @@
       "name": "Time Mage",
       "key": "chrono_bombardier",
       "sourceSha256": "d84a87857a634fb8e594d29bb972c519758053d4e96501ca9c1212110a2470ad",
-      "candidateSha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35",
+      "candidateSha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f",
       "cells": [
         {
-          "x": 9,
-          "y": 5,
-          "licenseId": 343
-        },
-        {
-          "x": 11,
+          "x": 10,
           "y": 5,
           "licenseId": 335
         },
         {
-          "x": 13,
-          "y": 5,
-          "licenseId": 337
-        },
-        {
           "x": 16,
           "y": 5,
-          "licenseId": 49
-        },
-        {
-          "x": 6,
-          "y": 6,
-          "licenseId": 52
+          "licenseId": 342
         },
         {
           "x": 9,
           "y": 6,
-          "licenseId": 22
+          "licenseId": 0
         },
         {
           "x": 10,
           "y": 6,
-          "licenseId": 0
+          "licenseId": 20
         },
         {
           "x": 11,
           "y": 6,
-          "licenseId": 20
-        },
-        {
-          "x": 12,
-          "y": 6,
           "licenseId": 1
         },
         {
-          "x": 13,
+          "x": 14,
           "y": 6,
-          "licenseId": 26
+          "licenseId": 49
         },
         {
           "x": 16,
           "y": 6,
-          "licenseId": 30
+          "licenseId": 24
         },
         {
           "x": 6,
-          "y": 7,
-          "licenseId": 18
-        },
-        {
-          "x": 7,
           "y": 7,
           "licenseId": 2
         },
         {
           "x": 9,
           "y": 7,
-          "licenseId": 346
+          "licenseId": 352
         },
         {
           "x": 10,
           "y": 7,
-          "licenseId": 159
+          "licenseId": 89
         },
         {
           "x": 11,
           "y": 7,
-          "licenseId": 158
+          "licenseId": 159
         },
         {
           "x": 12,
@@ -3863,9 +3838,9 @@
           "licenseId": 160
         },
         {
-          "x": 13,
+          "x": 14,
           "y": 7,
-          "licenseId": 352
+          "licenseId": 30
         },
         {
           "x": 16,
@@ -3900,7 +3875,7 @@
         {
           "x": 8,
           "y": 8,
-          "licenseId": 157
+          "licenseId": 116
         },
         {
           "x": 9,
@@ -3915,7 +3890,7 @@
         {
           "x": 11,
           "y": 8,
-          "licenseId": 112
+          "licenseId": 88
         },
         {
           "x": 12,
@@ -3925,12 +3900,12 @@
         {
           "x": 13,
           "y": 8,
-          "licenseId": 113
+          "licenseId": 157
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 116
+          "licenseId": 158
         },
         {
           "x": 15,
@@ -3945,12 +3920,12 @@
         {
           "x": 17,
           "y": 8,
-          "licenseId": 29
+          "licenseId": 25
         },
         {
           "x": 18,
           "y": 8,
-          "licenseId": 331
+          "licenseId": 339
         },
         {
           "x": 6,
@@ -4008,6 +3983,16 @@
           "licenseId": 264
         },
         {
+          "x": 4,
+          "y": 10,
+          "licenseId": 330
+        },
+        {
+          "x": 5,
+          "y": 10,
+          "licenseId": 21
+        },
+        {
           "x": 6,
           "y": 10,
           "licenseId": 178
@@ -4030,7 +4015,7 @@
         {
           "x": 10,
           "y": 10,
-          "licenseId": 114
+          "licenseId": 87
         },
         {
           "x": 11,
@@ -4040,7 +4025,7 @@
         {
           "x": 12,
           "y": 10,
-          "licenseId": 111
+          "licenseId": 114
         },
         {
           "x": 13,
@@ -4245,22 +4230,12 @@
         {
           "x": 17,
           "y": 13,
-          "licenseId": 21
+          "licenseId": 23
         },
         {
           "x": 18,
           "y": 13,
-          "licenseId": 330
-        },
-        {
-          "x": 4,
-          "y": 14,
-          "licenseId": 339
-        },
-        {
-          "x": 5,
-          "y": 14,
-          "licenseId": 25
+          "licenseId": 347
         },
         {
           "x": 6,
@@ -4313,9 +4288,19 @@
           "licenseId": 19
         },
         {
+          "x": 9,
+          "y": 15,
+          "licenseId": 18
+        },
+        {
           "x": 11,
           "y": 15,
           "licenseId": 360
+        },
+        {
+          "x": 13,
+          "y": 15,
+          "licenseId": 26
         },
         {
           "x": 16,
@@ -4325,12 +4310,12 @@
         {
           "x": 17,
           "y": 15,
-          "licenseId": 23
+          "licenseId": 29
         },
         {
           "x": 18,
           "y": 15,
-          "licenseId": 347
+          "licenseId": 331
         },
         {
           "x": 6,
@@ -4338,17 +4323,27 @@
           "licenseId": 95
         },
         {
+          "x": 9,
+          "y": 16,
+          "licenseId": 52
+        },
+        {
+          "x": 13,
+          "y": 16,
+          "licenseId": 337
+        },
+        {
           "x": 16,
           "y": 16,
-          "licenseId": 24
+          "licenseId": 22
         },
         {
           "x": 16,
           "y": 17,
-          "licenseId": 342
+          "licenseId": 343
         }
       ],
-      "previousCandidateSha256": "141528cc8c9a3620440f6bdbd952ab15683b3ae58c3d53783d6f9dd0dfd643fa",
+      "previousCandidateSha256": "6289ec135d123f178a038d51ee3587e3fe92ffa40c422a6dafa22b462fc0aa35",
       "islands": [
         {
           "gateId": 18,
@@ -4410,52 +4405,57 @@
       "name": "Warrior",
       "key": "lanista",
       "sourceSha256": "effdeab69c10e8e1179af9f6460e29417ea4e8c960fb08d3a8ff25435a4ac9de",
-      "candidateSha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2",
+      "candidateSha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883",
       "cells": [
-        {
-          "x": 10,
-          "y": 4,
-          "licenseId": 337
-        },
         {
           "x": 7,
           "y": 5,
-          "licenseId": 339
+          "licenseId": 330
         },
         {
-          "x": 10,
+          "x": 9,
           "y": 5,
-          "licenseId": 26
+          "licenseId": 342
         },
         {
-          "x": 11,
+          "x": 12,
           "y": 5,
-          "licenseId": 0
+          "licenseId": 331
         },
         {
-          "x": 15,
+          "x": 14,
           "y": 5,
-          "licenseId": 76
+          "licenseId": 95
+        },
+        {
+          "x": 16,
+          "y": 5,
+          "licenseId": 49
         },
         {
           "x": 7,
           "y": 6,
-          "licenseId": 25
+          "licenseId": 21
         },
         {
           "x": 8,
           "y": 6,
-          "licenseId": 1
+          "licenseId": 0
+        },
+        {
+          "x": 9,
+          "y": 6,
+          "licenseId": 24
         },
         {
           "x": 10,
           "y": 6,
-          "licenseId": 44
+          "licenseId": 1
         },
         {
-          "x": 11,
+          "x": 12,
           "y": 6,
-          "licenseId": 43
+          "licenseId": 29
         },
         {
           "x": 13,
@@ -4463,59 +4463,54 @@
           "licenseId": 2
         },
         {
-          "x": 15,
+          "x": 14,
           "y": 6,
-          "licenseId": 28
+          "licenseId": 19
         },
         {
           "x": 16,
           "y": 6,
-          "licenseId": 3
+          "licenseId": 30
         },
         {
           "x": 7,
           "y": 7,
-          "licenseId": 332
+          "licenseId": 44
         },
         {
           "x": 8,
           "y": 7,
-          "licenseId": 89
+          "licenseId": 351
         },
         {
           "x": 9,
           "y": 7,
-          "licenseId": 42
+          "licenseId": 148
         },
         {
           "x": 10,
           "y": 7,
-          "licenseId": 145
+          "licenseId": 42
         },
         {
           "x": 11,
           "y": 7,
-          "licenseId": 41
+          "licenseId": 146
         },
         {
           "x": 12,
           "y": 7,
-          "licenseId": 146
+          "licenseId": 147
         },
         {
           "x": 13,
           "y": 7,
-          "licenseId": 147
+          "licenseId": 332
         },
         {
           "x": 14,
           "y": 7,
-          "licenseId": 148
-        },
-        {
-          "x": 15,
-          "y": 7,
-          "licenseId": 351
+          "licenseId": 43
         },
         {
           "x": 16,
@@ -4525,12 +4520,17 @@
         {
           "x": 17,
           "y": 7,
-          "licenseId": 18
+          "licenseId": 22
         },
         {
           "x": 18,
           "y": 7,
-          "licenseId": 52
+          "licenseId": 343
+        },
+        {
+          "x": 5,
+          "y": 8,
+          "licenseId": 3
         },
         {
           "x": 6,
@@ -4545,12 +4545,12 @@
         {
           "x": 8,
           "y": 8,
-          "licenseId": 144
+          "licenseId": 41
         },
         {
           "x": 9,
           "y": 8,
-          "licenseId": 143
+          "licenseId": 144
         },
         {
           "x": 10,
@@ -4565,17 +4565,17 @@
         {
           "x": 12,
           "y": 8,
-          "licenseId": 86
+          "licenseId": 143
         },
         {
           "x": 13,
           "y": 8,
-          "licenseId": 87
+          "licenseId": 86
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 88
+          "licenseId": 145
         },
         {
           "x": 15,
@@ -4590,12 +4590,12 @@
         {
           "x": 4,
           "y": 9,
-          "licenseId": 331
+          "licenseId": 339
         },
         {
           "x": 5,
           "y": 9,
-          "licenseId": 29
+          "licenseId": 25
         },
         {
           "x": 6,
@@ -4728,16 +4728,6 @@
           "licenseId": 341
         },
         {
-          "x": 4,
-          "y": 11,
-          "licenseId": 347
-        },
-        {
-          "x": 5,
-          "y": 11,
-          "licenseId": 23
-        },
-        {
           "x": 6,
           "y": 11,
           "licenseId": 177
@@ -4796,6 +4786,16 @@
           "x": 17,
           "y": 11,
           "licenseId": 303
+        },
+        {
+          "x": 4,
+          "y": 12,
+          "licenseId": 76
+        },
+        {
+          "x": 5,
+          "y": 12,
+          "licenseId": 28
         },
         {
           "x": 6,
@@ -4868,16 +4868,6 @@
           "licenseId": 335
         },
         {
-          "x": 4,
-          "y": 13,
-          "licenseId": 330
-        },
-        {
-          "x": 5,
-          "y": 13,
-          "licenseId": 21
-        },
-        {
           "x": 6,
           "y": 13,
           "licenseId": 353
@@ -4918,6 +4908,16 @@
           "licenseId": 274
         },
         {
+          "x": 4,
+          "y": 14,
+          "licenseId": 347
+        },
+        {
+          "x": 5,
+          "y": 14,
+          "licenseId": 23
+        },
+        {
           "x": 6,
           "y": 14,
           "licenseId": 181
@@ -4943,19 +4943,9 @@
           "licenseId": 301
         },
         {
-          "x": 6,
-          "y": 15,
-          "licenseId": 22
-        },
-        {
           "x": 7,
           "y": 15,
-          "licenseId": 30
-        },
-        {
-          "x": 8,
-          "y": 15,
-          "licenseId": 49
+          "licenseId": 18
         },
         {
           "x": 16,
@@ -4965,30 +4955,20 @@
         {
           "x": 17,
           "y": 15,
-          "licenseId": 19
+          "licenseId": 26
         },
         {
           "x": 18,
           "y": 15,
-          "licenseId": 95
+          "licenseId": 337
         },
         {
-          "x": 6,
+          "x": 7,
           "y": 16,
-          "licenseId": 343
-        },
-        {
-          "x": 16,
-          "y": 16,
-          "licenseId": 24
-        },
-        {
-          "x": 16,
-          "y": 17,
-          "licenseId": 342
+          "licenseId": 52
         }
       ],
-      "previousCandidateSha256": "c8dcfdffb74b770f6cac2cea89799fd9683f5e72faf1b37a2606bed87cb7bf65",
+      "previousCandidateSha256": "23dd954f89d6454fcf0c2f03a36d8be447544fdbb6644b00b08fa282aa4fe0f2",
       "islands": [
         {
           "gateId": 18,
@@ -6940,42 +6920,52 @@
       "name": "Chemist",
       "key": "salve_maker",
       "sourceSha256": "1031ce8bfbcc45872bb030c633ec5a094623abdbc45a471fc0bb1b9678ef3881",
-      "candidateSha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07",
+      "candidateSha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d",
       "cells": [
         {
           "x": 17,
           "y": 4,
-          "licenseId": 49
+          "licenseId": 335
         },
         {
-          "x": 11,
+          "x": 10,
           "y": 5,
-          "licenseId": 343
+          "licenseId": 347
+        },
+        {
+          "x": 13,
+          "y": 5,
+          "licenseId": 341
         },
         {
           "x": 17,
           "y": 5,
-          "licenseId": 30
+          "licenseId": 20
         },
         {
           "x": 6,
           "y": 6,
-          "licenseId": 52
+          "licenseId": 343
         },
         {
           "x": 9,
           "y": 6,
-          "licenseId": 337
+          "licenseId": 0
+        },
+        {
+          "x": 10,
+          "y": 6,
+          "licenseId": 23
         },
         {
           "x": 11,
           "y": 6,
-          "licenseId": 22
+          "licenseId": 1
         },
         {
           "x": 13,
           "y": 6,
-          "licenseId": 331
+          "licenseId": 27
         },
         {
           "x": 17,
@@ -6985,37 +6975,42 @@
         {
           "x": 18,
           "y": 6,
-          "licenseId": 0
+          "licenseId": 2
         },
         {
           "x": 6,
           "y": 7,
-          "licenseId": 18
+          "licenseId": 22
         },
         {
           "x": 7,
           "y": 7,
-          "licenseId": 1
+          "licenseId": 3
         },
         {
           "x": 9,
           "y": 7,
-          "licenseId": 26
+          "licenseId": 351
+        },
+        {
+          "x": 10,
+          "y": 7,
+          "licenseId": 148
         },
         {
           "x": 11,
           "y": 7,
-          "licenseId": 75
+          "licenseId": 147
+        },
+        {
+          "x": 12,
+          "y": 7,
+          "licenseId": 346
         },
         {
           "x": 13,
           "y": 7,
-          "licenseId": 29
-        },
-        {
-          "x": 14,
-          "y": 7,
-          "licenseId": 2
+          "licenseId": 75
         },
         {
           "x": 16,
@@ -7038,11 +7033,6 @@
           "licenseId": 95
         },
         {
-          "x": 5,
-          "y": 8,
-          "licenseId": 3
-        },
-        {
           "x": 6,
           "y": 8,
           "licenseId": 354
@@ -7055,37 +7045,37 @@
         {
           "x": 8,
           "y": 8,
-          "licenseId": 148
+          "licenseId": 145
         },
         {
           "x": 9,
           "y": 8,
-          "licenseId": 146
+          "licenseId": 144
         },
         {
           "x": 10,
           "y": 8,
-          "licenseId": 144
+          "licenseId": 112
         },
         {
           "x": 11,
           "y": 8,
-          "licenseId": 143
+          "licenseId": 142
         },
         {
           "x": 12,
           "y": 8,
-          "licenseId": 145
+          "licenseId": 143
         },
         {
           "x": 13,
           "y": 8,
-          "licenseId": 147
+          "licenseId": 113
         },
         {
           "x": 14,
           "y": 8,
-          "licenseId": 351
+          "licenseId": 146
         },
         {
           "x": 15,
@@ -7150,7 +7140,7 @@
         {
           "x": 13,
           "y": 9,
-          "licenseId": 142
+          "licenseId": 111
         },
         {
           "x": 14,
@@ -7380,12 +7370,12 @@
         {
           "x": 4,
           "y": 13,
-          "licenseId": 335
+          "licenseId": 337
         },
         {
           "x": 5,
           "y": 13,
-          "licenseId": 20
+          "licenseId": 26
         },
         {
           "x": 6,
@@ -7428,6 +7418,11 @@
           "licenseId": 244
         },
         {
+          "x": 5,
+          "y": 14,
+          "licenseId": 24
+        },
+        {
           "x": 6,
           "y": 14,
           "licenseId": 181
@@ -7453,9 +7448,14 @@
           "licenseId": 274
         },
         {
-          "x": 6,
+          "x": 5,
           "y": 15,
-          "licenseId": 23
+          "licenseId": 342
+        },
+        {
+          "x": 7,
+          "y": 15,
+          "licenseId": 29
         },
         {
           "x": 16,
@@ -7470,17 +7470,17 @@
         {
           "x": 18,
           "y": 15,
-          "licenseId": 27
+          "licenseId": 18
         },
         {
           "x": 19,
           "y": 15,
-          "licenseId": 341
+          "licenseId": 52
         },
         {
-          "x": 6,
+          "x": 7,
           "y": 16,
-          "licenseId": 347
+          "licenseId": 331
         },
         {
           "x": 17,
@@ -7490,15 +7490,15 @@
         {
           "x": 17,
           "y": 17,
-          "licenseId": 24
+          "licenseId": 30
         },
         {
-          "x": 18,
-          "y": 17,
-          "licenseId": 342
+          "x": 17,
+          "y": 18,
+          "licenseId": 49
         }
       ],
-      "previousCandidateSha256": "3e0b61610e405a86c6ee0f21b5109b63c510a8ce0c53321939d687595be63778",
+      "previousCandidateSha256": "669c7953b2a85d804cc660a792c0e8335ce3a04f8a2ed5ffeceaee11bc00ee07",
       "islands": [
         {
           "gateId": 18,
@@ -7623,11 +7623,11 @@
       ]
     }
   ],
-  "version": "0.5.1",
+  "version": "0.6.0",
   "licenseLpPatch": {
     "schemaVersion": 1,
     "sourceSha256": "665019abce04423118529e461709a1b4aa77a164176c6fdf537b4b6d3b0ac8ea",
-    "resultSha256": "839ea1cca10b84a85579e9b9940bf874635df0f4556e6057190c5f0a7b351c02",
+    "resultSha256": "4a4e0fdcd15cdddb58f46912ce1ed0a1791963a8e8cf734d61adc2946d22b600",
     "changes": [
       {
         "licenseId": 78,
@@ -7754,9 +7754,27 @@
         "owner": "Black Mage",
         "beforeLp": 100,
         "afterLp": 50
+      },
+      {
+        "licenseId": 86,
+        "owner": "Warrior",
+        "beforeLp": 50,
+        "afterLp": 65
+      },
+      {
+        "licenseId": 87,
+        "owner": "Time Mage",
+        "beforeLp": 60,
+        "afterLp": 30
+      },
+      {
+        "licenseId": 88,
+        "owner": "Time Mage",
+        "beforeLp": 65,
+        "afterLp": 50
       }
     ],
-    "previousResultSha256": "58f9bb6f3e6a0a873335f9b000abdb6e59a0a173506ffbf06355f661bac4799b"
+    "previousResultSha256": "839ea1cca10b84a85579e9b9940bf874635df0f4556e6057190c5f0a7b351c02"
   },
   "descriptions": {
     "archivePath": "ps2data/image/ff12/test_battle/us/binaryfile/menu_message.bin",
@@ -7816,7 +7834,7 @@
         "sourceEntrySha256": "36674eea4736b3ee6e376f8875762c278c6a3448aaa363b782e50678020d5cde",
         "lines": [
           "Mages who bend time to slow, stop and hasten.",
-          "Weapons: Hand-bombs, Measures    Magicks: Time"
+          "Weapons: Hand-bombs, Hammers    Magicks: Time"
         ]
       },
       {
@@ -7824,7 +7842,7 @@
         "sourceEntrySha256": "fc0b97706244748eaee2552c4a9aa308e9085c742f7810669b3a829a73b4af29",
         "lines": [
           "Fighters who trade blood for crushing blows.",
-          "Weapons: Axes, Hammers, Greatswords    Technicks: Souleater"
+          "Weapons: Axes, Greatswords    Technicks: Souleater"
         ]
       },
       {
@@ -7856,7 +7874,7 @@
         "sourceEntrySha256": "539ad7cd7c3ecd1f1619fb0d6abcc690e1acaf45f0dbfade4f1f67644df1acc0",
         "lines": [
           "Apothecaries who keep allies standing.",
-          "Weapons: Crossbows    Technicks: First Aid"
+          "Weapons: Crossbows, Measures    Technicks: First Aid"
         ]
       }
     ]
@@ -7947,10 +7965,65 @@
           4112,
           4113
         ]
+      },
+      {
+        "licenseId": 84,
+        "before": [
+          4201,
+          4195
+        ],
+        "after": [
+          4195,
+          4196
+        ]
+      },
+      {
+        "licenseId": 85,
+        "before": [
+          4202,
+          4196
+        ],
+        "after": [
+          4197,
+          4198
+        ]
+      },
+      {
+        "licenseId": 86,
+        "before": [
+          4203,
+          4197
+        ],
+        "after": [
+          4199,
+          4200
+        ]
+      },
+      {
+        "licenseId": 87,
+        "before": [
+          4198,
+          4204
+        ],
+        "after": [
+          4201,
+          4202
+        ]
+      },
+      {
+        "licenseId": 88,
+        "before": [
+          4199,
+          4200
+        ],
+        "after": [
+          4203,
+          4204
+        ]
       }
     ],
-    "resultSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9",
-    "previousResultSha256": "4f329f8a17085ed72ae55c3004646c0caaada270d5fa3cbca8605f8c5f0db950"
+    "resultSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
+    "previousResultSha256": "17fc10fcf2c1fdb96387820cb68d59781b11088c2406c6a579aed1e97d1a72f9"
   },
   "licenseNamePatch": {
     "schemaVersion": 1,
@@ -8096,9 +8169,44 @@
         "licenseId": 327,
         "beforeHex": "00002c3a40423c44042b484b3e00000000000000",
         "replacement": "Sorcery Lore II"
+      },
+      {
+        "licenseId": 83,
+        "beforeHex": "000020513e4c04a004273a46463e4b4c0486000000000000",
+        "replacement": "Axes 1"
+      },
+      {
+        "licenseId": 84,
+        "beforeHex": "000020513e4c04a004273a46463e4b4c0487000000000000",
+        "replacement": "Axes 2"
+      },
+      {
+        "licenseId": 85,
+        "beforeHex": "000020513e4c04a004273a46463e4b4c0488000000000000",
+        "replacement": "Axes 3"
+      },
+      {
+        "licenseId": 86,
+        "beforeHex": "000020513e4c04a004273a46463e4b4c0489000000000000",
+        "replacement": "Axes 4"
+      },
+      {
+        "licenseId": 87,
+        "beforeHex": "000020513e4c04a004273a46463e4b4c048a000000000000",
+        "replacement": "Hammers 1"
+      },
+      {
+        "licenseId": 88,
+        "beforeHex": "000020513e4c04a004273a46463e4b4c048b000000000000",
+        "replacement": "Hammers 2"
+      },
+      {
+        "licenseId": 89,
+        "beforeHex": "000020513e4c04a004273a46463e4b4c048c000000000000",
+        "replacement": "Hammers 3"
       }
     ],
-    "resultSha256": "717d40f4be8c9023c47e0adc6a9c6f2b80dfca02380f4c6fa618240594454ae8",
-    "previousResultSha256": "233e310fe96a5f6db9461fc3f932acd93761a7e1a5d33462e508de2745bde82f"
+    "resultSha256": "51f891ea8d8a85bd674c00cc8b0134fc1a88ad347f74d74ed4d3f3ee26329b75",
+    "previousResultSha256": "717d40f4be8c9023c47e0adc6a9c6f2b80dfca02380f4c6fa618240594454ae8"
   }
 }

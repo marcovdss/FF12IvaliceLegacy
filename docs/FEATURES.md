@@ -29,13 +29,13 @@ keep their IDs, so saves continue and licenses you already own stay owned. There
 |---|---|---|---|
 | Knight | Knight | Bulwark | Sword |
 | Lancer | Uhlan | Grounding | Spear |
-| Warrior | Foebreaker | Cleave | Greatsword, Axe, Hammer |
+| Warrior | Foebreaker | Cleave | Greatsword, Axe |
 | Samurai | Bushi | Zanshin | Katana, Ninja sword |
 | Hunter | Archer | Pursuit | Bow, Dagger |
 | Gunner | Machinist | Suppression | Gun |
-| Chemist | Shikari | Contagion | Crossbow |
+| Chemist | Shikari | Contagion | Crossbow, Measure |
 | Green Mage | Red Battlemage | Mana Leech | Mace |
-| Time Mage | Time Battlemage | Detonate | Measure, Hand-bomb |
+| Time Mage | Time Battlemage | Detonate | Hand-bomb, Hammer |
 | Mystic | Monk | Ki Flow | Pole |
 | White Mage | White Mage | Overflow | Rod |
 | Black Mage | Black Mage | Resonance | Staff |
@@ -204,7 +204,7 @@ holds.
 | Knight | Bulwark | A parry or block draws the attacker to the Knight |
 | Lancer | Grounding | Hits strip Float and Haste, then Faith, Regen and Bravery |
 | Warrior | Cleave | A kill grants Bravery |
-| Samurai | Zanshin | Hits in a row on one target grant Haste |
+| Samurai | Zanshin | A combo or a critical hit grants Haste |
 | Hunter | Pursuit | More damage to targets hindered by an ailment |
 | Gunner | Suppression | Hits push back the target's next action |
 | Chemist | Contagion | Statuses it lands can spread to another foe |
@@ -214,11 +214,14 @@ holds.
 | White Mage | Overflow | Healing past full HP becomes Regen |
 | Black Mage | Resonance | Casting the same element twice makes the next action charge faster |
 
-Stages II and III add new facets of the same idea. Every one of the 144 base levels and all 66 hybrid lines have an
+Stages II and III add new facets of the same idea. A hybrid's line mixes both jobs: its Stage I takes its trigger from
+one parent and its payoff from the other, and a parent's MP or HP sustain carries over (a Green Mage who adds White
+Mage keeps draining MP with every hit). Every one of the 144 base levels and all 66 hybrid lines have an
 effect, built from statuses, HP and MP changes, damage scaling and charge pushback. Pushback has a budget: one foe
 can be pushed back at most 25% of a turn between its own actions, or 12.5% for bosses, marks and rare game.
 
-*Play state: stage I played at rank 1. Stages II and III and the hybrid lines are offline.*
+*Play state: Stage I played to Clan rank 4, and the first hybrid Stage I lines have fired in play. Stages II and
+III, and most of the 66 hybrid lines, are built but not yet confirmed in play.*
 
 ## Weapons
 
@@ -241,12 +244,12 @@ follows the weapon, while Proficiency follows the job.
 | Sword | **Guard**: the best weapon evade (20-40) |
 | Greatsword | **Sweep**: Attack cleaves a half circle around the target for half damage; knockback 25 |
 | Katana | **Chain**: the highest combo rate (30-45); a rolled combo runs 2 hits longer |
-| Ninja sword | **Unseen**: hits ignore weapon and shield evasion (parries still work); Blind 10% |
+| Ninja sword | **Unseen**: hits can't be parried or blocked (the dodge still applies); Blind 10% |
 | Spear | **Pierce**: every hit ignores 30% of Defence; long reach, hits flying foes |
-| Pole | **Counterflow**: the wielder counters twice as often; strikes Magick Resist |
+| Pole | **Counterflow**: the wielder counters even without the Counter licence (Speed / 2), twice as often with it; every blow taken without answering adds +10 to the next counter, up to 75 (100 with the licence); strikes Magick Resist |
 | Bow | **Volley**: critical rate 20-30, the longest reach, the anti-air answer |
 | Crossbow | **Afflict**: on-hit status chance doubled (up to 100%) |
-| Gun | **Marksman**: shots ignore Defence and can never be parried |
+| Gun | **Marksman**: shots ignore Defence and the target's dodge; a gun's damage scales with the gun alone |
 | Axe | **Sunder**: every hit dents Defence 5% for the rest of the fight (down to half) |
 | Hammer | **Concussion**: Disable 15% on hit, knockback 30 |
 | Dagger | **Swift**: charge time 15, frequent combos, a little evade |
@@ -255,19 +258,30 @@ follows the weapon, while Proficiency follows the job.
 | Mace | **Spellbreak**: hits burn foe MP equal to 10% of the damage (at most 10% of its pool) |
 | Measure | **Tempo**: Protect, Shell, Bravery, Haste, Invisible or Bubble on hit |
 | Hand-bomb | **Barrage**: Slow or Oil 20% on hit |
-| Unarmed | **Cadence**: each consecutive hit on the same target deals +6%, up to +30% |
+| Unarmed | **Cadence**: each consecutive hit on the same target deals +6% more (up to +30%) and charges the next action 5% faster per step (up to five); switching targets or ten seconds of stillness restarts |
 
 There are four ways past armour, one per family: axes wear Defence down, spears ignore part of it, guns and measures
 ignore all of it, and poles strike Magick Resist instead. Ammunition decides the element and status for bows,
 crossbows, guns and hand-bombs.
+
+**The guard itself tires.** Each attack a party member blocks, parries or dodges in a row leaves them 25% less
+evasion against the next, so a streak of avoids ends in a clean hit; a landed hit, or ten seconds without being
+attacked, restores the guard. The first roll against a fresh guard is always full, and a plain miss changes nothing.
+
+**Three families pay their own price.** A sword's parry or block pushes the wielder's own next charge back 10%
+(**Braced**); after a katana combo, the next attack on the Samurai meets no evasion (**Open**); and a spear never
+parries (**Long haft**) — its counters stay.
 
 **Legendary weapons** stay the strongest of their families even at base power. Great Trango and Seitengrat now swing
 at normal greatsword and bow speed, and Kumbha counts as a katana.
 
 See [package_arsenal/README.md](../package_arsenal/README.md) for every weapon's numbers.
 
-*Play state: the attack curve, the data identities and the greatsword sweep have been played. The runtime identities
-(Chain, Unseen, Pierce, Counterflow, Afflict, Marksman, Sunder, Mend, Spellbreak, Cadence) are offline.*
+*Play state: the attack curve, the data identities and the greatsword sweep are played. The runtime identities fire
+since 0.1.24: Spellbreak, Afflict, Marksman and the pole counters (lent Counter licence) are seen in play; Sunder,
+Unseen, Chain, Mend and Cadence's speed ramp have not yet been seen to fire. Guard fatigue, Braced, Open and Long
+haft are in the campaign since 0.1.26-0.1.28; guard fatigue has been measured once. The parry/dodge fix (0.1.29)
+means a gun's shot beats the dodge roll, and a spear's menu evade number overstates what it parries.*
 
 ## Armour and accessories
 
@@ -280,11 +294,17 @@ real item data, not description text.
 - A stat gain always costs another stat. Shields trade evade for magick evade.
 - Pieces of the same type, slot and story stage never share a property.
 
+**The armour triangle.** Heavy armour defends hardest against weapons and weakest against magick; mystic armour is
+the reverse; light armour sits between. 103 pieces carry their side of the trade: heavy body defence is 14% above
+native and its helm magick resist 38% below; light stays a few points either side of native; mystic body defence
+sits 38% below native and its helm magick resist 20% above.
+
 **Accessory identities.** Accessories are each character's wildcard edge: offence, defence or utility. Their
 identities draw on established overhauls where that adds a new answer, and never copy a job's signature passive.
 Renamed accessories rename the copies you already own. Prices and locations are unchanged.
 
-*Play state: armour text seen in game; its effects and the accessories are not yet confirmed in play.*
+*Play state: armour text seen in game; the per-piece properties and the accessories are not yet measured in play.
+The armour triangle is installed (0.1.31) and not yet measured.*
 
 ## Magicks, MP and Technicks
 
@@ -305,7 +325,7 @@ balance between spells and weapons is still being calibrated from play.
 - Foes' spells and the listed cost in the game's tables stay native.
 
 **Technicks.** Expose and Shear now take 30% from a foe, like Wither and Addle (instead of 10%), so armoured and warded
-foes have a real answer. The party's Decoy lasts about two minutes. All 24 Technicks were reviewed and three became
+foes have a real answer. The party's Decoy lasts about 45 seconds. All 24 Technicks were reviewed and three became
 more reliable:
 
 | Technick | Change |

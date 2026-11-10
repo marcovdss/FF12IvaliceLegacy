@@ -87,20 +87,18 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(P.decide('hit', S({job=1, targetStatus={immobilize=true}}), 12).targetAdd[15] == 0.5)
           -- Warrior II-2.
           assert(P.decide('hit', S({job=7, casterHpPct=40}), 6).casterAdd[18] == 0.5)
-          -- Samurai I-3 and III-3.
+          -- Samurai I (0.5.1): a combo, or from 2/4 a critical hit, gives Haste once per Attack.
           P.reset()
-          assert(P.decide('hit', S({job=10, targetId=1}), 3) == nil)
-          assert(P.decide('hit', S({job=10, targetId=2}), 3).casterAdd[20])               -- survives one switch
+          assert(P.decide('hit', S({job=10}), 1) == nil)                                  -- a plain hit: nothing
+          assert(P.decide('hit', S({job=10, critical=true}), 1) == nil)                   -- crits only from 2/4
+          assert(P.decide('hit', S({job=10, comboFollow=true}), 1).casterAdd[20] == 0.5)  -- the combo's first follow-up
+          assert(P.decide('hit', S({job=10, comboFollow=true}), 1) == nil)                -- once per Attack
+          assert(P.decide('hit', S({job=10, critical=true}), 2).casterAdd[20] == 0.5)     -- a new Attack, a crit
+          P.decide('hit', S({job=10}), 3)                                                 -- a new Attack
+          assert(P.decide('hit', S({job=10, comboFollow=true}), 3).casterAdd[20] == 0.75)
           P.reset()
-          P.decide('hit', S({job=10, targetId=1}), 2)
-          assert(P.decide('hit', S({job=10, targetId=2}), 2) == nil)                      -- not before level 3
-          P.reset()
-          P.decide('hit', S({job=10, targetId=1}), 3); P.decide('hit', S({job=10, targetId=2}), 3)
-          P.decide('hit', S({job=10, targetId=2}), 3)
-          assert(P.decide('hit', S({job=10, targetId=3}), 3).casterAdd[20])               -- the grace renews with each chain
-          P.reset()
-          P.decide('hit', S({job=10, targetId=1}), 1); P.decide('hit', S({job=10, targetId=2}), 1)
-          assert(P.decide('hit', S({job=10, targetId=3}), 1) == nil)                      -- level 1: a switch restarts it
+          local z = P.decide('hit', S({job=10, critical=true}), 4)
+          assert(z.casterAdd[20] == 0.75 and math.abs(z.damage - 1.15) < 1e-9)            -- 4/4: that hit +15%
           P.reset()
           P.decide('hit', S({job=10, kill=true, casterStatus={haste=true}}), 11)
           assert(P.decide('hit', S({job=10, targetId=11}), 11).damage == 1.20)
@@ -172,11 +170,10 @@ class ProficiencyRulesTest(unittest.TestCase):
             for _, o in ipairs(a and a.others or {}) do if o.op == name and (id == nil or o.id == id) then return o end end
           end
           local function no() return false end
-          -- Samurai III-4: the carry survives the killing hit and counts on the next foe.
+          -- Samurai III-4 (0.5.1): the kill renews Haste at 3/4 instead of carrying a hit chain.
           P.reset()
-          P.decide('hit', S({job=10, targetId=1, kill=true, casterStatus={haste=true}}), 12)
-          local c = P.decide('hit', S({job=10, targetId=2}), 12)
-          assert(c and c.casterAdd and c.casterAdd[20], 'the chain carried to the next foe')
+          local c = P.decide('hit', S({job=10, targetId=1, kill=true, casterStatus={haste=true}}), 12)
+          assert(c and c.casterAdd[20] == 0.75 and c.casterAdd[21], 'III-4 Haste at 3/4 and Bravery')
           P.reset()
           P.decide('hit', S({job=10, targetId=1, kill=true, casterStatus={haste=true}}), 11)
           assert(P.decide('hit', S({job=10, targetId=2}), 11).damage == 1.20)             -- level 3: no carry, the boost only
@@ -246,8 +243,8 @@ class ProficiencyRulesTest(unittest.TestCase):
 
     def test_combined_haste_grants_keep_the_longer_duration(self):
         self.run_lua('''
-          P.decide('hit', S({job=10}), 11) -- start the Samurai chain before the foe is Stopped
-          local a = P.decide('hit', S({job=10, targetStatus={stop=true}, casterStatus={}}), 11)
+          P.decide('hit', S({job=10}), 11) -- the Attack's first hit
+          local a = P.decide('hit', S({job=10, comboFollow=true, targetStatus={stop=true}, casterStatus={}}), 11)
           assert(a.casterAdd[20] == 0.75, 'Time Mage aura shortened Samurai Haste')
         ''')
 
@@ -297,8 +294,8 @@ class ProficiencyRulesTest(unittest.TestCase):
     def test_samurai(self):
         self.run_lua('''
           P.reset()
-          assert(P.decide('hit', S({job=10}), 1) == nil); assert(P.decide('hit', S({job=10}), 1) == nil)
-          assert(P.decide('hit', S({job=10}), 1).casterAdd[20] == 0.5)
+          assert(P.decide('hit', S({job=10}), 1) == nil)
+          assert(P.decide('hit', S({job=10, comboFollow=true}), 1).casterAdd[20] == 0.5)
           assert(P.decide('aim', S({job=10, casterStatus={haste=true}}), 5).evade.weapon)
           assert(not P.decide('aim', S({job=10, casterStatus={haste=true}}), 5).evade.parry)
           assert(P.decide('aim', S({job=10, casterStatus={haste=true}}), 6).evade.parry)
@@ -691,15 +688,45 @@ class ProficiencyWritTest(unittest.TestCase):
                       end
                       return 0
                     end}
-          dialog = {amese={open=function(t) boxes[#boxes+1] = t.body return 1 end}}
+          -- Montblanc's own lines about the topic go to `notes`; `boxes` holds what he hands out.
+          notes, asked, ASK, ticks = {}, {}, {}, {}
+          dialog = {amese={open=function(t)
+                      if t.body:find('Nothing new yet', 1, true) or t.body:find('Before you go', 1, true) then
+                        notes[#notes+1] = t.body
+                      else boxes[#boxes+1] = t.body end
+                      if t.onClose then t.onClose() end
+                      return 1
+                    end},
+                    aaske={open=function(t)
+                      asked[#asked+1] = t
+                      local i = table.remove(ASK, 1)
+                      if i == nil then i = #t.choice - 1 end
+                      t.onClose(i)
+                      return 1
+                    end}}
           event = {registerEventSync=function(name, fn) handlers[name] = fn return true end,
                    registerEventAsync=function(name, fn) handlers[name] = fn return true end,
                    registerLoadHandler=function(_, fn) handlers.load = fn return true end,
-                   registerSaveHandler=function(_, fn) handlers.save = fn return true end}
+                   registerSaveHandler=function(_, fn) handlers.save = fn return true end,
+                   executeAfterMs=function(ms, fn) ticks[#ticks+1] = fn end}
+          function run(rounds)
+            for _ = 1, rounds or 30 do
+              local t = ticks; ticks = {}
+              for _, fn in ipairs(t) do pcall(fn) end
+            end
+          end
+          TOPIC_FLAG = 0x02099DF0 + 0x99
           R = real_load(sources['scripts/IvaliceLegacy/proficiency_runtime.lua'], '@runtime', 't', _ENV)()
           assert(R.register())
           function loadCampaign(rank) handlers.load('C:/saves/LEGCY_000', {schema=1, campaign='LEGCY_000', claimedRank=rank}) end
-          function leaveHall() handlers.onMapJump(302); handlers.onMapJump(100) end
+          -- Ask Montblanc "Have I earned anything new?" in the hall, then leave (the name is from when leaving claimed).
+          function askMontblanc(answers)
+            handlers.onMapJump(302); run(2)
+            ASK = answers or {1}
+            memory.u8[TOPIC_FLAG] = 1
+            run()
+          end
+          function leaveHall() askMontblanc(); handlers.onMapJump(100); run(2) end
           function said(text) for _, b in ipairs(boxes) do if b:find(text, 1, true) then return true end end end
           function logged(text) for _, l in ipairs(printed) do if l:find(text, 1, true) then return true end end end
         ''')
@@ -750,6 +777,28 @@ class ProficiencyWritTest(unittest.TestCase):
           handlers.load('C:/saves/FFXII_000', {})
           assert(not R.inCampaign())                            -- not a Legacy save name
         ''')
+
+    def test_montblanc_topic_is_asked_for_and_leaving_only_reminds(self):
+        self.lua.execute("""
+          RANK = 2; loadCampaign(0)
+          handlers.onMapJump(302); run(2); handlers.onMapJump(100); run(2)
+          assert(R.claimed() == 0 and #boxes == 0, 'leaving hands nothing out')
+          assert(#notes == 1 and notes[1]:find('Before you go', 1, true))      -- one reminder
+          notes = {}
+          askMontblanc({0, 2, 1})                                              -- what is it, where do I stand, anything new
+          assert(memory.u8[TOPIC_FLAG] == 0, 'the request byte is cleared')
+          assert(#asked >= 3 and asked[1].speaker == 'Montblanc' and #asked[1].choice == 4)
+          assert(said('three') and said('rewarded you up to rank 0'))          -- the explanation and the standing
+          assert(R.claimed() == 2 and keys[0x81F0], 'asking hands out the rank')
+          assert(logged('Montblanc topic opened'))
+          boxes, notes = {}, {}
+          handlers.onMapJump(100); run(2); assert(#notes == 0)                  -- nothing waiting: no reminder
+          askMontblanc({1})
+          assert(#boxes == 0 and #notes == 1 and notes[1]:find('Nothing new yet', 1, true))
+          -- outside the hall the byte is ignored
+          handlers.onMapJump(100); run(2); asked = {}
+          memory.u8[TOPIC_FLAG] = 1; run(); assert(#asked == 0)
+        """)
 
     def test_rank_claimed_before_the_writ_existed(self):
         # Marco's campaign: rank 1 claimed by 0.2.0, no Writ in the inventory.

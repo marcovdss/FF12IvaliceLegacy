@@ -189,11 +189,14 @@ changes that line. The values have not been compared with the Clan Primer
 in-game yet, and when the load handler runs relative to the save copy is
 unverified.
 
-## Family identities (shipped from 0.1.14)
+## Family identities (shipped from 0.1.14; first active in 0.1.24, module 0.2.0)
 
 `family_identities.lua` decides, and `forge_family_8/10/68.lua` plus the updated 22/110/113/165/171
 adapters apply, the nine weapon-family styles: Sunder (axe), Pierce (spear), Unseen (ninja sword),
 Marksman (gun), Afflict (crossbow), Spellbreak (mace), Mend (rod), Counterflow (pole), Chain (katana).
 Each is always on for a character-controlled wielder of that family, pcall-guarded, and inactive
 outside a Legacy campaign. The Forge originals always run first (Counterflow moves a roll's input
-before the original). Tests: `tests/test_family_identities.py`.
+before the original). Until 0.2.0 the adapters never passed the shared deps and Sunder, Counterflow,
+Mend and Chain read the wrong Forge object, so no identity took effect in game. Tests:
+`tests/test_family_identities.py` uses strict Forge-shaped keeps and hit records that raise on unknown fields, and
+`tests/test_family_adapters.py` fires every identity through the adapter file that ships.

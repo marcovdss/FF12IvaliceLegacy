@@ -1,7 +1,10 @@
 -- Proficiency runtime shared by the Forge adapters (165 physical hits, 170 magick, 110 and 127 healing, 182 statuses,
 -- 240 guard reactions, 22 evasion, 222 target initialization). Loaded once and kept in _G so all adapters see one campaign state.
--- Montblanc hands out the ranks: leaving the Clan hall (location 302) with an unrewarded rank makes him speak in
--- native dialogue windows (Lua loader dialog plugin), and the rewarded rank is stored beside the Legacy save.
+-- Montblanc hands out the ranks. Since 0.5.3 the party asks him: his menu's "About Proficiency." choice (rbn_a14.ebp,
+-- ivalice_legacy/montblanc.py) sets a byte this runtime polls in the Clan hall (location 302), and the topic runs here
+-- through the Lua loader dialog plugin: what Proficiency is, whether a new rank is waiting, and where the party
+-- stands. The rewarded rank is stored beside the Legacy save. Leaving the hall no longer hands anything out; with a
+-- rank waiting he only calls after the party once per visit.
 local R = {}
 local Proficiency = assert(loadfile('scripts/IvaliceLegacy/proficiency.lua', 't', _ENV))()
 local ClanRank = assert(loadfile('scripts/IvaliceLegacy/clan_rank.lua', 't', _ENV))()
@@ -163,12 +166,12 @@ local function speak(boxes)
   end
 end
 
--- Leaving the hall: hand over every Writ the rank calls for FIRST, then reward the rank. A Writ that cannot be
--- granted stops the claim, so a Proficiency never runs without its Writ.
+-- Asked for a new rank: hand over every Writ the rank calls for FIRST, then reward the rank. A Writ that cannot be
+-- granted stops the claim, so a Proficiency never runs without its Writ. Returns how many boxes Montblanc spoke.
 local function claim()
-  if not campaign or not legacyMode() then return end
+  if not campaign or not legacyMode() then return 0 end
   local rank = clanRank()
-  if type(rank) ~= 'number' then log('clan rank unreadable; nothing claimed') return end
+  if type(rank) ~= 'number' then log('clan rank unreadable; nothing claimed') return 0 end
   local from = claimed
   local to = math.max(rank, claimed)
   refreshWrits()
@@ -178,7 +181,7 @@ local function claim()
       if not grant(P.WRIT_IDS[k]) then
         log(string.format('campaign=%s Writ %d (0x%04X) could not be granted; nothing claimed', campaign, k, P.WRIT_IDS[k]))
         refreshWrits()
-        return
+        return 0
       end
       writs[k] = true
       log(string.format('campaign=%s Writ %d (0x%04X) granted', campaign, k, P.WRIT_IDS[k]))
@@ -196,6 +199,121 @@ local function claim()
   refreshWrits()
   syncTip()
   if #boxes > 0 then speak(boxes) end
+  return #boxes
+end
+
+-- ---------- Montblanc's Proficiency topic ----------
+-- The hall script's "About Proficiency." choice writes 1 to script variable class 4, offset 0x99: the byte at
+-- 0x02099DF0 + 0x99 (Clan Centurio Equipment Progression uses the same byte for its own Montblanc talk; the two mods
+-- replace the same script file, so they never run together). Polled only inside the hall.
+local TOPIC_FLAG = 0x02099DF0 + 0x99
+local TOPIC_POLL_MS, TOPIC_RETRY_MS, TOPIC_RETRIES = 250, 200, 25
+local topicGeneration, topicBusy, reminded = 0, false, false
+
+local function after(ms, fn)
+  if type(event.executeAfterMs) == 'function' then event.executeAfterMs(ms, fn) else fn() end
+end
+
+-- Open one dialogue; if the previous window is still closing, try again shortly. `fail` runs if it never opens.
+local function open(kind, options, fail, tries)
+  local service = type(dialog) == 'table' and dialog[kind]
+  if type(service) ~= 'table' or type(service.open) ~= 'function' then
+    log('topic: dialog.' .. kind .. ' unavailable')
+    if fail then fail() end
+    return
+  end
+  local ok, handle, reason = pcall(service.open, options)
+  if ok and handle then return end
+  tries = (tries or 0) + 1
+  if tries > TOPIC_RETRIES then
+    log('topic: dialog refused: ' .. tostring(ok and reason or handle))
+    if fail then fail() end
+    return
+  end
+  after(TOPIC_RETRY_MS, function() open(kind, options, fail, tries) end)
+end
+
+-- Montblanc says the boxes one after another, then `done` runs.
+local function pages(boxes, done)
+  local i = 0
+  local function nextBox()
+    i = i + 1
+    if i > #boxes then if done then done() end return end
+    open('amese', {speaker = 'Montblanc', body = boxes[i], lockPlayer = true,
+                   onClose = function() after(60, nextBox) end},
+         function() topicBusy = false end)
+  end
+  nextBox()
+end
+
+local topic
+local TOPIC_CHOICES = {'What is Proficiency?', 'Have I earned anything new?', 'Where do I stand?', "That's all."}
+local function standing()
+  local rank = clanRank()
+  local L = P.levels(claimed)
+  local boxes = {string.format('Your Clan rank is %s, kupo, and I have\nrewarded you up to rank %d.',
+                               type(rank) == 'number' and tostring(rank) or 'a mystery to me', claimed),
+                 string.format('Proficiency I stands at level %d of 4,\nII at %d of 4 and III at %d of 4, kupo.', L[1], L[2], L[3])}
+  if claimed < P.MAX_RANK then
+    boxes[#boxes + 1] = string.format('Reach Clan rank %d and ask me again,\nkupo! There is more to learn.', claimed + 1)
+  else
+    boxes[#boxes + 1] = 'You hold every Proficiency the clan\nteaches. A master hunter, kupo!'
+  end
+  return boxes
+end
+
+topic = function()
+  if not campaign or not legacyMode() then topicBusy = false return end
+  open('aaske', {speaker = 'Montblanc', body = 'Proficiency, kupo? What would you\nlike to know?',
+                 choice = TOPIC_CHOICES, cancel = #TOPIC_CHOICES - 1, closeOnCancel = true, lockPlayer = true,
+                 onClose = function(index)
+                   after(60, function()
+                     if index == 0 then pages(P.TOPIC_PAGES, topic)
+                     elseif index == 1 then
+                       local ok, said = pcall(claim)
+                       if not ok then log('topic: claim failed: ' .. tostring(said)); said = 0 end
+                       if said and said > 0 then
+                         topicBusy = false   -- claim() queued Montblanc's reward boxes; the talk ends with them
+                       else
+                         pages({'Nothing new yet, kupo! Raise your Clan\nrank and come see me again.'}, topic)
+                       end
+                     elseif index == 2 then pages(standing(), topic)
+                     else topicBusy = false end
+                   end)
+                 end}, function() topicBusy = false end)
+end
+
+local function topicTick(generation)
+  if generation ~= topicGeneration or location ~= CLAN_HALL then return end
+  local ok, value = pcall(function() return memory.u8[TOPIC_FLAG] end)
+  if ok and value == 1 then
+    pcall(function() memory.u8[TOPIC_FLAG] = 0 end)
+    if not topicBusy then
+      topicBusy = true
+      log(string.format('campaign=%s Montblanc topic opened', tostring(campaign)))
+      -- the hall script is closing its own menu: give it a moment before the first window
+      after(300, function() local okTopic, err = pcall(topic) if not okTopic then topicBusy = false log('topic failed: ' .. tostring(err)) end end)
+    end
+  end
+  after(TOPIC_POLL_MS, function() topicTick(generation) end)
+end
+
+local function watchTopic()
+  topicGeneration = topicGeneration + 1   -- any earlier poll chain stops
+  if location ~= CLAN_HALL or type(event.executeAfterMs) ~= 'function' then return end
+  local generation = topicGeneration
+  topicBusy, reminded = false, false
+  pcall(function() memory.u8[TOPIC_FLAG] = 0 end)   -- a stale request from another visit is not a request
+  event.executeAfterMs(TOPIC_POLL_MS, function() topicTick(generation) end)
+end
+
+-- Leaving with a rank waiting: one line, once per visit, and nothing is handed out.
+local function remind()
+  if reminded or not campaign or not legacyMode() then return end
+  local rank = clanRank()
+  if type(rank) ~= 'number' or rank <= claimed then return end
+  reminded = true
+  speak({P.REMINDER})
 end
 
 -- ---------- gear descriptions ----------
@@ -643,6 +761,7 @@ function R.register()
     end
     location = memory.u32[LOCATION]
     pcall(soloGuard, location)
+    watchTopic()
     local L = P.levels(claimed)
     log(string.format('campaign=%s claimed rank %d; levels I=%d II=%d III=%d', name, claimed, L[1], L[2], L[3]))
   end) == true and ok
@@ -663,7 +782,8 @@ function R.register()
       rankLogged = true
       log(string.format('campaign=%s clan rank %s (claimed %d), location %d', campaign, tostring(clanRank()), claimed, to))
     end
-    if from == CLAN_HALL and to ~= CLAN_HALL then claim() end
+    if from == CLAN_HALL and to ~= CLAN_HALL then pcall(remind) end
+    watchTopic()
     if campaign and legacyMode() then effective(); refreshWrits(); syncTip() end
   end) == true and ok
   if type(event.executeAfterMs) == 'function' then event.executeAfterMs(GEAR_POLL_MS, gearTick) end
@@ -917,6 +1037,24 @@ local function pushCharge(classes, helpers, unit, fraction)
   end
 end
 
+-- Forge's modifyHp/modifyMp change the pool silently; the game's own hits show their numbers through Forge 324's
+-- showNumberText. Proficiency's heals, drains and MP returns call the same helper with what actually changed, so a
+-- heal shows green and nothing shows at a full pool. Number types: 0 MP loss, 1 HP damage, 2 HP heal, 3 MP gain.
+-- (Before 0.5.1 these effects happened without any number on screen; Marco, 2026-11-10.)
+function R.changeShown(classes, helpers, unit, field, amount, change)
+  local okBefore, before = pcall(function() return classes.getBattleUnitKeep(unit)[field] end)
+  change()
+  pcall(function()
+    local shown = amount
+    if okBefore and type(before) == 'number' then shown = classes.getBattleUnitKeep(unit)[field] - before end
+    if shown == 0 or type(helpers.showNumberText) ~= 'function' then return end
+    local work = helpers.getBattleUnitWork(unit)
+    if type(work) ~= 'number' or work == 0 then return end
+    local kind = field == 'currentHp' and (shown > 0 and 2 or 1) or (shown > 0 and 3 or 0)
+    helpers.showNumberText(work, shown, kind)
+  end)
+end
+
 -- Apply an action table for party member `member`. Formula fields are used only when `formula` is given and the
 -- member is that formula's caster; everything in a.others goes through Forge helpers with the member as source.
 function R.apply(a, formula, member, classes, helpers, target)
@@ -1001,8 +1139,10 @@ function R.apply(a, formula, member, classes, helpers, target)
         if d then helpers.addStatusEffect(member.address, o.unit, o.id, d, helpers.getStatusEffectTickDuration(o.id)) end
       end
     elseif o.op == 'remove' then helpers.removeStatusEffect(o.unit, o.id)
-    elseif o.op == 'mp' then if o.amount ~= 0 then helpers.modifyMp(o.unit, o.amount) end
-    elseif o.op == 'hp' then helpers.modifyHp(member.address, o.unit, o.amount, 0, 0, 0)
+    elseif o.op == 'mp' then if o.amount ~= 0 then R.changeShown(classes, helpers, o.unit, 'currentMp', o.amount,
+        function() helpers.modifyMp(o.unit, o.amount) end) end
+    elseif o.op == 'hp' then R.changeShown(classes, helpers, o.unit, 'currentHp', o.amount,
+        function() helpers.modifyHp(member.address, o.unit, o.amount, 0, 0, 0) end)
     elseif o.op == 'push' then pushCharge(classes, helpers, o.unit, o.fraction) end
   end
 end
@@ -1074,6 +1214,7 @@ function R.hook165(formula, caster, target, classes, helpers)
     s.weapon = caster.weapon
     local now, prev = clock(), lastHit[caster.address]
     s.comboFollow = prev ~= nil and prev.target == target.address and now - prev.at < R.COMBO_WINDOW
+    s.critical = formula.criticalState == 1
     lastHit[caster.address] = {at = now, target = target.address}
     s.kill, s.targetHp = damage >= target.currentHp, target.currentHp
     s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
@@ -1114,7 +1255,11 @@ function R.hook165(formula, caster, target, classes, helpers)
 end
 
 -- 240: after the hit/dodge/parry/block/counter decision. A party member attacked by a foe gives 'guard'.
-local OUTCOME = {[1] = 'dodge', [2] = 'dodge', [3] = 'block', [4] = 'block', [5] = 'parry'}
+-- Forge 41-43 roll shield (outcomes 3/4), then the weapon's evade (1/2), then the body's evade (5); 2 and 4 carry a
+-- counter. The weapon roll is the parry: an Invisible attacker cancels shield and weapon evade (Forge 33), and a
+-- sword's evade sits in evadeWeapon (play log 2026-11-10: Basch's sword evadeWeapon=28). The body roll is the dodge:
+-- Immobilize cancels evadeParry. Before Proficiency 0.5.1 this map had parry and dodge the wrong way round.
+local OUTCOME = {[1] = 'parry', [2] = 'parry', [3] = 'block', [4] = 'block', [5] = 'dodge'}
 function R.hook240(formula, caster, target, classes, helpers)
   if caster.type == 1 then R.seeFoe(caster.address) end
   if not R.active() or caster.type ~= 1 or target.type ~= 0 then return end

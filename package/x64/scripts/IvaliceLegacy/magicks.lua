@@ -6,7 +6,7 @@
 --
 -- Only the party's casts use this. Foes cast the same action rows, and their spells stay as they are, which is why this is
 -- a Forge function and not an edit to the action table. MP cost, area and targeting stay native.
-local M = {version = '0.2.0'}
+local M = {version = '0.2.1'}
 
 -- [action] = {name, native power, power here, why}
 M.SPELLS = {
@@ -37,11 +37,12 @@ M.SPELLS = {
 -- an armoured or warded foe. Foes' own uses stay native.
 M.BREAK = 0.7
 
--- Decoy (action 70, the Lure status): about two minutes when the party casts it. Native is the status table's 20 plus a
--- level share, gone too fast to plan around. Not a table edit: Knight's Proficiency Lure scales from that 20, and foes use
--- it. The game turns a table value into ticks as value * 2 * 300, so 120 is 72000; that 120 reads as seconds is inferred from
--- the table (Stop 30, Bubble 240), not yet timed in game.
-M.DECOY_ACTION, M.DECOY_STATUS, M.DECOY_TICKS = 70, 17, 120 * 2 * 300
+-- Decoy (action 70, the Lure status): about 45 seconds when the party casts it. Native is the status table's 20 plus a
+-- level share, gone too fast to plan around. 0.2.0's two minutes made a shield Knight a set-and-forget wall (Marco,
+-- 2026-11-10): 45 s keeps Decoy a choice the tank renews. Not a table edit: Knight's Proficiency Lure scales from that 20, and foes use
+-- it. The game turns a table value into ticks as value * 2 * 300, so 45 is 27000; that the value reads as seconds is inferred
+-- from the table (Stop 30, Bubble 240), not yet timed in game.
+M.DECOY_ACTION, M.DECOY_STATUS, M.DECOY_TICKS = 70, 17, 45 * 2 * 300
 
 function M.power(action)
   local s = M.SPELLS[action]

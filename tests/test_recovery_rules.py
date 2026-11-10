@@ -79,11 +79,11 @@ class RecoveryDecideTest(unittest.TestCase):
           -- White Mage III: spells return overflow MP, items do not
           assert(mp(P.decide('heal', S(0, {overflow=400, target=200}), 4)) == 20)
           assert(mp(P.decide('heal', S(0, {overflow=400, target=200, item=true}), 4)) == 0)
-          -- Foresight I (overflow MP) is spells only; Provision I (item stage) still gives MP for items
+          -- Foresight II (overflow MP, Stage II since 0.1.25) is spells only; Provision I (item stage) still gives MP for items
           P.reset()
           local seer = line('Foresight')
-          assert(mp(P.decide('heal', S(seer, {overflow=400, target=200, healAmount=900}), 4)) == 20)
-          assert(mp(P.decide('heal', S(seer, {overflow=400, target=200, healAmount=900, item=true}), 4)) == 0)
+          assert(mp(P.decide('heal', S(seer, {overflow=400, target=200, healAmount=900}), 6)) == 20)
+          assert(mp(P.decide('heal', S(seer, {overflow=400, target=200, healAmount=900, item=true}), 6)) == 0)
           P.reset()
           assert(mp(P.decide('heal', S(line('Provision'), {target=200, healAmount=300, item=true}), 4)) > 0)
         ''')

@@ -542,6 +542,39 @@
       }
     },
     {
+      "contentId": 4131,
+      "name": "Ashura",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          72,
+          48
+        ]
+      }
+    },
+    {
+      "contentId": 4132,
+      "name": "Sakura-saezuri",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          77,
+          55
+        ]
+      }
+    },
+    {
+      "contentId": 4133,
+      "name": "Kagenui",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          81,
+          56
+        ]
+      }
+    },
+    {
       "contentId": 4134,
       "name": "Koga Blade",
       "category": "Ninja sword",
@@ -580,6 +613,28 @@
         "attack": [
           87,
           59
+        ]
+      }
+    },
+    {
+      "contentId": 4136,
+      "name": "Orochi",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          94,
+          74
+        ]
+      }
+    },
+    {
+      "contentId": 4137,
+      "name": "Yagyu Darkblade",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          98,
+          65
         ]
       }
     },
@@ -1146,6 +1201,182 @@
       }
     },
     {
+      "contentId": 4177,
+      "name": "Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          31,
+          27
+        ]
+      }
+    },
+    {
+      "contentId": 4178,
+      "name": "Paramina Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          42,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4179,
+      "name": "Recurve Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          57,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4180,
+      "name": "Hunting Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          70,
+          47
+        ]
+      }
+    },
+    {
+      "contentId": 4181,
+      "name": "Penetrator Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          79,
+          58
+        ]
+      }
+    },
+    {
+      "contentId": 4182,
+      "name": "Gastrophetes",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          84,
+          64
+        ]
+      }
+    },
+    {
+      "contentId": 4184,
+      "name": "Capella",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          8,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4185,
+      "name": "Vega",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          13,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4186,
+      "name": "Sirius",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          17,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4187,
+      "name": "Betelgeuse",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          22,
+          17
+        ]
+      }
+    },
+    {
+      "contentId": 4188,
+      "name": "Ras Algethi",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          29,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4189,
+      "name": "Aldebaran",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          33,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4190,
+      "name": "Spica",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          38,
+          27
+        ]
+      }
+    },
+    {
+      "contentId": 4191,
+      "name": "Antares",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          41,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4192,
+      "name": "Arcturus",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          45,
+          33
+        ]
+      }
+    },
+    {
+      "contentId": 4193,
+      "name": "Fomalhaut",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          52,
+          38
+        ]
+      }
+    },
+    {
       "contentId": 4194,
       "name": "Handaxe",
       "category": "Axe",
@@ -1208,6 +1439,17 @@
         "attack": [
           110,
           60
+        ]
+      }
+    },
+    {
+      "contentId": 4200,
+      "name": "Golden Axe",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          120,
+          86
         ]
       }
     },
@@ -1568,6 +1810,248 @@
       }
     },
     {
+      "contentId": 4218,
+      "name": "Serpent Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          25,
+          23
+        ]
+      }
+    },
+    {
+      "contentId": 4220,
+      "name": "Gaia Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          43,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4221,
+      "name": "Power Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          56,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4222,
+      "name": "Empyrean Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          60,
+          47
+        ]
+      }
+    },
+    {
+      "contentId": 4223,
+      "name": "Holy Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          63,
+          56
+        ]
+      }
+    },
+    {
+      "contentId": 4224,
+      "name": "Rod of Faith",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          21,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4226,
+      "name": "Cherry Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          20,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4227,
+      "name": "Wizard's Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          26,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4228,
+      "name": "Flame Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          34,
+          31
+        ]
+      }
+    },
+    {
+      "contentId": 4229,
+      "name": "Storm Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          36,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4230,
+      "name": "Glacial Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          38,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4231,
+      "name": "Golden Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          42,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4232,
+      "name": "Judicer's Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          48,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4233,
+      "name": "Cloud Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          49,
+          36
+        ]
+      }
+    },
+    {
+      "contentId": 4236,
+      "name": "Bronze Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          24,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4237,
+      "name": "Bhuj",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          34,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4238,
+      "name": "Miter",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          42,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4239,
+      "name": "Thorned Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          53,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4240,
+      "name": "Chaos Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          69,
+          51
+        ]
+      }
+    },
+    {
+      "contentId": 4241,
+      "name": "Doom Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          75,
+          56
+        ]
+      }
+    },
+    {
+      "contentId": 4242,
+      "name": "Zeus Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          81,
+          63
+        ]
+      }
+    },
+    {
+      "contentId": 4243,
+      "name": "Grand Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          88,
+          71
+        ]
+      }
+    },
+    {
       "contentId": 4244,
       "name": "Gilt Measure",
       "category": "Measure",
@@ -1767,6 +2251,32 @@
       }
     },
     {
+      "contentId": 4266,
+      "name": "Kumbha",
+      "category": "Sword",
+      "set": {
+        "category": [
+          "Sword",
+          "Katana"
+        ],
+        "attack": [
+          117,
+          84
+        ]
+      }
+    },
+    {
+      "contentId": 4267,
+      "name": "Mesa",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          102,
+          77
+        ]
+      }
+    },
+    {
       "contentId": 4268,
       "name": "Mina",
       "category": "Dagger",
@@ -1790,6 +2300,17 @@
       }
     },
     {
+      "contentId": 4269,
+      "name": "Wyrmhero Blade",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          131,
+          91
+        ]
+      }
+    },
+    {
       "contentId": 4270,
       "name": "Vrsabha",
       "category": "Spear",
@@ -1801,6 +2322,28 @@
         "attack": [
           108,
           80
+        ]
+      }
+    },
+    {
+      "contentId": 4271,
+      "name": "Bone of Byblos",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          100,
+          71
+        ]
+      }
+    },
+    {
+      "contentId": 4272,
+      "name": "Tula",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          91,
+          67
         ]
       }
     },
@@ -1820,6 +2363,21 @@
         "chargeTime": [
           25,
           32
+        ]
+      }
+    },
+    {
+      "contentId": 4274,
+      "name": "Seitengrat",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          224,
+          72
+        ],
+        "chargeTime": [
+          10,
+          36
         ]
       }
     },
@@ -1900,6 +2458,17 @@
       }
     },
     {
+      "contentId": 4293,
+      "name": "Mithuna",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          66,
+          48
+        ]
+      }
+    },
+    {
       "contentId": 4294,
       "name": "Kanya",
       "category": "Pole",
@@ -1930,32 +2499,1372 @@
       }
     },
     {
-      "contentId": 4274,
-      "name": "Seitengrat",
-      "category": "Bow",
+      "contentId": 4299,
+      "name": "Bronze Shield",
+      "category": "Shield",
       "set": {
-        "attack": [
-          224,
-          72
+        "evade": [
+          11,
+          7
         ],
-        "chargeTime": [
-          10,
-          36
+        "magickEvade": [
+          0,
+          7
         ]
       }
     },
     {
-      "contentId": 4266,
-      "name": "Kumbha",
-      "category": "Sword",
+      "contentId": 4300,
+      "name": "Round Shield",
+      "category": "Shield",
       "set": {
-        "category": [
-          "Sword",
-          "Katana"
+        "attributeBlock": [
+          0,
+          177
+        ]
+      }
+    },
+    {
+      "contentId": 4302,
+      "name": "Golden Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          178
+        ]
+      }
+    },
+    {
+      "contentId": 4305,
+      "name": "Diamond Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          179
+        ]
+      }
+    },
+    {
+      "contentId": 4306,
+      "name": "Platinum Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          180
+        ]
+      }
+    },
+    {
+      "contentId": 4310,
+      "name": "Kaiser Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          27,
+          20
         ],
-        "attack": [
-          117,
-          84
+        "magickEvade": [
+          0,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4316,
+      "name": "Leather Cap",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          38,
+          181
+        ]
+      }
+    },
+    {
+      "contentId": 4317,
+      "name": "Headgear",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          39,
+          182
+        ]
+      }
+    },
+    {
+      "contentId": 4318,
+      "name": "Headguard",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          40,
+          183
+        ]
+      }
+    },
+    {
+      "contentId": 4319,
+      "name": "Leather Headgear",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          41,
+          184
+        ]
+      }
+    },
+    {
+      "contentId": 4320,
+      "name": "Horned Hat",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          42,
+          185
+        ]
+      }
+    },
+    {
+      "contentId": 4321,
+      "name": "Balaclava",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          12,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4322,
+      "name": "Soldier's Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          14,
+          13
+        ]
+      }
+    },
+    {
+      "contentId": 4323,
+      "name": "Green Beret",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          16,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4324,
+      "name": "Red Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          19,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4325,
+      "name": "Headband",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          22,
+          21
+        ]
+      }
+    },
+    {
+      "contentId": 4326,
+      "name": "Pirate Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          25,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4327,
+      "name": "Goggle Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          28,
+          27
+        ]
+      }
+    },
+    {
+      "contentId": 4328,
+      "name": "Adamant Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          31,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4329,
+      "name": "Officer's Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          34,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4330,
+      "name": "Chakra Band",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          37,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4331,
+      "name": "Thief's Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          40,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4332,
+      "name": "Gigas Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          43,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4333,
+      "name": "Chaperon",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          46,
+          44
+        ]
+      }
+    },
+    {
+      "contentId": 4334,
+      "name": "Crown of Laurels",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          49,
+          47
+        ]
+      }
+    },
+    {
+      "contentId": 4335,
+      "name": "Renewing Morion",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          52,
+          50
+        ]
+      }
+    },
+    {
+      "contentId": 4336,
+      "name": "Dueling Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          55,
+          52
+        ]
+      }
+    },
+    {
+      "contentId": 4337,
+      "name": "Cotton Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "contentId": 4338,
+      "name": "Magick Curch",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "contentId": 4339,
+      "name": "Pointy Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          6,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4340,
+      "name": "Topkapi Hat",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          62,
+          186
+        ],
+        "magickResist": [
+          8,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4341,
+      "name": "Calot Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          10,
+          12
+        ]
+      }
+    },
+    {
+      "contentId": 4342,
+      "name": "Wizard's Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          12,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4343,
+      "name": "Lambent Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          15,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4344,
+      "name": "Feathered Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          18,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4345,
+      "name": "Mage's Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          21,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4346,
+      "name": "Lamia's Tiara",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          25,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4347,
+      "name": "Sorcerer's Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          29,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4348,
+      "name": "Black Cowl",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          33,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4349,
+      "name": "Astrakhan Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          37,
+          45
+        ]
+      }
+    },
+    {
+      "contentId": 4350,
+      "name": "Gaia Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          41,
+          49
+        ]
+      }
+    },
+    {
+      "contentId": 4351,
+      "name": "Hypnocrown",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          44,
+          53
+        ]
+      }
+    },
+    {
+      "contentId": 4352,
+      "name": "Gold Hairpin",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          47,
+          57
+        ]
+      }
+    },
+    {
+      "contentId": 4353,
+      "name": "Celebrant's Miter",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          50,
+          60
+        ]
+      }
+    },
+    {
+      "contentId": 4354,
+      "name": "Black Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          53,
+          64
+        ]
+      }
+    },
+    {
+      "contentId": 4355,
+      "name": "White Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          56,
+          67
+        ]
+      }
+    },
+    {
+      "contentId": 4356,
+      "name": "Golden Skullcap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          58,
+          70
+        ]
+      }
+    },
+    {
+      "contentId": 4357,
+      "name": "Circlet",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          60,
+          72
+        ]
+      }
+    },
+    {
+      "contentId": 4358,
+      "name": "Leather Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          187
+        ],
+        "magickResist": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "contentId": 4359,
+      "name": "Bronze Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          188
+        ],
+        "magickResist": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "contentId": 4360,
+      "name": "Sallet",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          189
+        ],
+        "magickResist": [
+          7,
+          4
+        ]
+      }
+    },
+    {
+      "contentId": 4361,
+      "name": "Iron Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          190
+        ],
+        "magickResist": [
+          9,
+          6
+        ]
+      }
+    },
+    {
+      "contentId": 4362,
+      "name": "Barbut",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          191
+        ],
+        "magickResist": [
+          11,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4363,
+      "name": "Winged Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          14,
+          9
+        ]
+      }
+    },
+    {
+      "contentId": 4364,
+      "name": "Golden Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          84,
+          192
+        ],
+        "magickResist": [
+          17,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4365,
+      "name": "Burgonet",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          193
+        ],
+        "magickResist": [
+          20,
+          12
+        ]
+      }
+    },
+    {
+      "contentId": 4366,
+      "name": "Close Helmet",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          84,
+          194
+        ],
+        "magickResist": [
+          23,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4367,
+      "name": "Steel Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          26,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4368,
+      "name": "Bone Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          29,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4369,
+      "name": "Diamond Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          32,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4370,
+      "name": "Platinum Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          35,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4371,
+      "name": "Giant's Helmet",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          38,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4372,
+      "name": "Dragon Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          41,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4373,
+      "name": "Magepower Shishak",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          46,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4374,
+      "name": "Genji Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          47,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4375,
+      "name": "Grand Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          50,
+          31
+        ]
+      }
+    },
+    {
+      "contentId": 4376,
+      "name": "Leather Clothing",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          38,
+          195
+        ]
+      }
+    },
+    {
+      "contentId": 4377,
+      "name": "Chromed Leathers",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          39,
+          196
+        ]
+      }
+    },
+    {
+      "contentId": 4378,
+      "name": "Leather Breastplate",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          40,
+          197
+        ]
+      }
+    },
+    {
+      "contentId": 4379,
+      "name": "Bronze Chestplate",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          41,
+          198
+        ]
+      }
+    },
+    {
+      "contentId": 4388,
+      "name": "Adamant Vest",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          35,
+          34
+        ]
+      }
+    },
+    {
+      "contentId": 4389,
+      "name": "Barrel Coat",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          38,
+          37
+        ]
+      }
+    },
+    {
+      "contentId": 4390,
+      "name": "Power Vest",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          41,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4391,
+      "name": "Ninja Gear",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          44,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4392,
+      "name": "Gigas Chestplate",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          47,
+          46
+        ]
+      }
+    },
+    {
+      "contentId": 4393,
+      "name": "Minerva Bustier",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          50,
+          49
+        ]
+      }
+    },
+    {
+      "contentId": 4394,
+      "name": "Rubber Suit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          53,
+          52
+        ]
+      }
+    },
+    {
+      "contentId": 4395,
+      "name": "Mirage Vest",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          55,
+          54
+        ]
+      }
+    },
+    {
+      "contentId": 4396,
+      "name": "Brave Suit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          57,
+          56
+        ]
+      }
+    },
+    {
+      "contentId": 4397,
+      "name": "Cotton Shirt",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          4,
+          2
+        ]
+      }
+    },
+    {
+      "contentId": 4398,
+      "name": "Light Woven Shirt",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "contentId": 4399,
+      "name": "Silken Shirt",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "contentId": 4400,
+      "name": "Kilimweave Shirt",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          8,
+          5
+        ]
+      }
+    },
+    {
+      "contentId": 4401,
+      "name": "Shepherd's Bolero",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          62,
+          199
+        ],
+        "defense": [
+          10,
+          6
+        ]
+      }
+    },
+    {
+      "contentId": 4402,
+      "name": "Wizard's Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          12,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4403,
+      "name": "Chanter's Djellaba",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          15,
+          9
+        ]
+      }
+    },
+    {
+      "contentId": 4404,
+      "name": "Traveler's Vestment",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          18,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4405,
+      "name": "Mage's Habit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          21,
+          13
+        ]
+      }
+    },
+    {
+      "contentId": 4406,
+      "name": "Enchanter's Habit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          25,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4407,
+      "name": "Sorcerer's Habit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          29,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4408,
+      "name": "Black Garb",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          33,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4409,
+      "name": "Carmagnole",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          37,
+          23
+        ]
+      }
+    },
+    {
+      "contentId": 4410,
+      "name": "Maduin Gear",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          41,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4411,
+      "name": "Jade Gown",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          44,
+          27
+        ]
+      }
+    },
+    {
+      "contentId": 4412,
+      "name": "Gaia Gear",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          47,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4413,
+      "name": "Cleric's Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          50,
+          31
+        ]
+      }
+    },
+    {
+      "contentId": 4414,
+      "name": "White Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          53,
+          33
+        ]
+      }
+    },
+    {
+      "contentId": 4415,
+      "name": "Black Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          56,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4416,
+      "name": "Glimmering Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          59,
+          37
+        ]
+      }
+    },
+    {
+      "contentId": 4417,
+      "name": "Lordly Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          61,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4418,
+      "name": "Leather Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          200
+        ],
+        "defense": [
+          6,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4419,
+      "name": "Scale Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          201
+        ],
+        "defense": [
+          7,
+          8
+        ]
+      }
+    },
+    {
+      "contentId": 4420,
+      "name": "Bronze Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          9,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4421,
+      "name": "Iron Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          202
+        ],
+        "defense": [
+          11,
+          13
+        ]
+      }
+    },
+    {
+      "contentId": 4422,
+      "name": "Linen Cuirass",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          203
+        ],
+        "defense": [
+          14,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4423,
+      "name": "Chainmail",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          204
+        ],
+        "defense": [
+          17,
+          19
+        ]
+      }
+    },
+    {
+      "contentId": 4424,
+      "name": "Golden Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          205
+        ],
+        "defense": [
+          21,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4425,
+      "name": "Shielded Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          25,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4426,
+      "name": "Demon Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          30,
+          34
+        ]
+      }
+    },
+    {
+      "contentId": 4427,
+      "name": "Bone Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4428,
+      "name": "Diamond Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          40,
+          46
+        ]
+      }
+    },
+    {
+      "contentId": 4429,
+      "name": "Mirror Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          44,
+          50
+        ]
+      }
+    },
+    {
+      "contentId": 4430,
+      "name": "Platinum Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          49,
+          56
+        ]
+      }
+    },
+    {
+      "contentId": 4431,
+      "name": "Carabineer Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          53,
+          60
+        ]
+      }
+    },
+    {
+      "contentId": 4432,
+      "name": "Dragon Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          57,
+          65
+        ]
+      }
+    },
+    {
+      "contentId": 4433,
+      "name": "Genji Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          63,
+          72
+        ]
+      }
+    },
+    {
+      "contentId": 4434,
+      "name": "Maximillian",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          64,
+          73
+        ]
+      }
+    },
+    {
+      "contentId": 4435,
+      "name": "Grand Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          67,
+          76
         ]
       }
     },
@@ -2217,894 +4126,6 @@
         "augment": [
           255,
           1
-        ]
-      }
-    },
-    {
-      "contentId": 4131,
-      "name": "Ashura",
-      "category": "Ninja sword",
-      "set": {
-        "attack": [
-          72,
-          48
-        ]
-      }
-    },
-    {
-      "contentId": 4132,
-      "name": "Sakura-saezuri",
-      "category": "Ninja sword",
-      "set": {
-        "attack": [
-          77,
-          55
-        ]
-      }
-    },
-    {
-      "contentId": 4133,
-      "name": "Kagenui",
-      "category": "Ninja sword",
-      "set": {
-        "attack": [
-          81,
-          56
-        ]
-      }
-    },
-    {
-      "contentId": 4136,
-      "name": "Orochi",
-      "category": "Ninja sword",
-      "set": {
-        "attack": [
-          94,
-          74
-        ]
-      }
-    },
-    {
-      "contentId": 4137,
-      "name": "Yagyu Darkblade",
-      "category": "Ninja sword",
-      "set": {
-        "attack": [
-          98,
-          65
-        ]
-      }
-    },
-    {
-      "contentId": 4177,
-      "name": "Crossbow",
-      "category": "Crossbow",
-      "set": {
-        "attack": [
-          31,
-          27
-        ]
-      }
-    },
-    {
-      "contentId": 4178,
-      "name": "Paramina Crossbow",
-      "category": "Crossbow",
-      "set": {
-        "attack": [
-          42,
-          35
-        ]
-      }
-    },
-    {
-      "contentId": 4179,
-      "name": "Recurve Crossbow",
-      "category": "Crossbow",
-      "set": {
-        "attack": [
-          57,
-          43
-        ]
-      }
-    },
-    {
-      "contentId": 4180,
-      "name": "Hunting Crossbow",
-      "category": "Crossbow",
-      "set": {
-        "attack": [
-          70,
-          47
-        ]
-      }
-    },
-    {
-      "contentId": 4181,
-      "name": "Penetrator Crossbow",
-      "category": "Crossbow",
-      "set": {
-        "attack": [
-          79,
-          58
-        ]
-      }
-    },
-    {
-      "contentId": 4182,
-      "name": "Gastrophetes",
-      "category": "Crossbow",
-      "set": {
-        "attack": [
-          84,
-          64
-        ]
-      }
-    },
-    {
-      "contentId": 4184,
-      "name": "Capella",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          8,
-          7
-        ]
-      }
-    },
-    {
-      "contentId": 4185,
-      "name": "Vega",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          13,
-          11
-        ]
-      }
-    },
-    {
-      "contentId": 4186,
-      "name": "Sirius",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          17,
-          14
-        ]
-      }
-    },
-    {
-      "contentId": 4187,
-      "name": "Betelgeuse",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          22,
-          17
-        ]
-      }
-    },
-    {
-      "contentId": 4188,
-      "name": "Ras Algethi",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          29,
-          20
-        ]
-      }
-    },
-    {
-      "contentId": 4189,
-      "name": "Aldebaran",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          33,
-          24
-        ]
-      }
-    },
-    {
-      "contentId": 4190,
-      "name": "Spica",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          38,
-          27
-        ]
-      }
-    },
-    {
-      "contentId": 4191,
-      "name": "Antares",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          41,
-          29
-        ]
-      }
-    },
-    {
-      "contentId": 4192,
-      "name": "Arcturus",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          45,
-          33
-        ]
-      }
-    },
-    {
-      "contentId": 4193,
-      "name": "Fomalhaut",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          52,
-          38
-        ]
-      }
-    },
-    {
-      "contentId": 4200,
-      "name": "Golden Axe",
-      "category": "Axe",
-      "set": {
-        "attack": [
-          120,
-          86
-        ]
-      }
-    },
-    {
-      "contentId": 4218,
-      "name": "Serpent Rod",
-      "category": "Rod",
-      "set": {
-        "attack": [
-          25,
-          23
-        ]
-      }
-    },
-    {
-      "contentId": 4220,
-      "name": "Gaia Rod",
-      "category": "Rod",
-      "set": {
-        "attack": [
-          43,
-          35
-        ]
-      }
-    },
-    {
-      "contentId": 4221,
-      "name": "Power Rod",
-      "category": "Rod",
-      "set": {
-        "attack": [
-          56,
-          41
-        ]
-      }
-    },
-    {
-      "contentId": 4222,
-      "name": "Empyrean Rod",
-      "category": "Rod",
-      "set": {
-        "attack": [
-          60,
-          47
-        ]
-      }
-    },
-    {
-      "contentId": 4223,
-      "name": "Holy Rod",
-      "category": "Rod",
-      "set": {
-        "attack": [
-          63,
-          56
-        ]
-      }
-    },
-    {
-      "contentId": 4224,
-      "name": "Rod of Faith",
-      "category": "Rod",
-      "set": {
-        "attack": [
-          21,
-          18
-        ]
-      }
-    },
-    {
-      "contentId": 4226,
-      "name": "Cherry Staff",
-      "category": "Staff",
-      "set": {
-        "attack": [
-          20,
-          18
-        ]
-      }
-    },
-    {
-      "contentId": 4227,
-      "name": "Wizard's Staff",
-      "category": "Staff",
-      "set": {
-        "attack": [
-          26,
-          25
-        ]
-      }
-    },
-    {
-      "contentId": 4228,
-      "name": "Flame Staff",
-      "category": "Staff",
-      "set": {
-        "attack": [
-          34,
-          31
-        ]
-      }
-    },
-    {
-      "contentId": 4229,
-      "name": "Storm Staff",
-      "category": "Staff",
-      "set": {
-        "attack": [
-          36,
-          32
-        ]
-      }
-    },
-    {
-      "contentId": 4230,
-      "name": "Glacial Staff",
-      "category": "Staff",
-      "set": {
-        "attack": [
-          38,
-          35
-        ]
-      }
-    },
-    {
-      "contentId": 4231,
-      "name": "Golden Staff",
-      "category": "Staff",
-      "set": {
-        "attack": [
-          42,
-          41
-        ]
-      }
-    },
-    {
-      "contentId": 4232,
-      "name": "Judicer's Staff",
-      "category": "Staff",
-      "set": {
-        "attack": [
-          48,
-          43
-        ]
-      }
-    },
-    {
-      "contentId": 4233,
-      "name": "Cloud Staff",
-      "category": "Staff",
-      "set": {
-        "attack": [
-          49,
-          36
-        ]
-      }
-    },
-    {
-      "contentId": 4236,
-      "name": "Bronze Mace",
-      "category": "Mace",
-      "set": {
-        "attack": [
-          24,
-          22
-        ]
-      }
-    },
-    {
-      "contentId": 4237,
-      "name": "Bhuj",
-      "category": "Mace",
-      "set": {
-        "attack": [
-          34,
-          29
-        ]
-      }
-    },
-    {
-      "contentId": 4238,
-      "name": "Miter",
-      "category": "Mace",
-      "set": {
-        "attack": [
-          42,
-          35
-        ]
-      }
-    },
-    {
-      "contentId": 4239,
-      "name": "Thorned Mace",
-      "category": "Mace",
-      "set": {
-        "attack": [
-          53,
-          40
-        ]
-      }
-    },
-    {
-      "contentId": 4240,
-      "name": "Chaos Mace",
-      "category": "Mace",
-      "set": {
-        "attack": [
-          69,
-          51
-        ]
-      }
-    },
-    {
-      "contentId": 4241,
-      "name": "Doom Mace",
-      "category": "Mace",
-      "set": {
-        "attack": [
-          75,
-          56
-        ]
-      }
-    },
-    {
-      "contentId": 4242,
-      "name": "Zeus Mace",
-      "category": "Mace",
-      "set": {
-        "attack": [
-          81,
-          63
-        ]
-      }
-    },
-    {
-      "contentId": 4243,
-      "name": "Grand Mace",
-      "category": "Mace",
-      "set": {
-        "attack": [
-          88,
-          71
-        ]
-      }
-    },
-    {
-      "contentId": 4267,
-      "name": "Mesa",
-      "category": "Ninja sword",
-      "set": {
-        "attack": [
-          102,
-          77
-        ]
-      }
-    },
-    {
-      "contentId": 4269,
-      "name": "Wyrmhero Blade",
-      "category": "Greatsword",
-      "set": {
-        "attack": [
-          131,
-          91
-        ]
-      }
-    },
-    {
-      "contentId": 4271,
-      "name": "Bone of Byblos",
-      "category": "Mace",
-      "set": {
-        "attack": [
-          100,
-          71
-        ]
-      }
-    },
-    {
-      "contentId": 4272,
-      "name": "Tula",
-      "category": "Crossbow",
-      "set": {
-        "attack": [
-          91,
-          67
-        ]
-      }
-    },
-    {
-      "contentId": 4293,
-      "name": "Mithuna",
-      "category": "Gun",
-      "set": {
-        "attack": [
-          66,
-          48
-        ]
-      }
-    },
-    {
-      "contentId": 4299,
-      "name": "Bronze Shield",
-      "category": "Shield",
-      "set": {
-        "evade": [
-          11,
-          7
-        ],
-        "magickEvade": [
-          0,
-          7
-        ]
-      }
-    },
-    {
-      "contentId": 4300,
-      "name": "Round Shield",
-      "category": "Shield",
-      "set": {
-        "attributeBlock": [
-          0,
-          177
-        ]
-      }
-    },
-    {
-      "contentId": 4302,
-      "name": "Golden Shield",
-      "category": "Shield",
-      "set": {
-        "attributeBlock": [
-          0,
-          178
-        ]
-      }
-    },
-    {
-      "contentId": 4305,
-      "name": "Diamond Shield",
-      "category": "Shield",
-      "set": {
-        "attributeBlock": [
-          0,
-          179
-        ]
-      }
-    },
-    {
-      "contentId": 4306,
-      "name": "Platinum Shield",
-      "category": "Shield",
-      "set": {
-        "attributeBlock": [
-          0,
-          180
-        ]
-      }
-    },
-    {
-      "contentId": 4310,
-      "name": "Kaiser Shield",
-      "category": "Shield",
-      "set": {
-        "evade": [
-          27,
-          20
-        ],
-        "magickEvade": [
-          0,
-          20
-        ]
-      }
-    },
-    {
-      "contentId": 4316,
-      "name": "Leather Cap",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          38,
-          181
-        ]
-      }
-    },
-    {
-      "contentId": 4317,
-      "name": "Headgear",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          39,
-          182
-        ]
-      }
-    },
-    {
-      "contentId": 4318,
-      "name": "Headguard",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          40,
-          183
-        ]
-      }
-    },
-    {
-      "contentId": 4319,
-      "name": "Leather Headgear",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          41,
-          184
-        ]
-      }
-    },
-    {
-      "contentId": 4320,
-      "name": "Horned Hat",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          42,
-          185
-        ]
-      }
-    },
-    {
-      "contentId": 4340,
-      "name": "Topkapi Hat",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          62,
-          186
-        ]
-      }
-    },
-    {
-      "contentId": 4358,
-      "name": "Leather Helm",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          80,
-          187
-        ]
-      }
-    },
-    {
-      "contentId": 4359,
-      "name": "Bronze Helm",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          80,
-          188
-        ]
-      }
-    },
-    {
-      "contentId": 4360,
-      "name": "Sallet",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          81,
-          189
-        ]
-      }
-    },
-    {
-      "contentId": 4361,
-      "name": "Iron Helm",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          81,
-          190
-        ]
-      }
-    },
-    {
-      "contentId": 4362,
-      "name": "Barbut",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          82,
-          191
-        ]
-      }
-    },
-    {
-      "contentId": 4364,
-      "name": "Golden Helm",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          84,
-          192
-        ]
-      }
-    },
-    {
-      "contentId": 4365,
-      "name": "Burgonet",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          82,
-          193
-        ]
-      }
-    },
-    {
-      "contentId": 4366,
-      "name": "Close Helmet",
-      "category": "Head armor",
-      "set": {
-        "attributeBlock": [
-          84,
-          194
-        ]
-      }
-    },
-    {
-      "contentId": 4376,
-      "name": "Leather Clothing",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          38,
-          195
-        ]
-      }
-    },
-    {
-      "contentId": 4377,
-      "name": "Chromed Leathers",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          39,
-          196
-        ]
-      }
-    },
-    {
-      "contentId": 4378,
-      "name": "Leather Breastplate",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          40,
-          197
-        ]
-      }
-    },
-    {
-      "contentId": 4379,
-      "name": "Bronze Chestplate",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          41,
-          198
-        ]
-      }
-    },
-    {
-      "contentId": 4401,
-      "name": "Shepherd's Bolero",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          62,
-          199
-        ]
-      }
-    },
-    {
-      "contentId": 4418,
-      "name": "Leather Armor",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          80,
-          200
-        ]
-      }
-    },
-    {
-      "contentId": 4419,
-      "name": "Scale Armor",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          80,
-          201
-        ]
-      }
-    },
-    {
-      "contentId": 4421,
-      "name": "Iron Armor",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          81,
-          202
-        ]
-      }
-    },
-    {
-      "contentId": 4422,
-      "name": "Linen Cuirass",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          82,
-          203
-        ]
-      }
-    },
-    {
-      "contentId": 4423,
-      "name": "Chainmail",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          81,
-          204
-        ]
-      }
-    },
-    {
-      "contentId": 4424,
-      "name": "Golden Armor",
-      "category": "Body armor",
-      "set": {
-        "attributeBlock": [
-          82,
-          205
         ]
       }
     }
@@ -5458,5 +6479,5 @@
     ],
     "resultSha256": "defcb6bcd59e3d538a5146e8f8c2a2bfa8f9d021a0450ba48faabba8eea6394e"
   },
-  "resultSectionSha256": "a937dcdad34d67e8c3db5d11017bf60806fe8e97c7a3bc5c7f8e91d09644b904"
+  "resultSectionSha256": "20042837ea6d0b100a6675df44e0124c6352698a9865b265132153cc132e0b85"
 }

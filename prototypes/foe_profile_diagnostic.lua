@@ -1,7 +1,9 @@
--- Diagnostic prototype: logs each distinct foe's live level, stats and status masks once.
+-- Diagnostic prototype: logs each distinct foe's live level, stats and status masks once, plus per-hit base damage
+-- and foe action lines. 0.1.6's charge-timer samples (one line per hit) are gone in 0.1.7: they crowded everything
+-- else out of the session log (429 lines in ten minutes of play) and the charge research they served is done.
 -- No bonuses, no writes to game state, no save data, no loader registration.
 local M = {}
-M.version = '0.1.6'
+M.version = '0.1.7'
 
 local STATUS = {'ko','stone','petrify','stop','sleep','confuse','doom','blind','poison','silence','sap','oil',
   'reverse','disable','immobilize','slow','disease','lure','protect','shell','haste','bravery','faith','reflect',
@@ -24,33 +26,12 @@ M.names = names
 function M.new(deps)
   assert(type(deps)=='table' and type(deps.profile)=='function' and type(deps.emit)=='function',
     'diagnostic requires profile and log adapters')
-  local seen, count, charges, hits, actions, lastClock, errorLogged = {}, 0, 0, 0, 0, nil, false
+  local seen, count, hits, actions, lastClock, errorLogged = {}, 0, 0, 0, nil, false
   local LIMIT = 1000
   local observer = {}
 
   function observer:reset()
-    seen, count, charges, hits, actions, lastClock = {}, 0, 0, 0, 0, nil
-  end
-
-  -- Charge-timer samples (current/required/last/idle) for the attacker and target of a hit, to learn how
-  -- the native charge works before any mechanic writes to it. Read-only, capped per load.
-  local CHARGE_LIMIT = 1000
-  function observer:charge(s)
-    if charges >= CHARGE_LIMIT or type(s) ~= 'table' then return false end
-    for _, side in ipairs({'caster', 'target'}) do
-      local c = s[side]
-      if type(c) ~= 'table' then return false end
-      for _, k in ipairs({'current', 'required', 'last', 'idle'}) do
-        if not integer(c[k], 0, 0xFFFFFFFF) then return false end
-      end
-    end
-    charges = charges + 1
-    local c, t = s.caster, s.target
-    deps.emit(string.format(
-      'Legacy charge probe: clock=%s action=%s casterType=%s caster=%d/%d/%d/%d targetType=%s target=%d/%d/%d/%d bonuses=off',
-      tostring(s.clock), tostring(s.action), tostring(s.casterType), c.current, c.required, c.last, c.idle,
-      tostring(s.targetType), t.current, t.required, t.last, t.idle))
-    return true
+    seen, count, hits, actions, lastClock = {}, 0, 0, 0, nil
   end
 
   -- Base damage of each hit (Forge 113's removedHp, before crit/status factors) with the target's level and max HP,
@@ -139,7 +120,6 @@ function M.new(deps)
       local result = table.pack(original(...))
       -- Logging failure must never interrupt Forge or change its return values.
       local ok, err = pcall(self.observe, self, ...)
-      if ok and deps.charge then ok, err = pcall(function(...) return self:charge(deps.charge(...)) end, ...) end
       if ok and deps.hit then ok, err = pcall(function(...) return self:hit(deps.hit(...)) end, ...) end
       if not ok and not errorLogged then
         errorLogged = true

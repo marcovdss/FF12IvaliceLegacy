@@ -10,14 +10,19 @@
 -- 0.3.0 applies the same floor to foes' hits: a tank whose armour matched a foe's attack took about 0.3% of HP a swing
 -- (Barmuu on Basch, def 32), so armoured members felt no pressure. Foe hits above the floor are unchanged.
 --
+-- 0.4.0: a foe's hit on a party member keeps at least HALF of its attack. With the quarter floor a shield Knight in
+-- heavy armour took 3.3% of his HP from a landed Attack (Basch, 2026-11-10, 12 hits) where the danger rule asks 10-15%
+-- for the band's tank; unarmoured, the same hits were about 13%. Armour still halves a blow, and blocks, parries,
+-- Protect and the armour triangle keep their full weight above the floor. Party hits on foes keep the quarter floor.
+--
 -- 0.1.0 used attack^2 / (attack + defense); in play it roughly doubled damage at the common attack-to-defense ratios
 -- (second Demon Wall in 99 s, Barmuu in 36 s), so 0.2.0 keeps the subtraction and only replaces the zeros.
-local M = {version = '0.3.0', FLOOR_DIVISOR = 4}
+local M = {version = '0.4.0', FLOOR_DIVISOR = 4, FOE_FLOOR_DIVISOR = 2}
 
 -- The attack term for an attack value against a defense value, or nil when Forge's own subtraction already applies.
-function M.floor(attack, defense)
+function M.floor(attack, defense, divisor)
   if type(attack) ~= 'number' or type(defense) ~= 'number' or attack <= 0 or defense <= 0 then return nil end
-  local least = attack / M.FLOOR_DIVISOR
+  local least = attack / (divisor or M.FLOOR_DIVISOR)
   if attack - defense >= least then return nil end
   return least
 end
@@ -30,7 +35,9 @@ function M.wrap(original)
       return original(formula, caster, target, functions, classes, helpers)
     end
     local attack, defense = formula.multiplier, formula.modifier
-    local term = M.floor(attack, defense)
+    -- a foe (type 1) striking a party member (type 0); a broken reader falls back to the common floor
+    local okSide, foeOnParty = pcall(function() return caster.type == 1 and target.type == 0 end)
+    local term = M.floor(attack, defense, okSide and foeOnParty and M.FOE_FLOOR_DIVISOR or nil)
     if not term then return original(formula, caster, target, functions, classes, helpers) end
     formula.multiplier, formula.modifier = term, 0
     local result = table.pack(pcall(original, formula, caster, target, functions, classes, helpers))
