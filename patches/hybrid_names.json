@@ -152,7 +152,7 @@
     1,
     3
    ],
-   "name": "Breaker",
+   "name": "Magebreaker",
    "parents": [
     "Lancer",
     "Green Mage"
@@ -776,7 +776,7 @@
     9,
     11
    ],
-   "name": "Grenadier",
+   "name": "Detonator",
    "parents": [
     "Chemist",
     "Black Mage"

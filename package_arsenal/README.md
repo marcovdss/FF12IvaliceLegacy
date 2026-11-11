@@ -80,9 +80,9 @@ absorbs Holy; boosts Earth, Dark), Mistflow Ring (Regen; Silence ward), Dampenin
 Fire), Scholar Bangle (Libra; half Dark), Cachusha (Sleep and Confuse ward), Hyper Wrist (Stop and Slow ward),
 Rancor Bracelet (Berserk, no knockback; half Ice), Reflect Bracers (Reflect, returns some damage), Magnus Gloves
 (Faith), Braver Gloves (Weatherproof), Hale Gauntlets (instant-KO and Disease ward), Shell Gorget (Shell; Silence
-ward), Zephyr Collar (Anti-Libra; half Wind), Protect Gorget (Protect), Moonsilver Amulet (double EXP; Silence
-ward), Elmdore Fang (Sap, absorbs Dark, weak to Holy; Confuse ward), Shinobi Tabi (Invisible, Libra; Immobilize
-ward), Pixie Shoes (Float; Confuse ward), Miracle Shoes (Protect, Shell; Sap ward), Iron Duke (Petrify ward; half
-Fire, Ice, Lightning). Reworked under their names: Genji Gloves, Turtleshell Choker, Bubble Belt, Black Belt,
+ward), Zephyr Collar (physical attacks +20%; half Wind), Protect Gorget (Protect), Moonsilver Amulet (double EXP;
+Silence ward), Elmdore Fang (Sap, absorbs Dark, weak to Holy; Confuse ward), Shinobi Tabi (Invisible, Libra;
+Immobilize ward), Pixie Shoes (Float; Confuse ward), Miracle Shoes (Protect, Shell; Sap ward), Iron Duke (Petrify
+ward; half Fire, Ice, Lightning). Reworked under their names: Genji Gloves, Turtleshell Choker, Bubble Belt, Black Belt,
 Battle Harness, Hermes Sandals, Ribbon (every status and instant KO). Prices and where they are found are unchanged.
 

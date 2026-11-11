@@ -210,6 +210,13 @@ function M.recklessStep(caster, deps)
   return math.floor(entry.steps * M.RECKLESS_STEP * 100 + 0.5)
 end
 
+-- Clears a unit's Reckless dent (Warrior Cleave II). True when there was one.
+function M.clearReckless(address)
+  if reckless[address] == nil then return false end
+  reckless[address] = nil
+  return true
+end
+
 -- The wielder's dent as a fraction (0 to 0.25), 0 when there is none, it has expired or the wielder no longer holds an axe.
 function M.recklessDent(unit, deps)
   deps = deps or registered
@@ -692,13 +699,13 @@ function M.guardWrap(original, deps)
       -- opened Samurai meets no evasion at all.
       if formula.counterState == 1 and category and category ~= 'unarmed' and not parts.opened then
         local evade = formula.evadeWeapon
-        if category == 'spear' or category == 'bow' or category == 'handBomb' or evade == 0 then
-          -- only ever raised: a weapon that already evades better keeps its own value
-          if type(evade) == 'number' and evade < M.COUNTER_PARRY_EVADE then
-            formula.evadeWeapon = M.COUNTER_PARRY_EVADE
-            parts[#parts + 1] = 'counter-parry'
-            parts.parried = true
-          end
+        -- Hybrid rework, decision 3 (2026-11-11): every weapon but fists (axe 6, rod 6, hammer 2-5, crossbow 5, staff, measure,
+        -- gun...), not only the evade-0 rows, rolls its counter against 30. Only ever raised: a weapon that already evades
+        -- better keeps its own value. The roll is evadeWeapon against random(100): 30 is a 30% chance, not a certainty.
+        if type(evade) == 'number' and evade < M.COUNTER_PARRY_EVADE then
+          formula.evadeWeapon = M.COUNTER_PARRY_EVADE
+          parts[#parts + 1] = 'counter-parry'
+          parts.parried = true
         end
       end
       return e, n, #parts > 0 and table.concat(parts, ' ') or nil, category, stance, parts.parried

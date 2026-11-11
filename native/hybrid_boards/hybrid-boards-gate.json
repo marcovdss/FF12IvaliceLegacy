@@ -1,6 +1,6 @@
 {
   "completeHookSet": true,
-  "scope": "Hybrid Boards 0.3.3: 66 pairs on BaseJobs 0.7.0, 16 hybrids renamed; offline-validated candidate",
+  "scope": "Hybrid Boards 0.3.4: 66 pairs on BaseJobs 0.7.0, 18 hybrids renamed; offline-validated candidate",
   "sites": [
     0,
     1,
@@ -23,7 +23,7 @@
   ],
   "adapterSize": 99968,
   "adapterImageSha256": "2553738186f6d1fbd6edcc92d1221a1ef3f370b2b579382c3036b251437c3602",
-  "layoutsSha256": "4dfb11508f9e79110bbf33776452e711f637d0fdb9dda61878e052e0419b76b5",
+  "layoutsSha256": "89014061218d1a354ab99c5ad34ccf8f7386808052ad88af9ae60ae597372c4c",
   "hookPlanSha256": "bc2473e7c3061e752e6c5213ba82d7523c6b6966959d9a43efec02b1bbcaa9ed",
   "loaderSha256": "d39cd7a078ae826702166a684d393ba170df1affb3a98108f75c19ea80508d30",
   "hooksSha256": "2c4afc99aeafc7c6db9cb8c343a02e521595a24fb6368d2ea191c48832d51a8a",

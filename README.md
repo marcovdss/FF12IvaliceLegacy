@@ -1,7 +1,7 @@
 # Ivalice Legacy
 
 ![Game](https://img.shields.io/badge/FINAL%20FANTASY%20XII-The%20Zodiac%20Age%20(PC)-1f4e79)
-![Version](https://img.shields.io/badge/version-0.1.36-2e7d32)
+![Version](https://img.shields.io/badge/version-0.1.37-2e7d32)
 ![Status](https://img.shields.io/badge/status-early%20development-c77c02)
 
 **An overhaul for FINAL FANTASY XII THE ZODIAC AGE where preparation wins.**
@@ -85,6 +85,7 @@ companion mods.
 | Weapons pillar 0.1.34: True aim, Reckless, Glancing, spear counters (need the Counter augment, which the Battle Harness carries again from 0.1.35), rod Lure, shield triangle, weapon trims | Offline; built and covered by tests, not yet played |
 | Base jobs 0.1.35: Battle Harness Counter; Telekinesis on Warrior, Achilles on Gunner, Protectga and Shellga on White Mage, Lancer without Dispel and Stona; Zanshin I only when not Hasted, Zanshin II-1 and II-2 swapped; Detonate counts Confused foes | Offline; built and covered by tests, not yet played |
 | Hybrid job names 0.1.36: 16 renames (Chrono Lancer, Crusader, Monk, Cleric, Chrono Knight, Gunbreaker, Corsair, Riskbreaker, Lanista, Swiftblade, Arithmetician, Ki Gunner, Spellfist, Dragonkin, Spellbow, Despoiler) | Installed; names not yet seen in game |
+| Hybrid Proficiency rework 0.1.37: all 66 hybrid lines rebuilt (trigger from one parent, payoff from the other), no Proficiency stage grants Libra, Protect only on Knight, White Mage and Mystic lines, and two more renames (Detonator, Magebreaker) | Offline; built and covered by tests, not yet played |
 | Armour and accessories, armour triangle | Text seen; effects and the triangle not yet measured |
 | Magicks, MP economy, Technicks | Offline; MP costs confirmed in the game log |
 | Enemy behaviours, boss crown, stat pass | In the campaign; not yet checked one by one |

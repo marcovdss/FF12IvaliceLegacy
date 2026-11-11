@@ -119,7 +119,7 @@ HARNESS = r'''
   assert(R.register())
   handlers.load('C:/saves/LEGCY_000', {schema=1, campaign='LEGCY_000', claimedRank=12})
   assert(R.effective() == 12)
-  local IDS = {lure=17, slow=15, blind=7, haste=20, protect=18}
+  local IDS = {lure=17, slow=15, blind=7, haste=20, protect=18, poison=8}
   function flags(t)
     local f = setmetatable({}, {__index=function() return 0 end})
     for name, on in pairs(t or {}) do f[name] = on; f[IDS[name]] = on end
@@ -201,17 +201,18 @@ class RuntimeTest(unittest.TestCase):
                 self.assertFalse(self.hit_by_foe(job1, job2, 0, 1), 'a roll on a landed blow: no swing, no pay')
 
     def test_a_roll_without_a_swing_keeps_the_hybrids_guard_stages(self):
-        # Riskbreaker (Knight + Hunter) has a stage on any parry, block or dodge: outcome 1 with a counter roll is a parry,
-        # so that stage hears it (it never heard a swing-less roll as a parry before).
+        # Riskbreaker I (Knight + Hunter) has a stage on any parry, block or dodge against an ailing foe: outcome 1 with a
+        # counter roll is a parry, so that stage hears it (it gives Lure). Decision 4A (2026-11-11): a counter swing is also a parry or block, so the guard stage
+        # hears it too (Counter gear no longer removes guard triggers).
         self.lua.execute('''
           reset()
           local me = unit({type=0, id=2, address=party(2), job1=4, job2=8})
-          local foe = unit({type=1, address=7000})
+          local foe = unit({type=1, address=7000, status={poison=1}})
           R.hook240({caster=plus(), target=plus(), outcomeType=1, counterState=1}, foe, me, classes, helpers)
-          assert(addedTo(me.address, 30), 'Riskbreaker Libra on the parry')
+          assert(addedTo(me.address, 17), 'Riskbreaker Lure on the parry')
           reset()
           R.hook240({caster=plus(), target=plus(), outcomeType=2, counterState=1}, foe, me, classes, helpers)
-          assert(not addedTo(me.address, 30), 'a counter swing is a counter, not a guard')
+          assert(addedTo(me.address, 17), 'a counter swing on a parry is also a parry: the guard stage hears it')
         ''')
 
     def test_full_cadence_is_one_counter(self):

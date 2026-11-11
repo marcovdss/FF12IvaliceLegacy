@@ -118,7 +118,7 @@ own Proficiency line instead of either parent's.
 | Beastslayer | Lancer + Hunter | Big Game |
 | Berserker | Warrior + Samurai | Frenzy |
 | Bishop | Chemist + White Mage | Sacrament |
-| Breaker | Lancer + Green Mage | Unmake |
+| Magebreaker | Lancer + Green Mage | Unmake |
 | Cannoneer | Lancer + Gunner | Siege |
 | Chaplain | Gunner + White Mage | Last Rites |
 | Chrono Knight | Knight + Time Mage | Tempo Guard |
@@ -136,7 +136,7 @@ own Proficiency line instead of either parent's.
 | Fell Knight | Warrior + Mystic | Blood Price |
 | Geomancer | Hunter + Mystic | Earthsense |
 | Gladiator | Warrior + Chemist | Arena |
-| Grenadier | Chemist + Black Mage | Ignite |
+| Detonator | Chemist + Black Mage | Ignite |
 | Gunbreaker | Knight + Gunner | Overwatch |
 | Gunslinger | Samurai + Gunner | Quickdraw |
 | Heaven Knight | Lancer + White Mage | Crusade |
@@ -182,6 +182,9 @@ Monk (Warrior + White Mage) Crusader, Netherseer (Green Mage + Mystic) Monk, Sky
 Fusilier Gunbreaker, Flintlock Corsair, Sentinel Riskbreaker, Reaver Lanista, Kensei Swiftblade, Arcanist
 Arithmetician, Hexgunner Ki Gunner, Sage Spellfist, Elementalist Dragonkin, Arcane Archer Spellbow and Saboteur
 Despoiler. Boards, licenses and Proficiency lines are unchanged, so nothing needs to be respecced.
+
+**Two more hybrid renames (0.1.37).** Grenadier (Chemist + Black Mage) is now **Detonator** and Breaker (Lancer + Green
+Mage) is now **Magebreaker**. Boards, licenses and line names are unchanged.
 
 Fused boards are tied to the supported game executable (Steam 1.0.4.0). If a game update changes the executable, the
 boards switch themselves off and the game shows the two native tabs until Legacy is updated. The log records the reason.
@@ -236,6 +239,24 @@ Mage keeps draining MP with every hit). Every one of the 144 base levels and all
 effect, built from statuses, HP and MP changes, damage scaling and charge pushback. Pushback has a budget: one foe
 can be pushed back at most 25% of a turn between its own actions, or 12.5% for bosses, marks and rare game.
 
+**Hybrid lines (0.1.37).** All 66 hybrid lines were rebuilt on one rule: a stage takes its trigger from one parent and
+its payoff from the other, and no two stages share a trigger and a first effect. The rules the lines now keep:
+
+- No Proficiency stage grants Libra. Pursuit stage II now stretches restarted ailment timers by 10%, and Contagion stage
+  III strips Regen from the foes its spread reaches.
+- Protect belongs to Knight, White Mage and Mystic parents, in one stage per line, for you or one ally. Only a line with
+  a Knight parent gives the party Protect. Contagion II cures one ailment on each healed ally and Cleave II clears your
+  Reckless dent instead.
+- A line has at most one Shell stage. A line has at most one party-wide effect, at stage III.
+- No Bravery from a stage that only spells or gun shots benefit, and no Faith for yourself on a job that does not cast.
+- A Haste you give yourself from a frequent trigger applies only when you are not already Hasted.
+- Stages on a hit you take say "physical hit": foes' spells and status never set them off. A parry or block that
+  answers with a counter also counts as a parry or block, so Counter gear does not remove guard stages.
+- "Big game" is a boss, a mark or a rare foe. "About to act" is a foe at 75% or more of its charge; the hook log counts how
+  often it fires so play can tune it.
+- A full Cadence streak counts as a counter for every line with a counter stage. A counter parries at 30% on any weapon
+  but fists whose own evade is lower (a roll under 30 turns the blow aside; it is not guaranteed).
+
 *Play state: Stage I played to Clan rank 4, and the first hybrid Stage I lines have fired in play. Stages II and
 III, and most of the 66 hybrid lines, are built but not yet confirmed in play.*
 
@@ -276,7 +297,7 @@ identities and their costs as four Weapon Families entries (Heavy, Light, Ranged
 | Mace | **Spellbreak**: hits burn foe MP equal to 10% of the damage (at most 10% of its pool) |
 | Measure | **Tempo**: each measure grants one status to the ally it strikes (Protect, Shell, Bravery, Invisible, Haste or Bubble, by tier); the Gilt Measure is now sold from Amal's Weaponry in the third band, and a measure buff a Chemist lands can spread to a second ally (Contagion) |
 | Hand-bomb | **Barrage**: the bombs you load decide the status, 25% on hit (Poison, Stop, Oil, Confuse or Sap; some carry none). Chaos Bombs (Confuse) and Stun Bombs (Stop) set up a Time Mage's Detonate |
-| Unarmed | **Cadence**: each Attack in a row on the same target deals +6% more (up to +30%, five steps) and charges the next action 5% faster per step; switching targets or ten seconds of stillness restarts. A complete streak counts as one counter for Ki Flow and the hybrid counter lines of a job that owns fists |
+| Unarmed | **Cadence**: each Attack in a row on the same target deals +6% more (up to +30%, five steps) and charges the next action 5% faster per step; switching targets or ten seconds of stillness restarts. A complete streak counts as one counter for Ki Flow and for every hybrid line with a counter stage, whichever two jobs the character holds |
 
 There are four ways past armour: axes wear Defense down, spears ignore part of it, guns and measures ignore all of it,
 and poles strike Magick Resist instead. Daggers and ninja swords have none, which is what Glancing costs them. Ammunition decides the element and status for bows,
@@ -290,7 +311,7 @@ attacked, restores the guard. The first roll against a fresh guard is always ful
 (**Braced**); after a katana combo, the next attack on the wielder meets no evasion if it comes within ten seconds
 (**Open**); a spear never parries (**Long haft**), except that a spear which rolled a counter (this needs the Counter augment, now on
 the Battle Harness again) turns the blow aside and strikes back; an axe wears its wielder's Defense down (**Reckless**; it returns ten seconds after the last axe Attack); and a dagger or ninja sword loses its edge
-against armour (**Glancing**). A pole's evade is back to 25-30 (by band) so that Counterflow can swing. The crossbow (charge 30)
+against armour (**Glancing**). A pole's evade is back to 25-30 (by band) so that Counterflow can swing. Any weapon but fists that rolled a counter parries it at 30% when its own weapon evade is lower (a roll under 30 turns the blow aside and answers it; it is not a guaranteed parry). The crossbow (charge 30)
 and the hammer (charge 40, trimmed to about 1.05 of its band) are slower than before, and the hand-bomb's attack is
 trimmed from the fifth band on.
 

@@ -49,8 +49,14 @@ class ProficiencyRulesTest(unittest.TestCase):
           P.reset()
           assert(P.decide('hit', S({targetStatus={poison=true}}), 4).damage == 1.25)
           P.reset()
-          assert(P.decide('hit', S({targetStatus={poison=true}}), 7).casterAdd[30])       -- II-3 Libra goes to the Hunter
-          assert(P.decide('hit', S({targetStatus={poison=true}, casterStatus={libra=true}}), 7).casterAdd == nil)
+          -- II-3 (decision 10): no Libra; the restarted timers are stretched 10%. II-2 does not stretch.
+          local p3 = P.decide('hit', S({targetStatus={poison=true}}), 7)
+          assert(p3.renewScale == 1.10 and p3.casterAdd == nil)
+          P.reset()
+          assert(P.decide('hit', S({targetStatus={poison=true}}), 6).renewScale == nil)
+          P.reset()
+          assert(P.decide('hit', S({targetStatus={blind=true}}), 7).renewScale == nil)    -- no timed ailment, nothing to stretch
+          P.reset()
           local a = P.decide('hit', S({targetStatus={poison=true}, kill=true}), 12)
           assert(a.casterAdd[20] == 0.75)                                                -- III Haste, longer at 4
           assert(P.decide('hit', S({targetId=5}), 12).targetAdd[15] == 0.5)               -- III-2 next target Slowed
@@ -86,7 +92,9 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(has(L.targetRemove, 18) and has(L.targetRemove, 19) and has(L.targetRemove, 23) and has(L.targetRemove, 28))
           assert(P.decide('hit', S({job=1, targetStatus={immobilize=true}}), 12).targetAdd[15] == 0.5)
           -- Warrior II-2.
-          assert(P.decide('hit', S({job=7, casterHpPct=40}), 6).casterAdd[18] == 0.5)
+          local cl = P.decide('hit', S({job=7, casterHpPct=40}), 6)
+          assert(cl.clearReckless == true and not (cl.casterAdd and cl.casterAdd[18]), 'II-2: Reckless dent clears, no Protect (decision 12)')
+          assert(P.decide('hit', S({job=7, casterHpPct=40, targetId=3}), 5).clearReckless == nil)
           -- Samurai I (0.5.1): a combo, or from 2/4 a critical hit, gives Haste once per Attack.
           P.reset()
           assert(P.decide('hit', S({job=10}), 1) == nil)                                  -- a plain hit: nothing
@@ -142,7 +150,10 @@ class ProficiencyRulesTest(unittest.TestCase):
           local m = P.decide('hit', S({job=11}), 5)
           o = op(m, 'hp')
           assert(o and o.unit == 200 and o.amount == 10)
-          assert(op(P.decide('hit', S({job=11}), 7), 'add', 18))
+          -- Contagion II-3 (decision 11): the healed ally is cured of one ailment (Silence), no Protect.
+          local c3 = P.decide('hit', S({job=11}), 7)
+          assert(op(c3, 'remove', 9) and not op(c3, 'add', 18))
+          assert(not op(P.decide('hit', S({job=11}), 6), 'remove'), 'II-2 cures nothing')
           assert(P.decide('hit', S({job=11, party={{address=100, job=11, hpPct=100, status={}}}}), 5) == nil)
           -- Black Mage III on the third cast only.
           P.reset()
@@ -192,11 +203,11 @@ class ProficiencyRulesTest(unittest.TestCase):
             targetHp=110, roll=function() calls = calls + 1; return answers[calls] end,
             party={{address=100, job=2, hpPct=100, mp=0, maxMp=0, status={}}, {address=300, job=6, hpPct=100, mp=0, maxMp=0, status={}}}}), 12)
           assert(calls == 1 and a.targetAdd[9], 'the replay kept the first roll')
-          -- Warrior: II keeps a kill's longer Bravery, and Protect does not need Bravery to be missing.
+          -- Warrior: II keeps a kill's longer Bravery; the Reckless dent clears instead of a Protect (decision 12).
           a = P.decide('hit', S({job=7, kill=true, casterHpPct=40}), 8)
-          assert(a.casterAdd[21] == 1.5 and a.casterAdd[18])
+          assert(a.casterAdd[21] == 1.5 and a.clearReckless and not a.casterAdd[18])
           a = P.decide('hit', S({job=7, casterHpPct=40, casterStatus={bravery=true}}), 8)
-          assert(a.casterAdd[18] and not a.casterAdd[21] and op(a, 'add', 21))
+          assert(a.clearReckless and not (a.casterAdd and a.casterAdd[21]) and op(a, 'add', 21))
           -- Warrior III-4: real, not a longer timer on a status with none.
           local two = {{address=1, status={}}, {address=2, status={}}}
           a = P.decide('hit', S({job=7, kill=true, targetStatus={sap=true}, foes=two}), 12)
@@ -892,7 +903,7 @@ class ProficiencyWritTest(unittest.TestCase):
           local hunter = P.gearLines(P.JOB.hunter, 2)
           assert(hunter[1] == 'Pursuit  I 2/4  II 0/4  III 0/4' and hunter[2]:find('15%%') and hunter[3] == nil and hunter[4] == nil)
           local six = P.gearLines(P.JOB.hunter, 7)                       -- I 4/4, II 3/4
-          assert(six[2]:find('25%%') and six[3]:find('Libra') and six[4] == nil)
+          assert(six[2]:find('25%%') and six[3]:find('stretch') and not six[3]:find('Libra') and six[4] == nil)
           assert(P.gearLines(P.JOB.lancer, 6)[3]:find('strip'))            -- every stage now has a line
           for job = 0, 11 do
             for rank = 1, 12 do

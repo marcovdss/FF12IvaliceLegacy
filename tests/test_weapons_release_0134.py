@@ -288,11 +288,20 @@ class ReleaseBehaviourTests(unittest.TestCase):
           cat = 'bow'; blow(wielder(6, 56), 0, 0); assert(seen[6] == 0)
           cat = 'handBomb'; blow(wielder(7, 57), 0, 1); assert(seen[7] == 30, 'a hand-bomb')
           cat = 'staff'; blow(wielder(8, 58), 0, 1); assert(seen[8] == 30, 'any weapon row with no weapon evade')
-          cat = 'staff'; blow(wielder(9, 59), 15, 1); assert(seen[9] == 15, 'a weapon with its own evade is native')
+          cat = 'staff'; blow(wielder(9, 59), 15, 1); assert(seen[9] == 30, 'decision 3: any weapon below 30 is raised to 30')
           cat = 'bow'; blow(wielder(10, 60), 10, 1); assert(seen[10] == 30, 'a bow with a little evade is raised to the pole band')
           local kinds_ = {}
           for _, r in ipairs(reports) do kinds_[r[1]] = (kinds_[r[1]] or 0) + 1 end
-          assert(kinds_['counter-parry'] == 5, kinds())     -- spear, bow, hand-bomb, no-evade staff, 10-evade bow
+          assert(kinds_['counter-parry'] == 6, kinds())     -- spear, bow, hand-bomb, no-evade staff, 15-evade staff, 10-evade bow
+          cat = 'axe'; blow(wielder(11, 61), 6, 1); assert(seen[11] == 30, 'axe 6')
+          cat = 'rod'; blow(wielder(12, 62), 6, 1); assert(seen[12] == 30, 'rod 6')
+          cat = 'hammer'; blow(wielder(13, 63), 3, 1); assert(seen[13] == 30, 'hammer 2-5')
+          cat = 'crossbow'; blow(wielder(14, 64), 5, 1); assert(seen[14] == 30, 'crossbow 5')
+          cat = 'gun'; blow(wielder(15, 65), 25, 1); assert(seen[15] == 30, 'gun 10/25')
+          cat = 'measure'; blow(wielder(16, 66), 10, 1); assert(seen[16] == 30, 'measure 10')
+          cat = 'pole'; blow(wielder(17, 67), 28, 1); assert(seen[17] == 30, 'a pole below the top band is lifted to it')
+          cat = 'sword'; blow(wielder(18, 68), 40, 1); assert(seen[18] == 40, 'a sword keeps its own higher evade')
+          cat = 'axe'; blow(wielder(19, 69), 6, 0); assert(seen[19] == 6, 'no counter rolled: native')
           assert(module.COUNTER_PARRY_EVADE == 30)
           assert(reports[1][1] == 'counter-parry' or reports[2][1] == 'counter-parry')
         """)
@@ -404,6 +413,16 @@ class ReleaseBehaviourTests(unittest.TestCase):
             return f.target.removedHp, f.modifier
           end
     """
+
+    def test_cleave_clears_the_reckless_dent(self):
+        self.lua.execute(self.RECKLESS + """
+          swing(1000000); swing(1000000)
+          assert(math.abs(module.recklessDent(axeman, deps) - 0.10) < 1e-9)
+          assert(module.clearReckless(axeman.address) == true, 'there was a dent')
+          assert(module.recklessDent(axeman, deps) == 0)
+          assert(module.clearReckless(axeman.address) == false, 'nothing left to clear')
+          swing(1000000); assert(math.abs(module.recklessDent(axeman, deps) - 0.05) < 1e-9, 'it starts over')
+        """)
 
     def test_reckless_grows_per_attack_and_stops_at_a_quarter(self):
         self.lua.execute(self.RECKLESS + """

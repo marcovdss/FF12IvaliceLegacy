@@ -30,7 +30,7 @@ return {
     [4455] = {name="Nihopalaoa", notes="Reverses the effects of restorative items."},
     [4456] = {name="Embroidered Tippet", notes=""},
     [4457] = {name="Shell Gorget", notes=""},
-    [4458] = {name="Zephyr Collar", notes="Conceals the wearer's Libra information."},
+    [4458] = {name="Zephyr Collar", notes="Physical attacks deal 20% more damage."},
     [4459] = {name="Protect Gorget", notes=""},
     [4460] = {name="Moonsilver Amulet", notes=""},
     [4461] = {name="Pheasant Netsuke", notes="Boosts healing items and Phoenix Downs."},

@@ -54,6 +54,7 @@ local function log(line)
   if logged < LOG_LIMIT then logged = logged + 1; print('Legacy Proficiency: ' .. line) end
 end
 R.log = log
+Hybrid.log = log   -- the hybrid module writes its about-to-act firing counter here
 
 -- Key items through the game's own inventory code: 0x2FD970 is the owned-bit getter (id, kind 0) and 0x2FD420 the
 -- setter (id, amount, mode). Mode 1 sets the amount outright and never reads the setter's stack-only notify
@@ -865,7 +866,7 @@ function R.party(classes, helpers)
       local k = classes.getBattleUnitKeep(addr)
       if k.currentHp > 0 and k.maxHp > 0 then
         out[#out + 1] = {address = addr, job = R.lineOf(k.job1, k.job2),
-                         hpPct = 100 * k.currentHp // k.maxHp, mp = k.currentMp, maxMp = k.maxMp,
+                         hpPct = 100 * k.currentHp // k.maxHp, hp = k.currentHp, maxHp = k.maxHp, mp = k.currentMp, maxMp = k.maxMp,
                          status = statusSet(k.temporaryStatusEffects)}
       end
     end
@@ -914,7 +915,7 @@ function R.base(unit, flags, classes, helpers)
   local actor = R.partyActor(unit)
   if not actor then return nil end
   return {job = job, actorId = actor, self = unit.address, party = R.party(classes, helpers),
-          casterStatus = statusSet(flags), casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100,
+          casterStatus = statusSet(flags), casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100, casterHp = unit.currentHp,
           casterMp = unit.currentMp, casterMaxMp = unit.maxMp, selfMaxHp = unit.maxHp,
           roll = function(percent) return helpers.getRandomNumber(100) < percent end,
           canLand = function(address, id)
@@ -1037,6 +1038,15 @@ function R.pushAllowance(address, w, wanted)
   return allowed
 end
 
+-- Whether a foe is a boss, mark or rare game (the kinds table of Dynamic Foes, as the push budget reads it).
+function R.isTough(address, classes, helpers)
+  local ok, tough = pcall(function()
+    local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(address))
+    return w.address ~= 0 and TOUGH[KINDS[w.ardUnit.name]] == true
+  end)
+  return ok and tough == true
+end
+
 local function pushCharge(classes, helpers, unit, fraction)
   local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(unit))
   if w.address == 0 then return end
@@ -1083,7 +1093,15 @@ function R.apply(a, formula, member, classes, helpers, target)
     for id, scale in pairs(a.targetAdd or {}) do grant(formula.target, target, member.address, id, scale, helpers) end
     -- Renewing restarts the timer: the helper writes it even when the status is already on.
     for _, id in ipairs(a.targetRenew or {}) do
-      if target.temporaryStatusEffects[id] == 1 then formula.target.addedStatusEffects[id] = 1 end
+      if target.temporaryStatusEffects[id] == 1 then
+        formula.target.addedStatusEffects[id] = 1
+        -- Pursuit II-3/4: the restarted timer runs a little longer than a normal one (renewScale, e.g. 1.10).
+        if a.renewScale then
+          local longer = math.max(1, math.floor(helpers.getStatusEffectDuration(member.address, id) * a.renewScale))
+          local queued = queuedDuration(formula.target, member.address, id, helpers)
+          if not queued or queued < longer then formula.target.statusEffectDurations[id] = longer end
+        end
+      end
     end
     for id, fraction in pairs(a.targetExtend or {}) do
       local full = helpers.getStatusEffectDuration(member.address, id)
@@ -1113,6 +1131,10 @@ function R.apply(a, formula, member, classes, helpers, target)
       local lost = queued(formula.target, 'removedMp')
       formula.target.mpUpdateState, formula.target.addedMp, formula.target.removedMp = 1, queued(formula.target, 'addedMp'), lost + a.targetMpLoss
     end
+    -- A foe the drain really empties is Silenced: the drain may have been shortened by the cast's MP budget above.
+    if a.leechSilence and (a.drainMp or 0) >= a.leechSilence.need then
+      grant(formula.target, target, member.address, P.STATUS.silence, a.leechSilence.scale, helpers)
+    end
     if a.healHp and formula.caster.hpUpdateState ~= 1 then
       formula.caster.hpUpdateState, formula.caster.addedHp, formula.caster.removedHp = 1, a.healHp, 0
     end
@@ -1127,6 +1149,11 @@ function R.apply(a, formula, member, classes, helpers, target)
     end
   end
   if a.casterCharge then R.armCharge(member.address, a.casterCharge, classes, helpers) end
+  -- Cleave II: the axe's Reckless dent clears (family_identities keeps it; nothing happens without an axe dent).
+  if a.clearReckless then
+    local family = rawget(_G, 'IvaliceLegacyFamily')
+    if type(family) == 'table' and type(family.clearReckless) == 'function' then pcall(family.clearReckless, member.address) end
+  end
   -- MP a spell hands back is capped by its cast's budget; MP taken from a foe's own pool by a reaction is free.
   local freeMp = 0
   if a.mpBudget then
@@ -1153,7 +1180,8 @@ function R.apply(a, formula, member, classes, helpers, target)
         function() helpers.modifyMp(o.unit, o.amount) end) end
     elseif o.op == 'hp' then R.changeShown(classes, helpers, o.unit, 'currentHp', o.amount,
         function() helpers.modifyHp(member.address, o.unit, o.amount, 0, 0, 0) end)
-    elseif o.op == 'push' then pushCharge(classes, helpers, o.unit, o.fraction) end
+    elseif o.op == 'push' then pushCharge(classes, helpers, o.unit, o.fraction)
+    elseif o.op == 'quick' then R.armCharge(o.unit, o.fraction, classes, helpers) end
   end
 end
 
@@ -1222,6 +1250,8 @@ function R.fullCadence(caster, target)
   local s = R.base(caster, caster.temporaryStatusEffects, env.classes, env.helpers)
   if not s then return end
   s.attacker, s.attackerStatus, s.attackerMp = target.address, statusSet(target.temporaryStatusEffects), target.currentMp
+  s.attackerMaxMp = target.maxMp
+  s.attackerTough = R.isTough(target.address, env.classes, env.helpers)
   s.foes = R.foes(env.classes, target.address)
   s.outcome = 'counter'
   local a = P.decide('guard', s, effective())
@@ -1267,6 +1297,8 @@ function R.hook165(formula, caster, target, classes, helpers)
     s.distance = R.distance(formula)
     s.bystander = formula.initialTargetPointer ~= 0 and formula.initialTargetPointer ~= target.address
     s.category, s.targetStatus, s.targetMp = category, statusSet(formula.target.statusEffects), target.currentMp
+    s.targetMaxMp = target.maxMp
+    if s.job >= Hybrid.FIRST_ID then s.tough = R.isTough(target.address, classes, helpers) end
     if work.address ~= 0 then
       s.charge = {current = work.currentChargeTime, required = work.requiredChargeTime, last = work.lastChargeTime}
     end
@@ -1281,6 +1313,7 @@ function R.hook165(formula, caster, target, classes, helpers)
       and R.base(target, formula.target.statusEffects, classes, helpers) or nil
     if mine then
       mine.attacker, mine.attackerStatus, mine.attackerMp = caster.address, statusSet(caster.temporaryStatusEffects), caster.currentMp
+      mine.attackerMaxMp, mine.attackerTough = caster.maxMp, R.isTough(caster.address, classes, helpers)
       mine.damage, mine.dropCritical = formula.target.removedHp, dropped
       mine.foes = R.foes(classes, caster.address)
       local a = P.decide('struck', mine, effective())
@@ -1291,7 +1324,11 @@ function R.hook165(formula, caster, target, classes, helpers)
         if R.listens(p.job, 'ally') and p.address ~= target.address then
           local k = classes.getBattleUnitKeep(p.address)
           local s = R.base(k, k.temporaryStatusEffects, classes, helpers)
-          if s then s.ally = target.address end
+          if s then
+            s.ally = target.address
+            s.attacker, s.attackerStatus, s.attackerMp = caster.address, statusSet(caster.temporaryStatusEffects), caster.currentMp
+            s.attackerMaxMp, s.attackerTough = caster.maxMp, R.isTough(caster.address, classes, helpers)
+          end
           local a = s and P.decide('ally', s, effective())
           if a then R.apply(a, nil, k, classes, helpers); R.report('ally', s, a) end
         end
@@ -1313,6 +1350,7 @@ function R.hook240(formula, caster, target, classes, helpers)
   if not s then return end
   s.attacker = caster.address
   s.attackerStatus, s.attackerMp = statusSet(caster.temporaryStatusEffects), caster.currentMp
+  s.attackerMaxMp, s.attackerTough = caster.maxMp, R.isTough(caster.address, classes, helpers)
   s.foes = R.foes(classes, caster.address)
   -- A counter pays only when the blow was answered with a swing (0.1.34, audit B2/D1b): Forge 41-43 write outcome 2 (weapon
   -- parry + counter) or 4 (shield block + counter). A counter roll without a parry or block does nothing visible.
@@ -1321,7 +1359,8 @@ function R.hook240(formula, caster, target, classes, helpers)
     if not swing then return end
     s.outcome = 'counter'
   elseif s.job >= Hybrid.FIRST_ID and swing then
-    s.outcome = 'counter'
+    -- The parry or block the counter rode on (outcome 2 = parry, 4 = block): hybrid guard stages hear it too.
+    s.outcome, s.guardOutcome = 'counter', OUTCOME[formula.outcomeType]
   else
     s.outcome = OUTCOME[formula.outcomeType]
     if not s.outcome then return end
@@ -1363,7 +1402,15 @@ function R.hook170(formula, caster, target, classes, helpers)
   s.element, s.mpCost = R.element(formula.action)
   s.castId, s.action = R.castId(caster, formula.action), formula.action
   s.foe, s.target, s.damage = true, target.address, formula.target.removedHp
-  s.targetId, s.targetMp = formula.target.identifier, target.currentMp
+  s.targetId, s.targetMp, s.targetMaxMp = formula.target.identifier, target.currentMp, target.maxMp
+  if s.job >= Hybrid.FIRST_ID then
+    s.tough = R.isTough(target.address, classes, helpers)
+    -- the foe's charge when the spell lands, so "about to act" can be read on spells too
+    local work = formula.target.battleUnitWork
+    if work and work.address ~= 0 then
+      s.charge = {current = work.currentChargeTime, required = work.requiredChargeTime, last = work.lastChargeTime}
+    end
+  end
   s.kill = s.damage ~= -1 and s.damage >= target.currentHp
   s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
   s.now = clock()
@@ -1406,12 +1453,19 @@ function R.hook182(formula, caster, target, classes, helpers, before)
   if target.type ~= 1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
   if not s or not R.listens(s.job, 'status') then return end
-  s.landed = {}
+  s.landed, s.landedFull = {}, {}
   for _, name in ipairs(P.AILMENTS) do
     local id = P.STATUS[name] or (name == 'disease' and DISEASE or nil)
     if id and formula.target.addedStatusEffects[id] == 1 and not before[id] then s.landed[#s.landed + 1] = id end
   end
-  if #s.landed == 0 then return end
+  -- Hybrid status stages hear the wider set (Stop, Sleep, Confuse too), the same as on the spell route.
+  for _, name in ipairs(P.LANDED) do
+    local id = P.STATUS[name]
+    if id and formula.target.addedStatusEffects[id] == 1 and not before[id] then s.landedFull[#s.landedFull + 1] = id end
+  end
+  if #s.landed == 0 and #s.landedFull == 0 then return end
+  s.targetMaxMp = target.maxMp
+  if s.job >= Hybrid.FIRST_ID then s.tough = R.isTough(target.address, classes, helpers) end
   s.foe, s.target, s.damage = true, target.address, formula.target.removedHp
   s.targetStatus, s.targetMp = statusSet(formula.target.statusEffects), target.currentMp
   s.foes = R.foes(classes, target.address)
@@ -1440,6 +1494,8 @@ function R.hook181(formula, caster, target, classes, helpers, before)
   s.castId = R.castId(caster, formula.action)
   s.foe = target.type == 1
   s.targetStatus, s.targetMp = statusSet(formula.target.statusEffects), target.currentMp
+  s.targetMaxMp = target.maxMp
+  if s.job >= Hybrid.FIRST_ID and target.type == 1 then s.tough = R.isTough(target.address, classes, helpers) end
   s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
   s.foes = R.foes(classes, target.address)
   local a = P.decide('cast', s, effective())

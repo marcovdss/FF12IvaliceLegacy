@@ -55,8 +55,24 @@ class HybridProficiencyTest(unittest.TestCase):
         self.assertIsNone(self.lua.eval('H.pairIndex(4, -1)'))
         self.assertEqual(self.lua.eval('#H.LINES'), 66)
 
-    def test_every_text_fits_and_every_level_reads_differently(self):
+    def test_every_text_fits_and_every_level_that_differs_reads_differently(self):
+        # A level whose effects match the level before it (a stage that gains nothing there) may read the same.
         self.lua.execute(r'''
+          local function sig(stage, L)
+            local out = {}
+            for _, fx in ipairs(stage[5]) do
+              if (fx.f or 1) <= L then
+                local parts = {fx[1], tostring(fx.fresh)}
+                for j = 2, #fx do
+                  local v = fx[j]
+                  if type(v) == 'table' and #v == 4 and type(v[1]) == 'number' then v = v[L] end
+                  parts[#parts + 1] = type(v) == 'table' and table.concat(v, '+') or tostring(v)
+                end
+                out[#out + 1] = table.concat(parts, '|')
+              end
+            end
+            return table.concat(out, ';')
+          end
           for id = 12, 77 do
             local g = P.GEAR[id]
             assert(g and g.line, id)
@@ -68,7 +84,9 @@ class HybridProficiencyTest(unittest.TestCase):
                 local a, b = t:match('^([^\n]*)\n?(.*)$')
                 assert(#a <= first and #b <= H.EXTRA_LIMIT and not b:find('\n'), t)
                 assert(not t:find('[;<>{}]'), t)
-                if L > 1 then assert(t ~= g[k][L - 1], id .. ':' .. k .. ':' .. L .. ' repeats level ' .. (L - 1)) end
+                if L > 1 and sig(H.LINES[id - 11][k], L) ~= sig(H.LINES[id - 11][k], L - 1) then
+                  assert(t ~= g[k][L - 1], id .. ':' .. k .. ':' .. L .. ' repeats level ' .. (L - 1))
+                end
               end
             end
           end
@@ -136,7 +154,9 @@ class HybridProficiencyTest(unittest.TestCase):
           assert(a and a.drainMp == 2, 'I-1: hits drain MP (5%, capped at 2% of max MP)')
           a = P.decide('hit', S(14, {damage=400, targetId=12}), 4)
           assert(a.drainMp == 2 and a.healHp == 20, 'I-4: drain, and heal you 5% of the damage')
-          assert(others(a, 'hp', 200) == 1, 'I-4: heal the most hurt ally too')
+          assert(others(a, 'hp', 200) == 0, 'not at full MP: the drain does not reach the ally')
+          a = P.decide('hit', S(14, {damage=400, targetId=13, casterMp=100}), 4)
+          assert(others(a, 'hp', 200) == 1, 'I-2: at full MP the drain heals the most hurt ally')
           a = P.decide('heal', S(14, {overflow=300, target=200, foe=false}), 6)
           assert(others(a, 'mp', 100) == 1, 'II-2: overflow still returns MP')
         ''')
@@ -147,11 +167,11 @@ class HybridProficiencyTest(unittest.TestCase):
           assert(others(a, 'remove', 901) == 1 and others(a, 'hp', 100) == 1 and others(a, 'add', 901) == 1)
         ''')
 
-    def test_seer_ally_at_critical_gets_bubble(self):
-        a = self.lua.execute('return P.decide("ally", S(14, {ally=200}), 12)')
-        self.assertEqual(self.lua.eval('others')(a, 'add', 200, 28), 1)   # Bubble
-        self.assertEqual(self.lua.eval('others')(a, 'add', 200, 25), 1)   # Regen
-        self.assertEqual(self.lua.eval('others')(a, 'add', 200, 19), 1)   # Shell
+    def test_seer_healing_an_ally_at_critical_gets_bubble(self):
+        a = self.lua.execute('return P.decide("heal", S(14, {target=200, healAmount=300, overflow=0, targetHpPct=20}), 12)')
+        self.assertEqual(a.targetAdd[28], 0.75)                           # Bubble on the healed ally
+        self.assertEqual(a.targetAdd[25], 0.5)                            # Regen
+        self.assertEqual(self.lua.eval('others')(a, 'mp', 100), 1)        # 3% of max MP
 
     def test_struck_and_counter_reactions_hit_the_attacker(self):
         self.lua.execute(r'''
@@ -187,23 +207,24 @@ class HybridProficiencyTest(unittest.TestCase):
     def test_a_spell_on_three_foes_gives_its_cast_rewards_once(self):
         self.lua.execute(r'''
           P.CAST_WINDOW = 200000
-          -- Red Mage III: the same element twice; the second cast reaches three foes
-          P.decide('magick', S(20, {element=1, now=1000}), 12)
-          local first = P.decide('magick', S(20, {element=1, now=500000, targetId=1}), 12)
-          assert(first.casterCharge and others(first, 'add') >= 1)          -- quickened, Faith, party Shell
+          -- Runeguard II 4/4 (id 54): while Lured, a damage spell quickens the next action and gives Faith; the cast
+          -- reaches three foes
+          local lured = {lure=true}
+          local first = P.decide('magick', S(54, {casterStatus=lured, element=1, now=500000, targetId=1}), 8)
+          assert(first.casterCharge and first.casterAdd[22], 'quickened, Faith')
           for i = 2, 3 do
-            local again = P.decide('magick', S(20, {element=1, now=500000 + i, targetId=i}), 12)
-            assert(again == nil or (again.casterCharge == nil and others(again, 'add') == 0), i)
+            local again = P.decide('magick', S(54, {casterStatus=lured, element=1, now=500000 + i, targetId=i}), 8)
+            assert(again == nil or (again.casterCharge == nil and next(again.casterAdd or {}) == nil), i)
           end
         ''')
 
     def test_a_healing_spell_on_the_party_gives_its_cast_rewards_once(self):
         # Area heals reach targets about a second apart: the runtime's cast id, not the clock, makes them one cast.
         self.lua.execute(r'''
-          -- Chaplain II at 4/4: healing an ally adds 5% of the heal to their MP (a per-cast effect)
+          -- Ballad II at 4/4 (id 19): healing an ally adds 5% of the heal to their MP (a per-cast effect)
           local function heal(target, castId, now)
-            return P.decide('heal', S(13, {target=target, healAmount=1000, overflow=0, castId=castId, action=4,
-                                           now=now}), 12)
+            return P.decide('heal', S(19, {target=target, healAmount=1000, overflow=0, castId=castId, action=4,
+                                           now=now}), 8)
           end
           assert(others(heal(200, 7, 1000), 'mp') == 1)
           assert(others(heal(300, 7, 1001000), 'mp') == 0)        -- same Cura, next target a second later
@@ -250,9 +271,9 @@ class HybridProficiencyTest(unittest.TestCase):
           assert(removed[20] and removed[18])
           -- a Haste cast on an ally does not trigger it
           assert(P.decide('cast', S(27, {landed={20}, allyTarget=true, target=200, action=61, now=2}), 1) == nil)
-          -- Tinker I (id 67): Haste on an ally reaches another ally
-          a = P.decide('cast', S(67, {landed={20}, allyTarget=true, target=200, action=61, now=3}), 1)
-          assert(others(a, 'add', 300, 20) == 1 and others(a, 'add', 200) == 0)
+          -- Dawnwind III (Cleric, id 17): Haste cast on an ally quickens that ally's next action
+          a = P.decide('cast', S(17, {landed={20}, allyTarget=true, target=200, action=61, now=3}), 9)
+          assert(others(a, 'quick', 200) == 1)
           -- Despoiler I (id 32, 'An ailment you land') hears a debuff spell too
           a = P.decide('cast', S(32, {landed={7}, allyTarget=false, targetStatus={shell=true}, action=62, now=4}), 1)
           assert(a and a.targetRemove)

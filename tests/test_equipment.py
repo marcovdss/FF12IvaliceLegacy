@@ -151,6 +151,8 @@ class EquipmentTest(unittest.TestCase):
 
 
 BATTLE_HARNESS, COUNTER_AUGMENT = 4471, 6
+# Zephyr Collar (native Jade Collar): Attack Boost replaces Anti-Libra, which no foe's Libra ever reads (0.1.37).
+ZEPHYR_COLLAR, EVASION_BOOST, ANTI_LIBRA, ATTACK_BOOST = 4458, 4, 41, 49
 
 
 @unittest.skipUnless(os.environ.get('IVALICE_LEGACY_GAME'), 'needs the game (IVALICE_LEGACY_GAME)')
@@ -242,6 +244,21 @@ class RealTableTest(unittest.TestCase):
         link = struct.unpack_from('<I', result, at + eq.LINK_AT)[0]
         self.assertEqual(result[attributes + link + eq.ATTRIBUTE['strength'][0]], 2)
 
+    def test_zephyr_collar_attack_boost(self):
+        """0.1.37: the built Zephyr Collar row gives Attack Boost (49), not Anti-Libra (41)."""
+        import json
+        from ivalice_legacy.vbf import VBF
+        patch = json.loads((Path(__file__).resolve().parents[1] / 'patches/arsenal.json').read_text(encoding='utf-8'))
+        vbf = VBF(Path(os.environ['IVALICE_LEGACY_GAME']) / 'FFXII_TZA.vbf')
+        result = eq.equipment(vbf.read, patch)[patch['file'] + '.dir/section_013.bin']
+        count, size, entry, _ = eq.layout(result)
+        at = entry + (ZEPHYR_COLLAR - eq.FIRST_ID) * size
+        self.assertEqual(eq.CATEGORIES[result[at + eq.CATEGORY_AT]], 'Accessory')
+        self.assertEqual(result[at + eq.ARMOR['augment'][0]], ATTACK_BOOST)
+        armour = [entry + i * size for i in range(count) if 19 <= result[entry + i * size + eq.CATEGORY_AT] <= 22]
+        self.assertEqual([a for a in armour if result[a + eq.ARMOR['augment'][0]] == ATTACK_BOOST], [at])
+        self.assertFalse(any(result[a + eq.ARMOR['augment'][0]] == ANTI_LIBRA for a in armour))
+
 
 class ArsenalRecipeTest(unittest.TestCase):
     """Static checks of patches/arsenal.json (no game needed)."""
@@ -252,6 +269,19 @@ class ArsenalRecipeTest(unittest.TestCase):
         patch = json.loads((Path(__file__).resolve().parents[1] / 'patches/arsenal.json').read_text(encoding='utf-8'))
         self.assertNotIn(BATTLE_HARNESS, {i['contentId'] for i in patch['items']})
         self.assertFalse(any(BATTLE_HARNESS in a['users'] for a in patch['attributes']))
+
+    def test_zephyr_collar_trades_anti_libra_for_attack_boost(self):
+        """0.1.37: Anti-Libra only hides a target from Libra, and no foe casts Libra on the party. Attack Boost
+        (Forge function 165, +20% physical damage) takes its place; no other piece of gear gives either augment."""
+        import json
+        patch = json.loads((Path(__file__).resolve().parents[1] / 'patches/arsenal.json').read_text(encoding='utf-8'))
+        rows = {i['contentId']: i for i in patch['items']}
+        self.assertEqual(rows[ZEPHYR_COLLAR]['set']['augment'], [EVASION_BOOST, ATTACK_BOOST])
+        others = [i['set']['augment'][1] for c, i in rows.items() if 'augment' in i['set'] and c != ZEPHYR_COLLAR]
+        self.assertNotIn(ATTACK_BOOST, others)
+        self.assertNotIn(ANTI_LIBRA, others)
+        names = {n['contentId']: n['replacement'] for n in patch['equipmentNames']['changes']}
+        self.assertEqual(names[ZEPHYR_COLLAR], 'Zephyr Collar')
 
     def test_no_price_changes_beyond_hornito(self):
         import json

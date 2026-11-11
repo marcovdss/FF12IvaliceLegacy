@@ -38,6 +38,11 @@ class DescriptionFixesTests(unittest.TestCase):
           assert(base.database.equipment[4448].notes == 'Returns 5% of damage taken to the attacker.')
           assert(base.database.equipment[4453].notes == 'Blocks instant-death effects.')
           assert(base.database.equipment[4483].notes == 'Reduces maximum MP to 0.')
+          assert(base.database.equipment[4458].name == 'Zephyr Collar')
+          assert(base.database.equipment[4458].notes == 'Physical attacks deal 20% more damage.')
+          for _, row in pairs(base.database.equipment) do
+            assert(not row.notes:find('Libra information', 1, true))
+          end
         ''')
 
     def test_guest_gear_identities_and_false_license(self):

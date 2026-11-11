@@ -57,8 +57,9 @@ class RecoveryDecideTest(unittest.TestCase):
     def test_a_damage_mp_to_an_ally_is_capped_at_2_percent_of_theirs(self):
         self.lua.execute(r'''
           P.reset()
-          -- Wanderer II: hits on an ailing foe give the lowest-MP ally 5% of the damage (50), capped at 2% of 300 = 6
-          local a = P.decide('hit', S(line('Wanderer'), {targetStatus={poison=true}}), 12)
+          -- Corrode II 3/4 (Despoiler): hits on a bare foe with an ailment give the lowest-MP ally 5% of the damage (50),
+          -- capped at 2% of 300 = 6
+          local a = P.decide('hit', S(line('Corrode'), {targetStatus={poison=true}}), 8)
           assert(mp(a, 200) == 6, mp(a, 200))
         ''')
 

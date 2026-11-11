@@ -15,12 +15,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     }
    ],
@@ -941,12 +941,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     }
    ],
@@ -1819,12 +1819,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     }
    ],
@@ -2625,12 +2625,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     }
    ],
@@ -3623,12 +3623,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
@@ -4561,12 +4561,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
@@ -5397,12 +5397,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
@@ -6353,12 +6353,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
@@ -7309,12 +7309,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
@@ -8133,12 +8133,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -8993,12 +8993,12 @@
    "sourceBoards": [
     {
      "job": 0,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -9955,12 +9955,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     }
    ],
@@ -10769,7 +10769,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Breaker",
+   "name": "Magebreaker",
    "pair": [
     1,
     3
@@ -10779,12 +10779,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     }
    ],
@@ -11663,12 +11663,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     }
    ],
@@ -12511,12 +12511,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
@@ -13425,12 +13425,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
@@ -14345,12 +14345,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
@@ -15211,12 +15211,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
@@ -16089,12 +16089,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
@@ -17003,12 +17003,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -17875,12 +17875,12 @@
    "sourceBoards": [
     {
      "job": 1,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -18765,12 +18765,12 @@
    "sourceBoards": [
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     }
    ],
@@ -19595,12 +19595,12 @@
    "sourceBoards": [
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     }
    ],
@@ -20503,12 +20503,12 @@
    "sourceBoards": [
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
@@ -21321,12 +21321,12 @@
    "sourceBoards": [
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
@@ -22193,12 +22193,12 @@
    "sourceBoards": [
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
@@ -22969,12 +22969,12 @@
    "sourceBoards": [
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
@@ -23739,12 +23739,12 @@
    "sourceBoards": [
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
@@ -24605,12 +24605,12 @@
    "sourceBoards": [
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -25465,12 +25465,12 @@
    "sourceBoards": [
     {
      "job": 2,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -26253,12 +26253,12 @@
    "sourceBoards": [
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     },
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     }
    ],
@@ -27215,12 +27215,12 @@
    "sourceBoards": [
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     },
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
@@ -28105,12 +28105,12 @@
    "sourceBoards": [
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     },
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
@@ -28911,12 +28911,12 @@
    "sourceBoards": [
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     },
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
@@ -29819,12 +29819,12 @@
    "sourceBoards": [
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     },
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
@@ -30727,12 +30727,12 @@
    "sourceBoards": [
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     },
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
@@ -31521,12 +31521,12 @@
    "sourceBoards": [
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -32339,12 +32339,12 @@
    "sourceBoards": [
     {
      "job": 3,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "265c5f92bd91b76a366261db8760d3d3f14bd0647292933b0eeb7ad641278d86"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -33265,12 +33265,12 @@
    "sourceBoards": [
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
@@ -34263,12 +34263,12 @@
    "sourceBoards": [
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
@@ -35267,12 +35267,12 @@
    "sourceBoards": [
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
@@ -36211,12 +36211,12 @@
    "sourceBoards": [
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
@@ -37173,12 +37173,12 @@
    "sourceBoards": [
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
@@ -38171,12 +38171,12 @@
    "sourceBoards": [
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -39127,12 +39127,12 @@
    "sourceBoards": [
     {
      "job": 4,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -40101,12 +40101,12 @@
    "sourceBoards": [
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     }
    ],
@@ -41033,12 +41033,12 @@
    "sourceBoards": [
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
@@ -41899,12 +41899,12 @@
    "sourceBoards": [
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
@@ -42771,12 +42771,12 @@
    "sourceBoards": [
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
@@ -43697,12 +43697,12 @@
    "sourceBoards": [
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -44587,12 +44587,12 @@
    "sourceBoards": [
     {
      "job": 5,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -45477,12 +45477,12 @@
    "sourceBoards": [
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
@@ -46427,12 +46427,12 @@
    "sourceBoards": [
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
@@ -47377,12 +47377,12 @@
    "sourceBoards": [
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
@@ -48201,12 +48201,12 @@
    "sourceBoards": [
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -49055,12 +49055,12 @@
    "sourceBoards": [
     {
      "job": 6,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "77978f5b355d98c0362ca6729ce1b31e6ea25380ebac7bc2bead407a3f180f9f"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -50017,12 +50017,12 @@
    "sourceBoards": [
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     },
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     }
    ],
@@ -50841,12 +50841,12 @@
    "sourceBoards": [
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     },
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
@@ -51785,12 +51785,12 @@
    "sourceBoards": [
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -52681,12 +52681,12 @@
    "sourceBoards": [
     {
      "job": 7,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -53517,12 +53517,12 @@
    "sourceBoards": [
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     },
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     }
    ],
@@ -54461,12 +54461,12 @@
    "sourceBoards": [
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -55369,12 +55369,12 @@
    "sourceBoards": [
     {
      "job": 8,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "5b119278985214b9a9b49413d102b01f64328490e82d3e44adeecc26d06a546a"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -56205,12 +56205,12 @@
    "sourceBoards": [
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     },
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     }
    ],
@@ -57043,7 +57043,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Grenadier",
+   "name": "Detonator",
    "pair": [
     9,
     11
@@ -57053,12 +57053,12 @@
    "sourceBoards": [
     {
      "job": 9,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "e33b3b97a808163a5a02293d2d168ba663a8c8c8e1288eea28018543345445b7"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],
@@ -58009,12 +58009,12 @@
    "sourceBoards": [
     {
      "job": 10,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "703900df11b788cfc4504ac345f1893c69e7f5d42ac023748f641f3f0670326b"
     },
     {
      "job": 11,
-     "basejobs": "0.5.1",
+     "basejobs": "0.7.0",
      "sha256": "b01af1f57b07745ef40cdc08bc89552e558827ef994f768de08d85c12952ac2d"
     }
    ],

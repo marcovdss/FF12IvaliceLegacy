@@ -21,6 +21,8 @@ from .formats import battle_pack_section
 NAME = 'IvaliceLegacy-HybridBoards'
 ENTRY = 'x64/scripts/IvaliceLegacyHybridBoards.lua'
 CHANGES = {
+    '0.3.4': ('Two more hybrids are renamed: Grenadier (Chemist + Black Mage) is now Detonator and Breaker (Lancer + Green '
+              'Mage) is now Magebreaker. Only the names change: no board layout, license or price differs from 0.3.3.'),
     '0.3.3': ('Sixteen hybrids are renamed (Chrono Lancer, Crusader, Monk, Cleric, Chrono Knight, Gunbreaker, Corsair, '
               'Riskbreaker, Lanista, Swiftblade, Arithmetician, Ki Gunner, Spellfist, Dragonkin, Spellbow, Despoiler). '
               'Only the names change: no board layout, license or price differs from 0.3.2.'),

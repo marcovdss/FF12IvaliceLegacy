@@ -10,7 +10,7 @@ M.version = '0.5.4'
 M.NO_JOB = 255
 M.JOB = {whiteMage = 0, lancer = 1, gunner = 2, greenMage = 3, knight = 4, mystic = 5, timeMage = 6, warrior = 7,
          hunter = 8, blackMage = 9, samurai = 10, chemist = 11}
-M.STATUS = {ko = 0, stop = 3, confuse = 5, blind = 7, poison = 8, silence = 9, sap = 10, oil = 11, disable = 13,
+M.STATUS = {ko = 0, stop = 3, sleep = 4, confuse = 5, blind = 7, poison = 8, silence = 9, sap = 10, oil = 11, disable = 13,
             immobilize = 14, slow = 15, disease = 16, lure = 17, protect = 18, shell = 19, haste = 20, bravery = 21,
             faith = 22, reflect = 23, invisible = 24, regen = 25, float = 26, berserk = 27, bubble = 28, hpCritical = 29,
             libra = 30}
@@ -20,6 +20,11 @@ M.BUFFS = {'protect', 'shell', 'haste', 'bravery', 'faith', 'reflect', 'regen', 
 -- Blind, Silence, Sap, Oil and Disease have no timer, so renewing them would do nothing.
 M.TIMED = {'disable', 'immobilize', 'poison', 'slow'}
 M.AILMENTS = {'blind', 'poison', 'silence', 'slow', 'sap', 'disease', 'immobilize', 'disable', 'oil'}
+-- "An ailment you land" (hybrid `status` stages): the same set on the weapon route (hook 182) and the spell route
+-- (hook 181). It is the ailments plus Stop, Sleep and Confuse; the base Chemist's Contagion keeps reading the nine ailments.
+M.LANDED = {'blind', 'poison', 'silence', 'slow', 'sap', 'disease', 'immobilize', 'disable', 'oil', 'stop', 'sleep', 'confuse'}
+M.LANDED_ID = {}
+for _, name in ipairs(M.LANDED) do M.LANDED_ID[M.STATUS[name]] = name end
 M.GREATSWORD = 2
 M.MAX_RANK = 12
 -- Legendary weapons: any job wields them at base power; full power needs Clan mastery in the job that owns the family.
@@ -118,9 +123,9 @@ rules[M.JOB.hunter] = {hit = function(s, a)
         push(a, 'targetRenew', M.STATUS[name]); renewed = renewed + 1
       end
     end
+    -- II-3/4 (decision 10): the restarted timers last 10% longer than a normal one (this replaced Libra).
+    if L[2] >= 3 and renewed > 0 then a.renewScale = 1.10 end
   end
-  -- Libra only works on the party (foes cannot hold it): the Hunter gets it and sees the foes' details.
-  if L[2] >= 3 and prey and not s.casterStatus.libra then add(a, 'casterAdd', M.STATUS.libra) end
   if m.slowNext and L[3] >= 2 then
     if not s.targetStatus.slow then add(a, 'targetAdd', M.STATUS.slow, 0.5) end
     m.slowNext = nil
@@ -146,7 +151,8 @@ rules[M.JOB.warrior] = {hit = function(s, a)
   local low = s.casterHpPct < 50 or (L[2] >= 3 and s.casterHpPct < 75)
   if L[2] >= 1 and low then
     if not brave and not (a.casterAdd and a.casterAdd[M.STATUS.bravery]) then add(a, 'casterAdd', M.STATUS.bravery) end
-    if L[2] >= 2 then add(a, 'casterAdd', M.STATUS.protect, 0.5) end
+    -- II-2..4 (decision 12): the axe's Reckless dent clears (this replaced self Protect). Nothing happens off an axe.
+    if L[2] >= 2 then a.clearReckless = true end
     if L[2] >= 4 then
       for _, p in ipairs(s.party) do
         if p.address ~= s.self and not p.status.bravery then other(a, {op = 'add', unit = p.address, id = M.STATUS.bravery, scale = 0.5}) break end
@@ -297,6 +303,19 @@ function M.observeStop(targetId, stopped)
   if targetId ~= nil and not stopped and mem.stopHits then mem.stopHits[targetId] = nil end
 end
 
+-- One Stop is stretched at most M.STOP_EXTENDS times, whoever stretches it (Detonate III, or a hybrid's `extend stop`).
+-- `s.stopCounted` makes every source in one event count once, and a decision made twice (see decide) spend one extension.
+function M.stopExtend(s)
+  if s.targetId == nil then return false end
+  mem.stopHits = mem.stopHits or {}
+  local n = mem.stopHits[s.targetId] or 0
+  if s.stopCounted or n < M.STOP_EXTENDS then
+    if not s.stopCounted then mem.stopHits[s.targetId], s.stopCounted = n + 1, true end
+    return true
+  end
+  return false
+end
+
 -- Time Mage III works for the whole party: any member hitting a Stopped foe.
 local function timeMageAura(s, a)
   local best = 0
@@ -308,14 +327,7 @@ local function timeMageAura(s, a)
   end
   if not s.casterStatus.haste then add(a, 'casterAdd', M.STATUS.haste, (best >= 4 and 0.75 or 0.5)) end
   if best >= 2 then a.damage = (a.damage or 1) * 1.15 end
-  if best >= 3 and s.targetId then
-    mem.stopHits = mem.stopHits or {}
-    local n = mem.stopHits[s.targetId] or 0
-    if s.stopCounted or n < M.STOP_EXTENDS then
-      if not s.stopCounted then mem.stopHits[s.targetId], s.stopCounted = n + 1, true end
-      a.targetExtend = {[M.STATUS.stop] = 0.10}
-    end
-  end
+  if best >= 3 and s.targetId and M.stopExtend(s) then a.targetExtend = {[M.STATUS.stop] = 0.10} end
 end
 
 -- Damage-based drain is finalized after all hit bonuses, as healing and splash are. The same drain feeds
@@ -496,7 +508,12 @@ rules[M.JOB.chemist] = {hit = function(s, a)
     local p = hurt[i]
     if p then
       other(a, {op = 'hp', unit = p.address, damagePct = L[2] >= 2 and 20 or 10})
-      if L[2] >= 3 and not p.status.protect then other(a, {op = 'add', unit = p.address, id = M.STATUS.protect, scale = 0.5}) end
+      -- II-3/4 (decision 11): the healed ally is cured of one ailment (this replaced Protect).
+      if L[2] >= 3 then
+        for _, n in ipairs(M.AILMENTS) do
+          if p.status[n] then other(a, {op = 'remove', unit = p.address, id = M.STATUS[n]}); break end
+        end
+      end
     end
   end
 end, buff = function(s, a)
@@ -528,6 +545,7 @@ end, status = function(s, a)
   if L[1] < 1 then return end
   local chance = L[1] >= 4 and 50 or 35
   local reach = L[3] >= 4 and 3 or (L[3] >= 1 and 2 or 1)
+  local stripped = {}
   for i = 1, reach do
     local f = s.foes[i]
     if not f then break end
@@ -536,7 +554,11 @@ end, status = function(s, a)
       if s.canLand(f.address, id) and s.roll(easy and chance + 15 or chance) then
         other(a, {op = 'add', unit = f.address, id = id, scale = L[1] >= 2 and 1 or 0.75})
         if L[3] >= 2 then other(a, {op = 'hp', unit = f.address, amount = -math.max(1, (s.damage or 0) // 10)}) end
-        if L[3] >= 3 and not s.casterStatus.libra then add(a, 'casterAdd', M.STATUS.libra) end
+        -- III-3/4 (decision 10): a foe the spread reaches loses its Regen (this replaced Libra).
+        if L[3] >= 3 and f.status.regen and not stripped[f.address] then
+          stripped[f.address] = true
+          other(a, {op = 'remove', unit = f.address, id = M.STATUS.regen})
+        end
       end
     end
   end
@@ -598,6 +620,15 @@ function M.decide(event, s, claimedRank)
       if final > 0 and int(s.targetMp, 1, 99999) then a.drainMp = math.min(math.max(1, final * a.drainPct // 100), s.targetMp) end
       a.drainPct = nil
     end
+    -- drainToHeal (hybrid): at full MP the drain heals the most hurt ally for a share of the damage instead.
+    if a.drainHeal then
+      local d = a.drainHeal
+      a.drainHeal = nil
+      if not s.comboFollow and final > 0 and a.drainMp and a.drainMp > 0 and int(s.casterMaxMp, 1, 99999)
+          and (s.casterMp or 0) >= s.casterMaxMp then
+        other(a, {op = 'hp', unit = d.unit, amount = math.max(1, final * d.pct // 100)})
+      end
+    end
     if a.healPct then
       if final > 0 then a.healHp = math.max(1, final * a.healPct // 100) end
       a.healPct = nil
@@ -621,6 +652,15 @@ function M.decide(event, s, claimedRank)
             if p.address == o.unit and int(p.maxMp, 1, 99999) then o.amount = math.min(o.amount, cap(p.maxMp)) end
           end
         end
+      end
+    end
+    -- leechSilence (hybrid): a foe the drain empties is Silenced. Decided after the per-hit MP cap, so only the MP that
+    -- really moves counts; the runtime checks it again against the cast's MP budget.
+    if a.leechSilence then
+      local scale, mp = a.leechSilence, s.targetMp
+      a.leechSilence = nil
+      if a.drainMp and int(mp, 1, 99999) and a.drainMp >= mp and not s.targetStatus.silence then
+        a.leechSilence = {scale = scale, need = mp}
       end
     end
     return a
@@ -742,9 +782,9 @@ M.GEAR = {
      'Kills and two-foe greatsword swings give you Bravery\nBravery lasts 50% longer',
      'Kills and two-foe greatsword swings give Bravery (+50%)\nA kill while Brave cures your Slow, Disable, Immobilize'},
     {'While below 50% HP, your hits give you Bravery',
-     'While below 50% HP, your hits give you Bravery\nand Protect (half duration)',
-     'While below 75% HP, your hits give you Bravery\nand Protect (half duration)',
-     'Below 75% HP, hits give you Bravery and Protect (half)\nand give one ally Bravery (half duration)'},
+     'While below 50% HP, your hits give you Bravery\nand clear your Reckless dent (axe Defense)',
+     'While below 75% HP, your hits give you Bravery\nand clear your Reckless dent (axe Defense)',
+     'Below 75% HP, hits give you Bravery, clear your Reckless\ndent and give one ally Bravery (half duration)'},
     {'While you are at critical HP, your hits inflict Sap',
      'At critical HP, your hits inflict Sap\nYour hits deal +15% damage to Sapped foes',
      'At critical HP your hits Sap, +15% damage to Sapped foes\nKilling a Sapped foe spreads Sap to another foe',
@@ -756,8 +796,8 @@ M.GEAR = {
      'Hits on a foe with an ailment: +25% (+5% more in a row)\nKilling that foe heals you for 10% of the damage dealt'},
     {'Hits on a foe with an ailment restart one ailment timer\nTimed ailments: Disable, Immobilize, Poison, Slow',
      'Hits on a foe with an ailment restart two ailment timers\nTimed ailments: Disable, Immobilize, Poison, Slow',
-     "Hits on a foe with an ailment restart two ailment timers\nand give you Libra, so you can see the foes' details",
-     "Hits on a foe with an ailment restart all its timers\nand give you Libra, so you can see the foes' details"},
+     'Hits on a foe with an ailment restart two ailment timers\nand stretch them 10% longer than a normal timer',
+     'Hits on a foe with an ailment restart all its timers\nand stretch them 10% longer than a normal timer'},
     {'Killing a foe with an ailment gives you Haste\nHaste at half its normal duration',
      'Killing a foe with an ailment gives you Haste (half)\nThe next foe you hit is Slowed (half duration)',
      'Killing a foe with an ailment gives you Haste (half)\nYour next target and one other foe are Slowed (half)',
@@ -795,12 +835,12 @@ M.GEAR = {
      'A status your attack lands has a 50% chance to spread\nOil, Poison 65%, measure buffs spread to an ally'},
     {'Your hits heal the most hurt ally\nfor 10% of the damage dealt',
      'Your hits heal the most hurt ally\nfor 20% of the damage dealt',
-     'Your hits heal the most hurt ally for 20% of the damage\nand give that ally Protect (half duration)',
-     'Your hits heal the 2 most hurt allies for 20% of damage\nand give them Protect (half duration)'},
+     "Your hits heal the most hurt ally for 20% of the damage\nand cure one of that ally's ailments",
+     'Your hits heal the 2 most hurt allies for 20% of damage\nand cure one ailment on each'},
     {'Contagion can spread to 2 foes',
      'Contagion can spread to 2 foes\nEach foe it spreads to takes 10% of the damage',
-     "Contagion spreads to 2 foes, dealing 10% of the damage\nA spread gives you Libra to see the foes' details",
-     "Contagion spreads to 3 foes, dealing 10% of the damage\nA spread gives you Libra to see the foes' details"}},
+     'Contagion spreads to 2 foes, dealing 10% of the damage\nA foe the spread reaches loses its Regen',
+     'Contagion spreads to 3 foes, dealing 10% of the damage\nA foe the spread reaches loses its Regen'}},
 }
 M.GEAR_LIMIT = 60       -- characters on the stage header's line (the header itself takes about 16 more)
 M.GEAR_LINE_LIMIT = 60  -- characters on the one extra line
