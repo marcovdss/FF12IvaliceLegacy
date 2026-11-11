@@ -68,7 +68,7 @@
     0,
     6
    ],
-   "name": "Skyseer",
+   "name": "Cleric",
    "parents": [
     "Time Mage",
     "White Mage"
@@ -80,7 +80,7 @@
     0,
     7
    ],
-   "name": "Monk",
+   "name": "Crusader",
    "parents": [
     "Warrior",
     "White Mage"
@@ -188,7 +188,7 @@
     1,
     6
    ],
-   "name": "Uhlan",
+   "name": "Chrono Lancer",
    "parents": [
     "Lancer",
     "Time Mage"
@@ -224,7 +224,7 @@
     1,
     9
    ],
-   "name": "Elementalist",
+   "name": "Dragonkin",
    "parents": [
     "Lancer",
     "Black Mage"
@@ -248,7 +248,7 @@
     1,
     11
    ],
-   "name": "Saboteur",
+   "name": "Despoiler",
    "parents": [
     "Lancer",
     "Chemist"
@@ -272,7 +272,7 @@
     2,
     4
    ],
-   "name": "Fusilier",
+   "name": "Gunbreaker",
    "parents": [
     "Knight",
     "Gunner"
@@ -284,7 +284,7 @@
     2,
     5
    ],
-   "name": "Hexgunner",
+   "name": "Ki Gunner",
    "parents": [
     "Gunner",
     "Mystic"
@@ -308,7 +308,7 @@
     2,
     7
    ],
-   "name": "Flintlock",
+   "name": "Corsair",
    "parents": [
     "Warrior",
     "Gunner"
@@ -380,7 +380,7 @@
     3,
     5
    ],
-   "name": "Netherseer",
+   "name": "Monk",
    "parents": [
     "Green Mage",
     "Mystic"
@@ -404,7 +404,7 @@
     3,
     7
    ],
-   "name": "Reaver",
+   "name": "Lanista",
    "parents": [
     "Warrior",
     "Green Mage"
@@ -476,7 +476,7 @@
     4,
     6
    ],
-   "name": "Arc Knight",
+   "name": "Chrono Knight",
    "parents": [
     "Knight",
     "Time Mage"
@@ -500,7 +500,7 @@
     4,
     8
    ],
-   "name": "Sentinel",
+   "name": "Riskbreaker",
    "parents": [
     "Knight",
     "Hunter"
@@ -584,7 +584,7 @@
     5,
     9
    ],
-   "name": "Sage",
+   "name": "Spellfist",
    "parents": [
     "Mystic",
     "Black Mage"
@@ -644,7 +644,7 @@
     6,
     9
    ],
-   "name": "Arcanist",
+   "name": "Arithmetician",
    "parents": [
     "Time Mage",
     "Black Mage"
@@ -656,7 +656,7 @@
     6,
     10
    ],
-   "name": "Kensei",
+   "name": "Swiftblade",
    "parents": [
     "Samurai",
     "Time Mage"
@@ -728,7 +728,7 @@
     8,
     9
    ],
-   "name": "Arcane Archer",
+   "name": "Spellbow",
    "parents": [
     "Hunter",
     "Black Mage"

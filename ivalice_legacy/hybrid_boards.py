@@ -21,6 +21,9 @@ from .formats import battle_pack_section
 NAME = 'IvaliceLegacy-HybridBoards'
 ENTRY = 'x64/scripts/IvaliceLegacyHybridBoards.lua'
 CHANGES = {
+    '0.3.3': ('Sixteen hybrids are renamed (Chrono Lancer, Crusader, Monk, Cleric, Chrono Knight, Gunbreaker, Corsair, '
+              'Riskbreaker, Lanista, Swiftblade, Arithmetician, Ki Gunner, Spellfist, Dragonkin, Spellbow, Despoiler). '
+              'Only the names change: no board layout, license or price differs from 0.3.2.'),
     '0.3.2': ('BaseJobs 0.7.0: Telekinesis belongs to the Warrior, Protectga and Shellga to the White Mage, Achilles to '
               'the Gunner, and the Lancer no longer has Dispel and Stona. The 49 boards whose licenses change are laid out '
               'again and the Paladin board loses its Telekinesis tile; the other 16 boards keep their layouts.'),

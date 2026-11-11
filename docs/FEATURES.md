@@ -109,9 +109,7 @@ own Proficiency line instead of either parent's.
 | Hybrid | Jobs | Line |
 |---|---|---|
 | Alchemist | Chemist + Green Mage | Transmute |
-| Arc Knight | Knight + Time Mage | Tempo Guard |
-| Arcane Archer | Hunter + Black Mage | Seeker |
-| Arcanist | Time Mage + Black Mage | Entropy |
+| Arithmetician | Time Mage + Black Mage | Entropy |
 | Artillerist | Gunner + Black Mage | Barrage |
 | Assassin | Samurai + Green Mage | Ansatsu |
 | Astrologer | Time Mage + Mystic | Starfall |
@@ -123,59 +121,67 @@ own Proficiency line instead of either parent's.
 | Breaker | Lancer + Green Mage | Unmake |
 | Cannoneer | Lancer + Gunner | Siege |
 | Chaplain | Gunner + White Mage | Last Rites |
+| Chrono Knight | Knight + Time Mage | Tempo Guard |
+| Chrono Lancer | Lancer + Time Mage | Window |
+| Cleric | Time Mage + White Mage | Dawnwind |
+| Corsair | Warrior + Gunner | Point Blank |
+| Crusader | Warrior + White Mage | Chakra |
 | Dark Knight | Knight + Mystic | Abyss |
 | Defender | Knight + Warrior | Last Stand |
+| Despoiler | Lancer + Chemist | Corrode |
 | Divine Knight | Samurai + Mystic | Mind Blade |
+| Dragonkin | Lancer + Black Mage | Fracture |
 | Dragoon | Lancer + Samurai | Highwind |
-| Elementalist | Lancer + Black Mage | Fracture |
 | Engineer | Gunner + Chemist | Field Kit |
 | Fell Knight | Warrior + Mystic | Blood Price |
-| Flintlock | Warrior + Gunner | Point Blank |
-| Fusilier | Knight + Gunner | Overwatch |
 | Geomancer | Hunter + Mystic | Earthsense |
 | Gladiator | Warrior + Chemist | Arena |
 | Grenadier | Chemist + Black Mage | Ignite |
+| Gunbreaker | Knight + Gunner | Overwatch |
 | Gunslinger | Samurai + Gunner | Quickdraw |
 | Heaven Knight | Lancer + White Mage | Crusade |
 | Hell Knight | Lancer + Mystic | Hellfire |
-| Hexgunner | Gunner + Mystic | Hex Round |
-| Kensei | Samurai + Time Mage | Ma |
-| Monk | Warrior + White Mage | Chakra |
-| Netherseer | Green Mage + Mystic | Umbra |
+| Ki Gunner | Gunner + Mystic | Hex Round |
+| Lanista | Warrior + Green Mage | Leech |
+| Monk | Green Mage + Mystic | Umbra |
 | Ninja | Samurai + Hunter | Kage |
 | Oracle | Green Mage + Time Mage | Prophecy |
 | Paladin | Knight + White Mage | Vow |
 | Quartermaster | Knight + Chemist | Provision |
 | Ranger | Hunter + Time Mage | Long Hunt |
 | Ravager | Lancer + Warrior | Havoc |
-| Reaver | Warrior + Green Mage | Leech |
 | Red Mage | White Mage + Black Mage | Doublecast |
+| Riskbreaker | Knight + Hunter | Watch |
 | Ronin | Samurai + Chemist | Wanderer |
 | Rune Knight | Knight + Black Mage | Runeguard |
-| Saboteur | Lancer + Chemist | Corrode |
-| Sage | Mystic + Black Mage | Omniscience |
 | Seer | Green Mage + White Mage | Foresight |
-| Sentinel | Knight + Hunter | Watch |
 | Shaman | Chemist + Mystic | Spirit Medicine |
 | Sharpshooter | Gunner + Time Mage | Timing |
-| Skyseer | Time Mage + White Mage | Dawnwind |
 | Sniper | Hunter + Gunner | Scope |
 | Sohei | Samurai + White Mage | Kaji |
 | Spellblade | Samurai + Black Mage | Imbue |
+| Spellbow | Hunter + Black Mage | Seeker |
+| Spellfist | Mystic + Black Mage | Omniscience |
 | Stalker | Hunter + Green Mage | Quarry |
+| Swiftblade | Samurai + Time Mage | Ma |
 | Sword Saint | Knight + Samurai | Iai |
 | Tempest | Warrior + Time Mage | Stormfront |
 | Templar | Knight + Lancer | Phalanx |
 | Tinker | Chemist + Time Mage | Clockwork |
 | Trapper | Hunter + Chemist | Snaretrap |
 | Trickster | Gunner + Green Mage | Dirty Trick |
-| Uhlan | Lancer + Time Mage | Window |
 | Viking | Warrior + Hunter | Raid |
 | Warden | Knight + Green Mage | Snare |
 | Warlock | Green Mage + Black Mage | Malediction |
 | White Monk | Mystic + White Mage | Ki Healing |
 
 </details>
+
+**Hybrid names (0.1.36).** Sixteen hybrids were renamed so that each name fits its two jobs: Uhlan is now Chrono Lancer,
+Monk (Warrior + White Mage) Crusader, Netherseer (Green Mage + Mystic) Monk, Skyseer Cleric, Arc Knight Chrono Knight,
+Fusilier Gunbreaker, Flintlock Corsair, Sentinel Riskbreaker, Reaver Lanista, Kensei Swiftblade, Arcanist
+Arithmetician, Hexgunner Ki Gunner, Sage Spellfist, Elementalist Dragonkin, Arcane Archer Spellbow and Saboteur
+Despoiler. Boards, licenses and Proficiency lines are unchanged, so nothing needs to be respecced.
 
 Fused boards are tied to the supported game executable (Steam 1.0.4.0). If a game update changes the executable, the
 boards switch themselves off and the game shows the two native tabs until Legacy is updated. The log records the reason.

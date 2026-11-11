@@ -4551,7 +4551,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Skyseer",
+   "name": "Cleric",
    "pair": [
     0,
     6
@@ -5387,7 +5387,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Monk",
+   "name": "Crusader",
    "pair": [
     0,
     7
@@ -13415,7 +13415,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Uhlan",
+   "name": "Chrono Lancer",
    "pair": [
     1,
     6
@@ -16079,7 +16079,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Elementalist",
+   "name": "Dragonkin",
    "pair": [
     1,
     9
@@ -17865,7 +17865,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Saboteur",
+   "name": "Despoiler",
    "pair": [
     1,
     11
@@ -19585,7 +19585,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Fusilier",
+   "name": "Gunbreaker",
    "pair": [
     2,
     4
@@ -20493,7 +20493,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Hexgunner",
+   "name": "Ki Gunner",
    "pair": [
     2,
     5
@@ -22183,7 +22183,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Flintlock",
+   "name": "Corsair",
    "pair": [
     2,
     7
@@ -27205,7 +27205,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Netherseer",
+   "name": "Monk",
    "pair": [
     3,
     5
@@ -28901,7 +28901,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Reaver",
+   "name": "Lanista",
    "pair": [
     3,
     7
@@ -34253,7 +34253,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Arc Knight",
+   "name": "Chrono Knight",
    "pair": [
     4,
     6
@@ -36201,7 +36201,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Sentinel",
+   "name": "Riskbreaker",
    "pair": [
     4,
     8
@@ -42761,7 +42761,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Sage",
+   "name": "Spellfist",
    "pair": [
     5,
     9
@@ -47367,7 +47367,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Arcanist",
+   "name": "Arithmetician",
    "pair": [
     6,
     9
@@ -48191,7 +48191,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Kensei",
+   "name": "Swiftblade",
    "pair": [
     6,
     10
@@ -53507,7 +53507,7 @@
   },
   {
    "schemaVersion": 2,
-   "name": "Arcane Archer",
+   "name": "Spellbow",
    "pair": [
     8,
     9

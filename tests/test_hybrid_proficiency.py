@@ -242,7 +242,7 @@ class HybridProficiencyTest(unittest.TestCase):
 
     def test_status_spells_reach_cast_stages(self):
         self.lua.execute(r'''
-          -- Uhlan I (id 27): Slow cast on a foe strips its Haste and Protect
+          -- Chrono Lancer I (id 27): Slow cast on a foe strips its Haste and Protect
           local a = P.decide('cast', S(27, {landed={15}, targetStatus={haste=true, protect=true}, allyTarget=false,
                                             action=60, now=1}), 1)
           local removed = {}
@@ -253,10 +253,10 @@ class HybridProficiencyTest(unittest.TestCase):
           -- Tinker I (id 67): Haste on an ally reaches another ally
           a = P.decide('cast', S(67, {landed={20}, allyTarget=true, target=200, action=61, now=3}), 1)
           assert(others(a, 'add', 300, 20) == 1 and others(a, 'add', 200) == 0)
-          -- Saboteur I (id 32, 'An ailment you land') hears a debuff spell too
+          -- Despoiler I (id 32, 'An ailment you land') hears a debuff spell too
           a = P.decide('cast', S(32, {landed={7}, allyTarget=false, targetStatus={shell=true}, action=62, now=4}), 1)
           assert(a and a.targetRemove)
-          -- one Slowga reaching three foes gives Arc Knight (id 51) its MP once
+          -- one Slowga reaching three foes gives Chrono Knight (id 51) its MP once
           P.reset()
           local mp = 0
           for i = 1, 3 do
@@ -268,7 +268,7 @@ class HybridProficiencyTest(unittest.TestCase):
 
     def test_range_conditions(self):
         self.lua.execute(r'''
-          -- Ranger I (id 64) needs range; Flintlock I (id 37) needs to be close
+          -- Ranger I (id 64) needs range; Corsair I (id 37) needs to be close
           assert(P.decide('hit', S(64, {targetStatus={slow=true}, distance=20}), 1))
           assert(P.decide('hit', S(64, {targetStatus={slow=true}, distance=5, targetId=8}), 1) == nil)
           assert(P.decide('hit', S(64, {targetStatus={slow=true}, targetId=7}), 1) == nil)   -- unknown distance: no

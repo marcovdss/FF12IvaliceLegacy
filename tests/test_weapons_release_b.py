@@ -201,14 +201,14 @@ class RuntimeTest(unittest.TestCase):
                 self.assertFalse(self.hit_by_foe(job1, job2, 0, 1), 'a roll on a landed blow: no swing, no pay')
 
     def test_a_roll_without_a_swing_keeps_the_hybrids_guard_stages(self):
-        # Sentinel (Knight + Hunter) has a stage on any parry, block or dodge: outcome 1 with a counter roll is a parry,
+        # Riskbreaker (Knight + Hunter) has a stage on any parry, block or dodge: outcome 1 with a counter roll is a parry,
         # so that stage hears it (it never heard a swing-less roll as a parry before).
         self.lua.execute('''
           reset()
           local me = unit({type=0, id=2, address=party(2), job1=4, job2=8})
           local foe = unit({type=1, address=7000})
           R.hook240({caster=plus(), target=plus(), outcomeType=1, counterState=1}, foe, me, classes, helpers)
-          assert(addedTo(me.address, 30), 'Sentinel Libra on the parry')
+          assert(addedTo(me.address, 30), 'Riskbreaker Libra on the parry')
           reset()
           R.hook240({caster=plus(), target=plus(), outcomeType=2, counterState=1}, foe, me, classes, helpers)
           assert(not addedTo(me.address, 30), 'a counter swing is a counter, not a guard')
