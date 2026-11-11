@@ -14,8 +14,8 @@ if not R then
   rawset(_G, 'IvaliceLegacyProficiency', R)
   print('Legacy Proficiency: ' .. R.Proficiency.version .. ' ready')
 end
--- Family Unseen/Marksman (prototypes/family_identities.lua): ninja swords ignore weapon and shield
--- evasion, guns cannot be parried. Outside Proficiency, so the Samurai's aim stays its own decision.
+-- Family Unseen (prototypes/family_identities.lua): ninja swords ignore weapon and shield evasion.
+-- Outside Proficiency, so the Samurai's aim stays its own decision. (Guns: True aim is on Forge 44.)
 local Family = rawget(_G, 'IvaliceLegacyFamily')
 if not Family then
   local chunk = loadfile('scripts/IvaliceLegacy/family_identities.lua', 't', _ENV)

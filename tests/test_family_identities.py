@@ -43,9 +43,12 @@ local function set(list) local s = {} for _, k in ipairs(list) do s[k] = true en
 
 KEEP = set{'address', 'identifier', 'type', 'maxHp', 'maxMp', 'strength', 'magickPower', 'vitality', 'speed',
            'attackPower', 'defense', 'magickResist', 'evadeParry', 'evadeWeapon', 'evadeShield', 'currentHp',
-           'currentMp', 'weapon', 'offhand', 'level', 'temporaryAugments', 'permanentAugments'}
+           'currentMp', 'weapon', 'offhand', 'level', 'temporaryAugments', 'permanentAugments', 'additiveDefense',
+           'temporaryStatusEffects', 'permanentStatusEffects', 'permanentStatusEffectImmunities',
+           'statusEffectDurations'}
 AUGS = set{'counter', 'counterBoost'}
 PLUS = set{'keep', 'battleUnitWork', 'statusEffects', 'augments', 'maxHp', 'maxMp', 'identifier', 'classification',
+           'addedStatusEffects', 'statusEffectDurations',
            'addedHp', 'removedHp', 'matchedMp', 'addedMp', 'removedMp', 'strength', 'magickPower', 'vitality',
            'speed', 'attackPower', 'defense', 'magickResist', 'level', 'hpUpdateState', 'mpUpdateState'}
 WORK = set{'caster', 'target', 'initialTarget', 'action', 'identifier', 'causeType', 'outcomeType', 'skipState',
@@ -58,8 +61,30 @@ UNIT_WORK = set{'comboCount', 'battleFlags'}
 STANCE = set{'isInBattleStance'}
 STATUS = set{'reverse', 'blind', 'silence', 'slow', 'stop', 'sleep', 'disable'}
 
+-- A 32-slot array the way Forge's classes hand them out: indexes 0-31 only, numbers only.
+function slots(initial)
+  local store = {}
+  for i = 0, 31 do store[i] = initial end
+  return setmetatable({}, {
+    __index = function(_, k)
+      if type(k) ~= 'number' or k % 1 ~= 0 or k < 0 or k > 31 then error("Couldn't get unknown slot: " .. tostring(k), 2) end
+      return store[k]
+    end,
+    __newindex = function(_, k, v)
+      if type(k) ~= 'number' or k % 1 ~= 0 or k < 0 or k > 31 then error("Couldn't set unknown slot: " .. tostring(k), 2) end
+      if type(v) ~= 'number' then error("Couldn't set slot, value type must be a number", 2) end
+      store[k] = v
+    end,
+  })
+end
+
 function keep(values)
   local v = values or {}
+  v.temporaryStatusEffects = v.temporaryStatusEffects or slots(0)
+  v.permanentStatusEffects = v.permanentStatusEffects or slots(0)
+  v.permanentStatusEffectImmunities = v.permanentStatusEffectImmunities or slots(0)
+  v.statusEffectDurations = v.statusEffectDurations or slots(0)
+  v.additiveDefense = v.additiveDefense or 0
   v.temporaryAugments = v.temporaryAugments or strict('augments', AUGS, {counter = 0, counterBoost = 0})
   v.permanentAugments = v.permanentAugments or strict('augments', AUGS, {counter = 0, counterBoost = 0})
   return strict('keep', KEEP, v)
@@ -76,15 +101,19 @@ function plus(values)
     augments = strict('augments', AUGS, {counter = v.counterAug or 0, counterBoost = 0}),
     keep = procKeep, battleUnitWork = unitWork, statusEffects = status, identifier = v.identifier or 0,
     classification = v.classification or 0, maxHp = v.maxHp or 1000, maxMp = v.maxMp or 100,
+    addedStatusEffects = slots(0), statusEffectDurations = slots(-1),
     addedHp = 0, removedHp = 0, addedMp = 0, removedMp = 0, defense = -1, level = v.level or 10,
     hpUpdateState = 0, mpUpdateState = v.mpUpdateState or 0})
 end
 function work(values) return strict('procWork', WORK, values) end
 
 -- The party member and the foe as Forge sees them: a keep each, plus this hit's result records.
-function wielder(id, address) return keep{type = 0, identifier = id or 0, weapon = 4200, address = address or 11,
-                                          maxHp = 1000, maxMp = 100, currentHp = 1000, currentMp = 100, level = 20,
-                                          speed = 40} end
+function wielder(id, address, extra)
+  local v = {type = 0, identifier = id or 0, weapon = 4200, offhand = 4300, address = address or 11,
+             maxHp = 1000, maxMp = 100, currentHp = 1000, currentMp = 100, level = 20, speed = 40}
+  for k, x in pairs(extra or {}) do v[k] = x end
+  return keep(v)
+end
 function foe(address, defense, maxHp, level, mp, identifier)
   return keep{type = 1, identifier = identifier or 100, address = address or 555, defense = defense or 20,
               maxHp = maxHp or 1000, maxMp = 1000, level = level or 10, currentHp = maxHp or 1000,
@@ -237,12 +266,70 @@ class FamilyIdentityTests(unittest.TestCase):
           wrapped=module.wrap22(original,deps)
           cat='ninjaSword'; f,r=run(wrapped,wielder(),foe())
           assert(f.evadeWeapon==0 and f.evadeShield==0 and f.evadeParry==10 and r[1]=='ok')
-          cat='gun'; f,_=run(wrapped,wielder(),foe())
-          assert(f.evadeWeapon==10 and f.evadeShield==10 and f.evadeParry==0)
+          cat='gun'; f,_=run(wrapped,wielder(),foe())      -- Marksman is gone: a gun's evadeParry is left alone
+          assert(f.evadeWeapon==10 and f.evadeShield==10 and f.evadeParry==10)
           cat='sword'; f,_=run(wrapped,wielder(),foe())
           assert(f.evadeWeapon==10 and f.evadeParry==10)
-          assert(reports[1][1]=='unseen' and reports[2][1]=='marksman' and #reports==2)
-          assert(reports[1][4]=='evadeWeapon=10 evadeShield=10' and reports[2][4]=='evadeParry=10', reports[2][4])
+          assert(reports[1][1]=='unseen' and #reports==1)
+          assert(reports[1][4]=='evadeWeapon=10 evadeShield=10', reports[1][4])
+          assert(reports[1][5]=='weapon=4200 offhand=4300', reports[1][5])
+        ''')
+
+    def test_unseen_logs_nothing_when_there_was_nothing_to_remove(self):
+        self.lua.execute('''
+          cat='ninjaSword'
+          wrapped=module.wrap22(function(f,c,t) f.evadeParry=10 end,deps)
+          local f=run(wrapped,wielder(),foe())
+          assert(f.evadeWeapon==0 and f.evadeShield==0 and #reports==0)
+          wrapped=module.wrap22(function(f,c,t) f.evadeShield=5 end,deps)
+          f=run(wrapped,wielder(),foe()); assert(#reports==1 and reports[1][4]=='evadeShield=5')
+        ''')
+
+    # ---------- True aim (Forge 44) ----------
+
+    TRUE_AIM = """
+          -- Forge 44, as shipped: a failed accuracy roll is a miss (outcome 6)
+          miss=false
+          forge44=function(f,c,t)
+            if miss then f.skipState=1; f.outcomeType=6 end
+            return 'ok'
+          end
+          wrapped=module.wrap44(forge44,deps)
+    """
+
+    def test_true_aim_takes_a_miss_back_and_logs_only_then(self):
+        self.lua.execute(self.TRUE_AIM + '''
+          cat='gun'
+          local c,t=wielder(),foe()
+          miss=false; local f,r=run(wrapped,c,t,{}); assert(f.skipState==0 and f.outcomeType==0 and r[1]=='ok')
+          assert(#reports==0, 'no line when nothing was prevented')
+          miss=true; f=run(wrapped,c,t,{}); assert(f.skipState==0 and f.outcomeType==0, 'the miss was taken back')
+          assert(#reports==1 and reports[1][1]=='true-aim' and reports[1][5]=='weapon=4200 offhand=4300')
+          assert(f.evadeParry==0, 'the dodge field is not part of it')
+        ''')
+
+    def test_true_aim_gates(self):
+        self.lua.execute(self.TRUE_AIM + '''
+          miss=true
+          cat='gun'; local f=run(wrapped,foe(),wielder(1,9)); assert(f.skipState==1 and f.outcomeType==6, 'a foe still misses')
+          f=run(wrapped,wielder(27,9),foe()); assert(f.skipState==1, 'an Esper summon is not a gunner')
+          cat='bow'; f=run(wrapped,wielder(),foe()); assert(f.skipState==1, 'other weapons miss natively')
+          cat='gun'; f=run(wrapped,wielder(),foe(),{action=394}); assert(f.skipState==1, 'only the Attack')
+          active=false; f=run(wrapped,wielder(),foe()); assert(f.skipState==1, 'outside Legacy')
+          active=true
+          -- a skip that was already set before 44 (X-Zone, KO) is never undone
+          wrapped=module.wrap44(function(f) f.skipState=1; f.outcomeType=6 end,deps)
+          local g=hit(wielder(),foe()); g.skipState=1; g.outcomeType=9
+          wrapped(g,wielder(),foe(),{},{},{}); assert(g.skipState==1)
+        ''')
+
+    def test_true_aim_survives_a_broken_reader_and_logs_one_error(self):
+        self.lua.execute(self.TRUE_AIM + '''
+          local broken={active=function() error('reader unavailable') end, category=deps.category, report=deps.report}
+          miss=true
+          wrapped=module.wrap44(forge44,broken)
+          for i=1,3 do local f,r=run(wrapped,wielder(),foe()); assert(f.skipState==1 and r[1]=='ok') end
+          assert(#reports==1 and reports[1][1]=='error' and reports[1][2]=='true-aim', #reports)
         ''')
 
     # ---------- Afflict ----------
@@ -538,12 +625,13 @@ class FamilyIdentityTests(unittest.TestCase):
           end
           wrapped=module.wrap10(forge10,deps)
           caster=wielder()
+          assert(module.CHAIN_EXTRA==1)
           ROLL=5; f,r=run(wrapped,caster,foe())
-          assert(f.caster.keep.battleFlags.comboCount==7 and r[1]=='ok')
-          ROLL=10; f=run(wrapped,caster,foe()); assert(f.caster.keep.battleFlags.comboCount==11)  -- engine cap
-          -- follow-up hits of a running 7-hit combo leave the stored length alone
-          f=run(wrapped,caster,foe(),{storedCombo=7, combosSoFar=3})
-          assert(f.caster.keep.battleFlags.comboCount==7)
+          assert(f.caster.keep.battleFlags.comboCount==6 and r[1]=='ok')
+          ROLL=11; f=run(wrapped,caster,foe()); assert(f.caster.keep.battleFlags.comboCount==11)  -- engine cap
+          -- follow-up hits of a running 6-hit combo leave the stored length alone
+          f=run(wrapped,caster,foe(),{storedCombo=6, combosSoFar=3})
+          assert(f.caster.keep.battleFlags.comboCount==6)
           ROLL=0; f=run(wrapped,caster,foe(),{storedCombo=4}); assert(f.caster.keep.battleFlags.comboCount==0)
           ROLL=5; cat='dagger'; f=run(wrapped,caster,foe()); assert(f.caster.keep.battleFlags.comboCount==5)
           cat='katana'; f=run(wrapped,caster,foe(),{action=114}); assert(f.caster.keep.battleFlags.comboCount==5)
@@ -566,16 +654,16 @@ class FamilyIdentityTests(unittest.TestCase):
           bpack={section13=setmetatable({}, {__index=function(_, i) return {category = WEAPON_CATEGORY} end})}
           prints={}; print=function(line) prints[#prints+1]=line end
           assert(module.register() == true)
-          WEAPON_CATEGORY = 9    -- gun
-          wrapped=module.wrap22(function(f,c,t) f.evadeParry=10 end)
+          WEAPON_CATEGORY = 4    -- ninja sword
+          wrapped=module.wrap22(function(f,c,t) f.evadeWeapon=10 end)
           f=run(wrapped,wielder(),foe())
-          assert(f.evadeParry==0, 'Marksman must fire through the registered deps')
+          assert(f.evadeWeapon==0, 'Unseen must fire through the registered deps')
           WEAPON_CATEGORY = 10   -- axe
           target=foe(555,40,1000,10)
           f=run(module.wrap68(function() end),wielder(),target)
           assert(f.target.defense==38)
           local found = false
-          for _, line in ipairs(prints) do if line:find('Legacy Family: marksman 0', 1, true) then found = true end end
+          for _, line in ipairs(prints) do if line:find('Legacy Family: unseen 0', 1, true) then found = true end end
           assert(found, table.concat(prints, '|'))
         ''')
 

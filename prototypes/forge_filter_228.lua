@@ -14,7 +14,7 @@ local registered = event.registerEventSync('onSaveLoad', function()
   return true
 end)
 print(filter
-  and ('Legacy cleave: filter ' .. Filter.version .. ' ready (Attack sweeps for party greatswords only)'
+  and ('Legacy cleave: filter ' .. Filter.version .. ' ready (Attack sweeps foes for party greatswords only)'
        .. (registered == true and '' or '; reset callback failed') .. '; bonuses=area-test')
   or 'Legacy cleave: filter not loaded; Attack hits only its aimed-at unit; bonuses=area-test')
 

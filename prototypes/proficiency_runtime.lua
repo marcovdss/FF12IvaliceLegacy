@@ -1197,7 +1197,35 @@ end
 -- separate attacks 0.75 s or more).
 R.COMBO_WINDOW = 350000
 local lastHit = {}
+
+-- Fists, Cadence (0.1.34, audit D2): Family tells us when a streak completes (Family.onFullCadence(caster, target), called
+-- by family_identities after the 165 hook of the same hit), and the fighter's Counter line hears it as ONE counter.
+-- Fists never parry, so without this a fists Mystic's Ki Flow, and every hybrid counter stage, would never pay once counters
+-- pay only on a real swing. The caster owns fists by wielding them. The Forge classes and helpers are those of the 165 call
+-- that completed the streak.
+local cadenceEnv = nil
+function R.fullCadence(caster, target)
+  local env = cadenceEnv
+  if not env or not R.active() or caster.type ~= 0 or target.type ~= 1 then return end
+  local line = R.lineOf(caster.job1, caster.job2)
+  if not line or not (line == P.JOB.mystic or line >= Hybrid.FIRST_ID) or not R.listens(line, 'guard') then return end
+  local s = R.base(caster, caster.temporaryStatusEffects, env.classes, env.helpers)
+  if not s then return end
+  s.attacker, s.attackerStatus, s.attackerMp = target.address, statusSet(target.temporaryStatusEffects), target.currentMp
+  s.foes = R.foes(env.classes, target.address)
+  s.outcome = 'counter'
+  local a = P.decide('guard', s, effective())
+  if a then R.apply(a, nil, caster, env.classes, env.helpers); R.report('cadence-counter', s, a) end
+end
+function R.bindFamily()
+  local family = rawget(_G, 'IvaliceLegacyFamily')
+  if type(family) == 'table' and family.onFullCadence == nil then
+    family.onFullCadence = function(caster, target) R.run('fullCadence', function() R.fullCadence(caster, target) end) end
+  end
+end
 function R.hook165(formula, caster, target, classes, helpers)
+  R.bindFamily()
+  cadenceEnv = {classes = classes, helpers = helpers}
   if target.type == 1 then R.seeFoe(target.address) end
   if caster.type == 1 then R.seeFoe(caster.address); R.foeActed(caster.address) end
   if not R.active() then return end
@@ -1206,12 +1234,13 @@ function R.hook165(formula, caster, target, classes, helpers)
     if not s then return end
     local damage, work = formula.target.removedHp, formula.target.battleUnitWork
     if damage == -1 then return end  -- the target was immune: nothing landed
-    local category = nil
+    local category, weaponCt = nil, nil
     if type(caster.weapon) == 'number' and caster.weapon >= 0x1000 and caster.weapon - 0x1000 < bpack.section13.count then
       category = bpack.section13[caster.weapon - 0x1000].category
+      weaponCt = bpack.section13[caster.weapon - 0x1000].chargeTime
     end
     s.targetId, s.foe, s.target, s.damage = formula.target.identifier, true, target.address, damage
-    s.weapon = caster.weapon
+    s.weapon, s.weaponCt = caster.weapon, weaponCt
     local now, prev = clock(), lastHit[caster.address]
     s.comboFollow = prev ~= nil and prev.target == target.address and now - prev.at < R.COMBO_WINDOW
     s.critical = formula.criticalState == 1
@@ -1268,10 +1297,13 @@ function R.hook240(formula, caster, target, classes, helpers)
   s.attacker = caster.address
   s.attackerStatus, s.attackerMp = statusSet(caster.temporaryStatusEffects), caster.currentMp
   s.foes = R.foes(classes, caster.address)
+  -- A counter pays only when the blow was answered with a swing (0.1.34, audit B2/D1b): Forge 41-43 write outcome 2 (weapon
+  -- parry + counter) or 4 (shield block + counter). A counter roll without a parry or block does nothing visible.
+  local swing = formula.outcomeType == 2 or formula.outcomeType == 4
   if s.job == P.JOB.mystic then
-    if formula.counterState ~= 1 then return end
+    if not swing then return end
     s.outcome = 'counter'
-  elseif s.job >= Hybrid.FIRST_ID and formula.counterState == 1 then
+  elseif s.job >= Hybrid.FIRST_ID and swing then
     s.outcome = 'counter'
   else
     s.outcome = OUTCOME[formula.outcomeType]
@@ -1327,8 +1359,34 @@ end
 
 -- 182: on-hit statuses. `before` = the target's added-status flags before the original ran.
 local DISEASE = 16
+local MEASURE = 16   -- section 13 category of measures
+local function categoryOf(unit)
+  if type(unit.weapon) ~= 'number' or unit.weapon < 0x1000 or unit.weapon - 0x1000 >= bpack.section13.count then return nil end
+  return bpack.section13[unit.weapon - 0x1000].category
+end
+-- The Chemist's measure lands a buff on an ally: it can spread to a second ally (0.1.34, audit D12). Forge formula 27
+-- (measures) runs 182 for the ally target like any other hit.
+local ATTACK_ACTION = 150   -- the Attack command: only the measure's own hit counts, not an item or spell it carries
+function R.measureBuff(formula, caster, target, classes, helpers, before)
+  if formula.action ~= ATTACK_ACTION then return end
+  if not R.listens(R.lineOf(caster.job1, caster.job2), 'buff') or categoryOf(caster) ~= MEASURE then return end
+  local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
+  if not s then return end
+  s.landed = {}
+  for _, name in ipairs(P.BUFFS) do
+    local id = P.STATUS[name]
+    if formula.target.addedStatusEffects[id] == 1 and not before[id] then s.landed[#s.landed + 1] = id end
+  end
+  if #s.landed == 0 then return end
+  s.target = target.address
+  local a = P.decide('buff', s, effective())
+  if a then R.apply(a, nil, caster, classes, helpers); R.report('buff', s, a) end
+end
+
 function R.hook182(formula, caster, target, classes, helpers, before)
-  if not R.active() or caster.type ~= 0 or target.type ~= 1 then return end
+  if not R.active() or caster.type ~= 0 then return end
+  if target.type == 0 then return R.measureBuff(formula, caster, target, classes, helpers, before) end
+  if target.type ~= 1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
   if not s or not R.listens(s.job, 'status') then return end
   s.landed = {}

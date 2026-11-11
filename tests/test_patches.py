@@ -99,6 +99,19 @@ class StoryStockTest(unittest.TestCase):
         result = self.apply(section, [{'shop': 0, 'rows': [{'story': 200, 'add': [{'id': 7, 'name': 'X'}]}]}])
         self.assertEqual([r['items'] for r in shop_table(result)[0]['rows']], [[8], [7], [9]])
 
+    def test_adds_to_an_existing_earlier_row(self):
+        # An item placed into a row the shop already has (here the 300 row) joins that row; nothing else moves.
+        section = synthetic_shops([[(2, 900, [8]), (2, 300, [9]), (0, 0, [1])], [(0, 0, [5])]])
+        result = self.apply(section, [{'shop': 0, 'rows': [{'story': 300, 'add': [{'id': 7, 'name': 'X'}]}]}])
+        self.assertEqual([(r['condition'], r['threshold'], r['items']) for r in shop_table(result)[0]['rows']],
+                         [(2, 900, [8]), (2, 300, [9, 7]), (0, 0, [1])])
+        self.assertNotIn(7, self.sold(result, 0, 299))
+        self.assertIn(7, self.sold(result, 0, 300))
+        self.assertIn(7, self.sold(result, 0, 900))
+        for story in (0, 299, 300, 899, 900):
+            self.assertEqual(sorted(i for i in self.sold(result, 0, story) if i != 7),
+                             sorted(patches.shop_stock(shop_table(section)[0]['rows'], story)))
+
     def test_rejects_a_second_offer_of_an_item_sold_earlier(self):
         section = synthetic_shops([[(2, 900, [8]), (0, 0, [9])]])
         with self.assertRaises(AssertionError):
@@ -227,6 +240,41 @@ class FullBuildTest(unittest.TestCase):
                              + len(package_files))
             self.assertIn('x64/scripts/init/IvaliceLegacySaves.lua', manifest['files'])
             self.assertNotIn('x64/scripts/IvaliceLegacySaves.lua', manifest['files'])
+
+
+GILT_MEASURE = 4244
+
+
+class GiltMeasureRecipeTest(unittest.TestCase):
+    """Weapons pillar (0.1.34): the Chemist's measure is sold from P3 in Rabanastre; a single stock change."""
+
+    def test_recipe_places_it_once_per_shop(self):
+        recipe = json.loads((Path(__file__).resolve().parents[1] / 'patches/story_stock.json').read_text())
+        placed = sorted((shop['shop'], row['story']) for shop in recipe['shops'] for row in shop['rows']
+                        for item in row['add'] if item['id'] == GILT_MEASURE)
+        self.assertEqual(placed, [(17, 3100), (37, 1240)])  # Amal's Weaponry at P3, the regional shop keeps P6
+
+
+@unittest.skipUnless(os.environ.get('IVALICE_LEGACY_GAME'), 'needs the game (IVALICE_LEGACY_GAME)')
+class GiltMeasureStockTest(unittest.TestCase):
+    def test_sold_from_story_1240_in_amals_weaponry_only_change(self):
+        from ivalice_legacy.formats import battle_pack_section
+        from ivalice_legacy.vbf import VBF
+        root = Path(__file__).resolve().parents[1] / 'patches'
+        recipes = {n: json.loads((root / f'{n}.json').read_text()) for n in ('opening_stock', 'story_stock')}
+        vbf = VBF(Path(os.environ['IVALICE_LEGACY_GAME']) / 'FFXII_TZA.vbf')
+        section, = patches.shops(vbf.read, recipes).values()
+        shops = shop_table(section)
+        self.assertNotIn(GILT_MEASURE, patches.shop_stock(shops[37]['rows'], 1239))
+        self.assertIn(GILT_MEASURE, patches.shop_stock(shops[37]['rows'], 1240))
+        self.assertIn(GILT_MEASURE, patches.shop_stock(shops[37]['rows'], 5100))
+        self.assertNotIn(GILT_MEASURE, patches.shop_stock(shops[17]['rows'], 3099))
+        self.assertIn(GILT_MEASURE, patches.shop_stock(shops[17]['rows'], 3100))
+        sellers = {s['shop'] for s in shops for r in s['rows'] if GILT_MEASURE in r['items']}
+        self.assertEqual(sellers, {17, 37})
+        # The native game never sells it, so every offer is ours.
+        native = shop_table(battle_pack_section(vbf.read(recipes['opening_stock']['file']), 39))
+        self.assertFalse(any(GILT_MEASURE in r['items'] for s in native for r in s['rows']))
 
 
 if __name__ == '__main__':

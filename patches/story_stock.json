@@ -5,7 +5,7 @@
   "section": 39,
   "after": "opening_stock",
   "sourceSectionSha256": "5d6ffbf2f902ef012ca2bc2e48104397b1e200593da123d0c82bc1d4454b4e9c",
-  "resultSectionSha256": "1dd96d92678e9a051a0c0e60cbf840a98137ac85dc57f24cc11c5476937773b8",
+  "resultSectionSha256": "192a4a7b15dfb3b13abcefb47c78af8abd6eaa26fdafbc13272cd180c9c85c3b",
   "shops": [
     {
       "shop": 8,
@@ -402,10 +402,6 @@
           "story": 3100,
           "add": [
             {
-              "id": 4244,
-              "name": "Gilt Measure"
-            },
-            {
               "id": 4114,
               "name": "Claymore"
             },
@@ -430,6 +426,15 @@
             {
               "id": 4251,
               "name": "Fumarole"
+            }
+          ]
+        },
+        {
+          "story": 1240,
+          "add": [
+            {
+              "id": 4244,
+              "name": "Gilt Measure"
             }
           ]
         }

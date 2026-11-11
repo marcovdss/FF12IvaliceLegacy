@@ -1,4 +1,4 @@
--- Forge config/functions/43.lua: Guard fatigue (prototypes/family_identities.lua) on the gun evade roll.
+-- Forge config/functions/43.lua: Guard fatigue (prototypes/family_identities.lua) on the crossbow evade roll (formula 26; guns have no evade roll).
 -- A party member who keeps avoiding attacks meets each next one with less evasion; any other target is untouched.
 local original = assert(loadfile('scripts/TheInsurgentsForge/functions/43.lua', 't', _ENV))()
 local Family = rawget(_G, 'IvaliceLegacyFamily')

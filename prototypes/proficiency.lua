@@ -35,6 +35,7 @@ M.DISEASE = 16
 M.CAST_WINDOW = 200000   -- clock units (microseconds): fallback only; area spells reach targets ~1 s apart, so the
                          -- runtime's cast id (Forge 222, initial target) decides what is one cast
 M.HIT_MP_SHARE = 2       -- MP a weapon hit hands anyone from its damage: at most this % of the receiver's max MP
+M.SUPPRESSION_CT_BASE, M.SUPPRESSION_CT_CAP = 24, 2   -- Gunner: push x weapon CT/24, at most x2
 M.STOP_EXTENDS = 4       -- Time Mage III-3: at most this many extensions per Stop, so a Stop always ends
 
 local function int(v, lo, hi) return type(v) == 'number' and v % 1 == 0 and v >= lo and v <= hi end
@@ -253,6 +254,9 @@ rules[M.JOB.gunner] = {hit = function(s, a)
     if L[3] >= 3 and not s.targetStatus.slow then add(a, 'targetAdd', M.STATUS.slow, 0.5) end
     if L[3] >= 4 and s.kill then m.carry = true end
   end
+  -- 0.1.34 (audit D15): the push scales with the weapon's charge time, CT/24 capped at double, so the slow gun carries
+  -- Suppression. An unknown charge time (no weapon data) leaves the push as it was.
+  if frac > 0 and int(s.weaponCt, 1, 255) then frac = frac * math.min(M.SUPPRESSION_CT_CAP, s.weaponCt / M.SUPPRESSION_CT_BASE) end
   if frac > 0 and c and int(c.current, 1, 0x7FFFFFFF) and int(c.required, 1, 0x7FFFFFFF)
       and c.current < c.required and c.last == c.current then
     a.chargeTo = math.max(1, c.current - math.floor(c.required * frac))
@@ -263,7 +267,8 @@ end}
 rules[M.JOB.timeMage] = {hit = function(s, a)
   if not s.foe or s.targetStatus.stop then return end
   local L = s.L
-  local held = s.targetStatus.slow or (L[1] >= 2 and s.targetStatus.immobilize) or (L[1] >= 3 and s.targetStatus.disable)
+  -- 0.1.34 (audit D10b): Disabled foes count from I-1, so a hammer's Disable sets up Detonate at once.
+  local held = s.targetStatus.slow or s.targetStatus.disable or (L[1] >= 2 and s.targetStatus.immobilize)
   if L[1] >= 1 and held and s.roll(L[1] >= 4 and 25 or 15) then
     add(a, 'targetAdd', M.STATUS.stop, 0.5)
     if L[2] >= 1 and s.canLand(s.target, M.STATUS.stop) then
@@ -487,6 +492,29 @@ rules[M.JOB.chemist] = {hit = function(s, a)
       if L[2] >= 3 and not p.status.protect then other(a, {op = 'add', unit = p.address, id = M.STATUS.protect, scale = 0.5}) end
     end
   end
+end, buff = function(s, a)
+  -- 0.1.34 (audit D12): a buff the Chemist's measure lands on one ally spreads to a second ally at Contagion's chance.
+  local L = s.L
+  if not s.landed or #s.landed == 0 or L[1] < 1 then return end
+  local names = {}
+  for _, id in ipairs(s.landed) do
+    for _, name in ipairs(M.BUFFS) do if M.STATUS[name] == id then names[#names + 1] = {id = id, name = name} end end
+  end
+  if #names == 0 then return end
+  local pick, missing
+  for pass = 1, 2 do   -- another ally first, the Chemist last
+    for _, p in ipairs(s.party) do
+      if not pick and p.address ~= s.target and (p.address == s.self) == (pass == 2) then
+        local need = {}
+        for _, n in ipairs(names) do
+          if not p.status[n.name] and s.canLand(p.address, n.id) then need[#need + 1] = n.id end
+        end
+        if #need > 0 then pick, missing = p, need end
+      end
+    end
+  end
+  if not pick or not s.roll(L[1] >= 4 and 50 or 35) then return end
+  for _, id in ipairs(missing) do other(a, {op = 'add', unit = pick.address, id = id, scale = L[1] >= 2 and 1 or 0.75}) end
 end, status = function(s, a)
   if not s.foe or not s.landed or #s.landed == 0 then return end
   local L = s.L
@@ -637,10 +665,10 @@ M.GEAR = {
      'A foe your hit leaves with no buffs is Immobilized (3/4)\nYour hits deal +15% damage to Immobilized foes',
      'A foe your hit leaves with no buffs is Immobilized (3/4)\nHits on Immobilized foes deal +15% and Slow them (half)'}},
   [M.JOB.gunner] = {line = 'Suppression',
-    {"Your hits push the foe's charge time back 10%",
-     "Your hits push the foe's charge time back 10%\n15% instead if the foe is Slowed",
-     "Your hits push the foe's charge back 10% (Slowed: 15%)\nThe nearest other foe is pushed back 5% as well",
-     "Your hits push the foe's charge back 15% (Slowed: 20%)\nThe nearest other foe is pushed back 5% as well"},
+    {"Hits push the foe's charge back 10% x weapon CT/24\n(a slower weapon pushes harder, at most double)",
+     "Hits push the foe's charge back 10% x weapon CT/24\n15% if the foe is Slowed (at most double)",
+     "Pushes back 10% (Slowed: 15%) x weapon CT/24, max 2\nThe nearest other foe is pushed back 5% as well",
+     "Pushes back 15% (Slowed: 20%) x weapon CT/24, max 2\nThe nearest other foe is pushed back 5% as well"},
     {'A foe that is about to act is pushed back 10% more\nAbout to act: its charge is at least 3/4 full',
      'A foe about to act is pushed back 10% more\nand has a 15% chance to be Silenced (half duration)',
      'A foe about to act is pushed back 10% more\nand has a 25% chance to be Silenced (half duration)',
@@ -689,10 +717,10 @@ M.GEAR = {
      'Each counter cures you of one ailment\nand gives you Protect and Haste (half duration)',
      'Each counter cures you of two ailments\nand gives you Protect and Haste (half duration)'}},
   [M.JOB.timeMage] = {line = 'Detonate',
-    {'Your hits on a Slowed foe have a 15% chance to Stop it\nStop at half its normal duration',
-     'Hits on a Slowed or Immobilized foe: 15% chance to Stop it\nStop at half its normal duration',
-     'Hits on a Slowed, Immobilized or Disabled foe: 15% Stop\nStop at half its normal duration',
-     'Hits on a Slowed, Immobilized or Disabled foe: 25% Stop\nStop at half its normal duration'},
+    {'Hits on a Slowed or Disabled foe: 15% chance to Stop it\nStop at half its normal duration',
+     'Hits on a Slowed, Disabled or Immobilized foe: 15% Stop\nStop at half its normal duration',
+     'Hits on a Slowed, Disabled or Immobilized foe: 15% Stop\nStop at half its normal duration',
+     'Hits on a Slowed, Disabled or Immobilized foe: 25% Stop\nStop at half its normal duration'},
     {'When Detonate Stops a foe, another foe is Slowed',
      'When Detonate Stops a foe, 2 other foes are Slowed',
      'When Detonate Stops a foe, 2 other foes are Slowed\nand their charge is pushed back 10%',
@@ -754,10 +782,10 @@ M.GEAR = {
      'A kill while Hasted renews Haste, gives Bravery (half)\nYour next hit deals +20% damage',
      'A kill while Hasted: Haste (3/4), Bravery (half)\nand your next hit deals +20% damage'}},
   [M.JOB.chemist] = {line = 'Contagion',
-    {'A status your attack lands has a 35% chance to spread\nto another foe (at 3/4 duration)',
-     'A status your attack lands has a 35% chance to spread\nto another foe, at full duration',
-     'A status your attack lands has a 35% chance to spread\nOil and Poison spread more easily: 50%',
-     'A status your attack lands has a 50% chance to spread\nOil and Poison spread more easily: 65%'},
+    {'A status your attack lands has a 35% chance to spread\nto another foe (3/4), measure buffs spread to an ally',
+     'A status your attack lands has a 35% chance to spread\nto another foe, measure buffs spread to an ally',
+     'A status your attack lands has a 35% chance to spread\nOil, Poison 50%, measure buffs spread to an ally',
+     'A status your attack lands has a 50% chance to spread\nOil, Poison 65%, measure buffs spread to an ally'},
     {'Your hits heal the most hurt ally\nfor 10% of the damage dealt',
      'Your hits heal the most hurt ally\nfor 20% of the damage dealt',
      'Your hits heal the most hurt ally for 20% of the damage\nand give that ally Protect (half duration)',

@@ -62,6 +62,17 @@ class EquipmentTest(unittest.TestCase):
         self.assertEqual(struct.unpack_from('<H', out, row + 18)[0], 90)
         self.assertEqual(out[SIZE + 32:], self.section[SIZE + 32:])
 
+    def test_second_on_hit_status_shares_the_rate_and_touches_one_field(self):
+        # A weapon has one on-hit rate and a status mask; a second status is one more bit in the same mask.
+        self.section = synthetic([(DAGGER, {31: 8, 32 + eq.STATUS.index('Slow') // 8: 1 << eq.STATUS.index('Slow') % 8}, 0)],
+                                 [bytes(24)])
+        out = self.apply(items=[{'contentId': 0x1000, 'category': 'Dagger',
+                                 'set': {'statusEffects': [['Slow'], ['Blind', 'Slow']], 'onHitRate': [8, 10]}}])
+        mask = struct.unpack_from('<I', out, 32 + 32)[0]
+        self.assertEqual(mask, 1 << eq.STATUS.index('Blind') | 1 << eq.STATUS.index('Slow'))
+        self.assertEqual(out[32 + 31], 10)
+        self.assertEqual([i for i, (a, b) in enumerate(zip(self.section, out)) if a != b], [32 + 31, 32 + 32])
+
     def test_rejects_wrong_before_category_and_field(self):
         cases = [{'contentId': 0x1000, 'category': 'Dagger', 'set': {'chargeTime': [20, 15]}},
                  {'contentId': 0x1000, 'category': 'Sword', 'set': {'chargeTime': [21, 15]}},
@@ -174,6 +185,62 @@ class RealTableTest(unittest.TestCase):
         daggers = [i['contentId'] - eq.FIRST_ID for i in patch['items'] if i['category'] == 'Dagger']
         self.assertEqual(len(daggers), 12)  # every sold dagger; the unused 0x11CE row stays native
         self.assertTrue(all(result[entry + r * size + 39] == 15 for r in daggers))
+
+    def test_weapons_pillar_values(self):
+        """0.1.34 weapons pillar: the numbers of the approved design tables, read back from the built table."""
+        import json
+        from ivalice_legacy.vbf import VBF
+        patch = json.loads((Path(__file__).resolve().parents[1] / 'patches/arsenal.json').read_text(encoding='utf-8'))
+        vbf = VBF(Path(os.environ['IVALICE_LEGACY_GAME']) / 'FFXII_TZA.vbf')
+        result = eq.equipment(vbf.read, patch)[patch['file'] + '.dir/section_013.bin']
+        count, size, entry, _ = eq.layout(result)
+
+        def field(cid, name):
+            at = entry + (cid - eq.FIRST_ID) * size
+            off, fmt, kind = eq.fields_for(result[at + eq.CATEGORY_AT])[name]
+            value = struct.unpack_from(fmt, result, at + off)[0]
+            return value if kind == 'int' else [k for b, k in enumerate(kind) if value >> b & 1]
+
+        attack = {4194: 14, 4195: 18, 4196: 33, 4197: 38, 4198: 44, 4199: 54, 4200: 77,   # axes (P1)
+                  4201: 12, 4202: 25, 4203: 35, 4204: 45, 4205: 75, 4292: 78,             # hammers (P9)
+                  4250: 11, 4251: 32, 4253: 42, 4252: 46, 4254: 59, 4291: 62,             # hand-bombs (P12)
+                  4176: 18}                                                               # Bowgun (P8)
+        self.assertEqual({c: field(c, 'attack') for c in attack}, attack)
+        self.assertEqual({field(c, 'evade') for c in range(4138, 4150)}, {0})             # spears (P5)
+        self.assertEqual(field(4270, 'evade'), 40)                                        # Vrsabha keeps 40
+        poles = [field(c, 'evade') for c in range(4150, 4160)]                            # shop poles, by band
+        self.assertEqual(poles, [25, 25, 25, 25, 27, 28, 30, 30, 30, 30])                 # P6: 25 rising to 30
+        self.assertEqual([field(c, 'evade') for c in (4160, 4161, 4294)], [30, 30, 30])
+        self.assertEqual({field(c, 'chargeTime') for c in [*range(4176, 4183), 4272]}, {30})  # crossbows (P8)
+        hammers = [*range(4201, 4206), 4292]
+        self.assertEqual({(field(c, 'chargeTime'), field(c, 'onHitRate')) for c in hammers}, {(40, 15)})
+        self.assertTrue(all(field(c, 'statusEffects') == ['Disable'] for c in hammers))   # hammer status stays Disable
+        ninja = [4131, 4132, 4133, 4134, 4135, 4136, 4137, 4267]
+        self.assertTrue(all('Blind' in field(c, 'statusEffects') and field(c, 'onHitRate') == 10 for c in ninja))
+        self.assertEqual([len(field(c, 'statusEffects')) for c in ninja], [1, 2, 2, 1, 1, 2, 2, 2])  # extras kept
+        self.assertEqual(field(4210, 'evade'), 40)                                        # Main Gauche
+        swords = [c for c in range(eq.FIRST_ID, eq.FIRST_ID + count)
+                  if result[entry + (c - eq.FIRST_ID) * size + eq.CATEGORY_AT] == eq.CATEGORIES.index('Sword')]
+        self.assertLessEqual(field(4210, 'evade'), max(field(c, 'evade') for c in swords))
+        shields = {4304: (0, 15), 4305: (10, 10), 4307: (0, 20)}                          # K2 shield triangle
+        self.assertEqual({c: (field(c, 'evade'), field(c, 'magickEvade')) for c in shields}, shields)
+
+
+class ArsenalRecipeTest(unittest.TestCase):
+    """Static checks of patches/arsenal.json (no game needed)."""
+
+    def test_no_price_changes_beyond_hornito(self):
+        import json
+        patch = json.loads((Path(__file__).resolve().parents[1] / 'patches/arsenal.json').read_text(encoding='utf-8'))
+        self.assertEqual([i['name'] for i in patch['items'] if 'gil' in i['set']], ['Hornito'])
+
+    def test_every_change_is_a_before_after_pin(self):
+        import json
+        patch = json.loads((Path(__file__).resolve().parents[1] / 'patches/arsenal.json').read_text(encoding='utf-8'))
+        for item in patch['items']:
+            for name, change in item['set'].items():
+                with self.subTest(item=item['name'], field=name):
+                    self.assertTrue(isinstance(change, list) and len(change) == 2)
 
 
 if __name__ == '__main__':

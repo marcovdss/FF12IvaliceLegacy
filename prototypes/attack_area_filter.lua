@@ -1,11 +1,13 @@
 -- Greatsword-only cleave for the Attack area experiment. The area lives on Attack (action 150) itself, which every
 -- weapon and many foes share, so this decides per target which Attack hits keep the sweep: a party member's
--- greatsword sweeps; every other Attack hits only the unit it was aimed at. Decides only; the Forge adapter applies it.
+-- greatsword sweeps foes; every other Attack hits only the unit it was aimed at, and a sweep never reaches an ally
+-- (the engine hands allies standing near the target to 228 too). Decides only; the Forge adapter applies it.
 local M = {}
-M.version = '0.1.0'
+M.version = '0.2.0'
 
 local ATTACK = 150
 local GREATSWORD = 2 -- section 13 weapon category
+local FOE = 1        -- battle unit type of a foe (0 is the party)
 local LIMIT = 100
 
 local function integer(v, lo, hi)
@@ -41,7 +43,7 @@ function M.new(deps)
       return nil
     end
     if s.initial == s.target then return nil end
-    local decision = (s.casterType == 0 and s.category == GREATSWORD) and 'sweep' or 'skip'
+    local decision = (s.casterType == 0 and s.category == GREATSWORD and s.targetType == FOE) and 'sweep' or 'skip'
     if lines < LIMIT then
       lines = lines + 1
       deps.emit(string.format('Legacy cleave: clock=%s caster=%s:%s category=%s target=%s:%s decision=%s bonuses=area-test',

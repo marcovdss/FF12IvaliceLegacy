@@ -1,7 +1,7 @@
 # Ivalice Legacy
 
 ![Game](https://img.shields.io/badge/FINAL%20FANTASY%20XII-The%20Zodiac%20Age%20(PC)-1f4e79)
-![Version](https://img.shields.io/badge/version-0.1.33-2e7d32)
+![Version](https://img.shields.io/badge/version-0.1.34-2e7d32)
 ![Status](https://img.shields.io/badge/status-early%20development-c77c02)
 
 **An overhaul for FINAL FANTASY XII THE ZODIAC AGE where preparation wins.**
@@ -33,9 +33,13 @@ stage's current effect is shown on the gear. Lines follow the job, so changing j
 a master of a legendary weapon's family deals +25% with it.
 
 ### Weapons with a style of play
-A gentle damage climb replaces the late-game spike. Every weapon family has one identity, always on: axes **Sunder**
-Defence, spears **Pierce** it, katana **Chain** longer combos, guns can't be dodged, maces burn MP, rods boost
-healing, fists build up with each hit. No hit can be reduced to nothing by Defence, for foes or for the party.
+A gentle damage climb replaces the late-game spike. Every weapon family has its own way of fighting, and most pay a
+price for it: axes wear Defense down (**Sunder**) but wear your own too (**Reckless**), spears pierce it but never
+parry except to counter, katanas chain longer combos, guns never miss (**True aim**) but charge slowly, daggers and
+ninja swords glance off heavy armour (**Glancing**), poles counter on their own evade, rods draw Lure when a heal
+overflows, crossbows and hammers trade tempo for their status, and fists build up Attack by Attack. Shields choose a
+side: the Flame, Diamond and Dragon shields now ward magick instead of blows. No hit can be reduced to nothing by
+Defense, for foes or for the party.
 
 ### Armour that asks questions
 105 of the 140 armour pieces gain one strategic property, such as an element ward or a stat trade, chosen for what
@@ -76,12 +80,13 @@ companion mods.
 | Kings of the zone | Played on the Estersand; other zones not yet |
 | Clan Proficiency | Stage I played to rank 4; first hybrid lines seen in play; stages II-III offline |
 | Hybrid boards | Installed; the Seer line has fired in play |
-| Weapon family identities (runtime) | Played since 0.1.24: Spellbreak, Afflict, Marksman and pole counters seen; Sunder, Unseen, Chain and Mend not yet seen |
+| Weapon family identities (runtime) | Played since 0.1.24: Spellbreak, Afflict, Marksman (now True aim) and pole counters seen; Sunder, Unseen, Chain, Mend and Cadence's speed ramp not yet seen |
 | Guard fatigue, Braced, Open, Long haft | In the campaign since 0.1.26-0.1.28; guard fatigue measured once |
+| Weapons pillar 0.1.34: True aim, Reckless, Glancing, spear counters, rod Lure, shield triangle, weapon trims | Offline; built and covered by tests, not yet played |
 | Armour and accessories, armour triangle | Text seen; effects and the triangle not yet measured |
 | Magicks, MP economy, Technicks | Offline; MP costs confirmed in the game log |
 | Enemy behaviours, boss crown, stat pass | In the campaign; not yet checked one by one |
-| Weapon Families tips (Traveler's Tips) | Installed in 0.1.33; not yet read in game |
+| Weapon Families tips (Traveler's Tips) | Rewritten for 0.1.34; the 0.1.33 text was never read in game |
 
 *Offline* means built and covered by tests, but not yet confirmed in play.
 

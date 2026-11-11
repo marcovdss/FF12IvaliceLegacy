@@ -99,7 +99,7 @@ class Forge228AdapterTests(unittest.TestCase):
     def test_skips_only_non_greatsword_bystanders(self):
         lua = self.load()
         lua.execute('''
-          assert(printed[1]:find('^Legacy cleave: filter 0.1.0 ready'))
+          assert(printed[1]:find('^Legacy cleave: filter 0.2.0 ready'))
           assert(run().skipState==0)
           local f=run({weapon=0x1000+5}); assert(f.skipState==1 and f.outcomeType==9)
           assert(run({weapon=0x1000+5, initialTargetPointer=0x6000}).skipState==0)

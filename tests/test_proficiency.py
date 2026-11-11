@@ -379,7 +379,11 @@ class ProficiencyRulesTest(unittest.TestCase):
           -- No level is a copy of the one before it.
           for job = 0, 11 do
             for k = 1, 3 do
-              for l = 2, 4 do assert(P.GEAR[job][k][l] ~= P.GEAR[job][k][l - 1], P.GEAR[job][k][l]) end
+              for l = 2, 4 do
+                -- Detonate I-3 added Disabled until 0.1.34 (audit D10b moved it to I-1): the one level that adds nothing new.
+                local moved = job == P.JOB.timeMage and k == 1 and l == 3
+                assert(moved or P.GEAR[job][k][l] ~= P.GEAR[job][k][l - 1], P.GEAR[job][k][l])
+              end
             end
           end
           a = P.decide('status', S({job=11, landed={8}}), 9); assert(others(a, 'add') == 2)  -- III: two foes

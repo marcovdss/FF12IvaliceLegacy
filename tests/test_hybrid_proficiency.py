@@ -136,7 +136,7 @@ class HybridProficiencyTest(unittest.TestCase):
           assert(a and a.drainMp == 2, 'I-1: hits drain MP (5%, capped at 2% of max MP)')
           a = P.decide('hit', S(14, {damage=400, targetId=12}), 4)
           assert(a.drainMp == 2 and a.healHp == 20, 'I-4: drain, and heal you 5% of the damage')
-          assert(others(a, 'hp', 200) == 1, 'I-4: heal the weakest ally too')
+          assert(others(a, 'hp', 200) == 1, 'I-4: heal the most hurt ally too')
           a = P.decide('heal', S(14, {overflow=300, target=200, foe=false}), 6)
           assert(others(a, 'mp', 100) == 1, 'II-2: overflow still returns MP')
         ''')

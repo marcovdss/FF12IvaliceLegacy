@@ -204,13 +204,13 @@ holds.
 | Knight | Bulwark | A parry or block draws the attacker to the Knight |
 | Lancer | Grounding | Hits strip Float and Haste, then Faith, Regen and Bravery |
 | Warrior | Cleave | A kill grants Bravery |
-| Samurai | Zanshin | A combo or a critical hit grants Haste |
+| Samurai | Zanshin | A combo grants Haste, and a critical hit too from level 2 |
 | Hunter | Pursuit | More damage to targets hindered by an ailment |
-| Gunner | Suppression | Hits push back the target's next action |
-| Chemist | Contagion | Statuses it lands can spread to another foe |
-| Green Mage | Mana Leech | Hits drain MP to her |
-| Time Mage | Detonate | Hits can briefly Stop a Slowed target |
-| Mystic | Ki Flow | Counterattacks heal the Mystic |
+| Gunner | Suppression | Hits push back the target's next action, more for a slow weapon: hits push the charge back 10% x weapon charge time / 24, at most double, so the gun carries it best |
+| Chemist | Contagion | A status your attack lands has a 35% chance to spread to another foe, and a measure buff it lands spreads to a second ally at the same chance |
+| Green Mage | Mana Leech | Hits drain the foe's MP into the wielder |
+| Time Mage | Detonate | Hits on a Slowed or Disabled foe have a 15% chance to Stop it |
+| Mystic | Ki Flow | Counterattacks heal the Mystic; a complete fists Cadence streak counts as one counter |
 | White Mage | Overflow | Healing past full HP becomes Regen |
 | Black Mage | Resonance | Casting the same element twice makes the next action charge faster |
 
@@ -226,9 +226,10 @@ III, and most of the 66 hybrid lines, are built but not yet confirmed in play.*
 ## Weapons
 
 **Damage formula.** Every hit keeps the game's attack minus defence, but never drops below a quarter of the attack.
-Where attack minus defence is already larger, the hit is the game's own. Defence still matters in ordinary matchups;
-it just can no longer erase a hit. The floor applies to foes' hits as well, so armoured party members feel pressure
-too.
+Where attack minus defence is already larger, the hit is the game's own. Defense still matters in ordinary matchups;
+it just can no longer erase a hit. A foe's hit on a party member keeps at least half of its attack, so armoured party
+members feel real pressure. The floor reaches the hammer and hand-bomb formula too. **Glancing:** daggers and ninja
+swords keep only an eighth of the attack against heavy armour, so they are the wrong answer to an armoured foe.
 
 **A gentle attack curve.** The opening weapons keep their attack and every later weapon is lower than native. A
 typical hit grows from about 47 at the start to about 830 by the last shops (native: about 1,375). Each weapon keeps
@@ -236,42 +237,50 @@ its place in its story stage. Rewards are set for where they're found. The 13 le
 families, and story and guest weapons are unchanged. A faster or more critical family hits a little softer, and a
 slower one a little harder.
 
-**Family identities.** Every weapon family has one style of play, always on for any party member who wields it. It
-follows the weapon, while Proficiency follows the job. The Clan Primer's Traveler's Tips carries all eighteen
-identities and their costs as four Weapon Families entries.
+**Family identities.** Every weapon family has one style of play for any party member who wields it, and most pay a
+price for it. It follows the weapon, while Proficiency follows the job. The Clan Primer's Traveler's Tips carries the
+identities and their costs as four Weapon Families entries (Heavy, Light, Ranged, Magick).
 
 | Family | Identity |
 |---|---|
-| Sword | **Guard**: the best weapon evade (20-40) |
+| Sword | **Guard**: the best weapon evade (20-40; the Main Gauche matches it at 40); a parry or block pushes your next charge back 10% (**Braced**) |
 | Greatsword | **Sweep**: Attack cleaves a half circle around the target for half damage; knockback 25 |
-| Katana | **Chain**: the highest combo rate (30-45); a rolled combo runs 2 hits longer |
-| Ninja sword | **Unseen**: hits can't be parried or blocked (the dodge still applies); Blind 10% |
-| Spear | **Pierce**: every hit ignores 30% of Defence; long reach, hits flying foes |
-| Pole | **Counterflow**: the wielder counters even without the Counter licence (Speed / 2), twice as often with it; every blow taken without answering adds +10 to the next counter, up to 75 (100 with the licence); strikes Magick Resist |
-| Bow | **Volley**: critical rate 20-30, the longest reach, the anti-air answer |
-| Crossbow | **Afflict**: on-hit status chance doubled (up to 100%) |
-| Gun | **Marksman**: shots ignore Defence and the target's dodge; a gun's damage scales with the gun alone |
-| Axe | **Sunder**: every hit dents Defence 5% for the rest of the fight (down to half) |
-| Hammer | **Concussion**: Disable 15% on hit, knockback 30 |
-| Dagger | **Swift**: charge time 15, frequent combos, a little evade |
-| Rod | **Mend**: healing spells heal +20% while it is held (potions unchanged) |
+| Katana | **Chain**: the highest combo rate (30-45); a rolled combo runs 1 hit longer; the next attack on the wielder then meets no evasion (**Open**) |
+| Ninja sword | **Unseen**: hits can't be parried or blocked (the dodge still applies); every blade carries Blind 10%, and five share that roll with a second status at 10% (Slow, Disable, Doom or Poison); **Glancing** against armour |
+| Spear | **Pierce**: every hit ignores 30% of Defense; long reach. Never parries, except to counter (**Long haft**); it still blocks and dodges. The menu shows 0 evade (the Vrsabha keeps 40) |
+| Pole | **Counterflow**: the wielder counters even without the Counter license (Speed / 2), twice as often with it; every blow taken without answering adds +10 to the next counter, up to 75 (100 with the license); strikes Magick Resist. Its evade (25 at the third band, rising to 30 from the sixth) is what lets the counter swing |
+| Bow | **Volley**: critical rate 20-30, the keenest of the ranged weapons |
+| Crossbow | **Afflict**: the bolt's status chance is doubled (up to 100%); charge time 30 |
+| Gun | **True aim**: a party gunner's shots never miss, and Blind does not spoil them; shots ignore Defense; a gun's damage scales with the gun alone; charge time 50 |
+| Axe | **Sunder**: every hit dents the foe's Defense by 5% of its starting value for the rest of the fight (down to half). **Reckless**: the wielder's own Defense dents 5% a swing, down to a quarter off |
+| Hammer | **Concussion**: Disable 15% on hit, a 30% knockback chance; charge time 40 |
+| Dagger | **Swift**: charge time 15, frequent combos, a little evade (more on the Main Gauche); **Glancing** against armour |
+| Rod | **Mend**: healing spells heal +20% while it is held (potions unchanged); a heal that overflows draws Lure to the caster |
 | Staff | **Channel**: element potency and the most Magick of the caster weapons |
 | Mace | **Spellbreak**: hits burn foe MP equal to 10% of the damage (at most 10% of its pool) |
-| Measure | **Tempo**: Protect, Shell, Bravery, Haste, Invisible or Bubble on hit |
-| Hand-bomb | **Barrage**: Slow or Oil 20% on hit |
-| Unarmed | **Cadence**: each consecutive hit on the same target deals +6% more (up to +30%) and charges the next action 5% faster per step (up to five); switching targets or ten seconds of stillness restarts |
+| Measure | **Tempo**: each measure grants one status to the ally it strikes (Protect, Shell, Bravery, Invisible, Haste or Bubble, by tier); the Gilt Measure is now sold from Amal's Weaponry in the third band, and a measure buff a Chemist lands can spread to a second ally (Contagion) |
+| Hand-bomb | **Barrage**: the bombs you load decide the status, 25% on hit (Poison, Stop, Oil, Confuse or Sap; some carry none) |
+| Unarmed | **Cadence**: each Attack in a row on the same target deals +6% more (up to +30%, five steps) and charges the next action 5% faster per step; switching targets or ten seconds of stillness restarts. A complete streak counts as one counter for Ki Flow and the hybrid counter lines of a job that owns fists |
 
-There are four ways past armour, one per family: axes wear Defence down, spears ignore part of it, guns and measures
-ignore all of it, and poles strike Magick Resist instead. Ammunition decides the element and status for bows,
+There are four ways past armour: axes wear Defense down, spears ignore part of it, guns and measures ignore all of it,
+and poles strike Magick Resist instead. Daggers and ninja swords have none, which is what Glancing costs them. Ammunition decides the element and status for bows,
 crossbows, guns and hand-bombs.
 
 **The guard itself tires.** Each attack a party member blocks, parries or dodges in a row leaves them 25% less
 evasion against the next, so a streak of avoids ends in a clean hit; a landed hit, or ten seconds without being
 attacked, restores the guard. The first roll against a fresh guard is always full, and a plain miss changes nothing.
 
-**Three families pay their own price.** A sword's parry or block pushes the wielder's own next charge back 10%
-(**Braced**); after a katana combo, the next attack on the Samurai meets no evasion (**Open**); and a spear never
-parries (**Long haft**) — its counters stay.
+**Families pay their own price.** A sword's parry or block pushes the wielder's own next charge back 10%
+(**Braced**); after a katana combo, the next attack on the wielder meets no evasion if it comes within ten seconds
+(**Open**); a spear never parries (**Long haft**), except that a spear which rolled a counter turns the blow aside and
+strikes back; an axe wears its wielder's Defense down (**Reckless**; it returns ten seconds after the last axe Attack); and a dagger or ninja sword loses its edge
+against armour (**Glancing**). A pole's evade is back to 25-30 (by band) so that Counterflow can swing. The crossbow (charge 30)
+and the hammer (charge 40, trimmed to about 1.05 of its band) are slower than before, and the hand-bomb's attack is
+trimmed from the fifth band on.
+
+**Shields choose a side.** The Flame Shield (evade 0, magick evade 15), the Diamond Shield (10 / 10) and the Dragon
+Shield (0 / 20) now guard against magick instead of blows and keep their element wards; the other shields are
+unchanged.
 
 **Legendary weapons** stay the strongest of their families even at base power. Great Trango and Seitengrat now swing
 at normal greatsword and bow speed, and Kumbha counts as a katana.
@@ -279,10 +288,11 @@ at normal greatsword and bow speed, and Kumbha counts as a katana.
 See [package_arsenal/README.md](../package_arsenal/README.md) for every weapon's numbers.
 
 *Play state: the attack curve, the data identities and the greatsword sweep are played. The runtime identities fire
-since 0.1.24: Spellbreak, Afflict, Marksman and the pole counters (lent Counter licence) are seen in play; Sunder,
-Unseen, Chain, Mend and Cadence's speed ramp have not yet been seen to fire. Guard fatigue, Braced, Open and Long
-haft are in the campaign since 0.1.26-0.1.28; guard fatigue has been measured once. The parry/dodge fix (0.1.29)
-means a gun's shot beats the dodge roll, and a spear's menu evade number overstates what it parries.*
+since 0.1.24: Spellbreak, Afflict, Marksman (replaced in 0.1.34 by True aim) and the pole counters (lent Counter
+license) are seen in play; Sunder, Unseen, Chain, Mend and Cadence's speed ramp have not yet been seen to fire. Guard
+fatigue, Braced, Open and Long haft are in the campaign since 0.1.26-0.1.28; guard fatigue has been measured once. The
+whole 0.1.34 weapons pillar (True aim, Reckless, Glancing, the spear's counter, rod Lure, the shield triangle and the
+weapon trims) is built and covered by tests, and not yet played.*
 
 ## Armour and accessories
 
@@ -290,7 +300,7 @@ means a gun's shot beats the dodge roll, and a spear's menu evade number oversta
 a stat trade that costs something. Each one is chosen for what foes cast at that point in the story. The effects are
 real item data, not description text.
 
-- Defence, Magick Resist and augments never change.
+- Defense, Magick Resist and augments never change.
 - No new status immunities; those are reserved for future job armour lines.
 - A stat gain always costs another stat. Shields trade evade for magick evade.
 - Pieces of the same type, slot and story stage never share a property.
@@ -345,8 +355,8 @@ session.*
 **Foundation.** Every foe has its own copy of its data
 ([Instanced Foes](https://www.nexusmods.com/finalfantasy12/mods/528)), and
 [Dynamic Bosses](https://www.nexusmods.com/finalfantasy12/mods/503) crowns some common foes with an element, an aura and
-a matching magick. Legacy's scaling gives each foe its own HP, MP, Vitality and Defence roll (x1 to x1.5), and a
-stat pass raised foes' Strength, Magick, Speed and Attack without touching their HP or Defence. The damage floor means
+a matching magick. Legacy's scaling gives each foe its own HP, MP, Vitality and Defense roll (x1 to x1.5), and a
+stat pass raised foes' Strength, Magick, Speed and Attack without touching their HP or Defense. The damage floor means
 no foe is ever unhurtable and no tank is ever untouchable.
 
 **Story-boss crown.** All 29 main-story bosses are crowned every time. They get twice their own HP (times the Health
@@ -367,7 +377,7 @@ model already performs.
 | Escalation | 447 | A wounded foe escalates once below 30% HP, then recovers |
 | Boss variety | 190 | Bosses, hunts and Kings switch to another move below 50% HP |
 
-**Monster family signatures.** Families fight in their own way. Rats go for the lowest Defence, and wounded Mimics
+**Monster family signatures.** Families fight in their own way. Rats go for the lowest Defense, and wounded Mimics
 turn on the party member furthest away.
 
 **Foe skills and the answers to them.** 41 enemy skills across the game gain riders or wind-ups. Elemental beast

@@ -391,7 +391,7 @@ H.LINES = {
    {'counter', nil, 'Each counter', 's', {{'hp', {5, 5, 5, 8}}, {'quick', 15, f = 2}, {'mp', 3, f = 3}}},
    {'magick', {'newElement'}, 'A spell of a different element', 's', {{'dmg', {10, 10, 15, 20}}, {'mp', 2, f = 2},
      {'self', 'haste', h, f = 3}, {'foe', 'disable', h, f = 4}}},
-   {'magick', {'sameElement'}, 'The same element twice in a row', 's', {{'quick', {20, 20, 20, 30}},
+   {'magick', {'sameElement'}, 'Repeating an element', 's', {{'quick', {20, 20, 20, 30}},
      {'ally', 'protect', h, f = 2}, {'party', 'faith', h, f = 3}}}},
   -- 49 Divine Knight (Samurai + Mystic)
   {line = 'Mind Blade',
@@ -584,10 +584,10 @@ local function groupPhrase(op, ev, items)
   if op == 'self' then return 'give you ' .. list(names) .. tail
   elseif op == 'foe' then return 'inflict ' .. list(names) .. tail .. (REACTION[ev] and ' on the foe' or '')
   elseif op == 'other' then return 'inflict ' .. list(names) .. tail .. ' on another foe'
-  elseif op == 'ally' then return 'give ' .. (own and 'them' or 'the weakest ally') .. ' ' .. list(names) .. tail
+  elseif op == 'ally' then return 'give ' .. (own and 'them' or 'the most hurt ally') .. ' ' .. list(names) .. tail
   elseif op == 'party' then return 'give the party ' .. list(names) .. tail
   elseif op == 'strip' then return 'strip ' .. (REACTION[ev] and "the foe's " or 'its ') .. list(names)
-  elseif op == 'allyRemove' then return 'free ' .. (own and 'them' or 'the weakest ally') .. ' of ' .. list(names) end
+  elseif op == 'allyRemove' then return 'free ' .. (own and 'them' or 'the most hurt ally') .. ' of ' .. list(names) end
 end
 
 local function phrase(fx, ev, L)
@@ -597,7 +597,7 @@ local function phrase(fx, ev, L)
   elseif op == 'push' then return attacker and ('push the foe back ' .. v .. '%') or ("push its charge back " .. v .. '%')
   elseif op == 'pushOther' then return 'push another foe back ' .. v .. '%'
   elseif op == 'heal' then return 'heal you for ' .. v .. '% of the damage'
-  elseif op == 'allyHeal' then return 'heal the weakest ally for ' .. v .. '% of the damage'
+  elseif op == 'allyHeal' then return 'heal the most hurt ally for ' .. v .. '% of the damage'
   elseif op == 'drain' then return 'drain ' .. v .. '% of the damage as MP'
   elseif op == 'mp' then return 'restore ' .. v .. '% of max MP'
   elseif op == 'hp' then return 'heal you for ' .. v .. '% of max HP'
@@ -623,9 +623,9 @@ local function phrase(fx, ev, L)
   elseif op == 'consume' then return 'consume an ailment for +' .. v .. '% damage'
   elseif op == 'splash' then return 'hit another foe for ' .. v .. '% of the damage'
   elseif op == 'spread' then return 'have a ' .. v .. '% chance to spread to another foe'
-  elseif op == 'evade' then return 'cannot be evaded or parried'
+  elseif op == 'evade' then return 'cannot be parried, blocked or dodged'
   elseif op == 'nearHeal' then return 'heal another ally for ' .. v .. '% of it'
-  elseif op == 'drainNear' then return 'hurt a foe for ' .. v .. '% of it'
+  elseif op == 'drainNear' then return 'hurt a foe for ' .. v .. '% of the heal'
   elseif op == 'drainFoe' then return 'drain ' .. v .. '% of max MP from the foe'
   elseif op == 'otherAlly' then return 'give another ally ' .. NAMES[fx[2]] .. scaleText(at(fx[3], L) or 1) end
   error('no phrase for ' .. tostring(op))
@@ -697,7 +697,7 @@ function H.stageText(stage, L, first)
     end
     phrases[#phrases + 1] = conj(text, number)
   end
-  -- Name a recipient once; later mentions become pronouns ("heal the weakest ally ... and give them Shell").
+  -- Name a recipient once; later mentions become pronouns ("heal the most hurt ally ... and give them Shell").
   local text = trigger .. ' ' .. list(phrases)
   local function once(name, object, possessive)
     local at1 = text:find(name, 1, true)
@@ -707,7 +707,7 @@ function H.stageText(stage, L, first)
     tail = tail:gsub(name:gsub('%p', '%%%0'), object)
     text = head .. tail
   end
-  once('the weakest ally', 'them', 'their')
+  once('the most hurt ally', 'them', 'their')
   once('the foe', 'it', 'its')
   return H.wrap(text, first, #trigger)
 end

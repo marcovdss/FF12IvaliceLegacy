@@ -32,6 +32,8 @@ ADAPTERS = {
     42: 'forge_guard_42.lua',
     43: 'forge_guard_43.lua',
     171: 'forge_diagnostic_171.lua',
+    44: 'forge_family_44.lua',
+    126: 'forge_damage_126.lua',
 }
 
 
@@ -124,7 +126,7 @@ class AdapterLoadTests(unittest.TestCase):
           (function()
             local n = 0
             for _, line in ipairs(prints) do
-              if line:find('Legacy Family: identities 0.4.2 ready', 1, true) then n = n + 1 end
+              if line:find('Legacy Family: identities 0.5.0 ready', 1, true) then n = n + 1 end
             end
             return n
           end)()
@@ -171,14 +173,42 @@ class AdapterFiresTests(AdapterLoadTests):
         lua.execute(script)
         return lua
 
-    def test_marksman_through_adapter_22(self):
+    def test_unseen_through_adapter_22(self):
         self.fire('forge_proficiency_22.lua', 22,
                   'function(f,c,t) f.evadeParry=t.evadeParry f.evadeShield=t.evadeShield or 0 f.evadeWeapon=t.evadeWeapon or 0 end',
-                  9, '''
+                  4, '''
           local c, t = wielder(), foe(); t.evadeParry = 12; t.evadeWeapon = 8; t.evadeShield = 5
           local f = hit(c, t); WRAPPED(f, c, t, {}, {}, {})
-          assert(f.evadeParry == 0 and f.evadeWeapon == 8 and f.evadeShield == 5, 'Marksman did not fire')
+          assert(f.evadeParry == 12 and f.evadeWeapon == 0 and f.evadeShield == 0, 'Unseen did not fire')
         ''')
+
+    def test_true_aim_through_adapter_44(self):
+        self.fire('forge_family_44.lua', 44, 'function(f,c,t) f.skipState=1 f.outcomeType=6 end', 9, '''
+          local c, t = wielder(), foe()
+          local f = hit(c, t); WRAPPED(f, c, t, {}, {}, {})
+          assert(f.skipState == 0 and f.outcomeType == 0, 'True aim did not take the miss back')
+          f = hit(t, c); WRAPPED(f, t, c, {}, {}, {})
+          assert(f.skipState == 1 and f.outcomeType == 6, 'a foe shooting a party member keeps its miss')
+        ''')
+
+    def test_floor_through_adapter_126(self):
+        self.fire('forge_damage_126.lua', 126,
+                  'function(f,c,t) SEEN = f.multiplier - f.modifier f.target.removedHp = SEEN end', 10, '''
+          local c, t = wielder(), foe()
+          local f = hit(c, t); f.multiplier = 30; f.modifier = 40; WRAPPED(f, c, t, {}, {}, {})
+          assert(SEEN == 7.5, 'the floor did not lift a zero axe hit: ' .. tostring(SEEN))
+          assert(f.multiplier == 30 and f.modifier == 40, 'fields restored')
+        ''')
+
+    def test_glancing_through_adapter_113(self):
+        for category, expected in ((12, 3.75), (4, 3.75), (5, 7.5)):   # dagger, ninja sword, spear
+            with self.subTest(category=category):
+                self.fire('forge_diagnostic_113.lua', 113,
+                          'function(f,c,t) SEEN = f.multiplier - f.modifier end', category, '''
+                  local c, t = wielder(), foe(555, 40)
+                  local f = hit(c, t); f.multiplier = 30; f.modifier = 40; WRAPPED(f, c, t, {}, {}, {})
+                  assert(SEEN == EXPECTED, 'floor term ' .. tostring(SEEN))
+                '''.replace('EXPECTED', str(expected)))
 
     def test_sunder_through_adapter_68(self):
         self.fire('forge_family_68.lua', 68, 'function(f,c,t) f.modifier=t.defense end', 10, '''
@@ -192,7 +222,7 @@ class AdapterFiresTests(AdapterLoadTests):
                   'function(f,c,t) f.caster.keep.battleFlags.comboCount=4 f.comboState=1 end', 3, '''
           local c, t = wielder(), foe()
           local f = hit(c, t); WRAPPED(f, c, t, {}, {}, {})
-          assert(f.caster.keep.battleFlags.comboCount == 6, 'Chain did not extend the combo')
+          assert(f.caster.keep.battleFlags.comboCount == 5, 'Chain did not extend the combo')
         ''')
 
     def test_counterflow_through_adapter_8(self):

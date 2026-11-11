@@ -42,7 +42,7 @@ class DamageFormulaTests(unittest.TestCase):
 
     def test_ordinary_hits_are_forge_own(self):
         self.lua.execute('''
-          assert(M.version == '0.4.0' and M.FLOOR_DIVISOR == 4 and M.FOE_FLOOR_DIVISOR == 2)
+          assert(M.version == '0.5.0' and M.FLOOR_DIVISOR == 4 and M.FOE_FLOOR_DIVISOR == 2)
           assert(hit(0, 60, 30) == 300, 'attack - defense above the floor: unchanged')
           assert(hit(0, 40, 30) == 100, 'exactly at the floor (40-30 = 40/4): unchanged')
           assert(hit(0, 60, 0) == 600, 'no defense term: unchanged')
