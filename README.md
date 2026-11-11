@@ -1,7 +1,7 @@
 # Ivalice Legacy
 
 ![Game](https://img.shields.io/badge/FINAL%20FANTASY%20XII-The%20Zodiac%20Age%20(PC)-1f4e79)
-![Version](https://img.shields.io/badge/version-0.1.31-2e7d32)
+![Version](https://img.shields.io/badge/version-0.1.33-2e7d32)
 ![Status](https://img.shields.io/badge/status-early%20development-c77c02)
 
 **An overhaul for FINAL FANTASY XII THE ZODIAC AGE where preparation wins.**
@@ -81,6 +81,7 @@ companion mods.
 | Armour and accessories, armour triangle | Text seen; effects and the triangle not yet measured |
 | Magicks, MP economy, Technicks | Offline; MP costs confirmed in the game log |
 | Enemy behaviours, boss crown, stat pass | In the campaign; not yet checked one by one |
+| Weapon Families tips (Traveler's Tips) | Installed in 0.1.33; not yet read in game |
 
 *Offline* means built and covered by tests, but not yet confirmed in play.
 

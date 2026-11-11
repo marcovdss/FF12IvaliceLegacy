@@ -109,6 +109,34 @@ def build_attack_area_experiment(game, out):
                           'actions': patch['actions']})
 
 
+def build_tips(game, out, patch_file):
+    """Build one Traveler's Tips patch (patches/<patch_file>): the four handbook/title result files.
+
+    Sources are read from the deployed loose files under the game's mods/deploy/ff12data first — later tip
+    patches extend the deployed 17-entry state, not the vanilla archive — and fall back to the game archive
+    (the vanilla 16-entry state the Proficiency tip is pinned to). A source hash mismatch fails the build.
+    """
+    from . import clan_primer
+    game = Path(game)
+    vbf = VBF(game / 'FFXII_TZA.vbf')
+    deploy = game / 'mods/deploy/ff12data'
+
+    def read(rel):
+        loose = deploy / rel
+        return loose.read_bytes() if loose.is_file() else vbf.read(rel)
+
+    name = patch_file if patch_file.endswith('.json') else patch_file + '.json'
+    patch = json.loads((ROOT / 'patches' / name).read_text(encoding='utf-8'))
+    files = clan_primer.build_files(read, patch)
+    metadata = {'patch': name,
+                'sources': {clan_primer.DEPLOY + rel: sha256(read(rel)) for rel in clan_primer.SOURCES},
+                'tips': [{'title': tip['title'], 'titleRow': tip['titleRow'], 'titleId': tip['titleId'],
+                          'category': tip['category'], 'flag': tip['flag']} for tip in clan_primer.tips(patch)]}
+    stem = f"IvaliceLegacy-{patch.get('name', 'Tips')}-{patch.get('version', '0.0.1')}"
+    return write_package(files, out, stem, patch.get('name', 'Ivalice Legacy Tips'),
+                         patch.get('version', '0.0.1'), metadata)
+
+
 def write_package(files, out, stem, name, version, metadata=None):
     package = Path(out) / stem
     if package.exists():
@@ -153,25 +181,32 @@ def main(argv=None):
     proficiency = sub.add_parser('build-proficiency', help='build the Proficiency package (runtime and Writ key items)')
     proficiency.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     proficiency.add_argument('--out', default=str(ROOT / 'dist'))
+    tips_cmd = sub.add_parser('build-tips', help="build one Traveler's Tips patch (deployed sources first)")
+    tips_cmd.add_argument('patch', help='patch file under patches/, e.g. families_tip.json')
+    tips_cmd.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
+    tips_cmd.add_argument('--out', default=str(ROOT / 'dist'))
     b.add_argument('--game', default=os.environ.get('IVALICE_LEGACY_GAME', str(DEFAULT_GAME)))
     b.add_argument('--out', default=str(ROOT / 'dist'))
     b.add_argument('--settings-from', help='include the four current personal configs from this game-shaped directory')
     args = ap.parse_args(argv)
     try:
-        if args.command == 'build-base-jobs':
-            from .base_jobs import build as builder
-        elif args.command == 'build-arsenal':
-            from .arsenal import build as builder
-        elif args.command == 'build-proficiency':
-            from .key_items import build as builder
+        if args.command == 'build-tips':
+            archive, manifest = build_tips(args.game, args.out, args.patch)
         else:
-            builder = {'build-rampager-pilot': build_rampager_pilot,
-                       'build-estersand-pilot': build_estersand_pilot,
-                       'build-attack-area-experiment': build_attack_area_experiment}.get(args.command, build)
-        if args.command == 'build':
-            archive, manifest = builder(args.game, args.out, settings_from=args.settings_from)
-        else:
-            archive, manifest = builder(args.game, args.out)
+            if args.command == 'build-base-jobs':
+                from .base_jobs import build as builder
+            elif args.command == 'build-arsenal':
+                from .arsenal import build as builder
+            elif args.command == 'build-proficiency':
+                from .key_items import build as builder
+            else:
+                builder = {'build-rampager-pilot': build_rampager_pilot,
+                           'build-estersand-pilot': build_estersand_pilot,
+                           'build-attack-area-experiment': build_attack_area_experiment}.get(args.command, build)
+            if args.command == 'build':
+                archive, manifest = builder(args.game, args.out, settings_from=args.settings_from)
+            else:
+                archive, manifest = builder(args.game, args.out)
     except (OSError, KeyError, ValueError) as error:
         print(f'Build failed: {error}', file=sys.stderr)
         return 1

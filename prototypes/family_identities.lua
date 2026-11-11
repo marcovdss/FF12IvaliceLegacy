@@ -617,9 +617,9 @@ end
 M.CATEGORY_NAMES = {'unarmed', 'sword', 'greatsword', 'katana', 'ninjaSword', 'spear', 'pole', 'bow',
                     'crossbow', 'gun', 'axe', 'hammer', 'dagger', 'rod', 'staff', 'mace', 'measure', 'handBomb'}
 
--- One Equipment-menu line per family, shown by the gear-text hook under the weapon's own description
--- (rule 8: if the player can't see it, it isn't there). Identity first, then the cost where a family
--- has one. Wording matches docs/FEATURES.md; the game language Legacy supports is English.
+-- One line per family in the Clan Primer's Traveler's Tips (patches/families_tip.json, built from this table's
+-- wording by ivalice_legacy/clan_primer.py). Identity first, then the cost where a family has one.
+-- The game language Legacy supports is English.
 M.FAMILY_LINES = {
   unarmed = {'Cadence', 'consecutive hits on one foe deal +6% more (up to +30%) and charge the next action faster'},
   sword = {'Guard', 'the best weapon evade; a parry or block pushes your next charge back 10%'},

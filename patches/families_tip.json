@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "name": "FamiliesTips",
+  "version": "0.1.3",
+  "description": "Clan Primer Traveler's Tips: four ungated 'Weapon Families' tips carrying the per-family identity text (moved off weapon help; that runtime feature is reverted separately). Extends the deployed 17-entry state: the 16 native tips plus the Proficiency tip. Titles go into penelosdiary rows 654-657 (IDs 0x16E0-0x16E3), found empty and unreferenced the same way row 661 was. Flag 255 writes check byte 2 = 0xFF, the format's own no-flag-test convention, so the game shows these tips unconditionally.",
+  "listSha256": "e8e056608821c204015201fdf702738149e5352acb08894fa948859106175f03",
+  "checksSha256": "3d25c7dbf8edcac24023bfdb18a642c4e1db516159ed31917103343ec33dea34",
+  "pagesSha256": "7a96299500cb038add4a25251078e1d0f4f175a7a772efc882561d9d6e81d242",
+  "titlesSha256": "2b437c60ddb3d2c5e21424f406e23eeca970c19867580cec95a87df87d758855",
+  "tips": [
+    {
+      "title": "Weapon Families: Heavy",
+      "titleRow": 654,
+      "titleId": 5856,
+      "category": 2,
+      "flag": 255,
+      "body": "Every weapon family fights its own way, always on.\nGreatsword Sweep: Attack cleaves a half circle around\nthe target for half damage, but the swing is slow.\nAxe Sunder: every hit dents the foe's Defence by five\npercent, down to half, for the rest of the fight.\nHammer Concussion: Disable 15 percent of the time, and\nthe knockback pushes the foe out of melee.\nSpear Pierce: every hit ignores 30 percent of the\nfoe's Defence, and a spear never parries.\nFists Cadence: consecutive hits on one foe hit harder,\nup to 30 percent more, and charge the next action\nfaster. Switching targets restarts the ramp."
+    },
+    {
+      "title": "Weapon Families: Light",
+      "titleRow": 655,
+      "titleId": 5857,
+      "category": 2,
+      "flag": 255,
+      "body": "Every weapon family fights its own way, always on.\nSword Guard: the best weapon evade, but a parry or\nblock pushes your own next charge back 10 percent.\nKatana Chain: combos run two hits longer, yet after a\ncombo the next attack on you cannot be evaded.\nNinja sword Unseen: hits cannot be parried or blocked.\nThe target's dodge still applies, plus 10 percent Blind.\nDagger Swift: the fastest charge and frequent combos,\nwith a little evade on the blade."
+    },
+    {
+      "title": "Weapon Families: Ranged",
+      "titleRow": 656,
+      "titleId": 5858,
+      "category": 2,
+      "flag": 255,
+      "body": "Every weapon family fights its own way, always on.\nBow Volley: the highest critical rate and the longest\nreach on the field.\nCrossbow Afflict: on-hit status chances doubled, up to\n100 percent.\nGun Marksman: shots ignore Defence and the target's\ndodge, but the damage scales with the gun alone.\nHand-bomb Barrage: Slow or Oil 20 percent of the time."
+    },
+    {
+      "title": "Weapon Families: Magick",
+      "titleRow": 657,
+      "titleId": 5859,
+      "category": 2,
+      "flag": 255,
+      "body": "Every weapon family fights its own way, always on.\nRod Mend: healing spells heal 20 percent more while\nheld. Potions are unchanged.\nStaff Channel: element potency, and the most Magick of\nthe caster weapons.\nMace Spellbreak: hits burn MP equal to 10 percent of\nthe damage, at most 10 percent of the foe's pool.\nMeasure Tempo: hitting an ally grants Protect, Shell,\nBravery, Haste, Invisible or Bubble.\nPole Counterflow: counters even without the Counter\nlicence, blows taken build the next counter, and the\npole strikes Magick Resist."
+    }
+  ],
+  "resultSha256": {
+    "list": "7dc950a6687cca8ab426611d59ef9cab857ba0dac42a0ce2f2a41f0b9a4c6fe1",
+    "checks": "30c309b621e76a9c37aed1caaa613fa4486a50396afd802aadc88d3bef565015",
+    "pages": "33fec20605944c93a4407af2423a05f144d8b63d741d89637c53a107c0983090",
+    "titles": "85e694d033e088b52d74ce8eac89c3614ca56d2f718fd246ab664ff721c735ef"
+  }
+}

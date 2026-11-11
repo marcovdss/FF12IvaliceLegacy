@@ -177,7 +177,7 @@ def build(game, out):
     files.update(build_files(archive, patch, battle_pack_section))
     from . import clan_primer
     tip = json.loads((ROOT/'patches/proficiency_tip.json').read_text(encoding='utf-8'))
-    files.update(clan_primer.build_files(archive, tip))
+    files.update(clan_primer.build_files(archive.read, tip))
 
     stem = f'IvaliceLegacy-Proficiency-{PROFICIENCY_VERSION}'
     return write_package(files, out, stem, 'Ivalice Legacy Proficiency', PROFICIENCY_VERSION,
