@@ -4283,17 +4283,6 @@
       }
     },
     {
-      "contentId": 4471,
-      "name": "Battle Harness",
-      "category": "Accessory",
-      "set": {
-        "augment": [
-          6,
-          1
-        ]
-      }
-    },
-    {
       "contentId": 4480,
       "name": "Fuzzy Miter",
       "category": "Accessory (special)",
@@ -6677,5 +6666,5 @@
     ],
     "resultSha256": "defcb6bcd59e3d538a5146e8f8c2a2bfa8f9d021a0450ba48faabba8eea6394e"
   },
-  "resultSectionSha256": "aa5a72c3b24c7c95f38e60fe89ed13b7ccc05b00b7791e0087e16ff2a0a8e2a7"
+  "resultSectionSha256": "f2f1326da45df38b094681ffa0ee98cd17f3af14e5e0d0767918e25f3a9d394a"
 }

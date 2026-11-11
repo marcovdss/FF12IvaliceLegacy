@@ -21,6 +21,9 @@ from .formats import battle_pack_section
 NAME = 'IvaliceLegacy-HybridBoards'
 ENTRY = 'x64/scripts/IvaliceLegacyHybridBoards.lua'
 CHANGES = {
+    '0.3.2': ('BaseJobs 0.7.0: Telekinesis belongs to the Warrior, Protectga and Shellga to the White Mage, Achilles to '
+              'the Gunner, and the Lancer no longer has Dispel and Stona. The 49 boards whose licenses change are laid out '
+              'again and the Paladin board loses its Telekinesis tile; the other 16 boards keep their layouts.'),
     '0.3.1': ('BaseJobs 0.6.0: hammers belong to Time Mage and measures to Chemist (axes stay with Warrior), so the 30 '
               'boards with Warrior, Time Mage or Chemist are laid out again. The other 36 boards are unchanged.'),
     '0.3.0': ('All 66 job pairs fuse into one board named for the hybrid (Knight + White Mage = Paladin, Lancer + '

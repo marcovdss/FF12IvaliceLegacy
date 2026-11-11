@@ -25,7 +25,7 @@
 -- and three family costs that live on the same evade rolls (every family cuts both ways, Marco 2026-11-10):
 --   Braced    Sword        each parry or block pushes the wielder's own next charge back 10%
 --   Open      Katana       after a katana combo, the next attack on the Samurai meets no evasion
---   Long haft Spear        a spear never parries (its weapon evade, the parry roll, is 0), except to counter
+--   Long haft Spear        a spear never parries (its weapon evade, the parry roll, is 0), except to counter (needs the Counter augment)
 --   Reckless  Axe          each axe Attack lowers the wielder's own Defense 5% (floor -25%) against foes' hits, back to
 --                          normal 10 s after the last swing; tracked here, applied in damage_formula (axe Attack: 68)
 -- and the rod's cost: a heal that overflows draws Lure to the caster (heal amount 110).
@@ -851,8 +851,8 @@ M.FAMILY_LINES = {
   greatsword = {'Sweep', 'attacking a foe cleaves a half circle around it for half damage'},
   katana = {'Chain', 'combos run one hit longer; after a combo, the next attack on you meets no evasion'},
   ninjaSword = {'Unseen', 'your hits can\'t be parried or blocked (the dodge still applies); Blind 10%, five also carry a second status at 10%; Glancing against armor'},
-  spear = {'Pierce', 'every hit ignores 30% of Defense; a spear never parries, except to counter'},
-  pole = {'Counterflow', 'counters even without the Counter License, and blows taken build the next counter; strikes Magick Resist; its evade lets counters swing'},
+  spear = {'Pierce', 'every hit ignores 30% of Defense; a spear never parries, except to counter, and a counter needs the Counter augment'},
+  pole = {'Counterflow', 'counters even without the Counter augment (the Battle Harness or Magepower Shishak), and blows taken build the next counter; strikes Magick Resist; its evade lets counters swing'},
   bow = {'Volley', 'the keenest critical chance among the ranged weapons'},
   crossbow = {'Afflict', 'the bolt\'s status chance doubled, up to 100%; charge 30'},
   gun = {'True aim', 'a gunner\'s shots never miss, Blind or not, and ignore Defense; damage depends on the gun alone'},
@@ -863,7 +863,7 @@ M.FAMILY_LINES = {
   staff = {'Channel', 'element potency, and the most Magick of the caster weapons'},
   mace = {'Spellbreak', 'hits burn foe MP equal to 10% of the damage, at most 10% of its pool'},
   measure = {'Tempo', 'each measure grants one status to an ally it strikes: Protect, Shell, Bravery, Invisible, Haste or Bubble'},
-  handBomb = {'Barrage', 'the bombs you load decide the status, 25% on hit'},
+  handBomb = {'Barrage', 'the bombs you load decide the status, 25% on hit; Chaos Bombs (Confuse) and Stun Bombs (Stop) set up Time Mage Detonate'},
 }
 function M.familyLine(name)
   if type(name) ~= 'string' then return nil end

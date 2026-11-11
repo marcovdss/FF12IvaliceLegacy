@@ -5,12 +5,12 @@
 -- Every level is built from operations already seen working in play; where a designed effect needed an engine detail
 -- nobody has proven, the level does the nearest thing those operations allow (reports/LEGACY-PROFICIENCY-040.md).
 local M = {}
-M.version = '0.5.3'
+M.version = '0.5.4'
 
 M.NO_JOB = 255
 M.JOB = {whiteMage = 0, lancer = 1, gunner = 2, greenMage = 3, knight = 4, mystic = 5, timeMage = 6, warrior = 7,
          hunter = 8, blackMage = 9, samurai = 10, chemist = 11}
-M.STATUS = {ko = 0, stop = 3, blind = 7, poison = 8, silence = 9, sap = 10, oil = 11, disable = 13,
+M.STATUS = {ko = 0, stop = 3, confuse = 5, blind = 7, poison = 8, silence = 9, sap = 10, oil = 11, disable = 13,
             immobilize = 14, slow = 15, disease = 16, lure = 17, protect = 18, shell = 19, haste = 20, bravery = 21,
             faith = 22, reflect = 23, invisible = 24, regen = 25, float = 26, berserk = 27, bubble = 28, hpCritical = 29,
             libra = 30}
@@ -217,13 +217,18 @@ rules[M.JOB.samurai] = {
     if not s.comboFollow then m.fired = nil end
     if m.fired or not (s.comboFollow or (L[1] >= 2 and s.critical)) then return end
     m.fired = true
+    -- 0.1.35 (study S-1): Zanshin I grants Haste, it does not refresh it. A Samurai who is already Hasted gets neither the
+    -- Haste nor the stage-4 bonus, so a long Haste window ends and Zanshin III (a kill while Hasted) is what extends it.
+    if s.casterStatus.haste then return end
     add(a, 'casterAdd', M.STATUS.haste, L[1] >= 3 and 0.75 or 0.5)
     if L[1] >= 4 then a.damage = (a.damage or 1) * 1.15 end
   end,
   -- Evasion setup (Forge 22) for the Samurai's own attacks during Haste.
   aim = function(s, a)
     if s.L[2] >= 1 and s.casterStatus.haste then
-      a.evade = {weapon = true, shield = true, parry = s.L[2] >= 2}
+      -- 0.1.35 (study S-2): II-1 is the dodge (the body roll, evadeParry), II-2 adds the parry and the block (the weapon
+      -- and shield rolls). A ninja sword's Unseen already ignores parry and block, so II-1 makes it unevadable.
+      a.evade = {parry = true, weapon = s.L[2] >= 2, shield = s.L[2] >= 2}
     end
   end,
 }
@@ -268,7 +273,9 @@ rules[M.JOB.timeMage] = {hit = function(s, a)
   if not s.foe or s.targetStatus.stop then return end
   local L = s.L
   -- 0.1.34 (audit D10b): Disabled foes count from I-1, so a hammer's Disable sets up Detonate at once.
+  -- 0.1.35 (study T-1 A): Confused foes count from I-3, so a hand-bomb's Chaos Bombs set up Detonate.
   local held = s.targetStatus.slow or s.targetStatus.disable or (L[1] >= 2 and s.targetStatus.immobilize)
+    or (L[1] >= 3 and s.targetStatus.confuse)
   if L[1] >= 1 and held and s.roll(L[1] >= 4 and 25 or 15) then
     add(a, 'targetAdd', M.STATUS.stop, 0.5)
     if L[2] >= 1 and s.canLand(s.target, M.STATUS.stop) then
@@ -719,8 +726,8 @@ M.GEAR = {
   [M.JOB.timeMage] = {line = 'Detonate',
     {'Hits on a Slowed or Disabled foe: 15% chance to Stop it\nStop at half its normal duration',
      'Hits on a Slowed, Disabled or Immobilized foe: 15% Stop\nStop at half its normal duration',
-     'Hits on a Slowed, Disabled or Immobilized foe: 15% Stop\nStop at half its normal duration',
-     'Hits on a Slowed, Disabled or Immobilized foe: 25% Stop\nStop at half its normal duration'},
+     'Hits on a Slowed, Disabled, Immobilized or Confused foe\n15% Stop, at half its normal duration',
+     'Hits on a Slowed, Disabled, Immobilized or Confused foe\n25% Stop, at half its normal duration'},
     {'When Detonate Stops a foe, another foe is Slowed',
      'When Detonate Stops a foe, 2 other foes are Slowed',
      'When Detonate Stops a foe, 2 other foes are Slowed\nand their charge is pushed back 10%',
@@ -769,12 +776,12 @@ M.GEAR = {
      'Every 3rd cast Oils the target and one other foe\nThat other foe also takes 25% of the damage',
      'Every 3rd cast Oils the target and one other foe\nThat other foe also takes 35% of the damage'}},
   [M.JOB.samurai] = {line = 'Zanshin',
-    {'Landing a combo gives you Haste\nHaste at half its normal duration',
-     'A combo or a critical hit gives you Haste\nHaste at half its normal duration',
-     'A combo or a critical hit gives you Haste\nHaste at 3/4 of its normal duration',
-     'A combo or a critical hit gives you Haste (3/4)\nand that hit deals +15% damage'},
-    {'While Hasted, your attacks cannot be parried\nor blocked',
-     'While Hasted, your attacks cannot be parried,\nblocked or dodged',
+    {'Landing a combo gives you Haste, if not Hasted\nHaste at half its normal duration',
+     'A combo or a critical hit gives you Haste if not Hasted\nHaste at half its normal duration',
+     'A combo or a critical hit gives you Haste if not Hasted\nHaste at 3/4 of its normal duration',
+     'A combo or a critical hit gives you Haste if not Hasted\nHaste (3/4) and that hit deals +15% damage'},
+    {'While Hasted, your attacks cannot be dodged',
+     'While Hasted, your attacks cannot be dodged,\nparried or blocked',
      'While Hasted, your attacks cannot be evaded\nand go straight through Protect',
      "While Hasted, attacks cannot be evaded, pierce Protect\nand push the foe's charge back 5%"},
     {'A kill while Hasted renews your Haste (half duration)',

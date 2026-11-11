@@ -50,6 +50,11 @@ command itself.
 Oil, Knight gets Cure and Blindna, and Gunner, Green Mage and Mystic get Libra. The schools and signature Technicks
 stay with their own job.
 
+**Licenses that changed boards (0.1.35).** Telekinesis moves from the Knight to the Warrior. Achilles moves from the
+Mystic to the Gunner, who can load the shot of the element it opens. Protectga and Shellga (White Magick 12) move from
+the Knight to the White Mage. The Lancer no longer carries White Magick 5 (Dispel and Stona), which stay with the White
+Mage. A character who already learned one of these keeps it, and hybrid boards follow the base boards they fuse.
+
 **Legendary islands.** Every board carries the same thirteen islands. Each Esper gates the zodiac weapon of its sign,
 and Zodiark gates Masamune. An island opens only for a character who owns that Esper.
 [Summons For All](https://www.nexusmods.com/finalfantasy12/mods/381) lets anyone license any Esper.
@@ -204,15 +209,20 @@ holds.
 | Knight | Bulwark | A parry or block draws the attacker to the Knight |
 | Lancer | Grounding | Hits strip Float and Haste, then Faith, Regen and Bravery |
 | Warrior | Cleave | A kill grants Bravery |
-| Samurai | Zanshin | A combo grants Haste, and a critical hit too from level 2 |
+| Samurai | Zanshin | A combo grants Haste, and a critical hit too from level 2, but only if the Samurai is not already Hasted |
 | Hunter | Pursuit | More damage to targets hindered by an ailment |
 | Gunner | Suppression | Hits push back the target's next action, more for a slow weapon: hits push the charge back 10% x weapon charge time / 24, at most double, so the gun carries it best |
 | Chemist | Contagion | A status your attack lands has a 35% chance to spread to another foe, and a measure buff it lands spreads to a second ally at the same chance |
 | Green Mage | Mana Leech | Hits drain the foe's MP into the wielder |
-| Time Mage | Detonate | Hits on a Slowed or Disabled foe have a 15% chance to Stop it |
+| Time Mage | Detonate | Hits on a Slowed or Disabled foe have a 15% chance to Stop it; from level 3 a Confused foe counts too (Chaos Bombs set it up), and stage I-3 and I-4 name Confused in the gear text |
 | Mystic | Ki Flow | Counterattacks heal the Mystic; a complete fists Cadence streak counts as one counter |
 | White Mage | Overflow | Healing past full HP becomes Regen |
 | Black Mage | Resonance | Casting the same element twice makes the next action charge faster |
+
+Two 0.1.35 changes to the later stages: Zanshin's first Haste window can only be opened while the Samurai is not
+already Hasted, so a kill while Hasted (stage III) is the way to extend it; and Zanshin stage II now removes the dodge
+first (level 1: cannot be dodged) and the parry and block second (level 2: dodged, parried or blocked), so a ninja sword, which already cannot be parried or blocked,
+is unevadable from level 1.
 
 Stages II and III add new facets of the same idea. A hybrid's line mixes both jobs: its Stage I takes its trigger from
 one parent and its payoff from the other, and a parent's MP or HP sustain carries over (a Green Mage who adds White
@@ -247,8 +257,8 @@ identities and their costs as four Weapon Families entries (Heavy, Light, Ranged
 | Greatsword | **Sweep**: Attack cleaves a half circle around the target for half damage; knockback 25 |
 | Katana | **Chain**: the highest combo rate (30-45); a rolled combo runs 1 hit longer; the next attack on the wielder then meets no evasion (**Open**) |
 | Ninja sword | **Unseen**: hits can't be parried or blocked (the dodge still applies); every blade carries Blind 10%, and five share that roll with a second status at 10% (Slow, Disable, Doom or Poison); **Glancing** against armour |
-| Spear | **Pierce**: every hit ignores 30% of Defense; long reach. Never parries, except to counter (**Long haft**); it still blocks and dodges. The menu shows 0 evade (the Vrsabha keeps 40) |
-| Pole | **Counterflow**: the wielder counters even without the Counter license (Speed / 2), twice as often with it; every blow taken without answering adds +10 to the next counter, up to 75 (100 with the license); strikes Magick Resist. Its evade (25 at the third band, rising to 30 from the sixth) is what lets the counter swing |
+| Spear | **Pierce**: every hit ignores 30% of Defense; long reach. Never parries, except to counter, and a counter needs the Counter augment (**Long haft**); it still blocks and dodges. The menu shows 0 evade (the Vrsabha keeps 40) |
+| Pole | **Counterflow**: the wielder counters even without the Counter augment (Speed / 2; the Battle Harness and the Magepower Shishak carry it), twice as often with it; every blow taken without answering adds +10 to the next counter, up to 75 (100 with the augment); strikes Magick Resist. Its evade (25 at the third band, rising to 30 from the sixth) is what lets the counter swing |
 | Bow | **Volley**: critical rate 20-30, the keenest of the ranged weapons |
 | Crossbow | **Afflict**: the bolt's status chance is doubled (up to 100%); charge time 30 |
 | Gun | **True aim**: a party gunner's shots never miss, and Blind does not spoil them; shots ignore Defense; a gun's damage scales with the gun alone; charge time 50 |
@@ -259,7 +269,7 @@ identities and their costs as four Weapon Families entries (Heavy, Light, Ranged
 | Staff | **Channel**: element potency and the most Magick of the caster weapons |
 | Mace | **Spellbreak**: hits burn foe MP equal to 10% of the damage (at most 10% of its pool) |
 | Measure | **Tempo**: each measure grants one status to the ally it strikes (Protect, Shell, Bravery, Invisible, Haste or Bubble, by tier); the Gilt Measure is now sold from Amal's Weaponry in the third band, and a measure buff a Chemist lands can spread to a second ally (Contagion) |
-| Hand-bomb | **Barrage**: the bombs you load decide the status, 25% on hit (Poison, Stop, Oil, Confuse or Sap; some carry none) |
+| Hand-bomb | **Barrage**: the bombs you load decide the status, 25% on hit (Poison, Stop, Oil, Confuse or Sap; some carry none). Chaos Bombs (Confuse) and Stun Bombs (Stop) set up a Time Mage's Detonate |
 | Unarmed | **Cadence**: each Attack in a row on the same target deals +6% more (up to +30%, five steps) and charges the next action 5% faster per step; switching targets or ten seconds of stillness restarts. A complete streak counts as one counter for Ki Flow and the hybrid counter lines of a job that owns fists |
 
 There are four ways past armour: axes wear Defense down, spears ignore part of it, guns and measures ignore all of it,
@@ -272,8 +282,8 @@ attacked, restores the guard. The first roll against a fresh guard is always ful
 
 **Families pay their own price.** A sword's parry or block pushes the wielder's own next charge back 10%
 (**Braced**); after a katana combo, the next attack on the wielder meets no evasion if it comes within ten seconds
-(**Open**); a spear never parries (**Long haft**), except that a spear which rolled a counter turns the blow aside and
-strikes back; an axe wears its wielder's Defense down (**Reckless**; it returns ten seconds after the last axe Attack); and a dagger or ninja sword loses its edge
+(**Open**); a spear never parries (**Long haft**), except that a spear which rolled a counter (this needs the Counter augment, now on
+the Battle Harness again) turns the blow aside and strikes back; an axe wears its wielder's Defense down (**Reckless**; it returns ten seconds after the last axe Attack); and a dagger or ninja sword loses its edge
 against armour (**Glancing**). A pole's evade is back to 25-30 (by band) so that Counterflow can swing. The crossbow (charge 30)
 and the hammer (charge 40, trimmed to about 1.05 of its band) are slower than before, and the hand-bomb's attack is
 trimmed from the fifth band on.
@@ -289,7 +299,7 @@ See [package_arsenal/README.md](../package_arsenal/README.md) for every weapon's
 
 *Play state: the attack curve, the data identities and the greatsword sweep are played. The runtime identities fire
 since 0.1.24: Spellbreak, Afflict, Marksman (replaced in 0.1.34 by True aim) and the pole counters (lent Counter
-license) are seen in play; Sunder, Unseen, Chain, Mend and Cadence's speed ramp have not yet been seen to fire. Guard
+augment) are seen in play; Sunder, Unseen, Chain, Mend and Cadence's speed ramp have not yet been seen to fire. Guard
 fatigue, Braced, Open and Long haft are in the campaign since 0.1.26-0.1.28; guard fatigue has been measured once. The
 whole 0.1.34 weapons pillar (True aim, Reckless, Glancing, the spear's counter, rod Lure, the shield triangle and the
 weapon trims) is built and covered by tests, and not yet played.*
@@ -317,6 +327,10 @@ Renamed accessories rename the copies you already own. Prices and locations are 
 *Play state: armour text seen in game; the per-piece properties and the accessories are not yet measured in play.
 The armour triangle is installed (0.1.31) and not yet measured.*
 
+**Battle Harness (0.1.35).** The Battle Harness gives the Counter augment again, with Strength +2, and no longer
+Safety. It is a second source of Counter beside the Magepower Shishak, which makes a spear's counter and the pole's twice-as-
+often counter reachable. Genji Armor's Counter Boost doubles the counter chance, but only with Counter.
+
 ## Magicks, MP and Technicks
 
 **Attack magicks on the weapon climb.** Spells kept their native power while weapons were lowered, so by the last
@@ -343,7 +357,7 @@ more reliable:
 |---|---|
 | First Aid | Heals a critical ally for at least 10% max HP; better rolls still count |
 | Horology | Deals at least level x 10 to each foe, so low clock readings no longer waste a turn |
-| Achilles | Always gives an element the foe was not already weak to |
+| Achilles | Always gives an element the foe was not already weak to; a Gunner Technick since 0.1.35, so the matching shot follows at once |
 
 The rest keep their identity.
 

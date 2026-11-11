@@ -293,6 +293,39 @@ class RuntimeTest(unittest.TestCase):
           assert(pushed(0x1003) == 3000, 'a weapon with no charge time (0) keeps the base push')
         ''')
 
+    def test_a_foe_counter_does_not_refresh_the_suppression_budget(self):
+        # Review fix (0.1.35): a foe's counterattack lands mid-charge and does not restart the charge, so it must not hand
+        # the pusher a fresh 25%. A real foe action (its charge restarted) does.
+        self.lua.execute('''
+          keys[0x81F1], keys[0x81F2] = false, false                -- Writ I only: rank 1, gun CT 50 = 20% (6000) per hit
+          handlers.load('C:/saves/LEGCY_000', {schema=1, campaign='LEGCY_000', claimedRank=1})
+          roster = {1}
+          reset(); R.Proficiency.reset(); R.resetPushes()
+          local gunner = unit({type=0, id=1, address=party(1), job1=2, weapon=0x1001})
+          local foe = unit({type=1, address=7100})
+          local work = {address=1, currentChargeTime=20000, requiredChargeTime=30000, lastChargeTime=20000}
+          helpers.getBattleUnitWork = function(addr) return addr end
+          classes.getBattleUnitWork = function(addr) return addr == foe.address and work or {address=0} end
+          local function shoot()
+            work.lastChargeTime = work.currentChargeTime
+            local before = work.currentChargeTime
+            local f = {caster=plus(), target=plus({removedHp=10, identifier=9, battleUnitWork=work}), action=150,
+                       initialTargetPointer=0, criticalState=0}
+            R.hook165(f, gunner, foe, classes, helpers)
+            return before - work.currentChargeTime
+          end
+          local function foeHits() R.hook165({caster=plus(), target=plus({removedHp=5})}, foe, gunner, classes, helpers) end
+          assert(shoot() == 6000)
+          assert(shoot() == 1500, 'the second shot takes what is left of 25% (7500)')
+          work.currentChargeTime = work.currentChargeTime + 800     -- the charge keeps filling
+          foeHits()                                                 -- a counterattack: charge not restarted
+          assert(shoot() == 0, 'a counter gives no fresh budget')
+          work.currentChargeTime = 0                                -- the foe really acted: charge restarted
+          foeHits()
+          work.currentChargeTime = 20000
+          assert(shoot() == 6000, 'a real action starts a new budget')
+        ''')
+
     def test_a_five_step_cadence_streak_is_one_ki_flow_counter(self):
         self.lua.execute('''
           roster = {2}

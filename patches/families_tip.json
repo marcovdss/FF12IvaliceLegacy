@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "name": "FamiliesTips",
-  "version": "0.1.4",
-  "description": "Clan Primer Traveler's Tips: four ungated 'Weapon Families' tips carrying the per-family identity text (0.1.34 wording: True aim, Reckless, Glancing, counter and tempo changes) (moved off weapon help; that runtime feature is reverted separately). Extends the deployed 17-entry state: the 16 native tips plus the Proficiency tip. Titles go into penelosdiary rows 654-657 (IDs 0x16E0-0x16E3), found empty and unreferenced the same way row 661 was. Flag 255 writes check byte 2 = 0xFF, the format's own no-flag-test convention, so the game shows these tips unconditionally.",
+  "version": "0.1.5",
+  "description": "Clan Primer Traveler's Tips: four ungated 'Weapon Families' tips carrying the per-family identity text (0.1.35 wording: counter augment, bomb status) (moved off weapon help; that runtime feature is reverted separately). Extends the deployed 17-entry state: the 16 native tips plus the Proficiency tip. Titles go into penelosdiary rows 654-657 (IDs 0x16E0-0x16E3), found empty and unreferenced the same way row 661 was. Flag 255 writes check byte 2 = 0xFF, the format's own no-flag-test convention, so the game shows these tips unconditionally.",
   "listSha256": "e8e056608821c204015201fdf702738149e5352acb08894fa948859106175f03",
   "checksSha256": "3d25c7dbf8edcac24023bfdb18a642c4e1db516159ed31917103343ec33dea34",
   "pagesSha256": "7a96299500cb038add4a25251078e1d0f4f175a7a772efc882561d9d6e81d242",
@@ -14,7 +14,7 @@
       "titleId": 5856,
       "category": 2,
       "flag": 255,
-      "body": "Each family fights in its own way. No license needed.\nGreatsword Sweep: attacking a foe cleaves a half circle\naround it for half damage, but the swing is slow.\nAxe Sunder: each hit dents the foe's Defense by five\npercent of its starting value, down to half, for the\nrest of the fight.\nAxe Reckless: each swing dents your own Defense by five\npercent, down to a quarter off.\nHammer Concussion: Disable 15 percent on hit, a 30\npercent knockback chance. The swing is slow.\nSpear Pierce: every hit ignores 30 percent of the\nfoe's Defense. A spear never parries, except to\ncounter. It still blocks and dodges."
+      "body": "Each family fights in its own way. No license needed.\nGreatsword Sweep: attacking a foe cleaves a half circle\naround it for half damage, but the swing is slow.\nAxe Sunder: each hit dents the foe's Defense by five\npercent of its starting value, down to half, for the\nrest of the fight.\nAxe Reckless: each swing dents your own Defense by five\npercent, down to a quarter off.\nHammer Concussion: Disable 15 percent on hit, a 30\npercent knockback chance. The swing is slow.\nSpear Pierce: every hit ignores 30 percent of the\nfoe's Defense. A spear never parries, except to\ncounter, and a counter needs the Counter augment.\nIt still blocks and dodges."
     },
     {
       "title": "Weapon Families: Light",
@@ -30,7 +30,7 @@
       "titleId": 5858,
       "category": 2,
       "flag": 255,
-      "body": "Each family fights in its own way. No license needed.\nBow Volley: the keenest critical chance among the\nranged weapons.\nCrossbow Afflict: the bolt's status chance is doubled,\nup to 100 percent. Bolts take a little longer to load.\nGun True aim: a gunner's shots never miss, Blind or\nnot, and ignore Defense. Damage depends on the gun\nalone, and the gun charges slowly.\nHand-bomb Barrage: the bombs you load decide the\nstatus, 25 percent on hit, and some carry none."
+      "body": "Each family fights in its own way. No license needed.\nBow Volley: the keenest critical chance among the\nranged weapons.\nCrossbow Afflict: the bolt's status chance is doubled,\nup to 100 percent. Bolts take a little longer to load.\nGun True aim: a gunner's shots never miss, Blind or\nnot, and ignore Defense. Damage depends on the gun\nalone, and the gun charges slowly.\nHand-bomb Barrage: the bombs you load decide the\nstatus, 25 percent on hit, and some carry none.\nChaos Bombs, which Confuse, and Stun Bombs, which\nStop, set up a Time Mage's Detonate."
     },
     {
       "title": "Weapon Families: Magick",
@@ -38,13 +38,13 @@
       "titleId": 5859,
       "category": 2,
       "flag": 255,
-      "body": "Each family fights in its own way. No license needed.\nRod Mend: healing spells heal 20 percent more while\nheld. Potions are unchanged. A heal that overflows\ndraws Lure to the caster.\nStaff Channel: element potency, and the most Magick of\nthe caster weapons.\nMace Spellbreak: hits burn MP equal to 10 percent of\nthe damage, at most 10 percent of the foe's pool.\nMeasure Tempo: each measure grants one status to an\nally it strikes: Protect, Shell, Bravery, Invisible,\nHaste or Bubble, by tier.\nPole Counterflow: counters even without the Counter\nlicense, twice as often with it. Blows taken build\nthe next counter, and the pole strikes Magick Resist.\nIts evade is 25 to 30, so its counters can swing."
+      "body": "Each family fights in its own way. No license needed.\nRod Mend: healing spells heal 20 percent more while\nheld. Potions are unchanged. A heal that overflows\ndraws Lure to the caster.\nStaff Channel: element potency, and the most Magick of\nthe caster weapons.\nMace Spellbreak: hits burn MP equal to 10 percent of\nthe damage, at most 10 percent of the foe's pool.\nMeasure Tempo: each measure grants one status to an\nally it strikes: Protect, Shell, Bravery, Invisible,\nHaste or Bubble, by tier.\nPole Counterflow: counters even without the Counter\naugment, found on the Battle Harness or Magepower\nShishak, twice as often with it. Blows taken build\nthe next counter, and the pole strikes Magick Resist.\nIts evade is 25 to 30, so its counters can swing."
     }
   ],
   "resultSha256": {
     "list": "7dc950a6687cca8ab426611d59ef9cab857ba0dac42a0ce2f2a41f0b9a4c6fe1",
     "checks": "30c309b621e76a9c37aed1caaa613fa4486a50396afd802aadc88d3bef565015",
-    "pages": "d8a51b8508fba85d1f46fcd82fba6f96cb9acd0f628b6406fdcd48171bdc2984",
+    "pages": "134c6e934c2923f7ac4036e8cbe40417e6e8fdc5d16498eed8cd998e73b0943c",
     "titles": "85e694d033e088b52d74ce8eac89c3614ca56d2f718fd246ab664ff721c735ef"
   }
 }

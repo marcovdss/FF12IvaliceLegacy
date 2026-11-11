@@ -296,9 +296,11 @@ class ProficiencyRulesTest(unittest.TestCase):
           P.reset()
           assert(P.decide('hit', S({job=10}), 1) == nil)
           assert(P.decide('hit', S({job=10, comboFollow=true}), 1).casterAdd[20] == 0.5)
-          assert(P.decide('aim', S({job=10, casterStatus={haste=true}}), 5).evade.weapon)
-          assert(not P.decide('aim', S({job=10, casterStatus={haste=true}}), 5).evade.parry)
-          assert(P.decide('aim', S({job=10, casterStatus={haste=true}}), 6).evade.parry)
+          -- 0.1.35 (S-2): II-1 is the dodge (evadeParry), II-2 adds the parry and block (weapon, shield rolls).
+          local e1 = P.decide('aim', S({job=10, casterStatus={haste=true}}), 5).evade
+          assert(e1.parry and not e1.weapon and not e1.shield)
+          local e2 = P.decide('aim', S({job=10, casterStatus={haste=true}}), 6).evade
+          assert(e2.parry and e2.weapon and e2.shield)
           assert(P.decide('aim', S({job=10}), 12) == nil)
           P.reset()
           local a = P.decide('hit', S({job=10, kill=true, casterStatus={haste=true}}), 10)
@@ -380,9 +382,7 @@ class ProficiencyRulesTest(unittest.TestCase):
           for job = 0, 11 do
             for k = 1, 3 do
               for l = 2, 4 do
-                -- Detonate I-3 added Disabled until 0.1.34 (audit D10b moved it to I-1): the one level that adds nothing new.
-                local moved = job == P.JOB.timeMage and k == 1 and l == 3
-                assert(moved or P.GEAR[job][k][l] ~= P.GEAR[job][k][l - 1], P.GEAR[job][k][l])
+                assert(P.GEAR[job][k][l] ~= P.GEAR[job][k][l - 1], P.GEAR[job][k][l])
               end
             end
           end

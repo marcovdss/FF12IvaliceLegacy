@@ -9,14 +9,21 @@ from ivalice_legacy.hybrid_layout import validate_fused
 ROOT = Path(__file__).resolve().parents[1]
 GAME = os.environ.get('IVALICE_LEGACY_GAME')
 DEPLOY = 'mods/deploy/ff12data/ps2data/image/ff12/test_battle/'
+STAGED = os.environ.get('IVALICE_LEGACY_STAGED')
+
+
+def deployed(relative):
+    """A deployed file, or its staged replacement when IVALICE_LEGACY_STAGED names a folder of game-relative files
+    (a release candidate checked before it is installed)."""
+    staged = Path(STAGED)/relative if STAGED else None
+    return staged.read_bytes() if staged and staged.is_file() else (Path(GAME)/relative).read_bytes()
 
 
 @unittest.skipUnless(GAME and (Path(GAME)/DEPLOY).is_dir(), 'set IVALICE_LEGACY_GAME with deployed BaseJobs boards')
 class FusedPaladinTest(unittest.TestCase):
     def setUp(self):
-        base = Path(GAME)/DEPLOY
-        self.sources = {job: (base/f'in/binaryfile/board_{job+1}.bin').read_bytes() for job in (0, 4)}
-        self.licenses = (base/'us/binaryfile/battle_pack.bin.dir/section_012.bin').read_bytes()
+        self.sources = {job: deployed(DEPLOY+f'in/binaryfile/board_{job+1}.bin') for job in (0, 4)}
+        self.licenses = deployed(DEPLOY+'us/binaryfile/battle_pack.bin.dir/section_012.bin')
         self.recipe = json.loads((ROOT/'patches/paladin_hybrid_v2.json').read_text(encoding='utf-8'))
 
     def bad(self, mutate, message):
@@ -32,7 +39,9 @@ class FusedPaladinTest(unittest.TestCase):
     def test_recipe_is_whole_union_and_safe(self):
         raw = validate_fused(self.recipe, self.sources, self.licenses)
         self.assertEqual(len(raw), 1160)
-        self.assertEqual(len(self.recipe['cells']), 163)
+        self.assertEqual(len(self.recipe['cells']), 162)  # 163 until BaseJobs 0.7.0 moved Telekinesis to the Warrior
+        self.assertNotIn(299, {c['licenseId'] for c in self.recipe['cells']})
+        self.assertNotIn((13, 14), {(c['x'], c['y']) for c in self.recipe['cells']})
 
     def test_rejects_missing_or_duplicate_license(self):
         self.bad(lambda r: r['cells'].pop(), 'missing')

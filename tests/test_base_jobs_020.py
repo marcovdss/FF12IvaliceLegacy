@@ -135,6 +135,35 @@ class BoardPortTest(unittest.TestCase):
         self.assertEqual(len([encode_board(j) for j in RECIPE['jobs']]),12)
 
 
+class LicenseMovesTest(unittest.TestCase):
+    """BaseJobs 0.7.0 (0.1.35): Telekinesis Knight -> Warrior, White Magick 12 Knight -> White Mage, White Magick 5 off
+    the Lancer, Achilles Mystic -> Gunner. Whole licenses move; no license node (LP, contents, name) changes."""
+    OWNERS = {299: {'Warrior'}, 210: {'White Mage'}, 186: {'White Mage'}, 286: {'Gunner'}}
+    # The deployed 0.6.0 boards these six replace, kept as each job's known previous winner.
+    PREVIOUS = {'White Mage': 'c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d',
+                'Lancer': '1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8',
+                'Gunner': '1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4',
+                'Knight': 'cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f',
+                'Mystic': 'cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3',
+                'Warrior': 'fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883'}
+
+    def test_each_moved_license_has_its_new_owners_only(self):
+        self.assertEqual(RECIPE['version'], '0.7.0')
+        ids = {j['name']: {c['licenseId'] for c in j['cells']} for j in RECIPE['jobs']}
+        for lid, owners in self.OWNERS.items():
+            self.assertEqual({name for name, values in ids.items() if lid in values}, owners, lid)
+
+    def test_no_license_node_changes_for_moved_licenses(self):
+        for key in ('licenseLpPatch', 'licenseContentPatch', 'licenseNamePatch'):
+            self.assertFalse(set(self.OWNERS) & {c['licenseId'] for c in RECIPE[key]['changes']}, key)
+
+    def test_six_boards_replace_their_deployed_060_board(self):
+        jobs = {j['name']: j for j in RECIPE['jobs']}
+        for name, previous in self.PREVIOUS.items():
+            self.assertEqual(jobs[name]['previousCandidateSha256'], previous, name)
+            self.assertNotEqual(jobs[name]['candidateSha256'], previous, name)
+
+
 @unittest.skipUnless(os.environ.get('IVALICE_LEGACY_GAME'),'set IVALICE_LEGACY_GAME for source integration')
 class NativeResourcesTest(unittest.TestCase):
     def test_native_descriptions_unchanged_strings_and_lp_bytes(self):

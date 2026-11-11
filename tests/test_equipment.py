@@ -150,6 +150,9 @@ class EquipmentTest(unittest.TestCase):
             eq.equipment(lambda name: p, patch)
 
 
+BATTLE_HARNESS, COUNTER_AUGMENT = 4471, 6
+
+
 @unittest.skipUnless(os.environ.get('IVALICE_LEGACY_GAME'), 'needs the game (IVALICE_LEGACY_GAME)')
 class RealTableTest(unittest.TestCase):
     def test_layout_and_known_rows(self):
@@ -225,9 +228,30 @@ class RealTableTest(unittest.TestCase):
         shields = {4304: (0, 15), 4305: (10, 10), 4307: (0, 20)}                          # K2 shield triangle
         self.assertEqual({c: (field(c, 'evade'), field(c, 'magickEvade')) for c in shields}, shields)
 
+    def test_battle_harness_counter(self):
+        """0.1.35 (C-1): the Battle Harness gives the Counter augment (6) with Strength +2; Safety (1) is gone."""
+        import json
+        from ivalice_legacy.vbf import VBF
+        patch = json.loads((Path(__file__).resolve().parents[1] / 'patches/arsenal.json').read_text(encoding='utf-8'))
+        vbf = VBF(Path(os.environ['IVALICE_LEGACY_GAME']) / 'FFXII_TZA.vbf')
+        result = eq.equipment(vbf.read, patch)[patch['file'] + '.dir/section_013.bin']
+        count, size, entry, attributes = eq.layout(result)
+        at = entry + (BATTLE_HARNESS - eq.FIRST_ID) * size
+        self.assertEqual(eq.CATEGORIES[result[at + eq.CATEGORY_AT]], 'Accessory')
+        self.assertEqual(result[at + eq.ARMOR['augment'][0]], COUNTER_AUGMENT)
+        link = struct.unpack_from('<I', result, at + eq.LINK_AT)[0]
+        self.assertEqual(result[attributes + link + eq.ATTRIBUTE['strength'][0]], 2)
+
 
 class ArsenalRecipeTest(unittest.TestCase):
     """Static checks of patches/arsenal.json (no game needed)."""
+
+    def test_battle_harness_keeps_its_native_counter(self):
+        """0.1.35 (C-1): no edit to the Battle Harness row or its shared block, so it gives Counter and Strength +2."""
+        import json
+        patch = json.loads((Path(__file__).resolve().parents[1] / 'patches/arsenal.json').read_text(encoding='utf-8'))
+        self.assertNotIn(BATTLE_HARNESS, {i['contentId'] for i in patch['items']})
+        self.assertFalse(any(BATTLE_HARNESS in a['users'] for a in patch['attributes']))
 
     def test_no_price_changes_beyond_hornito(self):
         import json

@@ -12,16 +12,16 @@
   {
    "job": 0,
    "basejobs": "0.5.1",
-   "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+   "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
   },
   {
    "job": 4,
    "basejobs": "0.5.1",
-   "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+   "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
   }
  ],
  "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
- "boardSha256": "d52319fcf824bc7ff07be19835a59091cb5abc7da3cc971a83bdb8eaf1abd215",
+ "boardSha256": "c0a879430a181d6e7b060e08b235a9ce6b8ae8d13e37e0f30a3ef47148926054",
  "cells": [
   {
    "x": 6,
@@ -885,12 +885,6 @@
    "x": 12,
    "y": 14,
    "licenseId": 188,
-   "region": "Commands"
-  },
-  {
-   "x": 13,
-   "y": 14,
-   "licenseId": 299,
    "region": "Commands"
   },
   {

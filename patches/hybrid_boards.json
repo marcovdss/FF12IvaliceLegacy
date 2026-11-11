@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "basejobs": "0.6.0",
+ "basejobs": "0.7.0",
  "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
  "boards": [
   {
@@ -16,12 +16,12 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -855,12 +855,6 @@
      "region": "Passives"
     },
     {
-     "x": 20,
-     "y": 16,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
      "x": 11,
      "y": 17,
      "licenseId": 355,
@@ -897,10 +891,16 @@
      "region": "Quickening"
     },
     {
+     "x": 10,
+     "y": 18,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
      "x": 11,
      "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 210,
+     "region": "Commands"
     },
     {
      "x": 13,
@@ -915,13 +915,19 @@
      "region": "Esper island"
     },
     {
+     "x": 11,
+     "y": 19,
+     "licenseId": 360,
+     "region": "Second board"
+    },
+    {
      "x": 13,
      "y": 19,
      "licenseId": 342,
      "region": "Esper island"
     }
    ],
-   "boardSha256": "4ca08a81919f431051c291903894c4715a75a4383cbd5559c743c77192695b38"
+   "boardSha256": "6faed1ab09d674cac4a32b69571a3f9f2bace1a71fe99f39f5c0ec15fdcbf7ca"
   },
   {
    "schemaVersion": 2,
@@ -936,12 +942,12 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -1591,7 +1597,7 @@
     {
      "x": 13,
      "y": 14,
-     "licenseId": 187,
+     "licenseId": 286,
      "region": "Commands"
     },
     {
@@ -1657,13 +1663,13 @@
     {
      "x": 12,
      "y": 15,
-     "licenseId": 188,
+     "licenseId": 187,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 355,
+     "licenseId": 189,
      "region": "Commands"
     },
     {
@@ -1723,19 +1729,19 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 189,
+     "licenseId": 188,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 16,
-     "licenseId": 208,
+     "licenseId": 355,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 16,
-     "licenseId": 211,
+     "licenseId": 209,
      "region": "Commands"
     },
     {
@@ -1759,14 +1765,20 @@
     {
      "x": 11,
      "y": 17,
-     "licenseId": 209,
+     "licenseId": 208,
+     "region": "Commands"
+    },
+    {
+     "x": 12,
+     "y": 17,
+     "licenseId": 210,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 17,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 211,
+     "region": "Commands"
     },
     {
      "x": 15,
@@ -1783,11 +1795,17 @@
     {
      "x": 13,
      "y": 18,
+     "licenseId": 24,
+     "region": "Esper"
+    },
+    {
+     "x": 14,
+     "y": 18,
      "licenseId": 342,
      "region": "Esper island"
     }
    ],
-   "boardSha256": "9f08586cbbc79ccd72fd37bfbe20d41bb1a6b48f4d54cce21719dfc49a6eedc3"
+   "boardSha256": "657ab23aed44e81f9b7ad989d9b013d8bc7157042c67dbc177807afdcfc49744"
   },
   {
    "schemaVersion": 2,
@@ -1802,7 +1820,7 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 3,
@@ -2571,8 +2589,8 @@
     {
      "x": 11,
      "y": 19,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 210,
+     "region": "Commands"
     },
     {
      "x": 13,
@@ -2585,9 +2603,15 @@
      "y": 19,
      "licenseId": 342,
      "region": "Esper island"
+    },
+    {
+     "x": 11,
+     "y": 20,
+     "licenseId": 360,
+     "region": "Second board"
     }
    ],
-   "boardSha256": "12a159113a783566bac24ea59c6f662afb667ee934026ea8ad4d78d7b15c5e4a"
+   "boardSha256": "edd97fcc17b48f0b3183b4a69e40a14c8e668f04d7750b4cefa7b8ec82652acf"
   },
   {
    "schemaVersion": 2,
@@ -2602,12 +2626,12 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -3477,12 +3501,6 @@
      "region": "Commands"
     },
     {
-     "x": 13,
-     "y": 14,
-     "licenseId": 299,
-     "region": "Commands"
-    },
-    {
      "x": 14,
      "y": 14,
      "licenseId": 258,
@@ -3591,7 +3609,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "d52319fcf824bc7ff07be19835a59091cb5abc7da3cc971a83bdb8eaf1abd215"
+   "boardSha256": "c0a879430a181d6e7b060e08b235a9ce6b8ae8d13e37e0f30a3ef47148926054"
   },
   {
    "schemaVersion": 2,
@@ -3606,12 +3624,12 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -4267,7 +4285,7 @@
     {
      "x": 13,
      "y": 14,
-     "licenseId": 187,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
@@ -4327,19 +4345,19 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 286,
+     "licenseId": 187,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 213,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 188,
+     "licenseId": 189,
      "region": "Commands"
     },
     {
@@ -4399,19 +4417,19 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 283,
+     "licenseId": 188,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 16,
-     "licenseId": 189,
+     "licenseId": 355,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 16,
-     "licenseId": 208,
+     "licenseId": 209,
      "region": "Commands"
     },
     {
@@ -4453,13 +4471,13 @@
     {
      "x": 11,
      "y": 17,
-     "licenseId": 355,
+     "licenseId": 208,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 17,
-     "licenseId": 209,
+     "licenseId": 210,
      "region": "Commands"
     },
     {
@@ -4529,7 +4547,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "04a371b1591661b35266f243513a1768e060999ba8bcaa3e68fd051edc4256b4"
+   "boardSha256": "9e774b98c9b9817ff9224458ef423bc6001ef2b9a0f776e175a6d01dea475e09"
   },
   {
    "schemaVersion": 2,
@@ -4544,7 +4562,7 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 6,
@@ -4554,6 +4572,12 @@
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
    "cells": [
+    {
+     "x": 8,
+     "y": 3,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
     {
      "x": 6,
      "y": 4,
@@ -5095,12 +5119,6 @@
      "region": "Passives"
     },
     {
-     "x": 21,
-     "y": 13,
-     "licenseId": 2,
-     "region": "Quickening"
-    },
-    {
      "x": 6,
      "y": 14,
      "licenseId": 181,
@@ -5313,7 +5331,7 @@
     {
      "x": 13,
      "y": 17,
-     "licenseId": 359,
+     "licenseId": 210,
      "region": "Commands"
     },
     {
@@ -5331,8 +5349,8 @@
     {
      "x": 10,
      "y": 18,
-     "licenseId": 3,
-     "region": "Quickening"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 11,
@@ -5341,16 +5359,22 @@
      "region": "Commands"
     },
     {
-     "x": 13,
+     "x": 12,
      "y": 18,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 359,
+     "region": "Commands"
     },
     {
-     "x": 11,
+     "x": 14,
+     "y": 18,
+     "licenseId": 2,
+     "region": "Quickening"
+    },
+    {
+     "x": 12,
      "y": 19,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 13,
@@ -5359,7 +5383,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "06254c9262ebf87a4834cc1815acfbc57cb4b1924de57e34df6260bda825a06a"
+   "boardSha256": "781b5c920c41ffa885a230a73a372cd48ef08c0f90c93fe465e242afa6d4fe43"
   },
   {
    "schemaVersion": 2,
@@ -5374,12 +5398,12 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -5400,12 +5424,6 @@
      "x": 13,
      "y": 3,
      "licenseId": 1,
-     "region": "Quickening"
-    },
-    {
-     "x": 6,
-     "y": 4,
-     "licenseId": 3,
      "region": "Quickening"
     },
     {
@@ -6203,7 +6221,7 @@
     {
      "x": 13,
      "y": 16,
-     "licenseId": 208,
+     "licenseId": 355,
      "region": "Commands"
     },
     {
@@ -6245,19 +6263,19 @@
     {
      "x": 11,
      "y": 17,
-     "licenseId": 355,
+     "licenseId": 299,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 17,
-     "licenseId": 209,
+     "licenseId": 208,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 17,
-     "licenseId": 211,
+     "licenseId": 210,
      "region": "Commands"
     },
     {
@@ -6279,16 +6297,28 @@
      "region": "Quickening"
     },
     {
-     "x": 11,
+     "x": 10,
      "y": 18,
      "licenseId": 360,
      "region": "Second board"
     },
     {
-     "x": 13,
+     "x": 11,
      "y": 18,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 209,
+     "region": "Commands"
+    },
+    {
+     "x": 12,
+     "y": 18,
+     "licenseId": 211,
+     "region": "Commands"
+    },
+    {
+     "x": 14,
+     "y": 18,
+     "licenseId": 3,
+     "region": "Quickening"
     },
     {
      "x": 16,
@@ -6297,13 +6327,19 @@
      "region": "Esper island"
     },
     {
+     "x": 12,
+     "y": 19,
+     "licenseId": 24,
+     "region": "Esper"
+    },
+    {
      "x": 13,
      "y": 19,
      "licenseId": 342,
      "region": "Esper island"
     }
    ],
-   "boardSha256": "cfc6003286f39b8599f9104ceb45a78ebadc7a3f584d661dad272c0e75620366"
+   "boardSha256": "1a2ed90cd1bbf151934c80b8c94f0f9cd40e8e103500eb10324181db8eb0fd9f"
   },
   {
    "schemaVersion": 2,
@@ -6318,7 +6354,7 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 8,
@@ -6561,12 +6597,6 @@
      "y": 8,
      "licenseId": 335,
      "region": "Esper island"
-    },
-    {
-     "x": 5,
-     "y": 9,
-     "licenseId": 3,
-     "region": "Quickening"
     },
     {
      "x": 6,
@@ -7229,10 +7259,16 @@
      "region": "Esper"
     },
     {
+     "x": 10,
+     "y": 18,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
      "x": 11,
      "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 210,
+     "region": "Commands"
     },
     {
      "x": 13,
@@ -7251,9 +7287,15 @@
      "y": 18,
      "licenseId": 347,
      "region": "Esper island"
+    },
+    {
+     "x": 11,
+     "y": 19,
+     "licenseId": 360,
+     "region": "Second board"
     }
    ],
-   "boardSha256": "82c6e97edfd8dc08b3baf90331fdc1b860060e6d7639a55e96f55a59e8806378"
+   "boardSha256": "94afef49cd2191c10763dd15b64d83504d97e4e93d975bf1be04bb2272e65b9d"
   },
   {
    "schemaVersion": 2,
@@ -7268,7 +7310,7 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 9,
@@ -8017,6 +8059,12 @@
      "region": "Esper island"
     },
     {
+     "x": 10,
+     "y": 18,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
      "x": 11,
      "y": 18,
      "licenseId": 358,
@@ -8031,47 +8079,47 @@
     {
      "x": 13,
      "y": 18,
-     "licenseId": 211,
-     "region": "Commands"
-    },
-    {
-     "x": 14,
-     "y": 18,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
-     "x": 10,
-     "y": 19,
-     "licenseId": 360,
-     "region": "Second board"
-    },
-    {
-     "x": 11,
-     "y": 19,
      "licenseId": 216,
      "region": "Commands"
     },
     {
+     "x": 11,
+     "y": 19,
+     "licenseId": 210,
+     "region": "Commands"
+    },
+    {
      "x": 12,
+     "y": 19,
+     "licenseId": 211,
+     "region": "Commands"
+    },
+    {
+     "x": 13,
      "y": 19,
      "licenseId": 217,
      "region": "Commands"
     },
     {
-     "x": 12,
+     "x": 11,
+     "y": 20,
+     "licenseId": 360,
+     "region": "Second board"
+    },
+    {
+     "x": 13,
      "y": 20,
      "licenseId": 24,
      "region": "Esper"
     },
     {
-     "x": 13,
+     "x": 14,
      "y": 20,
      "licenseId": 342,
      "region": "Esper island"
     }
    ],
-   "boardSha256": "c0fd076d0fa8752fd661e99b97f8aef00c8e7497fa3615a182887e6a2ebfc9ab"
+   "boardSha256": "92fb5773ffb1f75e300c91240288c3907e3431decc10f214967f27a5b7da78bc"
   },
   {
    "schemaVersion": 2,
@@ -8086,7 +8134,7 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 10,
@@ -8831,7 +8879,7 @@
     {
      "x": 13,
      "y": 16,
-     "licenseId": 211,
+     "licenseId": 210,
      "region": "Commands"
     },
     {
@@ -8877,6 +8925,12 @@
      "region": "Commands"
     },
     {
+     "x": 12,
+     "y": 17,
+     "licenseId": 211,
+     "region": "Commands"
+    },
+    {
      "x": 14,
      "y": 17,
      "licenseId": 225,
@@ -8901,10 +8955,10 @@
      "region": "Quickening"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 13,
@@ -8913,10 +8967,10 @@
      "region": "Esper island"
     },
     {
-     "x": 14,
+     "x": 15,
      "y": 18,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 17,
@@ -8925,7 +8979,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "3858e9d2fd5442d315a53d0e75365e0c93cbbb0a50f93746206f498138187ae2"
+   "boardSha256": "2fc90020515ae2de534fdeecf4f2790894dcca349da4f04ce0a1dcbd4f1efba8"
   },
   {
    "schemaVersion": 2,
@@ -8940,7 +8994,7 @@
     {
      "job": 0,
      "basejobs": "0.5.1",
-     "sha256": "c8b21578fdde2535953b1b01de5f1190bf0f2c432ac1a00d0ded1141aaca674d"
+     "sha256": "f7b7ed7a4cb907787c521a96822c776291200b11649a0eb82fac5f25e4313dcf"
     },
     {
      "job": 11,
@@ -9739,6 +9793,12 @@
     {
      "x": 12,
      "y": 16,
+     "licenseId": 210,
+     "region": "Commands"
+    },
+    {
+     "x": 13,
+     "y": 16,
      "licenseId": 211,
      "region": "Commands"
     },
@@ -9881,7 +9941,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "8c88ca40a66f10de8f02e73d926d1db46d8739a6aa8bdaa97ca762aa73ed1a14"
+   "boardSha256": "231a097637d75fcdd705082d2954fa2719ff639df39140a12b0f37c6b8165404"
   },
   {
    "schemaVersion": 2,
@@ -9896,12 +9956,12 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -10479,7 +10539,7 @@
     {
      "x": 12,
      "y": 13,
-     "licenseId": 186,
+     "licenseId": 286,
      "region": "Commands"
     },
     {
@@ -10705,7 +10765,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "e8b7eb29bac2308279c94aa8cf730575328f7ef1831cb0f2bf9f4ab0e27ef35a"
+   "boardSha256": "3d4e5b3207b68f5aeb0ef7e40f77dda5a1417566e83a45ee04289a6589349efb"
   },
   {
    "schemaVersion": 2,
@@ -10720,7 +10780,7 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 3,
@@ -11229,12 +11289,6 @@
      "region": "Passives"
     },
     {
-     "x": 20,
-     "y": 12,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
      "x": 3,
      "y": 13,
      "licenseId": 341,
@@ -11297,7 +11351,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 205,
+     "licenseId": 294,
      "region": "Commands"
     },
     {
@@ -11369,19 +11423,19 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 186,
+     "licenseId": 205,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 294,
+     "licenseId": 206,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 285,
+     "licenseId": 291,
      "region": "Commands"
     },
     {
@@ -11441,19 +11495,19 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 206,
+     "licenseId": 285,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 291,
+     "licenseId": 295,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 298,
+     "licenseId": 207,
      "region": "Commands"
     },
     {
@@ -11513,13 +11567,7 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 295,
-     "region": "Commands"
-    },
-    {
-     "x": 12,
-     "y": 16,
-     "licenseId": 207,
+     "licenseId": 298,
      "region": "Commands"
     },
     {
@@ -11561,20 +11609,26 @@
     {
      "x": 20,
      "y": 16,
-     "licenseId": 2,
+     "licenseId": 3,
      "region": "Quickening"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 17,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 13,
      "y": 17,
      "licenseId": 342,
      "region": "Esper island"
+    },
+    {
+     "x": 14,
+     "y": 17,
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 16,
@@ -11585,8 +11639,8 @@
     {
      "x": 18,
      "y": 17,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 2,
+     "region": "Quickening"
     },
     {
      "x": 16,
@@ -11595,7 +11649,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "0b9bdf0fa7ca60379b6fe5fc97770081a96ba4ffca08f122c4cd4eba02fe72d7"
+   "boardSha256": "915801b7ed009dadffcb247b3b9e7dea001a3d5b030441ed95d6ac925040b35b"
   },
   {
    "schemaVersion": 2,
@@ -11610,12 +11664,12 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -12091,7 +12145,7 @@
     {
      "x": 13,
      "y": 12,
-     "licenseId": 186,
+     "licenseId": 205,
      "region": "Commands"
     },
     {
@@ -12187,13 +12241,13 @@
     {
      "x": 12,
      "y": 13,
-     "licenseId": 205,
+     "licenseId": 285,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 13,
-     "licenseId": 291,
+     "licenseId": 295,
      "region": "Commands"
     },
     {
@@ -12265,19 +12319,13 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 285,
+     "licenseId": 291,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 295,
-     "region": "Commands"
-    },
-    {
-     "x": 13,
-     "y": 14,
-     "licenseId": 299,
+     "licenseId": 298,
      "region": "Commands"
     },
     {
@@ -12335,22 +12383,16 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 15,
      "licenseId": 25,
      "region": "Esper"
     },
     {
-     "x": 11,
-     "y": 15,
-     "licenseId": 298,
-     "region": "Commands"
-    },
-    {
      "x": 12,
      "y": 15,
-     "licenseId": 210,
-     "region": "Commands"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -12395,7 +12437,7 @@
      "region": "Esper island"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 16,
      "licenseId": 339,
      "region": "Esper island"
@@ -12403,8 +12445,8 @@
     {
      "x": 12,
      "y": 16,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 342,
+     "region": "Esper island"
     },
     {
      "x": 14,
@@ -12437,12 +12479,6 @@
      "region": "Quickening"
     },
     {
-     "x": 12,
-     "y": 17,
-     "licenseId": 342,
-     "region": "Esper island"
-    },
-    {
      "x": 14,
      "y": 17,
      "licenseId": 360,
@@ -12461,7 +12497,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "edff07e3b7b5eb595ef9fe73d77467ad98bd3b04bf7d13350f26f5bb22c819bc"
+   "boardSha256": "a19aa4578776ac3a9a16da8a1db29befd553e6cffcf943276aecda9da7ffbf3e"
   },
   {
    "schemaVersion": 2,
@@ -12476,12 +12512,12 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -12993,7 +13029,7 @@
     {
      "x": 13,
      "y": 12,
-     "licenseId": 212,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
@@ -13083,19 +13119,19 @@
     {
      "x": 11,
      "y": 13,
-     "licenseId": 186,
+     "licenseId": 212,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 13,
-     "licenseId": 286,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 13,
-     "licenseId": 283,
+     "licenseId": 291,
      "region": "Commands"
     },
     {
@@ -13167,19 +13203,19 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 213,
+     "licenseId": 285,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 285,
+     "licenseId": 295,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 295,
+     "licenseId": 214,
      "region": "Commands"
     },
     {
@@ -13245,19 +13281,7 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 291,
-     "region": "Commands"
-    },
-    {
-     "x": 12,
-     "y": 15,
      "licenseId": 298,
-     "region": "Commands"
-    },
-    {
-     "x": 13,
-     "y": 15,
-     "licenseId": 214,
      "region": "Commands"
     },
     {
@@ -13311,6 +13335,12 @@
     {
      "x": 12,
      "y": 16,
+     "licenseId": 342,
+     "region": "Esper island"
+    },
+    {
+     "x": 13,
+     "y": 16,
      "licenseId": 24,
      "region": "Esper"
     },
@@ -13357,12 +13387,6 @@
      "region": "Quickening"
     },
     {
-     "x": 12,
-     "y": 17,
-     "licenseId": 342,
-     "region": "Esper island"
-    },
-    {
      "x": 14,
      "y": 17,
      "licenseId": 360,
@@ -13387,7 +13411,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "394c856afef4296c09bea409b902e892f61235a1f18ce769ebfa18177a6e1c37"
+   "boardSha256": "8c7c64fa2e4b48af2515f2ecdcb7d9d75a4543186fa626e56d55729eb289f8a6"
   },
   {
    "schemaVersion": 2,
@@ -13402,7 +13426,7 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 6,
@@ -13973,13 +13997,13 @@
     {
      "x": 12,
      "y": 13,
-     "licenseId": 186,
+     "licenseId": 200,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 13,
-     "licenseId": 284,
+     "licenseId": 201,
      "region": "Commands"
     },
     {
@@ -14051,19 +14075,19 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 200,
+     "licenseId": 284,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 201,
+     "licenseId": 281,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 285,
+     "licenseId": 291,
      "region": "Commands"
     },
     {
@@ -14123,19 +14147,19 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 281,
+     "licenseId": 285,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 291,
+     "licenseId": 295,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 298,
+     "licenseId": 202,
      "region": "Commands"
     },
     {
@@ -14195,19 +14219,19 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 295,
+     "licenseId": 298,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 16,
-     "licenseId": 202,
+     "licenseId": 203,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 16,
-     "licenseId": 204,
+     "licenseId": 357,
      "region": "Commands"
     },
     {
@@ -14247,15 +14271,21 @@
      "region": "Passives"
     },
     {
+     "x": 20,
+     "y": 16,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
      "x": 11,
      "y": 17,
-     "licenseId": 203,
+     "licenseId": 204,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 17,
-     "licenseId": 357,
+     "licenseId": 218,
      "region": "Commands"
     },
     {
@@ -14277,16 +14307,10 @@
      "region": "Quickening"
     },
     {
-     "x": 10,
-     "y": 18,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
      "x": 11,
      "y": 18,
-     "licenseId": 218,
-     "region": "Commands"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 13,
@@ -14305,15 +14329,9 @@
      "y": 18,
      "licenseId": 347,
      "region": "Esper island"
-    },
-    {
-     "x": 11,
-     "y": 19,
-     "licenseId": 360,
-     "region": "Second board"
     }
    ],
-   "boardSha256": "103fecee99928a363f57626caf9032bc69ceb1d2fe687c42eb387efa0952807c"
+   "boardSha256": "a49c56a2e7bc9c9778a506c611b9005e389c680baa61ac80ccba858ffbc560cc"
   },
   {
    "schemaVersion": 2,
@@ -14328,12 +14346,12 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -14929,13 +14947,13 @@
     {
      "x": 12,
      "y": 13,
-     "licenseId": 186,
+     "licenseId": 205,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 13,
-     "licenseId": 296,
+     "licenseId": 285,
      "region": "Commands"
     },
     {
@@ -15007,19 +15025,19 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 205,
+     "licenseId": 296,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 285,
+     "licenseId": 291,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 295,
+     "licenseId": 298,
      "region": "Commands"
     },
     {
@@ -15085,13 +15103,13 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 291,
+     "licenseId": 295,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 298,
+     "licenseId": 299,
      "region": "Commands"
     },
     {
@@ -15179,7 +15197,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "c363c3dc4175cfedd8332805a03ac7b2cede688aaf4ce968ad1221805df512f9"
+   "boardSha256": "53890a76b457c4f86ba3c52c8c1e2c92be42e78d7fedcba3bc6ccef470eb7a92"
   },
   {
    "schemaVersion": 2,
@@ -15194,7 +15212,7 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 8,
@@ -15831,7 +15849,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 289,
+     "licenseId": 285,
      "region": "Commands"
     },
     {
@@ -15903,19 +15921,19 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 186,
+     "licenseId": 289,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 285,
+     "licenseId": 291,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 295,
+     "licenseId": 298,
      "region": "Commands"
     },
     {
@@ -15981,13 +15999,7 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 291,
-     "region": "Commands"
-    },
-    {
-     "x": 12,
-     "y": 15,
-     "licenseId": 298,
+     "licenseId": 295,
      "region": "Commands"
     },
     {
@@ -16033,13 +16045,13 @@
      "region": "Esper island"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 16,
      "licenseId": 24,
      "region": "Esper"
     },
     {
-     "x": 13,
+     "x": 12,
      "y": 16,
      "licenseId": 342,
      "region": "Esper island"
@@ -16063,7 +16075,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "6ba83dbc5eea189047f8550758a8332f91de57fc5303734514ff06d2bab4d164"
+   "boardSha256": "90fed5796942549f33d5b9d1c5138c504a63229474f3198ace3ba4ed7ed3e6d2"
   },
   {
    "schemaVersion": 2,
@@ -16078,7 +16090,7 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 9,
@@ -16553,7 +16565,7 @@
     {
      "x": 13,
      "y": 12,
-     "licenseId": 186,
+     "licenseId": 194,
      "region": "Commands"
     },
     {
@@ -16591,12 +16603,6 @@
      "y": 12,
      "licenseId": 237,
      "region": "Passives"
-    },
-    {
-     "x": 20,
-     "y": 12,
-     "licenseId": 3,
-     "region": "Quickening"
     },
     {
      "x": 3,
@@ -16655,13 +16661,13 @@
     {
      "x": 12,
      "y": 13,
-     "licenseId": 194,
+     "licenseId": 195,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 13,
-     "licenseId": 285,
+     "licenseId": 291,
      "region": "Commands"
     },
     {
@@ -16733,19 +16739,19 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 195,
+     "licenseId": 285,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 291,
+     "licenseId": 295,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 298,
+     "licenseId": 196,
      "region": "Commands"
     },
     {
@@ -16805,19 +16811,19 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 295,
+     "licenseId": 298,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 196,
+     "licenseId": 197,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 356,
+     "licenseId": 358,
      "region": "Commands"
     },
     {
@@ -16877,19 +16883,19 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 197,
+     "licenseId": 356,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 16,
-     "licenseId": 358,
+     "licenseId": 215,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 16,
-     "licenseId": 216,
+     "licenseId": 217,
      "region": "Commands"
     },
     {
@@ -16931,19 +16937,13 @@
     {
      "x": 20,
      "y": 16,
-     "licenseId": 2,
+     "licenseId": 3,
      "region": "Quickening"
     },
     {
      "x": 11,
      "y": 17,
-     "licenseId": 215,
-     "region": "Commands"
-    },
-    {
-     "x": 12,
-     "y": 17,
-     "licenseId": 217,
+     "licenseId": 216,
      "region": "Commands"
     },
     {
@@ -16961,14 +16961,14 @@
     {
      "x": 18,
      "y": 17,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 2,
+     "region": "Quickening"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 18,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 13,
@@ -16977,13 +16977,19 @@
      "region": "Esper island"
     },
     {
+     "x": 14,
+     "y": 18,
+     "licenseId": 24,
+     "region": "Esper"
+    },
+    {
      "x": 16,
      "y": 18,
      "licenseId": 347,
      "region": "Esper island"
     }
    ],
-   "boardSha256": "9d10af1b83a5ebecc40be49740dcd21314f9f82e4619e0fd204f4e9fbb21c4ed"
+   "boardSha256": "f04e225d23b43dec2065620cf2383c31bc60b6c8b659e89ce106c46897c5c686"
   },
   {
    "schemaVersion": 2,
@@ -16998,7 +17004,7 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 10,
@@ -17497,7 +17503,7 @@
     {
      "x": 13,
      "y": 12,
-     "licenseId": 186,
+     "licenseId": 285,
      "region": "Commands"
     },
     {
@@ -17593,13 +17599,13 @@
     {
      "x": 12,
      "y": 13,
-     "licenseId": 285,
+     "licenseId": 291,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 13,
-     "licenseId": 295,
+     "licenseId": 298,
      "region": "Commands"
     },
     {
@@ -17671,17 +17677,11 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 291,
+     "licenseId": 295,
      "region": "Commands"
     },
     {
      "x": 12,
-     "y": 14,
-     "licenseId": 298,
-     "region": "Commands"
-    },
-    {
-     "x": 13,
      "y": 14,
      "licenseId": 293,
      "region": "Commands"
@@ -17861,7 +17861,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "e4c26dc0e7d87b28e5181be64b3c54bca5f4380302773d09babae69e532ab90f"
+   "boardSha256": "fb38e378d93ddd515b5d831334eefffad7e8cb8ef523aabcb1192c8b38569c8a"
   },
   {
    "schemaVersion": 2,
@@ -17876,7 +17876,7 @@
     {
      "job": 1,
      "basejobs": "0.5.1",
-     "sha256": "1fdd02aae60731dac50526ae31890291dee23b95c519e9d929320e40a34824b8"
+     "sha256": "a823611db99b62472c1507754c152e0c1d0776f9f3e90064ba910b01bdbce66e"
     },
     {
      "job": 11,
@@ -18357,7 +18357,7 @@
     {
      "x": 13,
      "y": 12,
-     "licenseId": 186,
+     "licenseId": 285,
      "region": "Commands"
     },
     {
@@ -18453,13 +18453,13 @@
     {
      "x": 12,
      "y": 13,
-     "licenseId": 285,
+     "licenseId": 291,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 13,
-     "licenseId": 295,
+     "licenseId": 298,
      "region": "Commands"
     },
     {
@@ -18531,13 +18531,7 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 291,
-     "region": "Commands"
-    },
-    {
-     "x": 12,
-     "y": 14,
-     "licenseId": 298,
+     "licenseId": 295,
      "region": "Commands"
     },
     {
@@ -18601,10 +18595,10 @@
      "region": "Esper"
     },
     {
-     "x": 12,
+     "x": 13,
      "y": 15,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 3,
+     "region": "Quickening"
     },
     {
      "x": 14,
@@ -18655,12 +18649,6 @@
      "region": "Esper island"
     },
     {
-     "x": 12,
-     "y": 16,
-     "licenseId": 342,
-     "region": "Esper island"
-    },
-    {
      "x": 14,
      "y": 16,
      "licenseId": 272,
@@ -18699,14 +18687,20 @@
     {
      "x": 20,
      "y": 16,
-     "licenseId": 3,
+     "licenseId": 2,
      "region": "Quickening"
+    },
+    {
+     "x": 12,
+     "y": 17,
+     "licenseId": 342,
+     "region": "Esper island"
     },
     {
      "x": 13,
      "y": 17,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -18739,10 +18733,10 @@
      "region": "Passives"
     },
     {
-     "x": 15,
+     "x": 14,
      "y": 18,
-     "licenseId": 2,
-     "region": "Quickening"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 17,
@@ -18757,7 +18751,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "fc5c198eb12b203a37b5e5cdf88cbd0508e57e6a46256ee2ba36065446b0d2f5"
+   "boardSha256": "e44854019f8a2ef13eb5871662fe296604e468fffce81f66ce2c2caaeaf9999b"
   },
   {
    "schemaVersion": 2,
@@ -18772,7 +18766,7 @@
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 3,
@@ -19433,13 +19427,13 @@
     {
      "x": 12,
      "y": 14,
-     "licenseId": 294,
+     "licenseId": 286,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 207,
+     "licenseId": 206,
      "region": "Commands"
     },
     {
@@ -19505,7 +19499,13 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 206,
+     "licenseId": 294,
+     "region": "Commands"
+    },
+    {
+     "x": 12,
+     "y": 15,
+     "licenseId": 207,
      "region": "Commands"
     },
     {
@@ -19551,13 +19551,13 @@
      "region": "Esper island"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 16,
      "licenseId": 24,
      "region": "Esper"
     },
     {
-     "x": 12,
+     "x": 13,
      "y": 16,
      "licenseId": 342,
      "region": "Esper island"
@@ -19581,7 +19581,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "96f498485066fecb64a7e075c157488933cea17b6b923fc49cfdc51904e36e3c"
+   "boardSha256": "5ed2409aa4ede90875cfa8c846c2f3f9ad12060b9415ca9ef862504d19000ecc"
   },
   {
    "schemaVersion": 2,
@@ -19596,12 +19596,12 @@
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -20251,7 +20251,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 299,
+     "licenseId": 286,
      "region": "Commands"
     },
     {
@@ -20327,12 +20327,6 @@
      "region": "Commands"
     },
     {
-     "x": 12,
-     "y": 14,
-     "licenseId": 210,
-     "region": "Commands"
-    },
-    {
      "x": 14,
      "y": 14,
      "licenseId": 262,
@@ -20393,12 +20387,6 @@
      "region": "Esper"
     },
     {
-     "x": 12,
-     "y": 15,
-     "licenseId": 24,
-     "region": "Esper"
-    },
-    {
      "x": 14,
      "y": 15,
      "licenseId": 231,
@@ -20453,6 +20441,12 @@
      "region": "Esper island"
     },
     {
+     "x": 13,
+     "y": 16,
+     "licenseId": 24,
+     "region": "Esper"
+    },
+    {
      "x": 14,
      "y": 16,
      "licenseId": 314,
@@ -20495,7 +20489,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "9ac3ff7c00477f74a54263a55687cf447c9a8361f74c5058a311c7b83629b770"
+   "boardSha256": "ff1ccdaa02e32004b0f437d5454a118824f4ab710925963b170a6595f064cfa7"
   },
   {
    "schemaVersion": 2,
@@ -20510,12 +20504,12 @@
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -21328,7 +21322,7 @@
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 6,
@@ -21849,6 +21843,12 @@
      "region": "Passives"
     },
     {
+     "x": 20,
+     "y": 12,
+     "licenseId": 2,
+     "region": "Quickening"
+    },
+    {
      "x": 3,
      "y": 13,
      "licenseId": 341,
@@ -21995,7 +21995,7 @@
     {
      "x": 13,
      "y": 14,
-     "licenseId": 281,
+     "licenseId": 201,
      "region": "Commands"
     },
     {
@@ -22055,19 +22055,19 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 201,
+     "licenseId": 286,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 202,
+     "licenseId": 281,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 204,
+     "licenseId": 203,
      "region": "Commands"
     },
     {
@@ -22121,19 +22121,19 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 203,
+     "licenseId": 202,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 16,
-     "licenseId": 357,
+     "licenseId": 204,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 16,
-     "licenseId": 359,
+     "licenseId": 218,
      "region": "Commands"
     },
     {
@@ -22145,20 +22145,20 @@
     {
      "x": 17,
      "y": 16,
-     "licenseId": 2,
-     "region": "Quickening"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 11,
      "y": 17,
-     "licenseId": 218,
+     "licenseId": 357,
      "region": "Commands"
     },
     {
-     "x": 13,
+     "x": 12,
      "y": 17,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 359,
+     "region": "Commands"
     },
     {
      "x": 15,
@@ -22167,10 +22167,10 @@
      "region": "Esper island"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 13,
@@ -22179,7 +22179,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "ee4fa3ce8fdea445e8081abc7913743cc4935720891dbba547ecc1c51d8baffe"
+   "boardSha256": "00ecb755c7980732d2e7a916e46fd200e8a471c30abc8ae5f62640afb01116ff"
   },
   {
    "schemaVersion": 2,
@@ -22194,12 +22194,12 @@
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -22807,7 +22807,13 @@
     {
      "x": 12,
      "y": 14,
-     "licenseId": 296,
+     "licenseId": 286,
+     "region": "Commands"
+    },
+    {
+     "x": 13,
+     "y": 14,
+     "licenseId": 299,
      "region": "Commands"
     },
     {
@@ -22865,16 +22871,16 @@
      "region": "Esper"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 15,
      "licenseId": 25,
      "region": "Esper"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 15,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 296,
+     "region": "Commands"
     },
     {
      "x": 14,
@@ -22913,10 +22919,16 @@
      "region": "Esper island"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 16,
      "licenseId": 339,
      "region": "Esper island"
+    },
+    {
+     "x": 11,
+     "y": 16,
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 12,
@@ -22943,7 +22955,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "610c3f2cff3c25747261c10176c7c50ddf5a264613e0774d6e0ff481620dbd4e"
+   "boardSha256": "97151f68cfe407730b9df686c72cc8c26fc91246bf05d678df7aa8b27a1678ca"
   },
   {
    "schemaVersion": 2,
@@ -22958,7 +22970,7 @@
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 8,
@@ -23511,7 +23523,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 289,
+     "licenseId": 286,
      "region": "Commands"
     },
     {
@@ -23587,6 +23599,12 @@
      "region": "Commands"
     },
     {
+     "x": 12,
+     "y": 14,
+     "licenseId": 289,
+     "region": "Commands"
+    },
+    {
      "x": 14,
      "y": 14,
      "licenseId": 270,
@@ -23649,12 +23667,6 @@
     {
      "x": 12,
      "y": 15,
-     "licenseId": 342,
-     "region": "Esper island"
-    },
-    {
-     "x": 13,
-     "y": 15,
      "licenseId": 24,
      "region": "Esper"
     },
@@ -23695,6 +23707,12 @@
      "region": "Esper island"
     },
     {
+     "x": 12,
+     "y": 16,
+     "licenseId": 342,
+     "region": "Esper island"
+    },
+    {
      "x": 15,
      "y": 16,
      "licenseId": 23,
@@ -23707,7 +23725,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "077669ee8866b18998de55f222e1f4ee1cfc843ba087869b7bf8e6e6a76945e7"
+   "boardSha256": "975f32dc0fc9be6c69a60f1d754446d639a38057e12f2c565c4783a69c2c62b4"
   },
   {
    "schemaVersion": 2,
@@ -23722,7 +23740,7 @@
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 9,
@@ -24305,7 +24323,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 195,
+     "licenseId": 286,
      "region": "Commands"
     },
     {
@@ -24383,13 +24401,13 @@
     {
      "x": 12,
      "y": 14,
-     "licenseId": 196,
+     "licenseId": 195,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 356,
+     "licenseId": 197,
      "region": "Commands"
     },
     {
@@ -24449,19 +24467,19 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 197,
+     "licenseId": 196,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 358,
+     "licenseId": 356,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 216,
+     "licenseId": 215,
      "region": "Commands"
     },
     {
@@ -24521,11 +24539,17 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 215,
+     "licenseId": 358,
      "region": "Commands"
     },
     {
      "x": 12,
+     "y": 16,
+     "licenseId": 216,
+     "region": "Commands"
+    },
+    {
+     "x": 13,
      "y": 16,
      "licenseId": 217,
      "region": "Commands"
@@ -24555,19 +24579,19 @@
      "region": "Esper"
     },
     {
-     "x": 13,
-     "y": 17,
-     "licenseId": 342,
-     "region": "Esper island"
-    },
-    {
      "x": 15,
      "y": 17,
      "licenseId": 347,
      "region": "Esper island"
+    },
+    {
+     "x": 12,
+     "y": 18,
+     "licenseId": 342,
+     "region": "Esper island"
     }
    ],
-   "boardSha256": "d272edc344e9924a05aa66b1ba2fb2d191db7d6aa8eb3ddd06e0624f5936703a"
+   "boardSha256": "dc552e9eb5e473e7563fc9de30d9cee0dcc4fc288103a4d91a79acf27df5a6bf"
   },
   {
    "schemaVersion": 2,
@@ -24582,7 +24606,7 @@
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 10,
@@ -24615,6 +24639,12 @@
      "y": 3,
      "licenseId": 95,
      "region": "Esper island"
+    },
+    {
+     "x": 6,
+     "y": 4,
+     "licenseId": 3,
+     "region": "Quickening"
     },
     {
      "x": 7,
@@ -25247,10 +25277,10 @@
      "region": "Accessories"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 14,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 286,
+     "region": "Commands"
     },
     {
      "x": 14,
@@ -25313,12 +25343,6 @@
      "region": "Esper"
     },
     {
-     "x": 12,
-     "y": 15,
-     "licenseId": 342,
-     "region": "Esper island"
-    },
-    {
      "x": 14,
      "y": 15,
      "licenseId": 270,
@@ -25367,10 +25391,16 @@
      "region": "Esper island"
     },
     {
+     "x": 12,
+     "y": 16,
+     "licenseId": 342,
+     "region": "Esper island"
+    },
+    {
      "x": 13,
      "y": 16,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -25405,8 +25435,8 @@
     {
      "x": 14,
      "y": 17,
-     "licenseId": 3,
-     "region": "Quickening"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 16,
@@ -25421,7 +25451,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "529460f1650c0dbdbc76e900564c6f26cd6e9c715bbf4b03024370529b40126e"
+   "boardSha256": "625cced831ab8c126ab192a28a2a40bf3c2e5d7f43512791e91276b345fc681a"
   },
   {
    "schemaVersion": 2,
@@ -25436,7 +25466,7 @@
     {
      "job": 2,
      "basejobs": "0.5.1",
-     "sha256": "1bbf86d0dfb3d52276ce234fdea5583fa7f2a4464f1697b6fe88812080490fd4"
+     "sha256": "98d1292a8c2a952f893ba64313cebb3568e0c3f9aec76b455a7fd0f427c8f629"
     },
     {
      "job": 11,
@@ -25939,6 +25969,12 @@
      "region": "Commands"
     },
     {
+     "x": 13,
+     "y": 13,
+     "licenseId": 286,
+     "region": "Commands"
+    },
+    {
      "x": 14,
      "y": 13,
      "licenseId": 236,
@@ -26203,7 +26239,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "653e1b1da3a47248668de0d483901c7a145e7a7ced335fdb085764c6cc861967"
+   "boardSha256": "ede893c92e0fc90de43f95222256c6b4a81c03ed54d2a4ed2aa26b45f2f5b9c7"
   },
   {
    "schemaVersion": 2,
@@ -26223,7 +26259,7 @@
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -26951,7 +26987,7 @@
     {
      "x": 13,
      "y": 14,
-     "licenseId": 299,
+     "licenseId": 207,
      "region": "Commands"
     },
     {
@@ -27021,18 +27057,6 @@
      "region": "Commands"
     },
     {
-     "x": 12,
-     "y": 15,
-     "licenseId": 207,
-     "region": "Commands"
-    },
-    {
-     "x": 13,
-     "y": 15,
-     "licenseId": 210,
-     "region": "Commands"
-    },
-    {
      "x": 14,
      "y": 15,
      "licenseId": 262,
@@ -27081,10 +27105,10 @@
      "region": "Esper island"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 16,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 14,
@@ -27129,6 +27153,12 @@
      "region": "Esper island"
     },
     {
+     "x": 13,
+     "y": 17,
+     "licenseId": 24,
+     "region": "Esper"
+    },
+    {
      "x": 14,
      "y": 17,
      "licenseId": 323,
@@ -27159,12 +27189,6 @@
      "region": "Quickening"
     },
     {
-     "x": 14,
-     "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
-    },
-    {
      "x": 17,
      "y": 18,
      "licenseId": 23,
@@ -27177,7 +27201,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "0063383afc9d3901c54cab0d805fc689b468667d757b8bf2696cd4e98932545d"
+   "boardSha256": "014b00ee8d7424bddc79c0917b34b2b3916be60c98121f3b295890e78514a81c"
   },
   {
    "schemaVersion": 2,
@@ -27197,7 +27221,7 @@
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -27769,7 +27793,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 286,
+     "licenseId": 294,
      "region": "Commands"
     },
     {
@@ -27847,13 +27871,13 @@
     {
      "x": 12,
      "y": 14,
-     "licenseId": 294,
+     "licenseId": 206,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 213,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
@@ -27911,15 +27935,21 @@
      "region": "Esper"
     },
     {
+     "x": 9,
+     "y": 15,
+     "licenseId": 25,
+     "region": "Esper"
+    },
+    {
      "x": 11,
      "y": 15,
-     "licenseId": 206,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 283,
+     "licenseId": 207,
      "region": "Commands"
     },
     {
@@ -27977,16 +28007,10 @@
      "region": "Esper island"
     },
     {
-     "x": 10,
+     "x": 12,
      "y": 16,
-     "licenseId": 25,
+     "licenseId": 24,
      "region": "Esper"
-    },
-    {
-     "x": 11,
-     "y": 16,
-     "licenseId": 207,
-     "region": "Commands"
     },
     {
      "x": 14,
@@ -28037,12 +28061,6 @@
      "region": "Esper island"
     },
     {
-     "x": 13,
-     "y": 17,
-     "licenseId": 24,
-     "region": "Esper"
-    },
-    {
      "x": 14,
      "y": 17,
      "licenseId": 274,
@@ -28073,7 +28091,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "4341ead3b545c913d9e8fa4fe44c5f9e498df6fe5ee269f5ce912033e5687a7b"
+   "boardSha256": "63abdb4bed50e15805d8471715dedf562a6172d88d5185e724437b391a32a247"
   },
   {
    "schemaVersion": 2,
@@ -28899,7 +28917,7 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -29637,12 +29655,6 @@
      "region": "Esper"
     },
     {
-     "x": 9,
-     "y": 15,
-     "licenseId": 25,
-     "region": "Esper"
-    },
-    {
      "x": 11,
      "y": 15,
      "licenseId": 294,
@@ -29709,10 +29721,16 @@
      "region": "Esper island"
     },
     {
-     "x": 12,
+     "x": 10,
      "y": 16,
-     "licenseId": 24,
+     "licenseId": 25,
      "region": "Esper"
+    },
+    {
+     "x": 11,
+     "y": 16,
+     "licenseId": 299,
+     "region": "Commands"
     },
     {
      "x": 14,
@@ -29751,7 +29769,13 @@
      "region": "Passives"
     },
     {
-     "x": 12,
+     "x": 11,
+     "y": 17,
+     "licenseId": 360,
+     "region": "Second board"
+    },
+    {
+     "x": 13,
      "y": 17,
      "licenseId": 342,
      "region": "Esper island"
@@ -29759,8 +29783,8 @@
     {
      "x": 14,
      "y": 17,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 16,
@@ -29781,7 +29805,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "9e8a3f8a435d280af3af1db7c5a60f1f854ba52ad592e356b87d240035d37332"
+   "boardSha256": "6090ecaf578f7bf92266bdc043eef791ba774764253779f020e7dbdffc3e6847"
   },
   {
    "schemaVersion": 2,
@@ -33242,12 +33266,12 @@
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -33939,7 +33963,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 213,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
@@ -34011,19 +34035,13 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 286,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 283,
-     "region": "Commands"
-    },
-    {
-     "x": 13,
-     "y": 14,
-     "licenseId": 210,
+     "licenseId": 214,
      "region": "Commands"
     },
     {
@@ -34081,22 +34099,16 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 15,
      "licenseId": 25,
      "region": "Esper"
     },
     {
-     "x": 11,
-     "y": 15,
-     "licenseId": 299,
-     "region": "Commands"
-    },
-    {
      "x": 12,
      "y": 15,
-     "licenseId": 214,
-     "region": "Commands"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -34141,7 +34153,7 @@
      "region": "Esper island"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 16,
      "licenseId": 339,
      "region": "Esper island"
@@ -34149,8 +34161,8 @@
     {
      "x": 12,
      "y": 16,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 342,
+     "region": "Esper island"
     },
     {
      "x": 14,
@@ -34189,10 +34201,10 @@
      "region": "Passives"
     },
     {
-     "x": 12,
+     "x": 13,
      "y": 17,
-     "licenseId": 342,
-     "region": "Esper island"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 14,
@@ -34225,12 +34237,6 @@
      "region": "Quickening"
     },
     {
-     "x": 14,
-     "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
-    },
-    {
      "x": 17,
      "y": 18,
      "licenseId": 23,
@@ -34243,7 +34249,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "3e837493ef53d928671e3ca5019042aa2113dc2f97c8e6ab879d098928251f73"
+   "boardSha256": "425ccd3695e49b276072b44ee88ad8f5feff14ac3dfcb60e6ed5eaaa4e9d27b6"
   },
   {
    "schemaVersion": 2,
@@ -34258,7 +34264,7 @@
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 6,
@@ -35135,13 +35141,13 @@
     {
      "x": 12,
      "y": 16,
-     "licenseId": 299,
+     "licenseId": 357,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 16,
-     "licenseId": 218,
+     "licenseId": 359,
      "region": "Commands"
     },
     {
@@ -35183,19 +35189,7 @@
     {
      "x": 11,
      "y": 17,
-     "licenseId": 357,
-     "region": "Commands"
-    },
-    {
-     "x": 12,
-     "y": 17,
-     "licenseId": 210,
-     "region": "Commands"
-    },
-    {
-     "x": 13,
-     "y": 17,
-     "licenseId": 359,
+     "licenseId": 218,
      "region": "Commands"
     },
     {
@@ -35237,6 +35231,12 @@
     {
      "x": 13,
      "y": 18,
+     "licenseId": 342,
+     "region": "Esper island"
+    },
+    {
+     "x": 14,
+     "y": 18,
      "licenseId": 24,
      "region": "Esper"
     },
@@ -35251,15 +35251,9 @@
      "y": 18,
      "licenseId": 347,
      "region": "Esper island"
-    },
-    {
-     "x": 13,
-     "y": 19,
-     "licenseId": 342,
-     "region": "Esper island"
     }
    ],
-   "boardSha256": "5183faf04817b9580253bef850253d5d36d9a189dde2fe01e79d416c06e5f764"
+   "boardSha256": "22a990732d86602ed7ad9d565debba074256ed7c922715f053622236d5e18106"
   },
   {
    "schemaVersion": 2,
@@ -35274,12 +35268,12 @@
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -36035,12 +36029,6 @@
      "region": "Commands"
     },
     {
-     "x": 13,
-     "y": 14,
-     "licenseId": 210,
-     "region": "Commands"
-    },
-    {
      "x": 14,
      "y": 14,
      "licenseId": 262,
@@ -36209,7 +36197,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "6aeddc8a8d863a5afe6e96692993979b674bb5a63269bf47cd479341dcfa317d"
+   "boardSha256": "0d9f8b89e692bf068666f1a6cc5eb59dcd1d178747ec4b809737217990a96c01"
   },
   {
    "schemaVersion": 2,
@@ -36224,7 +36212,7 @@
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 8,
@@ -37009,12 +36997,6 @@
      "region": "Commands"
     },
     {
-     "x": 13,
-     "y": 14,
-     "licenseId": 210,
-     "region": "Commands"
-    },
-    {
      "x": 14,
      "y": 14,
      "licenseId": 262,
@@ -37069,16 +37051,16 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 15,
      "licenseId": 25,
      "region": "Esper"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 15,
-     "licenseId": 299,
-     "region": "Commands"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -37123,7 +37105,7 @@
      "region": "Esper island"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 16,
      "licenseId": 339,
      "region": "Esper island"
@@ -37133,12 +37115,6 @@
      "y": 16,
      "licenseId": 342,
      "region": "Esper island"
-    },
-    {
-     "x": 13,
-     "y": 16,
-     "licenseId": 24,
-     "region": "Esper"
     },
     {
      "x": 14,
@@ -37183,7 +37159,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "933afdce1e9548590447717dc0e2777cfb63c05b0fce892eaad895605208239b"
+   "boardSha256": "60567d9dbb7a4d003b5c560ccd0910f9b8e6b90c57b4f705a8c17386e5afa3da"
   },
   {
    "schemaVersion": 2,
@@ -37198,7 +37174,7 @@
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 9,
@@ -37937,7 +37913,7 @@
     {
      "x": 13,
      "y": 14,
-     "licenseId": 299,
+     "licenseId": 356,
      "region": "Commands"
     },
     {
@@ -38003,13 +37979,13 @@
     {
      "x": 12,
      "y": 15,
-     "licenseId": 356,
+     "licenseId": 358,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 215,
+     "licenseId": 216,
      "region": "Commands"
     },
     {
@@ -38069,17 +38045,11 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 358,
+     "licenseId": 215,
      "region": "Commands"
     },
     {
      "x": 12,
-     "y": 16,
-     "licenseId": 210,
-     "region": "Commands"
-    },
-    {
-     "x": 13,
      "y": 16,
      "licenseId": 217,
      "region": "Commands"
@@ -38127,10 +38097,10 @@
      "region": "Quickening"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 17,
-     "licenseId": 216,
-     "region": "Commands"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -38163,13 +38133,7 @@
      "region": "Passives"
     },
     {
-     "x": 11,
-     "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
-    },
-    {
-     "x": 13,
+     "x": 12,
      "y": 18,
      "licenseId": 342,
      "region": "Esper island"
@@ -38177,8 +38141,8 @@
     {
      "x": 14,
      "y": 18,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 17,
@@ -38193,7 +38157,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "965aee8c4c70961cb78dc8ec18201237b733b3e4c8a40d710fbefff743f511e7"
+   "boardSha256": "f0509ead85c050ca03a39d02e2210abde76f06593e8bf302c0bb3223c57db522"
   },
   {
    "schemaVersion": 2,
@@ -38208,7 +38172,7 @@
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 10,
@@ -38881,7 +38845,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 299,
+     "licenseId": 293,
      "region": "Commands"
     },
     {
@@ -38951,16 +38915,10 @@
      "region": "Accessories"
     },
     {
-     "x": 11,
-     "y": 14,
-     "licenseId": 293,
-     "region": "Commands"
-    },
-    {
      "x": 12,
      "y": 14,
-     "licenseId": 210,
-     "region": "Commands"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -39025,8 +38983,8 @@
     {
      "x": 12,
      "y": 15,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 342,
+     "region": "Esper island"
     },
     {
      "x": 14,
@@ -39074,12 +39032,6 @@
      "x": 10,
      "y": 16,
      "licenseId": 339,
-     "region": "Esper island"
-    },
-    {
-     "x": 12,
-     "y": 16,
-     "licenseId": 342,
      "region": "Esper island"
     },
     {
@@ -39161,7 +39113,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "6c4eb15448ef58a423a67c35bb2c3dbf32d3ff25fd0cb727497b6e5af2dee7cd"
+   "boardSha256": "6f546abc7e2366735d6f9f17d8063b206b066cf915377e34789a839fed7fcd86"
   },
   {
    "schemaVersion": 2,
@@ -39176,7 +39128,7 @@
     {
      "job": 4,
      "basejobs": "0.5.1",
-     "sha256": "cb92d8dd3253445069f5a45fb7256aec8d0461f0293362758c1ab7ec82c05a2f"
+     "sha256": "486617113441c27ffabd57b946106f2ed3b9f72fdcdb91f07fc7eaa78ec3722f"
     },
     {
      "job": 11,
@@ -39835,12 +39787,6 @@
      "region": "Commands"
     },
     {
-     "x": 13,
-     "y": 13,
-     "licenseId": 210,
-     "region": "Commands"
-    },
-    {
      "x": 14,
      "y": 13,
      "licenseId": 268,
@@ -39907,10 +39853,10 @@
      "region": "Accessories"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 14,
-     "licenseId": 299,
-     "region": "Commands"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 14,
@@ -39973,6 +39919,12 @@
      "region": "Esper"
     },
     {
+     "x": 11,
+     "y": 15,
+     "licenseId": 339,
+     "region": "Esper island"
+    },
+    {
      "x": 14,
      "y": 15,
      "licenseId": 262,
@@ -40012,12 +39964,6 @@
      "x": 7,
      "y": 16,
      "licenseId": 337,
-     "region": "Esper island"
-    },
-    {
-     "x": 10,
-     "y": 16,
-     "licenseId": 339,
      "region": "Esper island"
     },
     {
@@ -40135,19 +40081,13 @@
      "region": "Esper"
     },
     {
-     "x": 14,
-     "y": 19,
-     "licenseId": 360,
-     "region": "Second board"
-    },
-    {
      "x": 18,
      "y": 19,
      "licenseId": 347,
      "region": "Esper island"
     }
    ],
-   "boardSha256": "d05fdc3657638c536fab6844ddff83f0c09e951594f6cb60d805b8f7526d48a3"
+   "boardSha256": "7a2d2ff14e9026a5351ea67cfdbad1ff9872639c1d56f4f417a0fd3f50dfd6bd"
   },
   {
    "schemaVersion": 2,
@@ -40162,7 +40102,7 @@
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 6,
@@ -40823,13 +40763,13 @@
     {
      "x": 12,
      "y": 14,
-     "licenseId": 286,
+     "licenseId": 201,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 213,
+     "licenseId": 281,
      "region": "Commands"
     },
     {
@@ -40889,19 +40829,19 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 201,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 281,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 202,
+     "licenseId": 203,
      "region": "Commands"
     },
     {
@@ -40961,19 +40901,19 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 283,
+     "licenseId": 202,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 16,
-     "licenseId": 203,
+     "licenseId": 204,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 16,
-     "licenseId": 357,
+     "licenseId": 218,
      "region": "Commands"
     },
     {
@@ -41013,15 +40953,21 @@
      "region": "Passives"
     },
     {
+     "x": 20,
+     "y": 16,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
      "x": 11,
      "y": 17,
-     "licenseId": 204,
+     "licenseId": 357,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 17,
-     "licenseId": 218,
+     "licenseId": 214,
      "region": "Commands"
     },
     {
@@ -41049,16 +40995,10 @@
      "region": "Quickening"
     },
     {
-     "x": 10,
-     "y": 18,
-     "licenseId": 3,
-     "region": "Quickening"
-    },
-    {
      "x": 11,
      "y": 18,
-     "licenseId": 214,
-     "region": "Commands"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 13,
@@ -41073,19 +41013,13 @@
      "region": "Esper island"
     },
     {
-     "x": 11,
-     "y": 19,
-     "licenseId": 360,
-     "region": "Second board"
-    },
-    {
      "x": 13,
      "y": 19,
      "licenseId": 342,
      "region": "Esper island"
     }
    ],
-   "boardSha256": "90b9cf310609e1d8c2f217997fbb625d44ae4fd8518ec8692fc7d08da5e42962"
+   "boardSha256": "843fb204325891643b883a217eee7fdc6cbf047604f9325f4079d0060f04c765"
   },
   {
    "schemaVersion": 2,
@@ -41100,12 +41034,12 @@
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -41671,7 +41605,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 286,
+     "licenseId": 296,
      "region": "Commands"
     },
     {
@@ -41749,13 +41683,13 @@
     {
      "x": 12,
      "y": 14,
-     "licenseId": 296,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 283,
+     "licenseId": 299,
      "region": "Commands"
     },
     {
@@ -41821,7 +41755,7 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 213,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
@@ -41951,7 +41885,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "2caadf2fbf52109a02ac9c730f6140434ed7fd41e02a103c078a531a47370a96"
+   "boardSha256": "a30f7c45134486281a1aff64adba059fb25a39e7f152bb1235078b48070996bf"
   },
   {
    "schemaVersion": 2,
@@ -41966,7 +41900,7 @@
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 8,
@@ -42561,7 +42495,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 289,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
@@ -42633,13 +42567,13 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 286,
+     "licenseId": 289,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 213,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
@@ -42703,16 +42637,16 @@
      "region": "Esper"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 15,
      "licenseId": 25,
      "region": "Esper"
     },
     {
-     "x": 11,
+     "x": 12,
      "y": 15,
-     "licenseId": 283,
-     "region": "Commands"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -42757,7 +42691,7 @@
      "region": "Esper island"
     },
     {
-     "x": 9,
+     "x": 10,
      "y": 16,
      "licenseId": 339,
      "region": "Esper island"
@@ -42767,12 +42701,6 @@
      "y": 16,
      "licenseId": 342,
      "region": "Esper island"
-    },
-    {
-     "x": 13,
-     "y": 16,
-     "licenseId": 24,
-     "region": "Esper"
     },
     {
      "x": 14,
@@ -42829,7 +42757,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "bdb66fa580026e2d9216417c54428399d8f452045c92670a29ccf6cdea55469d"
+   "boardSha256": "0d35eb18d285fd6d14ce5f8e5e07772eb1cd55a8b0421bf082354e1934ce75e1"
   },
   {
    "schemaVersion": 2,
@@ -42844,7 +42772,7 @@
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 9,
@@ -43433,7 +43361,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 195,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
@@ -43505,19 +43433,19 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 286,
+     "licenseId": 195,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 14,
-     "licenseId": 213,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 14,
-     "licenseId": 196,
+     "licenseId": 197,
      "region": "Commands"
     },
     {
@@ -43577,19 +43505,19 @@
     {
      "x": 11,
      "y": 15,
-     "licenseId": 283,
+     "licenseId": 196,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 15,
-     "licenseId": 197,
+     "licenseId": 356,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 15,
-     "licenseId": 358,
+     "licenseId": 215,
      "region": "Commands"
     },
     {
@@ -43649,19 +43577,19 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 356,
+     "licenseId": 358,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 16,
-     "licenseId": 215,
+     "licenseId": 214,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 16,
-     "licenseId": 216,
+     "licenseId": 217,
      "region": "Commands"
     },
     {
@@ -43703,13 +43631,7 @@
     {
      "x": 11,
      "y": 17,
-     "licenseId": 214,
-     "region": "Commands"
-    },
-    {
-     "x": 12,
-     "y": 17,
-     "licenseId": 217,
+     "licenseId": 216,
      "region": "Commands"
     },
     {
@@ -43737,10 +43659,10 @@
      "region": "Quickening"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 18,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 13,
@@ -43749,10 +43671,10 @@
      "region": "Esper island"
     },
     {
-     "x": 15,
+     "x": 14,
      "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 17,
@@ -43761,7 +43683,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "502f7700d41df67d63ceb05f351b39241b55d885e037f62237d3bea35b0555c9"
+   "boardSha256": "3cdc3c8813d13dcdc7c3d390ca1108f546dfcdba1e5579358914daf19ab673dc"
   },
   {
    "schemaVersion": 2,
@@ -43776,7 +43698,7 @@
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 10,
@@ -44371,13 +44293,13 @@
     {
      "x": 12,
      "y": 13,
-     "licenseId": 286,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 13,
-     "licenseId": 283,
+     "licenseId": 293,
      "region": "Commands"
     },
     {
@@ -44449,17 +44371,11 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 213,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
      "x": 12,
-     "y": 14,
-     "licenseId": 293,
-     "region": "Commands"
-    },
-    {
-     "x": 13,
      "y": 14,
      "licenseId": 214,
      "region": "Commands"
@@ -44657,7 +44573,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "8880a1b4e6991437451e8fac8a4ef7d6708484287d4e13f64233d44c1f43fc6b"
+   "boardSha256": "0d4ac60c648e4d3c3c3148c42a26594b904a8aa290027dfa9d4e5dc622ffb424"
   },
   {
    "schemaVersion": 2,
@@ -44672,7 +44588,7 @@
     {
      "job": 5,
      "basejobs": "0.5.1",
-     "sha256": "cb4b7a735a15998bc72260ce8a5a1d3eeb1cef8add71e200b28101fa4c5c4ff3"
+     "sha256": "aeeb25c3ece28c1903bffb22c6509766a3451914edd49ffe6aa946ed0e0cad8c"
     },
     {
      "job": 11,
@@ -45213,13 +45129,13 @@
     {
      "x": 12,
      "y": 13,
-     "licenseId": 286,
+     "licenseId": 213,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 13,
-     "licenseId": 283,
+     "licenseId": 214,
      "region": "Commands"
     },
     {
@@ -45291,13 +45207,7 @@
     {
      "x": 11,
      "y": 14,
-     "licenseId": 213,
-     "region": "Commands"
-    },
-    {
-     "x": 12,
-     "y": 14,
-     "licenseId": 214,
+     "licenseId": 283,
      "region": "Commands"
     },
     {
@@ -45361,12 +45271,6 @@
      "region": "Esper"
     },
     {
-     "x": 12,
-     "y": 15,
-     "licenseId": 24,
-     "region": "Esper"
-    },
-    {
      "x": 14,
      "y": 15,
      "licenseId": 257,
@@ -45415,10 +45319,10 @@
      "region": "Esper island"
     },
     {
-     "x": 12,
+     "x": 13,
      "y": 16,
-     "licenseId": 342,
-     "region": "Esper island"
+     "licenseId": 3,
+     "region": "Quickening"
     },
     {
      "x": 14,
@@ -45499,10 +45403,16 @@
      "region": "Quickening"
     },
     {
+     "x": 12,
+     "y": 18,
+     "licenseId": 342,
+     "region": "Esper island"
+    },
+    {
      "x": 13,
      "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -45537,8 +45447,8 @@
     {
      "x": 14,
      "y": 19,
-     "licenseId": 3,
-     "region": "Quickening"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 18,
@@ -45553,7 +45463,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "0c04fd478ca9f49b77fdc8d2c9e926882efe55c0fc0109b2b0ae8f6d12365427"
+   "boardSha256": "91c9a1d2c8fc2edd330719def315562f5f2ddac796b31ab2cbac0a596dade9a7"
   },
   {
    "schemaVersion": 2,
@@ -45573,7 +45483,7 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     }
    ],
    "licenseTableSha256": "68f7923a332a5bd330ac573e03b210e1e0cf0cde9567ee69e4c93084d8d86cad",
@@ -45601,12 +45511,6 @@
      "y": 3,
      "licenseId": 95,
      "region": "Esper island"
-    },
-    {
-     "x": 6,
-     "y": 4,
-     "licenseId": 3,
-     "region": "Quickening"
     },
     {
      "x": 7,
@@ -46403,7 +46307,7 @@
     {
      "x": 13,
      "y": 16,
-     "licenseId": 357,
+     "licenseId": 299,
      "region": "Commands"
     },
     {
@@ -46451,7 +46355,7 @@
     {
      "x": 12,
      "y": 17,
-     "licenseId": 218,
+     "licenseId": 357,
      "region": "Commands"
     },
     {
@@ -46473,10 +46377,16 @@
      "region": "Quickening"
     },
     {
+     "x": 10,
+     "y": 18,
+     "licenseId": 3,
+     "region": "Quickening"
+    },
+    {
      "x": 11,
      "y": 18,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 218,
+     "region": "Commands"
     },
     {
      "x": 13,
@@ -46495,9 +46405,15 @@
      "y": 18,
      "licenseId": 347,
      "region": "Esper island"
+    },
+    {
+     "x": 11,
+     "y": 19,
+     "licenseId": 360,
+     "region": "Second board"
     }
    ],
-   "boardSha256": "578349861655fca90eb172405352273dbf6b9372fa82df479e73e7cc02d9607b"
+   "boardSha256": "34cb0634455c2af3a084e735df1054776e8f5677a48537a1fb1614573c0a1e9d"
   },
   {
    "schemaVersion": 2,
@@ -50102,7 +50018,7 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     },
     {
      "job": 8,
@@ -50769,7 +50685,7 @@
     {
      "x": 13,
      "y": 14,
-     "licenseId": 296,
+     "licenseId": 299,
      "region": "Commands"
     },
     {
@@ -50827,16 +50743,16 @@
      "region": "Esper"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 15,
      "licenseId": 25,
      "region": "Esper"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 15,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 296,
+     "region": "Commands"
     },
     {
      "x": 14,
@@ -50875,10 +50791,16 @@
      "region": "Esper island"
     },
     {
-     "x": 10,
+     "x": 9,
      "y": 16,
      "licenseId": 339,
      "region": "Esper island"
+    },
+    {
+     "x": 11,
+     "y": 16,
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 12,
@@ -50905,7 +50827,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "c2d027b054cb2ba0fd06a88c51bbb8f272d97e585d9f074d3f3c5a9f486edee1"
+   "boardSha256": "ff9096e6823bf9fb026fd83000ae8852b36da2df92d665a74cbda0de7b7e75a5"
   },
   {
    "schemaVersion": 2,
@@ -50920,7 +50842,7 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     },
     {
      "job": 9,
@@ -51683,7 +51605,7 @@
     {
      "x": 13,
      "y": 15,
-     "licenseId": 358,
+     "licenseId": 356,
      "region": "Commands"
     },
     {
@@ -51743,19 +51665,19 @@
     {
      "x": 11,
      "y": 16,
-     "licenseId": 356,
+     "licenseId": 299,
      "region": "Commands"
     },
     {
      "x": 12,
      "y": 16,
-     "licenseId": 215,
+     "licenseId": 358,
      "region": "Commands"
     },
     {
      "x": 13,
      "y": 16,
-     "licenseId": 217,
+     "licenseId": 216,
      "region": "Commands"
     },
     {
@@ -51795,9 +51717,21 @@
      "region": "Passives"
     },
     {
+     "x": 20,
+     "y": 16,
+     "licenseId": 2,
+     "region": "Quickening"
+    },
+    {
      "x": 11,
      "y": 17,
-     "licenseId": 216,
+     "licenseId": 215,
+     "region": "Commands"
+    },
+    {
+     "x": 12,
+     "y": 17,
+     "licenseId": 217,
      "region": "Commands"
     },
     {
@@ -51815,14 +51749,14 @@
     {
      "x": 18,
      "y": 17,
-     "licenseId": 2,
-     "region": "Quickening"
-    },
-    {
-     "x": 11,
-     "y": 18,
      "licenseId": 360,
      "region": "Second board"
+    },
+    {
+     "x": 12,
+     "y": 18,
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 13,
@@ -51831,19 +51765,13 @@
      "region": "Esper island"
     },
     {
-     "x": 14,
-     "y": 18,
-     "licenseId": 24,
-     "region": "Esper"
-    },
-    {
      "x": 16,
      "y": 18,
      "licenseId": 347,
      "region": "Esper island"
     }
    ],
-   "boardSha256": "3ddc5e99dbeb408d3d97828896f9d3393d4b72addb169a2d6ac2883937b27f90"
+   "boardSha256": "2e7d52411a1fef95d9f207c3c439c71c99088efc9c76510b915cf18d18c20d3f"
   },
   {
    "schemaVersion": 2,
@@ -51858,7 +51786,7 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     },
     {
      "job": 10,
@@ -52559,6 +52487,12 @@
      "region": "Commands"
     },
     {
+     "x": 12,
+     "y": 14,
+     "licenseId": 299,
+     "region": "Commands"
+    },
+    {
      "x": 14,
      "y": 14,
      "licenseId": 257,
@@ -52619,6 +52553,12 @@
      "region": "Esper"
     },
     {
+     "x": 12,
+     "y": 15,
+     "licenseId": 24,
+     "region": "Esper"
+    },
+    {
      "x": 14,
      "y": 15,
      "licenseId": 270,
@@ -52671,12 +52611,6 @@
      "y": 16,
      "licenseId": 342,
      "region": "Esper island"
-    },
-    {
-     "x": 13,
-     "y": 16,
-     "licenseId": 24,
-     "region": "Esper"
     },
     {
      "x": 14,
@@ -52733,7 +52667,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "b3c7a2ef724eba7cc8197c9033c222ccd0cc371659c7d7664835267ce9ca772d"
+   "boardSha256": "82c3810126afdfb234143a4fa05ed1f35862ff28ca780b4762a4558f42d92091"
   },
   {
    "schemaVersion": 2,
@@ -52748,7 +52682,7 @@
     {
      "job": 7,
      "basejobs": "0.5.1",
-     "sha256": "fe4a3d8b3e31a5e23ebc91ef9a969b6a5fd40cb94a1ba049765d89d2c2ad1883"
+     "sha256": "53992a170b9431abf41aec0840307ad85f615167b9305949c791417ed7bea47d"
     },
     {
      "job": 11,
@@ -52769,12 +52703,6 @@
      "y": 3,
      "licenseId": 49,
      "region": "Esper island"
-    },
-    {
-     "x": 6,
-     "y": 4,
-     "licenseId": 3,
-     "region": "Quickening"
     },
     {
      "x": 7,
@@ -53283,7 +53211,7 @@
     {
      "x": 13,
      "y": 13,
-     "licenseId": 296,
+     "licenseId": 299,
      "region": "Commands"
     },
     {
@@ -53353,10 +53281,10 @@
      "region": "Accessories"
     },
     {
-     "x": 12,
+     "x": 11,
      "y": 14,
-     "licenseId": 24,
-     "region": "Esper"
+     "licenseId": 296,
+     "region": "Commands"
     },
     {
      "x": 14,
@@ -53419,10 +53347,10 @@
      "region": "Esper"
     },
     {
-     "x": 12,
+     "x": 13,
      "y": 15,
-     "licenseId": 342,
-     "region": "Esper island"
+     "licenseId": 3,
+     "region": "Quickening"
     },
     {
      "x": 14,
@@ -53509,10 +53437,22 @@
      "region": "Passives"
     },
     {
+     "x": 20,
+     "y": 16,
+     "licenseId": 2,
+     "region": "Quickening"
+    },
+    {
+     "x": 12,
+     "y": 17,
+     "licenseId": 342,
+     "region": "Esper island"
+    },
+    {
      "x": 13,
      "y": 17,
-     "licenseId": 360,
-     "region": "Second board"
+     "licenseId": 24,
+     "region": "Esper"
     },
     {
      "x": 14,
@@ -53545,10 +53485,10 @@
      "region": "Passives"
     },
     {
-     "x": 15,
+     "x": 14,
      "y": 18,
-     "licenseId": 2,
-     "region": "Quickening"
+     "licenseId": 360,
+     "region": "Second board"
     },
     {
      "x": 17,
@@ -53563,7 +53503,7 @@
      "region": "Esper island"
     }
    ],
-   "boardSha256": "48d08057ca5334635c4ca1cc425784b6266ac429ef609db1339855c2890a120e"
+   "boardSha256": "37c99ebf86a9b611700632ab1d4e53a7f89feb3d255723654b2f982b34a73ff1"
   },
   {
    "schemaVersion": 2,

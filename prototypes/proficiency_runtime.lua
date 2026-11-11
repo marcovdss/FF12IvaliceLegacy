@@ -1013,7 +1013,17 @@ local okKinds, KINDS = pcall(function() return assert(loadfile('scripts/DynamicF
 if not okKinds or type(KINDS) ~= 'table' then KINDS = {} end
 local TOUGH = {boss = true, mark = true, rare = true}
 local pushes = {}
-function R.foeActed(address) pushes[address] = nil end
+-- `w` (the foe's battle unit work, when known) tells a real action from a counterattack: a counter lands while the charge
+-- is still filling and does not restart it, so it must not hand out a fresh budget (0.1.35 review). A real action shows as
+-- a full charge or a charge that fell below where the last push left it. Unreadable work resets, as before.
+function R.foeActed(address, w)
+  local rec = pushes[address]
+  if rec and type(w) == 'table' then
+    local cur, req = w.currentChargeTime, w.requiredChargeTime
+    if type(cur) == 'number' and type(req) == 'number' and req > 0 and cur > 0 and cur < req and cur >= rec.after then return end
+  end
+  pushes[address] = nil
+end
 function R.resetPushes() pushes = {} end
 function R.pushAllowance(address, w, wanted)
   if type(wanted) ~= 'number' or wanted <= 0 then return 0 end
@@ -1227,7 +1237,14 @@ function R.hook165(formula, caster, target, classes, helpers)
   R.bindFamily()
   cadenceEnv = {classes = classes, helpers = helpers}
   if target.type == 1 then R.seeFoe(target.address) end
-  if caster.type == 1 then R.seeFoe(caster.address); R.foeActed(caster.address) end
+  if caster.type == 1 then
+    R.seeFoe(caster.address)
+    local okWork, work = pcall(function()
+      local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(caster.address))
+      return w.address ~= 0 and w or nil
+    end)
+    R.foeActed(caster.address, okWork and work or nil)
+  end
   if not R.active() then return end
   if caster.type == 0 and target.type == 1 then
     local s = R.base(caster, formula.caster.statusEffects, classes, helpers)

@@ -15,8 +15,10 @@ FAMILIES = json.loads((ROOT/'patches/families_tip.json').read_text(encoding='utf
 INV = {v: k for k, v in C.GLYPHS.items()}
 RESULT_KEYS = {'menuhandbook_tutorial.bin': 'list', 'menuhandbook_tutorial.dat': 'checks',
                'menuhandbook_tutorial000.dat': 'pages', 'penelosdiary.bin': 'titles'}
-# The pages file the 0.1.33 release installed (the previous families wording); a game still on 0.1.33 carries it.
-PREVIOUS_PAGES = '33fec20605944c93a4407af2423a05f144d8b63d741d89637c53a107c0983090'
+# The pages files earlier releases installed (the previous families wordings): 0.1.33 and 0.1.34. A game still on
+# either carries one of them.
+PREVIOUS_PAGES = ('33fec20605944c93a4407af2423a05f144d8b63d741d89637c53a107c0983090',
+                  'd8a51b8508fba85d1f46fcd82fba6f96cb9acd0f628b6406fdcd48171bdc2984')
 SOURCE_KEYS = {'listSha256': 'menuhandbook_tutorial.bin', 'checksSha256': 'menuhandbook_tutorial.dat',
                'pagesSha256': 'menuhandbook_tutorial000.dat', 'titlesSha256': 'penelosdiary.bin'}
 
@@ -294,7 +296,7 @@ class TipResourceTest(unittest.TestCase):
         data = self.deployed(rel)
         if C.sha(data) == FAMILIES[key]:
             return data
-        self.assertIn(C.sha(data), (FAMILIES['resultSha256'][RESULT_KEYS[name]], PREVIOUS_PAGES),
+        self.assertIn(C.sha(data), (FAMILIES['resultSha256'][RESULT_KEYS[name]], *PREVIOUS_PAGES),
                       'deployed file is neither the families source nor a families result: ' + rel)
         manifest = json.loads((self.game / 'vortex.deployment.json').read_text(encoding='utf-8'))
         for staged in sorted(Path(manifest['stagingPath']).glob('IvaliceLegacy-*/mods/deploy/ff12data/' + rel)):
@@ -357,7 +359,7 @@ class TipResourceTest(unittest.TestCase):
         for key, name in SOURCE_KEYS.items():
             rel = next(r for r in C.SOURCES if r.rsplit('/', 1)[1] == name)
             self.assertIn(C.sha(self.deployed(rel)), (FAMILIES[key], FAMILIES['resultSha256'][RESULT_KEYS[name]],
-                                                      PREVIOUS_PAGES))
+                                                      *PREVIOUS_PAGES))
             self.assertEqual(C.sha(self.families_source(rel)), FAMILIES[key])
         self.assertNotEqual(C.sha(self.deployed(C.BOOK + '.bin')), C.sha(self.read(C.BOOK + '.bin')))
 

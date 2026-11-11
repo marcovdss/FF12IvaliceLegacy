@@ -68,9 +68,12 @@ class BaseJobsTest(unittest.TestCase):
         job = copy.deepcopy(self.recipe['jobs'][0])
         at = {(c['x'], c['y']): c for c in job['cells']}
         special = set(range(18, 31)) | {0, 1, 2, 3, 360}
+        islands = {i['licenseId'] for i in job['islands']}
         near = lambda x, y: [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
+        # A spot touching two core licenses and no island, so only the special-tile rule can reject it.
         spot = next((x, y) for y in range(24) for x in range(24) if (x, y) not in at
-                    and len([p for p in near(x, y) if p in at and at[p]['licenseId'] not in special]) >= 2)
+                    and len([p for p in near(x, y) if p in at and at[p]['licenseId'] not in special | islands]) >= 2
+                    and not any(p in at and at[p]['licenseId'] in islands for p in near(x, y)))
         next(c for c in job['cells'] if c['licenseId'] == 1).update(x=spot[0], y=spot[1])
         with self.assertRaisesRegex(ValueError, 'one core neighbour'):
             encode_board(job)
