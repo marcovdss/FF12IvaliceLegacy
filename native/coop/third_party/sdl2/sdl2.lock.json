@@ -1,0 +1,29 @@
+{
+  "source": {
+    "name": "SDL",
+    "version": "2.32.10",
+    "licence": "Zlib (LICENSE.txt); bundled HIDAPI under its original licence (LICENSE-hidapi.txt); bundled yuv2rgb under BSD-3-Clause (LICENSE-yuv2rgb.txt). Notices: native/coop/THIRD_PARTY_NOTICES.txt",
+    "url": "https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz",
+    "file": "SDL2-2.32.10.tar.gz",
+    "size": 7630262,
+    "sha256": "5f5993c530f084535c65a6879e9b26ad441169b3e25d789d83287040a9ca5165",
+    "signature": {
+      "url": "https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz.sig",
+      "sha256": "9533de95863efb5f3fb47fd22adda9be8f1d438b928b1287cea433d4d2ef10ad",
+      "signer": "Sam Lantinga <slouken@libsdl.org>",
+      "keyFingerprint": "1528635D8053A57F77D1E08630A59377A7763BE6"
+    }
+  },
+  "toolchain": {
+    "gcc": "gcc.exe (Rev3, Built by MSYS2 project) 16.2.0",
+    "msys2Environment": "UCRT64"
+  },
+  "build": {
+    "treeSha256": "34217db03fc489eed806899004e61af08d7079b3f814770358aa44b6b680f58d",
+    "libSha256": "fadda205754e8a89db8ce1c603b54b577432a407d791e75e30152cb6ff48e89f",
+    "recipeSha256": {
+      "build_sdl2.py": "32189b675d31f1ea915ddca0b5e03854cc7e08b8dfc11d9c2a5677a2ee17ac61",
+      "SDL_config.h": "3eb6b182361b42649822e1176c9fee4e13bc79f61069e9fdf5207cbf20c08831"
+    }
+  }
+}

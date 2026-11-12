@@ -1,0 +1,12 @@
+{
+  "dllSha256": "523b306356eb704f5edb7e5f985b1bf7ba1615bc5f5d430dd351ad7bce6edcbb",
+  "dllSize": 1277952,
+  "sourceId": "36ccee7aeaddf5d53425e11a7b592e3923eb0e5fe522e68d15a794a75f5ea794",
+  "schemaSha256": "81eb50c51332409f63218c190451f0b780e1c9434a47205b2cd7ed896ec26406",
+  "packages": {
+    "mingw-w64-ucrt-x86_64-gcc": "mingw-w64-ucrt-x86_64-gcc 16.2.0-3",
+    "mingw-w64-ucrt-x86_64-binutils": "mingw-w64-ucrt-x86_64-binutils 2.47-3",
+    "mingw-w64-ucrt-x86_64-crt": "mingw-w64-ucrt-x86_64-crt 14.0.0.r353.g6df76fa52-4",
+    "mingw-w64-ucrt-x86_64-headers": "mingw-w64-ucrt-x86_64-headers 14.0.0.r353.g6df76fa52-2"
+  }
+}

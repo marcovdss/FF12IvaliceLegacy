@@ -1,0 +1,18 @@
+{
+  "comment": "Legacy-only patch sites, appended by gen_site_table.py after the reverse-engineered table's rows (so the existing row numbers never move). Same fields as that table; every expected byte string is checked against the pinned exe like the others.",
+  "sites": [
+    {
+      "id": "TW-01",
+      "group": "party",
+      "kind": "detour",
+      "legacy": "port",
+      "va": "0x326a34",
+      "rva": "0x206a34",
+      "length": 5,
+      "expected": "4C 8B 74 24 38",
+      "rip_relative_in_displaced": false,
+      "signature": {"pattern": "4C 8B 74 24 38 8B FD 4C 8B 64 24 68 8B CF E8", "site_offset": 0, "hits_in_text": 1},
+      "purpose": "Town party layout filter: join point of the layout builder 0x3266C0, before its bind loop. Only player-controlled members keep a body in towns."
+    }
+  ]
+}

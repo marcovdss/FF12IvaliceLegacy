@@ -1,0 +1,8 @@
+LIBRARY "ivalice-legacy-coop.dll"
+EXPORTS
+    FF12HgetVer   @1
+    FF12HgetName  @2
+    FF12Hinit     @3
+    FF12HinitDone @4
+    FF12Hcleanup  @5
+    ILC_Bridge    @6

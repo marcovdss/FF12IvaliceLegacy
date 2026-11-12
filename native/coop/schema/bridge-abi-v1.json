@@ -1,0 +1,3490 @@
+{
+  "abi": "ivalice-legacy-coop bridge",
+  "abiVersion": 1,
+  "source": "native/coop/include/ilc/bridge_abi.h",
+  "byteOrder": "little",
+  "entry": "int32_t ILC_Bridge(uint64_t op, const void* in, uint64_t inLen, void* out, uint64_t outCap)",
+  "rules": {
+    "arguments": "op, inLen and outCap must be < 2^32, else BAD_ARGS and nothing written",
+    "return": ">= 0 bytes written (<= outCap, <= INT32_MAX); < 0 ilc_error, nothing written",
+    "fault": "on FAULT, state may have changed and out may hold a partial reply; re-sync with GET_STATUS. Every other error writes nothing",
+    "fieldId": "(struct id << 8) | field index",
+    "location": "(outer << 8) | inner; outer = ilc_location, inner = element index",
+    "digest": "FNV-1a 32 (offset basis 0x811c9dc5, prime 0x01000193) over settings bytes 16..size",
+    "schemaId": "first 16 bytes of SHA-256 of this file with LF line endings, as two little-endian u64 in HELLO",
+    "generation": "settings: >= 1; repeat with same bytes = DUPLICATE; same generation, other bytes = GENERATION_CONFLICT; older = STALE_GENERATION"
+  },
+  "constants": {
+    "ABI_MAGIC": 1111706697,
+    "ABI_VERSION": 1,
+    "MAX_RECORD": 65536,
+    "OUT_CAP_RECOMMENDED": 4096,
+    "SEATS": 4,
+    "ACTIVE_SEATS_MAX": 3,
+    "XINPUT_SLOTS": 4,
+    "ACTIONS": 19,
+    "BINDINGS_PER_ACTION": 4,
+    "SEAT_BINDINGS": 76,
+    "KILL_SWITCH_BINDINGS": 4,
+    "CHARACTERS": 6,
+    "NAME_MAX": 96,
+    "ALIASES_MAX": 16,
+    "DEVICES_MAX": 16,
+    "EVENT_QUEUE": 64,
+    "P1_ACTION_MASK": 495360
+  },
+  "enums": {
+    "op": {
+      "type": "ilc_op",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "HELLO",
+          "value": 1,
+          "doc": "in: nothing or one ilc_header; out: ilc_hello_reply"
+        },
+        {
+          "name": "SET_SETTINGS",
+          "value": 2,
+          "doc": "in: ilc_settings; out: ilc_settings_ack"
+        },
+        {
+          "name": "COMMAND",
+          "value": 3,
+          "doc": "in: ilc_command; out: nothing. 0 = queued, the outcome follows as an event; NOT_READY while the input service is stopped"
+        },
+        {
+          "name": "GET_STATUS",
+          "value": 4,
+          "doc": "in: nothing; out: ilc_status"
+        },
+        {
+          "name": "GET_SEATS",
+          "value": 5,
+          "doc": "in: nothing; out: ilc_seats_reply"
+        },
+        {
+          "name": "GET_DEVICES",
+          "value": 6,
+          "doc": "in: nothing; out: ilc_devices_reply, 32 + count * 148 bytes"
+        },
+        {
+          "name": "POP_EVENTS",
+          "value": 7,
+          "doc": "in: nothing; out: ilc_events_reply, 32 + count * 32 bytes, as many as fit"
+        },
+        {
+          "name": "GET_SETTINGS",
+          "value": 8,
+          "doc": "in: nothing; out: the applied ilc_settings (generation 0 = defaults)"
+        },
+        {
+          "name": "TEST_SAFE_POINT",
+          "value": 32513,
+          "doc": "debug: run the settings safe point now; NOT_AVAILABLE once the boot started its init thread"
+        }
+      ]
+    },
+    "error": {
+      "type": "ilc_error",
+      "underlying": "int32_t",
+      "items": [
+        {
+          "name": "UNKNOWN_OP",
+          "value": -1,
+          "doc": "op is not defined"
+        },
+        {
+          "name": "NOT_IMPLEMENTED",
+          "value": -2,
+          "doc": "reserved"
+        },
+        {
+          "name": "BAD_ARGS",
+          "value": -3,
+          "doc": "null buffer with a length, null out, or a non-zero upper half in op/inLen/outCap"
+        },
+        {
+          "name": "BAD_HEADER",
+          "value": -4,
+          "doc": "wrong magic"
+        },
+        {
+          "name": "ABI_MISMATCH",
+          "value": -5,
+          "doc": "record abi_version is not ILC_ABI_VERSION"
+        },
+        {
+          "name": "OUT_TOO_SMALL",
+          "value": -6,
+          "doc": "outCap is below the reply size; nothing was consumed"
+        },
+        {
+          "name": "TOO_LARGE",
+          "value": -7,
+          "doc": "inLen above ILC_MAX_RECORD; nothing was read"
+        },
+        {
+          "name": "BAD_LENGTH",
+          "value": -8,
+          "doc": "inLen is not the op's record size, or header.size differs from inLen"
+        },
+        {
+          "name": "BAD_TYPE",
+          "value": -9,
+          "doc": "header.record_type does not match the op"
+        },
+        {
+          "name": "BAD_FIELD",
+          "value": -10,
+          "doc": "a field is out of range or a reserved byte is not zero"
+        },
+        {
+          "name": "CONFLICT",
+          "value": -11,
+          "doc": "fields are each valid but break a cross-field rule"
+        },
+        {
+          "name": "STALE_GENERATION",
+          "value": -12,
+          "doc": "settings generation older than the last accepted one"
+        },
+        {
+          "name": "GENERATION_CONFLICT",
+          "value": -13,
+          "doc": "same generation as the last accepted settings, different content"
+        },
+        {
+          "name": "NOT_READY",
+          "value": -14,
+          "doc": "valid request for a subsystem that does not exist yet"
+        },
+        {
+          "name": "BUSY",
+          "value": -15,
+          "doc": "the command queue is full; nothing was queued, send it again"
+        },
+        {
+          "name": "NOT_AVAILABLE",
+          "value": -16,
+          "doc": "debug op refused because the module's own tick owns the safe point"
+        },
+        {
+          "name": "FAULT",
+          "value": -17,
+          "doc": "caller buffer unusable; state may have changed, out may be partial: re-sync with GET_STATUS"
+        }
+      ]
+    },
+    "record_type": {
+      "type": "ilc_record_type",
+      "underlying": "uint16_t",
+      "items": [
+        {
+          "name": "NONE",
+          "value": 0,
+          "doc": "a bare HELLO header may carry 0"
+        },
+        {
+          "name": "HELLO",
+          "value": 1,
+          "doc": ""
+        },
+        {
+          "name": "HELLO_REPLY",
+          "value": 2,
+          "doc": ""
+        },
+        {
+          "name": "SETTINGS",
+          "value": 3,
+          "doc": ""
+        },
+        {
+          "name": "SETTINGS_ACK",
+          "value": 4,
+          "doc": ""
+        },
+        {
+          "name": "COMMAND",
+          "value": 5,
+          "doc": ""
+        },
+        {
+          "name": "STATUS",
+          "value": 6,
+          "doc": ""
+        },
+        {
+          "name": "SEATS",
+          "value": 7,
+          "doc": ""
+        },
+        {
+          "name": "DEVICES",
+          "value": 8,
+          "doc": ""
+        },
+        {
+          "name": "EVENTS",
+          "value": 9,
+          "doc": ""
+        },
+        {
+          "name": "SAFE_POINT_RESULT",
+          "value": 10,
+          "doc": ""
+        }
+      ]
+    },
+    "state": {
+      "type": "ilc_state",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "INERT",
+          "value": 1,
+          "doc": "no hooks, no threads, no game memory access: not started, unsupported build, duplicate copy, or shut down"
+        },
+        {
+          "name": "DISABLED",
+          "value": 2,
+          "doc": "co-op module switched off for this start, or the settings file could not be read (reason says which)"
+        },
+        {
+          "name": "BLOCKED",
+          "value": 3,
+          "doc": "another co-op runtime is installed: nothing armed (reason_detail = marker bits)"
+        },
+        {
+          "name": "STARTING",
+          "value": 4,
+          "doc": "the init thread is starting the input service and installing the hooks"
+        },
+        {
+          "name": "ARMED",
+          "value": 5,
+          "doc": "hooks installed, waiting for the game to finish starting"
+        },
+        {
+          "name": "READY",
+          "value": 6,
+          "doc": "hooks installed and the game is running; reason DRY_ARMED = every detour still runs stock"
+        },
+        {
+          "name": "DEGRADED",
+          "value": 7,
+          "doc": "reserved: transition"
+        },
+        {
+          "name": "FAULT",
+          "value": 8,
+          "doc": "start-up failed and nothing is armed (reason and reason_detail say where)"
+        }
+      ]
+    },
+    "reason": {
+      "type": "ilc_reason",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "NONE",
+          "value": 0,
+          "doc": "FF12Hinit has not run: a stray load, or the loader has not called it yet"
+        },
+        {
+          "name": "UNSUPPORTED_BUILD",
+          "value": 1,
+          "doc": "not the pinned game build; detail: 1 base, 2 headers unreadable, 3 not AMD64 PE32+, 4 timestamp, 5 SizeOfImage"
+        },
+        {
+          "name": "DUPLICATE_INSTANCE",
+          "value": 2,
+          "doc": "another copy of this module already runs in the process"
+        },
+        {
+          "name": "INSTANCE_GUARD_FAILED",
+          "value": 3,
+          "doc": "the per-process guard could not be created; detail = Win32 error"
+        },
+        {
+          "name": "MODULE_OFF",
+          "value": 4,
+          "doc": "Co-op module is Off in the settings file"
+        },
+        {
+          "name": "SETTINGS_UNREADABLE",
+          "value": 5,
+          "doc": "the settings file exists but could not be read; detail = Win32 error (0 = larger than 1 MiB)"
+        },
+        {
+          "name": "SETTINGS_INVALID",
+          "value": 6,
+          "doc": "the settings file is not valid; detail: 1 syntax, 2 schema, 3 newer schema, 4 a value of the wrong type"
+        },
+        {
+          "name": "TOGETHER_PRESENT",
+          "value": 7,
+          "doc": "Ivalice Together is installed or running; detail = marker bits (bit 31: a check was uncertain)"
+        },
+        {
+          "name": "BOOTING",
+          "value": 8,
+          "doc": "start-up in progress; detail = ilc_boot_step"
+        },
+        {
+          "name": "INPUT_FAILED",
+          "value": 9,
+          "doc": "the input service did not start; detail = its issue bits (0x100 = did not answer in time)"
+        },
+        {
+          "name": "PATCH_CONFLICT",
+          "value": 10,
+          "doc": "game code differs from the pinned bytes (another mod or build); detail = patch result | (site row + 1) << 16"
+        },
+        {
+          "name": "PATCH_BUSY",
+          "value": 11,
+          "doc": "a thread stayed inside a patch site, or its context could not be read; detail as PATCH_CONFLICT"
+        },
+        {
+          "name": "PATCH_FAILED",
+          "value": 12,
+          "doc": "the hook transaction failed and was rolled back; detail as PATCH_CONFLICT"
+        },
+        {
+          "name": "DRY_ARMED",
+          "value": 13,
+          "doc": "hooks installed; every detour runs stock, only the settings safe point runs"
+        },
+        {
+          "name": "THREAD_FAILED",
+          "value": 14,
+          "doc": "the init thread could not be created; detail = Win32 error"
+        },
+        {
+          "name": "SHUT_DOWN",
+          "value": 15,
+          "doc": "the game is exiting; co-op disarmed and the input service stopped"
+        },
+        {
+          "name": "BOOT_ABORTED",
+          "value": 16,
+          "doc": "the game began exiting before start-up finished; nothing was armed"
+        }
+      ]
+    },
+    "boot_step": {
+      "type": "ilc_boot_step",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "CHECKS",
+          "value": 1,
+          "doc": "host, instance guard, Ivalice Together, co-op module switch (FF12Hinit thread)"
+        },
+        {
+          "name": "INPUT",
+          "value": 2,
+          "doc": "starting the input service on its own thread"
+        },
+        {
+          "name": "RECHECK",
+          "value": 3,
+          "doc": "Ivalice Together checked again just before the hooks"
+        },
+        {
+          "name": "PATCH",
+          "value": 4,
+          "doc": "the hook transaction (dry)"
+        },
+        {
+          "name": "ARM",
+          "value": 5,
+          "doc": "the settings tick attached and the liveness record armed"
+        }
+      ]
+    },
+    "boot_flag": {
+      "type": "ilc_boot_flag",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "INIT_CALLED",
+          "value": 1,
+          "doc": "FF12Hinit ran"
+        },
+        {
+          "name": "GUARD_HELD",
+          "value": 2,
+          "doc": "this copy holds the per-process guard"
+        },
+        {
+          "name": "THREAD_STARTED",
+          "value": 4,
+          "doc": "the init thread was created"
+        },
+        {
+          "name": "INPUT_RUNNING",
+          "value": 8,
+          "doc": "the input service was started by the boot and is running"
+        },
+        {
+          "name": "HOOKS_INSTALLED",
+          "value": 16,
+          "doc": "the hook transaction committed (hooks stay installed until the process ends)"
+        },
+        {
+          "name": "ARMED",
+          "value": 32,
+          "doc": "the liveness record is armed"
+        },
+        {
+          "name": "INIT_DONE",
+          "value": 64,
+          "doc": "FF12HinitDone ran: the game is running"
+        },
+        {
+          "name": "CLEANUP_DONE",
+          "value": 128,
+          "doc": "FF12Hcleanup ran"
+        },
+        {
+          "name": "SETTINGS_DEFAULTED",
+          "value": 256,
+          "doc": "the settings file or its switch was missing: the native default decided"
+        },
+        {
+          "name": "TOGETHER_RESIDUE",
+          "value": 512,
+          "doc": "files left by Ivalice Together that cannot patch anything (settings folder, Lua menu)"
+        }
+      ]
+    },
+    "build_flag": {
+      "type": "ilc_build_flag",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "INERT",
+          "value": 1,
+          "doc": "reserved: an inert build (no hooks, threads or game memory access)"
+        }
+      ]
+    },
+    "ready_bit": {
+      "type": "ilc_ready_bit",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "SETTINGS",
+          "value": 1,
+          "doc": "settings staging and safe point work"
+        }
+      ]
+    },
+    "ack_disposition": {
+      "type": "ilc_ack_disposition",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "STAGED",
+          "value": 1,
+          "doc": "new generation copied to the staging slot; applied at the next safe point"
+        },
+        {
+          "name": "DUPLICATE",
+          "value": 2,
+          "doc": "same generation and content as the last accepted settings; nothing changed"
+        }
+      ]
+    },
+    "safe_point_outcome": {
+      "type": "ilc_safe_point_outcome",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "IDLE",
+          "value": 0,
+          "doc": "nothing staged"
+        },
+        {
+          "name": "APPLIED",
+          "value": 1,
+          "doc": "staged settings became the applied settings"
+        },
+        {
+          "name": "BUSY",
+          "value": 2,
+          "doc": "a bridge call held the lock; try again next tick (never blocks)"
+        }
+      ]
+    },
+    "command": {
+      "type": "ilc_command_id",
+      "underlying": "uint16_t",
+      "items": [
+        {
+          "name": "PARK",
+          "value": 1,
+          "doc": "seat 0 = all guests or 2..4; arg0 0 = play, 1 = park. Live now; holds until a settings record changes that seat's parked field"
+        },
+        {
+          "name": "MOVE_SEAT_NOW",
+          "value": 2,
+          "doc": "seat 1..4; arg0 = ilc_character 0..5. Absorbs the seat's held input and queues the move for the session"
+        },
+        {
+          "name": "PAIRING_START",
+          "value": 3,
+          "doc": "seat 1..4; arg0 = inventory session (non-zero), arg1 = entry id. Proof by pressing A on that pad; P1 on another pad runs the guarded change"
+        },
+        {
+          "name": "PAIRING_CANCEL",
+          "value": 4,
+          "doc": "seat 1..4"
+        },
+        {
+          "name": "CAPTURE_START",
+          "value": 5,
+          "doc": "seat 1..4; arg0 = ilc_action (P1: P1 actions only), arg1 = slot 0..3"
+        },
+        {
+          "name": "CAPTURE_CANCEL",
+          "value": 6,
+          "doc": "seat 1..4"
+        },
+        {
+          "name": "RESTORE_DEFAULTS",
+          "value": 7,
+          "doc": "seat 0 = all or 1..4"
+        },
+        {
+          "name": "KILL_SWITCH",
+          "value": 8,
+          "doc": "seat 0; arg0 1 = co-op off now, 0 = back on"
+        }
+      ]
+    },
+    "event_kind": {
+      "type": "ilc_event_kind",
+      "underlying": "uint16_t",
+      "items": [
+        {
+          "name": "SETTINGS_APPLIED",
+          "value": 1,
+          "doc": "generation; a = body digest"
+        },
+        {
+          "name": "SETTINGS_REJECTED",
+          "value": 2,
+          "doc": "generation as sent; code, field, location"
+        },
+        {
+          "name": "COMMAND_REJECTED",
+          "value": 3,
+          "doc": "generation = request id; code, field, location; a = command"
+        },
+        {
+          "name": "COMMAND_RESULT",
+          "value": 4,
+          "doc": "generation = request id; a = command; b: PARK = parked seats (bit n = seat n+1), MOVE_SEAT_NOW = character | 0x100 (queued, no session yet)"
+        },
+        {
+          "name": "PAIRING_RESULT",
+          "value": 5,
+          "doc": "generation = request id; a = ilc_pairing_outcome | other seat << 8 | learned xinput slot << 16 (0xFF none); b = entry id"
+        },
+        {
+          "name": "CAPTURE_RESULT",
+          "value": 6,
+          "doc": "generation = request id; a = ilc_capture_outcome | action << 8 | slot << 16; b = binding kind | code << 8 when captured"
+        },
+        {
+          "name": "SEAT_CHANGED",
+          "value": 7,
+          "doc": "reserved"
+        },
+        {
+          "name": "STATUS_CHANGED",
+          "value": 8,
+          "doc": "reserved"
+        },
+        {
+          "name": "DEVICES_CHANGED",
+          "value": 9,
+          "doc": "reserved"
+        }
+      ]
+    },
+    "location": {
+      "type": "ilc_location",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "SEAT_P1",
+          "value": 0,
+          "doc": "seats[0]; also used for top-level fields"
+        },
+        {
+          "name": "SEAT_P2",
+          "value": 1,
+          "doc": ""
+        },
+        {
+          "name": "SEAT_P3",
+          "value": 2,
+          "doc": ""
+        },
+        {
+          "name": "SEAT_P4",
+          "value": 3,
+          "doc": ""
+        },
+        {
+          "name": "KILL_SWITCH",
+          "value": 8,
+          "doc": "settings.kill_switch"
+        },
+        {
+          "name": "ALIAS_0",
+          "value": 16,
+          "doc": "aliases[n] is ALIAS_0 + n"
+        }
+      ]
+    },
+    "character": {
+      "type": "ilc_character",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "VAAN",
+          "value": 0,
+          "doc": "party member index"
+        },
+        {
+          "name": "ASHE",
+          "value": 1,
+          "doc": ""
+        },
+        {
+          "name": "FRAN",
+          "value": 2,
+          "doc": ""
+        },
+        {
+          "name": "BALTHIER",
+          "value": 3,
+          "doc": ""
+        },
+        {
+          "name": "BASCH",
+          "value": 4,
+          "doc": ""
+        },
+        {
+          "name": "PENELO",
+          "value": 5,
+          "doc": ""
+        },
+        {
+          "name": "AUTO",
+          "value": 254,
+          "doc": "first free regular at session start; for P1, keep the current character"
+        },
+        {
+          "name": "NONE",
+          "value": 255,
+          "doc": "no character (guests only)"
+        }
+      ]
+    },
+    "colour": {
+      "type": "ilc_colour",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "SAPPHIRE",
+          "value": 0,
+          "doc": "target-circle palette index"
+        },
+        {
+          "name": "RUBY",
+          "value": 1,
+          "doc": ""
+        },
+        {
+          "name": "PINK",
+          "value": 2,
+          "doc": ""
+        },
+        {
+          "name": "EMERALD",
+          "value": 3,
+          "doc": ""
+        },
+        {
+          "name": "GOLD",
+          "value": 4,
+          "doc": ""
+        },
+        {
+          "name": "AMETHYST",
+          "value": 5,
+          "doc": ""
+        },
+        {
+          "name": "BRONZE",
+          "value": 6,
+          "doc": ""
+        }
+      ]
+    },
+    "colour_mode": {
+      "type": "ilc_colour_mode",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "CHARACTER",
+          "value": 0,
+          "doc": "colours follow characters"
+        },
+        {
+          "name": "PLAYER",
+          "value": 1,
+          "doc": "colours follow seats"
+        }
+      ]
+    },
+    "device_kind": {
+      "type": "ilc_device_kind",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "NONE",
+          "value": 0,
+          "doc": ""
+        },
+        {
+          "name": "XINPUT",
+          "value": 1,
+          "doc": "xinput_slot 0..3"
+        },
+        {
+          "name": "SDL",
+          "value": 2,
+          "doc": "identity"
+        }
+      ]
+    },
+    "binding_kind": {
+      "type": "ilc_binding_kind",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "NONE",
+          "value": 0,
+          "doc": "code 0"
+        },
+        {
+          "name": "KEY",
+          "value": 1,
+          "doc": "code = virtual-key 1..255"
+        },
+        {
+          "name": "MOUSE",
+          "value": 2,
+          "doc": "code 1 = left, 2 = right"
+        },
+        {
+          "name": "PAD",
+          "value": 3,
+          "doc": "code = ilc_pad_control on the seat's own pad"
+        }
+      ]
+    },
+    "pad_control": {
+      "type": "ilc_pad_control",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "A",
+          "value": 1,
+          "doc": ""
+        },
+        {
+          "name": "B",
+          "value": 2,
+          "doc": ""
+        },
+        {
+          "name": "X",
+          "value": 3,
+          "doc": ""
+        },
+        {
+          "name": "Y",
+          "value": 4,
+          "doc": ""
+        },
+        {
+          "name": "LB",
+          "value": 5,
+          "doc": ""
+        },
+        {
+          "name": "RB",
+          "value": 6,
+          "doc": ""
+        },
+        {
+          "name": "BACK",
+          "value": 7,
+          "doc": ""
+        },
+        {
+          "name": "START",
+          "value": 8,
+          "doc": ""
+        },
+        {
+          "name": "L3",
+          "value": 9,
+          "doc": ""
+        },
+        {
+          "name": "R3",
+          "value": 10,
+          "doc": ""
+        },
+        {
+          "name": "DPAD_UP",
+          "value": 11,
+          "doc": ""
+        },
+        {
+          "name": "DPAD_DOWN",
+          "value": 12,
+          "doc": ""
+        },
+        {
+          "name": "DPAD_LEFT",
+          "value": 13,
+          "doc": ""
+        },
+        {
+          "name": "DPAD_RIGHT",
+          "value": 14,
+          "doc": ""
+        },
+        {
+          "name": "LT",
+          "value": 15,
+          "doc": ""
+        },
+        {
+          "name": "RT",
+          "value": 16,
+          "doc": ""
+        },
+        {
+          "name": "LS_UP",
+          "value": 17,
+          "doc": ""
+        },
+        {
+          "name": "LS_DOWN",
+          "value": 18,
+          "doc": ""
+        },
+        {
+          "name": "LS_LEFT",
+          "value": 19,
+          "doc": ""
+        },
+        {
+          "name": "LS_RIGHT",
+          "value": 20,
+          "doc": ""
+        },
+        {
+          "name": "RS_UP",
+          "value": 21,
+          "doc": ""
+        },
+        {
+          "name": "RS_DOWN",
+          "value": 22,
+          "doc": ""
+        },
+        {
+          "name": "RS_LEFT",
+          "value": 23,
+          "doc": ""
+        },
+        {
+          "name": "RS_RIGHT",
+          "value": 24,
+          "doc": ""
+        }
+      ]
+    },
+    "action": {
+      "type": "ilc_action",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "TOGGLE_CONTROL",
+          "value": 0,
+          "doc": "seat drop-in/out key"
+        },
+        {
+          "name": "MOVE_UP",
+          "value": 1,
+          "doc": ""
+        },
+        {
+          "name": "MOVE_DOWN",
+          "value": 2,
+          "doc": ""
+        },
+        {
+          "name": "MOVE_LEFT",
+          "value": 3,
+          "doc": ""
+        },
+        {
+          "name": "MOVE_RIGHT",
+          "value": 4,
+          "doc": ""
+        },
+        {
+          "name": "WALK_RUN",
+          "value": 5,
+          "doc": ""
+        },
+        {
+          "name": "FLEE",
+          "value": 6,
+          "doc": ""
+        },
+        {
+          "name": "BATTLE_MENU",
+          "value": 7,
+          "doc": ""
+        },
+        {
+          "name": "MENU_UP",
+          "value": 8,
+          "doc": "P1"
+        },
+        {
+          "name": "MENU_DOWN",
+          "value": 9,
+          "doc": "P1"
+        },
+        {
+          "name": "MENU_LEFT",
+          "value": 10,
+          "doc": "P1"
+        },
+        {
+          "name": "MENU_RIGHT",
+          "value": 11,
+          "doc": "P1"
+        },
+        {
+          "name": "TARGET_PREV",
+          "value": 12,
+          "doc": ""
+        },
+        {
+          "name": "TARGET_NEXT",
+          "value": 13,
+          "doc": ""
+        },
+        {
+          "name": "QUICKENING",
+          "value": 14,
+          "doc": ""
+        },
+        {
+          "name": "CONFIRM",
+          "value": 15,
+          "doc": "P1"
+        },
+        {
+          "name": "CANCEL",
+          "value": 16,
+          "doc": "P1"
+        },
+        {
+          "name": "PARTY",
+          "value": 17,
+          "doc": "P1"
+        },
+        {
+          "name": "PAUSE",
+          "value": 18,
+          "doc": "P1"
+        }
+      ]
+    },
+    "seat_flag": {
+      "type": "ilc_seat_flag",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "HAS_DEVICE",
+          "value": 1,
+          "doc": "configured device is not NONE"
+        },
+        {
+          "name": "HAS_KBM",
+          "value": 2,
+          "doc": "seat owns keyboard and mouse (kbm_seat)"
+        },
+        {
+          "name": "PARKED",
+          "value": 4,
+          "doc": ""
+        },
+        {
+          "name": "PLAYING",
+          "value": 8,
+          "doc": "configured: owns an input and is not parked"
+        },
+        {
+          "name": "LOCKED",
+          "value": 16,
+          "doc": "P1"
+        },
+        {
+          "name": "LIVE",
+          "value": 32,
+          "doc": "a session is running (never set in v1)"
+        },
+        {
+          "name": "BENCHED",
+          "value": 64,
+          "doc": "live only"
+        }
+      ]
+    },
+    "session_state": {
+      "type": "ilc_session_state",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "NOT_RUNNING",
+          "value": 0,
+          "doc": "the session core has not started (module not armed)"
+        },
+        {
+          "name": "NO_WORLD",
+          "value": 1,
+          "doc": "title screen, start-up or game over screen: no game world"
+        },
+        {
+          "name": "LOADING",
+          "value": 2,
+          "doc": "a world exists but the party or the area is still settling"
+        },
+        {
+          "name": "CUTSCENE",
+          "value": 3,
+          "doc": "the player has no control (cutscene or scripted dialogue)"
+        },
+        {
+          "name": "MENU",
+          "value": 4,
+          "doc": "a native menu or modal interaction owns the screen"
+        },
+        {
+          "name": "FIELD",
+          "value": 5,
+          "doc": "play: seats with a character may steer it"
+        },
+        {
+          "name": "PARTY_DOWN",
+          "value": 6,
+          "doc": "every party member is down: the game's own recovery runs"
+        }
+      ]
+    },
+    "service_state": {
+      "type": "ilc_service_state",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "NOT_READY",
+          "value": 0,
+          "doc": "input service not built yet: show discovery unavailable"
+        },
+        {
+          "name": "READY",
+          "value": 1,
+          "doc": "the input service runs; the inventory is current"
+        }
+      ]
+    },
+    "subsystem": {
+      "type": "ilc_subsystem_bit",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "INPUT_ISOLATION",
+          "value": 1,
+          "doc": "guest pads and keyboard never drive the game"
+        },
+        {
+          "name": "MOVEMENT",
+          "value": 2,
+          "doc": "follower steering and movement hooks"
+        },
+        {
+          "name": "PARTY",
+          "value": 4,
+          "doc": "seat assignment, story guard, party edits"
+        },
+        {
+          "name": "CAMERA",
+          "value": 8,
+          "doc": "shared group camera"
+        },
+        {
+          "name": "FIREWALL_MENUS",
+          "value": 16,
+          "doc": "semantic input firewall and guest battle menus"
+        },
+        {
+          "name": "WAIT",
+          "value": 32,
+          "doc": "Wait-mode participant rule"
+        },
+        {
+          "name": "RENDER",
+          "value": 64,
+          "doc": "D3D11 overlay and panels"
+        },
+        {
+          "name": "TARGETS_CARDS",
+          "value": 128,
+          "doc": "target rings, TARGET INFO and cards"
+        }
+      ]
+    },
+    "pairing_outcome": {
+      "type": "ilc_pairing_outcome",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "READY",
+          "value": 1,
+          "doc": "proved on the pad; commit the device (and the alias if a slot was learned)"
+        },
+        {
+          "name": "IDENTIFIED",
+          "value": 2,
+          "doc": "P1 proved its own pad: add the name or alias only, never reassign"
+        },
+        {
+          "name": "PROVISIONAL",
+          "value": 3,
+          "doc": "P1 change: the new pad drives P1 now; press A on it again to keep it"
+        },
+        {
+          "name": "CONFIRMED",
+          "value": 4,
+          "doc": "P1 change confirmed on the new pad: commit it; not seen in 5 s -> REVERTED"
+        },
+        {
+          "name": "REVERTED",
+          "value": 5,
+          "doc": "P1 change undone: no confirm (10 s) or no commit; P1 is on its configured pad"
+        },
+        {
+          "name": "CANCELLED",
+          "value": 6,
+          "doc": "PAIRING_CANCEL, a newer PAIRING_START, a settings change or a service stop"
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 7,
+          "doc": "no proof within 20 s"
+        },
+        {
+          "name": "HELD_A",
+          "value": 8,
+          "doc": "timed out with an A button held throughout: release A first"
+        },
+        {
+          "name": "DISCONNECTED",
+          "value": 9,
+          "doc": "the pad went away"
+        },
+        {
+          "name": "TWO_PADS",
+          "value": 10,
+          "doc": "more than one pad answered (hide duplicate virtual devices)"
+        },
+        {
+          "name": "P1_LOCKED",
+          "value": 11,
+          "doc": "the pad is Player 1's"
+        },
+        {
+          "name": "OWNED_BY_SEAT",
+          "value": 12,
+          "doc": "another guest holds the pad (other seat in a >> 8): offer a swap"
+        },
+        {
+          "name": "STALE_SESSION",
+          "value": 13,
+          "doc": "arg0 is not the current inventory session"
+        },
+        {
+          "name": "NOT_FOUND",
+          "value": 14,
+          "doc": "no connected pad has that entry id"
+        }
+      ]
+    },
+    "capture_outcome": {
+      "type": "ilc_capture_outcome",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "CAPTURED",
+          "value": 1,
+          "doc": "b holds the binding: store it in that action and slot"
+        },
+        {
+          "name": "CANCELLED",
+          "value": 2,
+          "doc": "CAPTURE_CANCEL, a newer CAPTURE_START or a service stop"
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 3,
+          "doc": "no fresh press within 20 s"
+        },
+        {
+          "name": "NO_INPUT",
+          "value": 4,
+          "doc": "the seat has no connected pad and does not own the keyboard"
+        }
+      ]
+    }
+  },
+  "structs": {
+    "ilc_header": {
+      "id": 1,
+      "size": 16,
+      "align": 4,
+      "doc": "starts every record",
+      "fields": [
+        {
+          "name": "magic",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 0,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 256,
+          "doc": "ILC_ABI_MAGIC"
+        },
+        {
+          "name": "abi_version",
+          "kind": "VAL",
+          "type": "uint16_t",
+          "count": 1,
+          "offset": 4,
+          "size": 2,
+          "elemSize": 2,
+          "min": 0,
+          "max": 65535,
+          "fieldId": 257,
+          "doc": "ILC_ABI_VERSION of the writer"
+        },
+        {
+          "name": "record_type",
+          "kind": "VAL",
+          "type": "uint16_t",
+          "count": 1,
+          "offset": 6,
+          "size": 2,
+          "elemSize": 2,
+          "min": 0,
+          "max": 65535,
+          "fieldId": 258,
+          "doc": "ilc_record_type"
+        },
+        {
+          "name": "size",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 8,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 259,
+          "doc": "whole record in bytes, header included"
+        },
+        {
+          "name": "generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 12,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 260,
+          "doc": "settings generation, command request id, or 0"
+        }
+      ]
+    },
+    "ilc_binding": {
+      "id": 2,
+      "size": 2,
+      "align": 1,
+      "doc": "",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 0,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 3,
+          "fieldId": 512,
+          "doc": "ilc_binding_kind"
+        },
+        {
+          "name": "code",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 1,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 513,
+          "doc": "depends on kind; 0 when kind is NONE"
+        }
+      ]
+    },
+    "ilc_device_identity": {
+      "id": 3,
+      "size": 136,
+      "align": 2,
+      "doc": "SDL device identity",
+      "fields": [
+        {
+          "name": "guid",
+          "kind": "BYTES",
+          "type": "uint8_t",
+          "count": 16,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 768,
+          "doc": "SDL joystick GUID; not all zero when used"
+        },
+        {
+          "name": "uid",
+          "kind": "BYTES",
+          "type": "uint8_t",
+          "count": 16,
+          "offset": 16,
+          "size": 16,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 769,
+          "doc": "first 16 bytes of SHA-256 of the casefolded device path; zero unless has_uid"
+        },
+        {
+          "name": "ordinal",
+          "kind": "VAL",
+          "type": "uint16_t",
+          "count": 1,
+          "offset": 32,
+          "size": 2,
+          "elemSize": 2,
+          "min": 0,
+          "max": 255,
+          "fieldId": 770,
+          "doc": "tells identical models apart when there is no uid"
+        },
+        {
+          "name": "has_uid",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 34,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 771,
+          "doc": ""
+        },
+        {
+          "name": "name_len",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 35,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 96,
+          "fieldId": 772,
+          "doc": "bytes of name in use"
+        },
+        {
+          "name": "name",
+          "kind": "BYTES",
+          "type": "uint8_t",
+          "count": 96,
+          "offset": 36,
+          "size": 96,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 773,
+          "doc": "UTF-8, no control characters; zero after name_len"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 4,
+          "offset": 132,
+          "size": 4,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 774,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_seat_device": {
+      "id": 4,
+      "size": 140,
+      "align": 2,
+      "doc": "",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 0,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 2,
+          "fieldId": 1024,
+          "doc": "ilc_device_kind"
+        },
+        {
+          "name": "xinput_slot",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 1,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 3,
+          "fieldId": 1025,
+          "doc": "when kind is XINPUT, else 0"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 2,
+          "offset": 2,
+          "size": 2,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 1026,
+          "doc": ""
+        },
+        {
+          "name": "sdl",
+          "kind": "REC",
+          "type": "ilc_device_identity",
+          "count": 1,
+          "offset": 4,
+          "size": 136,
+          "elemSize": 136,
+          "min": 0,
+          "max": 0,
+          "fieldId": 1027,
+          "doc": "when kind is SDL, else all zero"
+        }
+      ]
+    },
+    "ilc_seat_settings": {
+      "id": 5,
+      "size": 300,
+      "align": 2,
+      "doc": "",
+      "fields": [
+        {
+          "name": "character",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 0,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 1280,
+          "doc": "seat character (P1: preference): 0..5, AUTO, NONE (not P1)"
+        },
+        {
+          "name": "colour",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 1,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 6,
+          "fieldId": 1281,
+          "doc": "seat colour, ilc_colour"
+        },
+        {
+          "name": "seat_ui_sounds",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 2,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 1282,
+          "doc": "battle menu sounds for this seat"
+        },
+        {
+          "name": "parked",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 1283,
+          "doc": "seat parked (guest sits out); P1 must be 0"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 4,
+          "offset": 4,
+          "size": 4,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 1284,
+          "doc": ""
+        },
+        {
+          "name": "device",
+          "kind": "REC",
+          "type": "ilc_seat_device",
+          "count": 1,
+          "offset": 8,
+          "size": 140,
+          "elemSize": 140,
+          "min": 0,
+          "max": 0,
+          "fieldId": 1285,
+          "doc": "the seat's input device and its identity"
+        },
+        {
+          "name": "bindings",
+          "kind": "RECS",
+          "type": "ilc_binding",
+          "count": 76,
+          "offset": 148,
+          "size": 152,
+          "elemSize": 2,
+          "min": 0,
+          "max": 0,
+          "fieldId": 1286,
+          "doc": "button bindings: action * 4 + slot"
+        }
+      ]
+    },
+    "ilc_device_alias": {
+      "id": 6,
+      "size": 140,
+      "align": 2,
+      "doc": "",
+      "fields": [
+        {
+          "name": "xinput_slot",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 0,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 3,
+          "fieldId": 1536,
+          "doc": ""
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 3,
+          "offset": 1,
+          "size": 3,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 1537,
+          "doc": ""
+        },
+        {
+          "name": "sdl",
+          "kind": "REC",
+          "type": "ilc_device_identity",
+          "count": 1,
+          "offset": 4,
+          "size": 136,
+          "elemSize": 136,
+          "min": 0,
+          "max": 0,
+          "fieldId": 1538,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_economy": {
+      "id": 7,
+      "size": 8,
+      "align": 2,
+      "doc": "",
+      "fields": [
+        {
+          "name": "present",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 0,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 1792,
+          "doc": "Legacy MP economy detected by Lua; all other fields 0 when not"
+        },
+        {
+          "name": "version_major",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 1,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 1793,
+          "doc": ""
+        },
+        {
+          "name": "version_minor",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 2,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 1794,
+          "doc": ""
+        },
+        {
+          "name": "version_patch",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 1795,
+          "doc": ""
+        },
+        {
+          "name": "divisor_x100",
+          "kind": "VAL",
+          "type": "uint16_t",
+          "count": 1,
+          "offset": 4,
+          "size": 2,
+          "elemSize": 2,
+          "min": 0,
+          "max": 25500,
+          "fieldId": 1796,
+          "doc": "DIVISOR * 100; 100..25500 when present"
+        },
+        {
+          "name": "cap_x100",
+          "kind": "VAL",
+          "type": "uint16_t",
+          "count": 1,
+          "offset": 6,
+          "size": 2,
+          "elemSize": 2,
+          "min": 0,
+          "max": 1600,
+          "fieldId": 1797,
+          "doc": "CAP * 100; 100..1600 when present"
+        }
+      ]
+    },
+    "ilc_settings": {
+      "id": 8,
+      "size": 3492,
+      "align": 4,
+      "doc": "SET_SETTINGS in, GET_SETTINGS out",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2048,
+          "doc": "record_type SETTINGS; generation >= 1, monotonic"
+        },
+        {
+          "name": "module_enabled_at_start",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 16,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2049,
+          "doc": "module switch as Lua sees it; native reads coop.json at start"
+        },
+        {
+          "name": "all_characters_at_start",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 17,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2050,
+          "doc": "start with all characters available"
+        },
+        {
+          "name": "kbm_seat",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 18,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 4,
+          "fieldId": 2051,
+          "doc": "seat that owns keyboard and mouse; 0 none, 1..ACTIVE_SEATS_MAX"
+        },
+        {
+          "name": "colour_mode",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 19,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2052,
+          "doc": "colour mode, ilc_colour_mode"
+        },
+        {
+          "name": "log_level",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 20,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2053,
+          "doc": "0 normal, 1 verbose"
+        },
+        {
+          "name": "network_mode",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 21,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2054,
+          "doc": "phase 1: 0 = local only"
+        },
+        {
+          "name": "alias_count",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 22,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 16,
+          "fieldId": 2055,
+          "doc": "aliases in use; the rest are all zero"
+        },
+        {
+          "name": "reserved0",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 23,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2056,
+          "doc": ""
+        },
+        {
+          "name": "character_colour",
+          "kind": "ARR",
+          "type": "uint8_t",
+          "count": 6,
+          "offset": 24,
+          "size": 6,
+          "elemSize": 1,
+          "min": 0,
+          "max": 6,
+          "fieldId": 2057,
+          "doc": "colour per character, by ilc_character 0..5"
+        },
+        {
+          "name": "reserved1",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 2,
+          "offset": 30,
+          "size": 2,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2058,
+          "doc": ""
+        },
+        {
+          "name": "kill_switch",
+          "kind": "RECS",
+          "type": "ilc_binding",
+          "count": 4,
+          "offset": 32,
+          "size": 8,
+          "elemSize": 2,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2059,
+          "doc": "co-op kill switch binding; keyboard or mouse only"
+        },
+        {
+          "name": "economy",
+          "kind": "REC",
+          "type": "ilc_economy",
+          "count": 1,
+          "offset": 40,
+          "size": 8,
+          "elemSize": 8,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2060,
+          "doc": "Legacy MP economy parameters"
+        },
+        {
+          "name": "seats",
+          "kind": "RECS",
+          "type": "ilc_seat_settings",
+          "count": 4,
+          "offset": 48,
+          "size": 1200,
+          "elemSize": 300,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2061,
+          "doc": "P1..P4"
+        },
+        {
+          "name": "aliases",
+          "kind": "RECS",
+          "type": "ilc_device_alias",
+          "count": 16,
+          "offset": 1248,
+          "size": 2240,
+          "elemSize": 140,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2062,
+          "doc": ""
+        },
+        {
+          "name": "subsystems_armed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 3488,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 255,
+          "fieldId": 2063,
+          "doc": "ilc_subsystem_bit mask; 0 bit = disarmed"
+        }
+      ]
+    },
+    "ilc_settings_ack": {
+      "id": 9,
+      "size": 32,
+      "align": 4,
+      "doc": "SET_SETTINGS out",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2304,
+          "doc": "generation = the generation sent"
+        },
+        {
+          "name": "disposition",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 1,
+          "max": 2,
+          "fieldId": 2305,
+          "doc": "ilc_ack_disposition"
+        },
+        {
+          "name": "accepted_generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2306,
+          "doc": ""
+        },
+        {
+          "name": "applied_generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2307,
+          "doc": ""
+        },
+        {
+          "name": "staged_pending",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2308,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_command": {
+      "id": 10,
+      "size": 32,
+      "align": 4,
+      "doc": "COMMAND in",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2560,
+          "doc": "record_type COMMAND; generation = request id, non-zero"
+        },
+        {
+          "name": "command",
+          "kind": "VAL",
+          "type": "uint16_t",
+          "count": 1,
+          "offset": 16,
+          "size": 2,
+          "elemSize": 2,
+          "min": 1,
+          "max": 8,
+          "fieldId": 2561,
+          "doc": "ilc_command_id"
+        },
+        {
+          "name": "seat",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 18,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 4,
+          "fieldId": 2562,
+          "doc": "0 = all/none, 1..ACTIVE_SEATS_MAX; allowed values depend on the command"
+        },
+        {
+          "name": "reserved0",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 19,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2563,
+          "doc": ""
+        },
+        {
+          "name": "arg0",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2564,
+          "doc": "depends on the command"
+        },
+        {
+          "name": "arg1",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2565,
+          "doc": "depends on the command"
+        },
+        {
+          "name": "reserved1",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 4,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2566,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_hello_reply": {
+      "id": 11,
+      "size": 96,
+      "align": 8,
+      "doc": "HELLO out",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2816,
+          "doc": "generation 0"
+        },
+        {
+          "name": "module_major",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2817,
+          "doc": ""
+        },
+        {
+          "name": "module_minor",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2818,
+          "doc": ""
+        },
+        {
+          "name": "module_patch",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2819,
+          "doc": ""
+        },
+        {
+          "name": "state",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2820,
+          "doc": "ilc_state"
+        },
+        {
+          "name": "reason",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 32,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2821,
+          "doc": "ilc_reason"
+        },
+        {
+          "name": "build_flags",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 36,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2822,
+          "doc": "ilc_build_flag bits"
+        },
+        {
+          "name": "caller_thread_id",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 40,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2823,
+          "doc": ""
+        },
+        {
+          "name": "settings_size",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 44,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2824,
+          "doc": "sizeof(ilc_settings)"
+        },
+        {
+          "name": "accepted_generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 48,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2825,
+          "doc": "re-sync after a script restart"
+        },
+        {
+          "name": "applied_generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 52,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2826,
+          "doc": ""
+        },
+        {
+          "name": "ops_mask",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 56,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 2827,
+          "doc": "bit n set = op n implemented (ops 1..31)"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 4,
+          "offset": 60,
+          "size": 4,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2828,
+          "doc": ""
+        },
+        {
+          "name": "source_id",
+          "kind": "ARR",
+          "type": "uint64_t",
+          "count": 2,
+          "offset": 64,
+          "size": 16,
+          "elemSize": 8,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2829,
+          "doc": "first 16 bytes of the SHA-256 of the module sources"
+        },
+        {
+          "name": "schema_id",
+          "kind": "ARR",
+          "type": "uint64_t",
+          "count": 2,
+          "offset": 80,
+          "size": 16,
+          "elemSize": 8,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2830,
+          "doc": "first 16 bytes of the SHA-256 of schema/bridge-abi-v1.json (LF)"
+        }
+      ]
+    },
+    "ilc_status": {
+      "id": 12,
+      "size": 112,
+      "align": 4,
+      "doc": "GET_STATUS out",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 3072,
+          "doc": "generation = applied generation"
+        },
+        {
+          "name": "state",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3073,
+          "doc": "ilc_state"
+        },
+        {
+          "name": "reason",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3074,
+          "doc": "ilc_reason"
+        },
+        {
+          "name": "build_flags",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3075,
+          "doc": ""
+        },
+        {
+          "name": "caller_thread_id",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3076,
+          "doc": ""
+        },
+        {
+          "name": "accepted_generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 32,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3077,
+          "doc": "staged if pending, else applied"
+        },
+        {
+          "name": "accepted_digest",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 36,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3078,
+          "doc": "FNV-1a 32 of the accepted record's bytes 16..size"
+        },
+        {
+          "name": "applied_generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 40,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3079,
+          "doc": "0 = native defaults"
+        },
+        {
+          "name": "applied_digest",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 44,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3080,
+          "doc": "FNV-1a 32 of the applied record's bytes 16..size"
+        },
+        {
+          "name": "staged_pending",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 48,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 1,
+          "fieldId": 3081,
+          "doc": ""
+        },
+        {
+          "name": "ready_mask",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 52,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3082,
+          "doc": "ilc_ready_bit bits"
+        },
+        {
+          "name": "events_pending",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 56,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3083,
+          "doc": ""
+        },
+        {
+          "name": "events_dropped",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 60,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3084,
+          "doc": ""
+        },
+        {
+          "name": "event_next_seq",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 64,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3085,
+          "doc": ""
+        },
+        {
+          "name": "safe_points",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 68,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3086,
+          "doc": "safe point runs, busy ones included"
+        },
+        {
+          "name": "applies",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 72,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3087,
+          "doc": ""
+        },
+        {
+          "name": "rejects",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 76,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3088,
+          "doc": "every negative return except NOT_READY"
+        },
+        {
+          "name": "last_reject_op",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 80,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3089,
+          "doc": ""
+        },
+        {
+          "name": "last_reject_code",
+          "kind": "VAL",
+          "type": "int32_t",
+          "count": 1,
+          "offset": 84,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 0,
+          "fieldId": 3090,
+          "doc": "ilc_error"
+        },
+        {
+          "name": "last_reject_field",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 88,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3091,
+          "doc": "field id, 0 if none"
+        },
+        {
+          "name": "last_reject_location",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 92,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3092,
+          "doc": "outer << 8 | inner"
+        },
+        {
+          "name": "applied_subsystems",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 96,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3093,
+          "doc": "subsystems_armed of the applied settings"
+        },
+        {
+          "name": "reason_detail",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 100,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3094,
+          "doc": "depends on reason (see ilc_reason)"
+        },
+        {
+          "name": "boot_flags",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 104,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3095,
+          "doc": "ilc_boot_flag bits"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 4,
+          "offset": 108,
+          "size": 4,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 3096,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_seat_view": {
+      "id": 13,
+      "size": 16,
+      "align": 4,
+      "doc": "",
+      "fields": [
+        {
+          "name": "seat",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 0,
+          "size": 1,
+          "elemSize": 1,
+          "min": 1,
+          "max": 4,
+          "fieldId": 3328,
+          "doc": ""
+        },
+        {
+          "name": "flags",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 1,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 3329,
+          "doc": "ilc_seat_flag bits"
+        },
+        {
+          "name": "configured_character",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 2,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 3330,
+          "doc": ""
+        },
+        {
+          "name": "live_member",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 3331,
+          "doc": "character the seat controls now (0..5); NONE without one or without a session"
+        },
+        {
+          "name": "device_kind",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 4,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 2,
+          "fieldId": 3332,
+          "doc": ""
+        },
+        {
+          "name": "xinput_slot",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 5,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 3,
+          "fieldId": 3333,
+          "doc": ""
+        },
+        {
+          "name": "colour",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 6,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 6,
+          "fieldId": 3334,
+          "doc": ""
+        },
+        {
+          "name": "seat_ui_sounds",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 7,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 3335,
+          "doc": ""
+        },
+        {
+          "name": "seat_generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 8,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3336,
+          "doc": "incarnation of the seat's character (changes when the game rebuilds it); 0 without one"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 4,
+          "offset": 12,
+          "size": 4,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 3337,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_seats_reply": {
+      "id": 14,
+      "size": 96,
+      "align": 4,
+      "doc": "GET_SEATS out",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 3584,
+          "doc": "generation = applied generation"
+        },
+        {
+          "name": "session_state",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3585,
+          "doc": "ilc_session_state"
+        },
+        {
+          "name": "epoch",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3586,
+          "doc": "session epoch: changes at every map jump, load, title screen and game over (0 = no session)"
+        },
+        {
+          "name": "count",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4,
+          "fieldId": 3587,
+          "doc": ""
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 4,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 3588,
+          "doc": ""
+        },
+        {
+          "name": "seats",
+          "kind": "RECS",
+          "type": "ilc_seat_view",
+          "count": 4,
+          "offset": 32,
+          "size": 64,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 3589,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_device_entry": {
+      "id": 15,
+      "size": 148,
+      "align": 4,
+      "doc": "",
+      "fields": [
+        {
+          "name": "entry_id",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 0,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 3840,
+          "doc": ""
+        },
+        {
+          "name": "kind",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 4,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 2,
+          "fieldId": 3841,
+          "doc": "ilc_device_kind"
+        },
+        {
+          "name": "xinput_slot",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 5,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 3842,
+          "doc": "0xFF = none"
+        },
+        {
+          "name": "connected",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 6,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 3843,
+          "doc": ""
+        },
+        {
+          "name": "owner_seat",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 7,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 4,
+          "fieldId": 3844,
+          "doc": ""
+        },
+        {
+          "name": "flags",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 8,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 3845,
+          "doc": "bit 0 = P1 locked"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 3,
+          "offset": 9,
+          "size": 3,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 3846,
+          "doc": ""
+        },
+        {
+          "name": "sdl",
+          "kind": "REC",
+          "type": "ilc_device_identity",
+          "count": 1,
+          "offset": 12,
+          "size": 136,
+          "elemSize": 136,
+          "min": 0,
+          "max": 0,
+          "fieldId": 3847,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_devices_reply": {
+      "id": 16,
+      "size": 2400,
+      "align": 4,
+      "doc": "GET_DEVICES out (variable length)",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 4096,
+          "doc": "size = 32 + count * 148"
+        },
+        {
+          "name": "service_state",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 1,
+          "fieldId": 4097,
+          "doc": "ilc_service_state"
+        },
+        {
+          "name": "inventory_session",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4098,
+          "doc": ""
+        },
+        {
+          "name": "age_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4099,
+          "doc": ""
+        },
+        {
+          "name": "count",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 16,
+          "fieldId": 4100,
+          "doc": "entries that follow"
+        },
+        {
+          "name": "entries",
+          "kind": "RECS",
+          "type": "ilc_device_entry",
+          "count": 16,
+          "offset": 32,
+          "size": 2368,
+          "elemSize": 148,
+          "min": 0,
+          "max": 0,
+          "fieldId": 4101,
+          "doc": "only count entries are sent"
+        }
+      ]
+    },
+    "ilc_event": {
+      "id": 17,
+      "size": 32,
+      "align": 4,
+      "doc": "",
+      "fields": [
+        {
+          "name": "seq",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 0,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4352,
+          "doc": "monotonic from 1; a gap means events were dropped"
+        },
+        {
+          "name": "kind",
+          "kind": "VAL",
+          "type": "uint16_t",
+          "count": 1,
+          "offset": 4,
+          "size": 2,
+          "elemSize": 2,
+          "min": 0,
+          "max": 65535,
+          "fieldId": 4353,
+          "doc": "ilc_event_kind"
+        },
+        {
+          "name": "seat",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 6,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 4,
+          "fieldId": 4354,
+          "doc": ""
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 7,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 4355,
+          "doc": ""
+        },
+        {
+          "name": "generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 8,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4356,
+          "doc": ""
+        },
+        {
+          "name": "code",
+          "kind": "VAL",
+          "type": "int32_t",
+          "count": 1,
+          "offset": 12,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 0,
+          "fieldId": 4357,
+          "doc": "ilc_error or 0"
+        },
+        {
+          "name": "field",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4358,
+          "doc": "field id or 0"
+        },
+        {
+          "name": "location",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4359,
+          "doc": "outer << 8 | inner"
+        },
+        {
+          "name": "a",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4360,
+          "doc": ""
+        },
+        {
+          "name": "b",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4361,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_events_reply": {
+      "id": 18,
+      "size": 2080,
+      "align": 4,
+      "doc": "POP_EVENTS out (variable length)",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 4608,
+          "doc": "size = 32 + count * 32"
+        },
+        {
+          "name": "count",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 64,
+          "fieldId": 4609,
+          "doc": "events that follow, oldest first"
+        },
+        {
+          "name": "dropped_total",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4610,
+          "doc": ""
+        },
+        {
+          "name": "next_seq",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4611,
+          "doc": ""
+        },
+        {
+          "name": "pending_after",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4612,
+          "doc": "events still queued"
+        },
+        {
+          "name": "events",
+          "kind": "RECS",
+          "type": "ilc_event",
+          "count": 64,
+          "offset": 32,
+          "size": 2048,
+          "elemSize": 32,
+          "min": 0,
+          "max": 0,
+          "fieldId": 4613,
+          "doc": "only count events are sent"
+        }
+      ]
+    },
+    "ilc_safe_point_result": {
+      "id": 19,
+      "size": 32,
+      "align": 4,
+      "doc": "TEST_SAFE_POINT out",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 4864,
+          "doc": "generation = applied generation"
+        },
+        {
+          "name": "result",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 2,
+          "fieldId": 4865,
+          "doc": "ilc_safe_point_outcome"
+        },
+        {
+          "name": "applied_generation",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4866,
+          "doc": ""
+        },
+        {
+          "name": "applied_digest",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4867,
+          "doc": ""
+        },
+        {
+          "name": "safe_points",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 4868,
+          "doc": ""
+        }
+      ]
+    }
+  },
+  "ops": {
+    "HELLO": {
+      "in": [
+        0,
+        16
+      ],
+      "inRecord": "ilc_header",
+      "out": "ilc_hello_reply"
+    },
+    "SET_SETTINGS": {
+      "in": [
+        3492
+      ],
+      "inRecord": "ilc_settings",
+      "out": "ilc_settings_ack"
+    },
+    "COMMAND": {
+      "in": [
+        32
+      ],
+      "inRecord": "ilc_command",
+      "out": null
+    },
+    "GET_STATUS": {
+      "in": [
+        0
+      ],
+      "out": "ilc_status"
+    },
+    "GET_SEATS": {
+      "in": [
+        0
+      ],
+      "out": "ilc_seats_reply"
+    },
+    "GET_DEVICES": {
+      "in": [
+        0
+      ],
+      "out": "ilc_devices_reply",
+      "variable": "entries"
+    },
+    "POP_EVENTS": {
+      "in": [
+        0
+      ],
+      "out": "ilc_events_reply",
+      "variable": "events"
+    },
+    "GET_SETTINGS": {
+      "in": [
+        0
+      ],
+      "out": "ilc_settings"
+    },
+    "TEST_SAFE_POINT": {
+      "in": [
+        0
+      ],
+      "out": "ilc_safe_point_result",
+      "debugOnly": true
+    }
+  },
+  "defaults": {
+    "record": "ilc_settings",
+    "hex": "494c434201000300a40d0000000000000101020000000000000205060304000001770000000000000000000000000000fe00010000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030b000000000000030c000000000000030d030500000000030e0306000000000000000000000000000000000000000000000000000000000301000000000000030200000000000003040000000000000308000000000000040301000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000175000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460303000000000120010d0201030101430108020203020152030400000000011b030800000000030601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000176000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460301000000000120010d0201030101430108020203020152030400000000011b030800000000fe05010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ff000000"
+  }
+}
