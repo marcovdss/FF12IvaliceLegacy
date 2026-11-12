@@ -43,7 +43,7 @@ return {
     [4468] = {name="Cameo Belt", notes="Attacks ignore evasion, blocks and parries."},
     [4469] = {name="Nishijin Belt", notes=""},
     [4470] = {name="Black Belt", notes=""},
-    [4471] = {name="Battle Harness", notes=""},
+    [4471] = {name="Battle Harness", notes="Chance to counterattack after a parry or block."},
     [4472] = {name="Shinobi Tabi", notes=""},
     [4473] = {name="Hermes Sandals", notes=""},
     [4474] = {name="Gillie Boots", notes=""},

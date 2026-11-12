@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "name": "FamiliesTips",
-  "version": "0.1.5",
-  "description": "Clan Primer Traveler's Tips: four ungated 'Weapon Families' tips carrying the per-family identity text (0.1.35 wording: counter augment, bomb status) (moved off weapon help; that runtime feature is reverted separately). Extends the deployed 17-entry state: the 16 native tips plus the Proficiency tip. Titles go into penelosdiary rows 654-657 (IDs 0x16E0-0x16E3), found empty and unreferenced the same way row 661 was. Flag 255 writes check byte 2 = 0xFF, the format's own no-flag-test convention, so the game shows these tips unconditionally.",
+  "version": "0.1.6",
+  "description": "Clan Primer Traveler's Tips: four ungated 'Weapon Families' tips carrying the per-family identity text (0.1.35 wording, 0.1.6 layout: a yellow heading per family trait, indented text, blank lines between entries, yellow cross-references) (moved off weapon help; that runtime feature is reverted separately). Extends the deployed 17-entry state: the 16 native tips plus the Proficiency tip. Titles go into penelosdiary rows 654-657 (IDs 0x16E0-0x16E3), found empty and unreferenced the same way row 661 was. Flag 255 writes check byte 2 = 0xFF, the format's own no-flag-test convention, so the game shows these tips unconditionally.",
   "listSha256": "e8e056608821c204015201fdf702738149e5352acb08894fa948859106175f03",
   "checksSha256": "3d25c7dbf8edcac24023bfdb18a642c4e1db516159ed31917103343ec33dea34",
   "pagesSha256": "7a96299500cb038add4a25251078e1d0f4f175a7a772efc882561d9d6e81d242",
@@ -14,7 +14,7 @@
       "titleId": 5856,
       "category": 2,
       "flag": 255,
-      "body": "Each family fights in its own way. No license needed.\nGreatsword Sweep: attacking a foe cleaves a half circle\naround it for half damage, but the swing is slow.\nAxe Sunder: each hit dents the foe's Defense by five\npercent of its starting value, down to half, for the\nrest of the fight.\nAxe Reckless: each swing dents your own Defense by five\npercent, down to a quarter off.\nHammer Concussion: Disable 15 percent on hit, a 30\npercent knockback chance. The swing is slow.\nSpear Pierce: every hit ignores 30 percent of the\nfoe's Defense. A spear never parries, except to\ncounter, and a counter needs the Counter augment.\nIt still blocks and dodges."
+      "body": "Every weapon family fights in its own way.\nNo license is needed for these traits.\n\n{y}Greatsword: Sweep{/}\n  Attacking a foe cleaves a half circle around it\n  for half damage. The swing is slow.\n\n{y}Axe: Sunder{/}\n  Each hit dents the foe's Defense by 5 percent of\n  its starting value, down to half, for the rest of\n  the fight.\n{y}Axe: Reckless{/}\n  Each swing dents your own Defense by 5 percent,\n  down to a quarter off.\n\n{y}Hammer: Concussion{/}\n  Disable 15 percent on hit, and a 30 percent\n  knockback chance. The swing is slow.\n\n{y}Spear: Pierce{/}\n  Every hit ignores 30 percent of the foe's Defense.\n  A spear never parries, except to counter, and a\n  counter needs the {y}Counter{/} augment.\n  It still blocks and dodges."
     },
     {
       "title": "Weapon Families: Light",
@@ -22,7 +22,7 @@
       "titleId": 5857,
       "category": 2,
       "flag": 255,
-      "body": "Each family fights in its own way. No license needed.\nSword Guard: the best weapon evade, 20 to 40, but a\nparry or block pushes your next charge back 10 percent.\nKatana Chain: combos run one hit longer, yet after a\ncombo the next attack on you meets no evasion.\nNinja sword Unseen: hits cannot be parried or blocked,\nthough the dodge still applies. Every blade carries\nBlind 10 percent on hit, and some add a second status.\nDagger Swift: the fastest charge, frequent combos, a\nlittle evade on the blade.\nGlancing: against heavy armor, dagger and ninja sword\nhits fall to an eighth of the attack, not a quarter.\nFists Cadence: Attacks on one foe in a row hit 6\npercent harder each, up to 30 percent, and quicken\nyour next action. A full streak counts as a counter\nfor Ki Flow. Switching foes restarts the ramp."
+      "body": "Every weapon family fights in its own way.\nNo license is needed for these traits.\n\n{y}Sword: Guard{/}\n  The best weapon evade, 20 to 40, but a parry or\n  block pushes your next charge back 10 percent.\n\n{y}Katana: Chain{/}\n  Combos run one hit longer, yet after a combo the\n  next attack on you meets no evasion.\n\n{y}Ninja Sword: Unseen{/}\n  Hits cannot be parried or blocked, though the\n  dodge still applies. Every blade carries Blind\n  10 percent on hit, and some add a second status.\n\n{y}Dagger: Swift{/}\n  The fastest charge, frequent combos, and a little\n  evade on the blade.\n\n{y}Dagger and Ninja Sword: Glancing{/}\n  Against heavy armor, hits fall to an eighth of\n  the attack, not a quarter.\n\n{y}Fists: Cadence{/}\n  Attacks on one foe in a row hit 6 percent harder\n  each, up to 30 percent, and quicken your next\n  action. A full streak counts as a counter for\n  {y}Ki Flow{/}. Switching foes restarts the ramp."
     },
     {
       "title": "Weapon Families: Ranged",
@@ -30,7 +30,7 @@
       "titleId": 5858,
       "category": 2,
       "flag": 255,
-      "body": "Each family fights in its own way. No license needed.\nBow Volley: the keenest critical chance among the\nranged weapons.\nCrossbow Afflict: the bolt's status chance is doubled,\nup to 100 percent. Bolts take a little longer to load.\nGun True aim: a gunner's shots never miss, Blind or\nnot, and ignore Defense. Damage depends on the gun\nalone, and the gun charges slowly.\nHand-bomb Barrage: the bombs you load decide the\nstatus, 25 percent on hit, and some carry none.\nChaos Bombs, which Confuse, and Stun Bombs, which\nStop, set up a Time Mage's Detonate."
+      "body": "Every weapon family fights in its own way.\nNo license is needed for these traits.\n\n{y}Bow: Volley{/}\n  The keenest critical chance among the ranged\n  weapons.\n\n{y}Crossbow: Afflict{/}\n  The bolt's status chance is doubled, up to 100\n  percent. Bolts take a little longer to load.\n\n{y}Gun: True aim{/}\n  A gunner's shots never miss, Blind or not, and\n  ignore Defense. Damage depends on the gun alone,\n  and the gun charges slowly.\n\n{y}Hand-bomb: Barrage{/}\n  The bombs you load decide the status, 25 percent\n  on hit, and some carry none.\n  Chaos Bombs, which Confuse, and Stun Bombs, which\n  Stop, set up a Time Mage's {y}Detonate{/}."
     },
     {
       "title": "Weapon Families: Magick",
@@ -38,13 +38,13 @@
       "titleId": 5859,
       "category": 2,
       "flag": 255,
-      "body": "Each family fights in its own way. No license needed.\nRod Mend: healing spells heal 20 percent more while\nheld. Potions are unchanged. A heal that overflows\ndraws Lure to the caster.\nStaff Channel: element potency, and the most Magick of\nthe caster weapons.\nMace Spellbreak: hits burn MP equal to 10 percent of\nthe damage, at most 10 percent of the foe's pool.\nMeasure Tempo: each measure grants one status to an\nally it strikes: Protect, Shell, Bravery, Invisible,\nHaste or Bubble, by tier.\nPole Counterflow: counters even without the Counter\naugment, found on the Battle Harness or Magepower\nShishak, twice as often with it. Blows taken build\nthe next counter, and the pole strikes Magick Resist.\nIts evade is 25 to 30, so its counters can swing."
+      "body": "Every weapon family fights in its own way.\nNo license is needed for these traits.\n\n{y}Rod: Mend{/}\n  Healing spells heal 20 percent more while held.\n  Potions are unchanged. A heal that overflows\n  draws {y}Lure{/} to the caster.\n\n{y}Staff: Channel{/}\n  Element potency, and the most Magick of the\n  caster weapons.\n\n{y}Mace: Spellbreak{/}\n  Hits burn MP equal to 10 percent of the damage,\n  at most 10 percent of the foe's pool.\n\n{y}Measure: Tempo{/}\n  Each measure grants one status to an ally it\n  strikes: Protect, Shell, Bravery, Invisible,\n  Haste or Bubble, by tier.\n\n{y}Pole: Counterflow{/}\n  Counters even without the {y}Counter{/} augment, found\n  on the {y}Battle Harness{/} or {y}Magepower Shishak{/},\n  and twice as often with it. Blows taken build the\n  next counter, and the pole strikes Magick Resist.\n  Its evade is 25 to 30, so its counters can swing."
     }
   ],
   "resultSha256": {
     "list": "7dc950a6687cca8ab426611d59ef9cab857ba0dac42a0ce2f2a41f0b9a4c6fe1",
     "checks": "30c309b621e76a9c37aed1caaa613fa4486a50396afd802aadc88d3bef565015",
-    "pages": "134c6e934c2923f7ac4036e8cbe40417e6e8fdc5d16498eed8cd998e73b0943c",
+    "pages": "1c15fd6f1553f739553200ab6486b6cb1bc226cfc0384c999454c1d48140e34e",
     "titles": "85e694d033e088b52d74ce8eac89c3614ca56d2f718fd246ab664ff721c735ef"
   }
 }

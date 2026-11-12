@@ -15,16 +15,17 @@ FAMILIES = json.loads((ROOT/'patches/families_tip.json').read_text(encoding='utf
 INV = {v: k for k, v in C.GLYPHS.items()}
 RESULT_KEYS = {'menuhandbook_tutorial.bin': 'list', 'menuhandbook_tutorial.dat': 'checks',
                'menuhandbook_tutorial000.dat': 'pages', 'penelosdiary.bin': 'titles'}
-# The pages files earlier releases installed (the previous families wordings): 0.1.33 and 0.1.34. A game still on
-# either carries one of them.
+# The pages files earlier releases installed (the previous families wordings): 0.1.33, 0.1.34 and 0.1.35-0.1.37
+# (families tips 0.1.5, the unformatted text). A game still on any of them carries one of these.
 PREVIOUS_PAGES = ('33fec20605944c93a4407af2423a05f144d8b63d741d89637c53a107c0983090',
-                  'd8a51b8508fba85d1f46fcd82fba6f96cb9acd0f628b6406fdcd48171bdc2984')
+                  'd8a51b8508fba85d1f46fcd82fba6f96cb9acd0f628b6406fdcd48171bdc2984',
+                  '134c6e934c2923f7ac4036e8cbe40417e6e8fdc5d16498eed8cd998e73b0943c')
 SOURCE_KEYS = {'listSha256': 'menuhandbook_tutorial.bin', 'checksSha256': 'menuhandbook_tutorial.dat',
                'pagesSha256': 'menuhandbook_tutorial000.dat', 'titlesSha256': 'penelosdiary.bin'}
 
 
 def decode(raw):
-    return ''.join(INV.get(b, f'<{b:02x}>') for b in raw)
+    return C.decode(raw)
 
 
 def pages(raw):
@@ -179,11 +180,34 @@ class TipContractTest(unittest.TestCase):
             self.assertEqual(tip['category'], 2)              # same book section as the Proficiency tip
             self.assertEqual(tip['flag'], 255)                # ungated
             self.assertLessEqual(len(tip['title']), 30)
-            lines = tip['body'].split('\n')
-            self.assertLessEqual(len(lines), 16)
+            lines = C.visible(tip['body']).split('\n')
+            self.assertLessEqual(len(lines), C.MAX_BODY_LINES)
             self.assertLessEqual(max(len(line) for line in lines), 56)
             self.assertEqual(decode(C.encode(tip['title'])), tip['title'])
-            self.assertEqual(decode(C.encode(tip['body'])), tip['body'])
+            self.assertEqual(decode(C.encode(tip['body'], markup=True)), tip['body'])
+            # Layout: a yellow heading opens every entry, and entries are separated by a blank line.
+            blocks = tip['body'].split('\n\n')
+            self.assertGreaterEqual(len(blocks), 4)
+            for block in blocks[1:]:
+                self.assertTrue(block.startswith('{y}') and block.split('\n')[0].endswith('{/}'), block)
+
+    def test_markup(self):
+        self.assertEqual(C.encode('{y}Axe{/} b', markup=True),
+                         bytes((0x0F, 0x29, 0x9B, 0xFF, 0xFF, 0x80)) + C.encode('Axe') + bytes((0x0F, 0x29, 0x80, 0x9B))
+                         + C.encode(' b'))
+        self.assertEqual(C.visible('{y}Axe{/} b'), 'Axe b')
+        for bad in ('{y}Axe', 'Axe{/}', '{y}{y}Axe{/}', '{y}Axe\nSunder{/}'):
+            with self.assertRaises(ValueError):
+                C.encode(bad, markup=True)
+        with self.assertRaises(ValueError):
+            C.encode('{y}Axe{/}')                                         # titles carry no markup
+        # The yellow token decodes to RGB (255, 255, 0) by the native rule: H low 3 bits = channel count,
+        # bits 3-5 = each channel's bit 7, value bytes = the low 7 bits.
+        head, values = C.YELLOW[2], C.YELLOW[3:]
+        self.assertEqual(head & 7, 3)
+        self.assertEqual(tuple(((head >> (3 + i)) & 1) << 7 | (v & 0x7F) for i, v in enumerate(values)), (255, 255, 0))
+        # Markup is not counted against the 56-character line width.
+        C.check_tip(dict(ONE_TIP, body='{y}' + 'x' * 56 + '{/}'))
 
     def test_wrong_result_hash_rejected(self):
         sources = synth_sources()

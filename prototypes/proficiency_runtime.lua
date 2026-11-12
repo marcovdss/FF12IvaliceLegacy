@@ -112,13 +112,13 @@ function R.effective() return effective() end
 -- The Clan Primer tip "Clan Proficiency" (Traveler's Tips) waits on one flag bit of the menu-info block
 -- ([0x20927C0] + 0x334C, 256 bits, read by the tip check 0x575E80 through 0x315620). No native tip check uses these
 -- bits; the bit follows the Apprentice's Writ through the native setter 0x315A20(index, on).
-local MENU_INFO, TIP_FLAGS, SET_TIP_FLAG = 0x020927C0, 0x334C, 0x315A20
+local TIP_STATE_BASE, TIP_FLAGS, SET_TIP_FLAG = 0x020927C0, 0x334C, 0x315A20
 R.TIP_FLAG = 254  -- 255 (0xFF) means "no flag test" in a tip check; 0.3.1 used it by mistake
 local STRAY_FLAG = 255
 local flagsLogged = false
 local function syncTip()
   if campaign == nil then return end
-  local state = memory.u64[MENU_INFO]
+  local state = memory.u64[TIP_STATE_BASE]
   if type(state) ~= 'number' or state <= 0 then return end
   local at = state + TIP_FLAGS
   if not flagsLogged then

@@ -12,7 +12,7 @@
 
 local M = {}
 
-M.UI_MANAGER_GLOBAL = 0x209BE80
+M.UI_ROOT_PTR = 0x209BE80
 M.TARGET_INFO_WINDOW_OFFSET = 0x9FD0
 M.WINDOW_GROUP_OFFSET = 0x58
 M.GROUP_RECORD_SIZE = 0x14
@@ -79,7 +79,7 @@ function M.register(factor)
   local scaled_group = nil
   local mem = {u8 = memory.u8, s16 = memory.s16, u16 = memory.u16, u32 = memory.u32}
   event.registerEventAsync('onFlip', function()
-    local manager = memory.u64[M.UI_MANAGER_GLOBAL]
+    local manager = memory.u64[M.UI_ROOT_PTR]
     if manager == 0 then return end
     local window = memory.u64[manager + M.TARGET_INFO_WINDOW_OFFSET]
     if window == 0 then return end

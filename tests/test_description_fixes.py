@@ -37,6 +37,8 @@ class DescriptionFixesTests(unittest.TestCase):
           assert(base.database.equipment[4442].notes == '')
           assert(base.database.equipment[4448].notes == 'Returns 5% of damage taken to the attacker.')
           assert(base.database.equipment[4453].notes == 'Blocks instant-death effects.')
+          assert(base.database.equipment[4471].name == 'Battle Harness')
+          assert(base.database.equipment[4471].notes == 'Chance to counterattack after a parry or block.')
           assert(base.database.equipment[4483].notes == 'Reduces maximum MP to 0.')
           assert(base.database.equipment[4458].name == 'Zephyr Collar')
           assert(base.database.equipment[4458].notes == 'Physical attacks deal 20% more damage.')

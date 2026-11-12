@@ -46,9 +46,57 @@ def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def encode(text):
-    require(isinstance(text, str) and text and all(c in GLYPHS for c in text), f'Unsupported tip glyph in {text!r}')
-    return bytes(GLYPHS[c] for c in text)
+# Body markup: {y}...{/} colours a span yellow. {y} is the explicit-colour token 0F 29 H v0 v1 v2 (decoded natively at
+# 0x3FFBC0; H low 3 bits = channel count, bits 3-5 = each channel's bit 7, value bytes = low 7 bits; channels multiply
+# the default text colour, 128 = unchanged) with RGB (255, 255, 0). {/} is 0F 29 80 9B, the restore the native tips
+# use after their own highlighted headings. A span opens and closes on one line.
+YELLOW = bytes((0x0F, 0x29, 0x9B, 0xFF, 0xFF, 0x80))
+RESTORE = bytes((0x0F, 0x29, 0x80, 0x9B))
+MARKUP = {'{y}': YELLOW, '{/}': RESTORE}
+# Native Tips pages scroll: the longest native pages run 33 and 40 lines.
+MAX_BODY_LINES = 32
+
+
+def _tokens(text):
+    """[(markup or None, char)] for a body: markup tags as single tokens, everything else one glyph each."""
+    out, i = [], 0
+    while i < len(text):
+        tag = next((t for t in MARKUP if text.startswith(t, i)), None)
+        out.append((tag, None) if tag else (None, text[i]))
+        i += len(tag) if tag else 1
+    return out
+
+
+def visible(text):
+    """The text as shown: markup removed."""
+    return ''.join(c for tag, c in _tokens(text) if not tag)
+
+
+def encode(text, markup=False):
+    """Glyph bytes. With markup, {y}/{/} become colour tokens; each line must open and close its spans."""
+    require(isinstance(text, str) and text, f'Unsupported tip text {text!r}')
+    out, open_span = bytearray(), False
+    for tag, c in (_tokens(text) if markup else [(None, c) for c in text]):
+        if tag:
+            require(open_span == (tag == '{/}'), f'Unbalanced tip markup in {text!r}')
+            open_span = tag == '{y}'
+            out += MARKUP[tag]
+        else:
+            require(c in GLYPHS and not (c == '\n' and open_span), f'Unsupported tip glyph or open span in {text!r}')
+            out.append(GLYPHS[c])
+    require(not open_span, f'Unclosed tip markup in {text!r}')
+    return bytes(out)
+
+
+def decode(raw):
+    """Inverse of encode(markup=True) for text it produced."""
+    inv = {v: k for k, v in GLYPHS.items()}
+    out, i = [], 0
+    while i < len(raw):
+        tag = next((t for t, b in MARKUP.items() if raw.startswith(b, i)), None)
+        out.append(tag or inv.get(raw[i], f'<{raw[i]:02x}>'))
+        i += len(MARKUP[tag]) if tag else 1
+    return ''.join(out)
 
 
 def check_tip(tip):
@@ -58,9 +106,10 @@ def check_tip(tip):
     require(type(tip['flag']) is int and 0 <= tip['flag'] <= 255,
             'Tip flag must be a bit index 0-254, or 255 for an ungated tip (check byte 0xFF = no flag test)')
     require(0 < len(tip['title']) <= 30, 'Bad tip title')
-    lines = tip['body'].split('\n')
-    require(0 < len(lines) <= 16 and all(len(line) <= 56 for line in lines), 'Tip body lines must be 56 characters or less')
-    encode(tip['title']), encode(tip['body'])
+    lines = visible(tip['body']).split('\n')
+    require(0 < len(lines) <= MAX_BODY_LINES and all(len(line) <= 56 for line in lines),
+            f'Tip body must be at most {MAX_BODY_LINES} lines of 56 visible characters or less')
+    encode(tip['title']), encode(tip['body'], markup=True)
     return tip
 
 
@@ -183,7 +232,7 @@ def tip_pages(raw, patch):
     added_records, added_text = bytearray(), bytearray()
     at = len(block)
     for j, tip in enumerate(new):
-        text = struct.pack('<HH', 4, 0) + encode(tip['body']) + bytes(1)  # header offset 4; newline glyph 0x02
+        text = struct.pack('<HH', 4, 0) + encode(tip['body'], markup=True) + bytes(1)  # header offset 4; newline 0x02
         text += bytes(-len(text) % 4)
         rec = bytearray(recs[-1])
         struct.pack_into('<HI', rec, 2, count + j, at)
