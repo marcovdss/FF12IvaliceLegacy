@@ -20,9 +20,12 @@ too, so every byte MinHook reads or writes is pinned. Other policies get hook_le
   python gen_site_table.py --check    exit 1 if the committed file differs from a fresh generation (drift)
 
 Policy per site (what the patch engine does with it):
-  PATCH    port / port-optional sites: must match, may be installed
+  PATCH    port / port-optional sites, and sites a design decision ports (PORTED_BY_DECISION): must match, may
+           be installed; an OPTIONAL row (OPTIONAL_BY_DECISION, flag 0x08) that does not match is skipped instead
   REQUIRE  verify-only and retired sites that must be stock: a mismatch refuses the whole install
-  GATE     verify-only site whose mismatch skips the one site it gates (IN-06a -> IN-06)
+  GATE     verify-only site whose mismatch skips the one site it gates (IN-06a -> IN-06, FP-V1 -> FP-01,
+           HD-V1..HD-V8 -> HD-01, HD-V9/HD-V11 -> HD-02, HD-V10 -> HD-03, HR-V1/HR-V2 -> HR-02, HR-V3/HR-V6 -> HR-01,
+           HR-V4 -> HR-03, HR-V5 -> HR-05, KR-V1 -> KR-01)
   INFO     everything else (spec-gap, do-not-port, dropped, proposed, read-only discovery sites, and port sites dropped by a
            design decision): read and reported, never written, never a refusal
 """
@@ -61,7 +64,19 @@ GROUP_SUBSYSTEM = {
     'combat-log': 'RENDER', 'treasure-log': 'RENDER', 'hud-colour': 'RENDER', 'damage-number': 'RENDER',
     'targeting': 'TARGETS_CARDS', 'cards': 'TARGETS_CARDS',
     'game-thread': 'CORE',
+    # Keep running in background is the player's own setting, not a co-op feature: it must act with no guest seated,
+    # with the co-op switch off and while the module is dry-armed, so it has no subsystem bit (its rows act only on
+    # that setting).
+    'focus': 'CORE',
+    # The HUD frame hook (H0) and the native draw functions the co-op canvas calls: the render subsystem.
+    'hud': 'RENDER',
     'retired': 'NONE',
+}
+# Sites whose subsystem a design decision changes, with the reason.
+SUBSYSTEM_BY_DECISION = {
+    'IN-06': ('CORE', 'the pad focus gate gives player 1 a neutral XInput state while the window is unfocused and '
+                      'the game keeps running (the background setting); it must act wherever that setting does'),
+    'IN-06a': ('CORE', 'the guard of IN-06 belongs with the row it gates'),
 }
 KIND = {'detour': 'DETOUR', 'call-redirect': 'CALL', 'imm-patch': 'IMM', 'byte-patch': 'BYTES',
         'verify-only': 'VERIFY', 'discovery-only': 'VERIFY', 'retired-must-be-stock': 'VERIFY'}
@@ -70,15 +85,75 @@ DROPPED_BY_DECISION = {
     'IN-04': 'player 1 input is written into the device fields at the finalize sites instead',
     'IN-09': 'player 1 input is written into the device fields at the finalize sites instead',
     'LD-01': 'blocking the stock leader setter would break mods that change the leader; adopt the change instead',
+    'WT-01': 'Wait takes and releases pause reason 0 from the UI-tick callback (UT-01), at the call position stock '
+             'Wait uses; the main-update call stays stock',
+    'WT-02': '0x28F6A0 is the P1 command-tree state query; it does not stop battle time',
+    'WT-03': '0x28F6A0 is the P1 command-tree state query (here for a script function); it does not stop battle '
+             'time',
+    'IN-07': 'keeping the game running is the background setting (FP-01, the application active byte); rewriting the '
+             'focus event cannot beat the windowed poll and in exclusive fullscreen it suppresses the game own '
+             'lose-focus transition',
 }
-GATES = {'IN-06a': 'IN-06'}           # a mismatch here (another mod rewrote the approach) skips the gated site
-VERIFY_INFO = {'CD-01', 'CD-02'}      # read-only discovery: a mismatch is information
+# Sites the reverse-engineered table does not mark as port that a later design decision ports, with the reason
+# (their enable state in the reference runtime was settled statically; they were live there).
+PORTED_BY_DECISION = {
+    'IX-17': 'guest NPC talk: the exact-NPC scan runs inside the consumer window with this guard armed per call',
+    'IX-18': 'guest NPC talk: the exact-NPC scan runs inside the consumer window with this guard armed per call',
+    'IX-19': 'guest NPC talk: the exact-NPC scan runs inside the consumer window with this guard armed per call',
+    'IX-20': 'guest interactions (objects, NPC talk, shops) run in one window at the consumer call',
+    'LT-01': 'walk-over loot: the ownership query answers party for a seat-controlled actor at this call only',
+}
+GATES = {'IN-06a': 'IN-06',           # a mismatch here (another mod rewrote the approach) skips the gated site
+         'FP-V1': 'FP-01',
+         # the HUD frame hook needs its callee and every native draw function the canvas calls to be stock
+         **{f'HD-V{k}': 'HD-01' for k in range(1, 9)},
+         # the party row HP colour rows need the HP digits function, its call's arguments and the digit setter stock
+         'HD-V9': 'HD-02', 'HD-V11': 'HD-02', 'HD-V10': 'HD-03',
+         # the battle log's per-hit feed and kill reward need the code around each copy point stock
+         'HR-V1': 'HR-02', 'HR-V2': 'HR-02', 'HR-V3': 'HR-01', 'HR-V6': 'HR-01', 'HR-V4': 'HR-03',
+         'HR-V5': 'HR-05',
+         'KR-V1': 'KR-01'}
+# Read-only discovery: a mismatch is information. CH-V1/CH-V2 gate a read, not a patch: the battle log compares
+# them itself and reads the chain globals only while they are stock. TI-V1..TI-V9 gate the native Target Info
+# give-back (data writes into the TARGET INFO owner): the Target Info compares them itself and gives the native
+# window back only while every one is stock; a mismatch leaves TI-01 and everything else as they are.
+VERIFY_INFO = {'CD-01', 'CD-02', 'CH-V1', 'CH-V2', *{f'TI-V{k}' for k in range(1, 10)}}
+# PATCH rows another mod may legitimately rewrite: a mismatch skips the row (as a failed gate would) instead of
+# refusing the install. With the reason.
+OPTIONAL_BY_DECISION = {
+    'HD-01': "Vision's No Combat Log NOPs this call: the frame hook is then skipped (nothing is drawn and the co-op "
+             'menus stay idle without a presenter) instead of refusing every co-op hook',
+    'HD-02': 'the low-HP glow is cosmetic: if another mod rewrote the HP digits call, the native colour stays and '
+             'nothing else is refused',
+    'HD-03': 'the low-HP glow is cosmetic: if another mod rewrote the digit setter call, the native colour stays and '
+             'nothing else is refused',
+    'TI-01': 'another mod may own the native TARGET INFO open call: the row is then skipped and the native window '
+             'keeps opening under the co-op Target Info, instead of refusing every co-op hook',
+    'WM-01': 'the seat diamonds are cosmetic: if another mod rewrote the overhead pass call, no diamond is drawn and '
+             'nothing else is refused',
+    'RG-01': 'the cleave gate only touches the stock target list: if another mod rewrote its ring call, the stock rings '
+             'stay (Attack included) and nothing else is refused',
+    'LG-01': "the battle log feed is a copy of the message emitter's arguments: if another mod hooked its entry, the row "
+             'is skipped and the log builds its lines from HP and status diffs alone, instead of refusing every co-op '
+             'hook',
+    'HR-01': 'the per-hit bracket only copies: if another mod hooked the hit function, amounts are not pinned to their '
+             'hit and the battle log keeps HP diffs, instead of refusing every co-op hook',
+    'HR-02': 'the per-hit outcome only copies: if another mod rewrote it, the battle log shows no outcome tags, instead '
+             'of refusing every co-op hook',
+    'HR-03': 'exact numbers only copy: if another mod hooked the number pop-up, amounts come from HP diffs, instead of '
+             'refusing every co-op hook',
+    'HR-05': 'the per-hit bracket only copies: if another mod rewrote the common exit, amounts are not pinned, instead '
+             'of refusing every co-op hook',
+    'KR-01': 'the kill reward only copies: if another mod hooked the EXP and LP pop-up, the kill line has no EXP or LP, '
+             'instead of refusing every co-op hook',
+}
 # Interior references reviewed and found harmless, with the reason. Empty: nothing has been waived.
 INTERIOR_WAIVED: dict[str, str] = {}
 
 FLAG_INTERIOR = 0x01
 FLAG_DROPPED = 0x02
 FLAG_RIPREL = 0x04
+FLAG_OPTIONAL = 0x08
 
 
 class Image:
@@ -309,7 +384,7 @@ def build_rows(table: dict, image: Image) -> list[dict]:
         legacy, kind = site['legacy'], site['kind']
         flags = 0
         gate = ''
-        if legacy in ('port', 'port-optional'):
+        if legacy in ('port', 'port-optional') or sid in PORTED_BY_DECISION:
             policy = 'PATCH'
             if sid in DROPPED_BY_DECISION:
                 policy, flags = 'INFO', flags | FLAG_DROPPED
@@ -325,6 +400,10 @@ def build_rows(table: dict, image: Image) -> list[dict]:
             policy = 'INFO'
         if site.get('rip_relative_in_displaced'):
             flags |= FLAG_RIPREL
+        if sid in OPTIONAL_BY_DECISION:
+            if policy != 'PATCH':
+                raise ValueError(f'{sid}: only a PATCH row can be optional')
+            flags |= FLAG_OPTIONAL
         if site['group'] not in GROUP_SUBSYSTEM:
             raise ValueError(f'{sid}: group {site["group"]} has no subsystem mapping')
         if kind not in KIND:
@@ -333,9 +412,10 @@ def build_rows(table: dict, image: Image) -> list[dict]:
         if policy == 'PATCH':
             hook_len = hook_window(image, rva)
             tail = image.read(rva + len(expected), hook_len - len(expected)) if hook_len > len(expected) else b''
+        subsystem = SUBSYSTEM_BY_DECISION[sid][0] if sid in SUBSYSTEM_BY_DECISION else GROUP_SUBSYSTEM[site['group']]
         rows.append({'id': sid, 'rva': rva, 'length': len(expected), 'expected': expected,
                      'hook_len': hook_len, 'hook_tail': tail,
-                     'kind': KIND[kind], 'policy': policy, 'subsystem': GROUP_SUBSYSTEM[site['group']],
+                     'kind': KIND[kind], 'policy': policy, 'subsystem': subsystem,
                      'flags': flags, 'gate': gate, 'group': site['group'], 'legacy': legacy,
                      'purpose': short_purpose(site.get('purpose', ''))})
     return rows
@@ -380,7 +460,8 @@ def render(table: dict, image: Image) -> str:
         '//          instructions under the 5-byte hook jump; else 0), hook_tail (pinned bytes past length up to',
         '//          hook_len), purpose (short).',
         '// Flags: 0x01 INTERIOR (a reference lands inside the displaced range: never relocated),',
-        '//        0x02 DROPPED by a design decision, 0x04 RIP-relative operand in the displaced bytes.',
+        '//        0x02 DROPPED by a design decision, 0x04 RIP-relative operand in the displaced bytes,',
+        '//        0x08 OPTIONAL (PATCH: a mismatch skips the row instead of refusing the install).',
         '',
         f'#define ILC_SITE_COUNT {len(rows)}',
         f'#define ILC_SITE_BUILD_IMAGE_BASE 0x{EXPECT_BASE:X}ull',

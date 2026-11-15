@@ -374,7 +374,7 @@ class CrossFieldTest(BridgeCase):
         r = self.rec(); put(r, ['seats', 3, 'character'], S.e('character', 'BASCH'))  # P2 already Basch
         self.reject(r, E['CONFLICT'], cid, 3)
         r = self.rec(); put(r, ['seats', 3, 'character'], S.e('character', 'VAAN'))
-        self.assertEqual(self.push(r)[0], S.size('ilc_settings_ack'))  # Vaan is a regular (D-14 is open)
+        self.assertEqual(self.push(r)[0], S.size('ilc_settings_ack'))  # Vaan is a regular character
         r = self.rec(); put(r, ['seats', 1, 'character'], S.e('character', 'NONE'))
         self.assertGreaterEqual(self.push(r)[0], 0)
 
@@ -484,6 +484,139 @@ class CrossFieldTest(BridgeCase):
         r = self.rec(); put(r, ['kill_switch', 2, 'kind'], 1); put(r, ['kill_switch', 2, 'code'], 0x77)
         self.reject(r, E['CONFLICT'], ks, LOC_KILL, 2)
 
+    def test_kill_switch_refuses_mouse_buttons_as_keys(self):
+        """The mouse buttons' virtual-key codes are not keys: as KEY bindings of the kill switch they are refused
+        (0x03 is VK_CANCEL, a key); the left button is refused as MOUSE too, the right one is allowed as MOUSE 2."""
+        ks = S.field_id('ilc_settings', 'kill_switch')
+        key, mouse = S.e('binding_kind', 'KEY'), S.e('binding_kind', 'MOUSE')
+        for kind, code in ((key, 0x01), (key, 0x02), (key, 0x04), (key, 0x05), (key, 0x06), (mouse, 1)):
+            with self.subTest(kind=kind, code=code):
+                r = self.rec(); put(r, ['kill_switch', 1, 'kind'], kind); put(r, ['kill_switch', 1, 'code'], code)
+                self.reject(r, E['BAD_FIELD'], ks, LOC_KILL, 1)
+        for kind, code in ((key, 0x03), (key, 0x07), (key, 0x78), (mouse, 2)):
+            with self.subTest(kind=kind, code=code):
+                r = self.rec(); put(r, ['kill_switch', 1, 'kind'], kind); put(r, ['kill_switch', 1, 'code'], code)
+                put(r, ['kbm_seat'], 0)  # the right button is P2's default CANCEL (the clash rule's own test)
+                self.assertGreaterEqual(self.push(r)[0], 0)
+
+    def test_seat_toggles_refuse_mouse_buttons_as_keys(self):
+        """A seat's TOGGLE_CONTROL refuses the mouse buttons' virtual-key codes as KEY bindings (a click would drop the
+        seat out); MOUSE bindings, other actions and real keys are untouched by this rule."""
+        bindings = S.field_id('ilc_seat_settings', 'bindings')
+        toggle = S.e('action', 'TOGGLE_CONTROL') * 4
+        key, mouse = S.e('binding_kind', 'KEY'), S.e('binding_kind', 'MOUSE')
+        for seat in (1, 2):
+            for code in (0x01, 0x02, 0x04, 0x05, 0x06):
+                with self.subTest(seat=seat, code=code):
+                    r = self.rec()
+                    put(r, ['seats', seat, 'bindings', toggle + 2, 'kind'], key)
+                    put(r, ['seats', seat, 'bindings', toggle + 2, 'code'], code)
+                    self.reject(r, E['BAD_FIELD'], bindings, seat, toggle + 2)
+        confirm = S.e('action', 'CONFIRM') * 4
+        for path, kind, code in ((['seats', 1, 'bindings', toggle + 2], key, 0x03),
+                                 (['seats', 1, 'bindings', toggle + 2], key, 0x79),
+                                 (['seats', 1, 'bindings', toggle + 2], mouse, 2),
+                                 (['seats', 1, 'bindings', confirm + 3], key, 0x01)):
+            with self.subTest(path=path, kind=kind, code=code):
+                r = self.rec(); put(r, path + ['kind'], kind); put(r, path + ['code'], code)
+                self.assertGreaterEqual(self.push(r)[0], 0)
+
+    def test_hotkey_clash_rules(self):
+        """Hotkeys that would act twice on one press are refused with CONFLICT; each refusal has an accepted twin that
+        differs only in the clash. Pad bindings never clash (each seat's own pad)."""
+        ks = S.field_id('ilc_settings', 'kill_switch')
+        bindings = S.field_id('ilc_seat_settings', 'bindings')
+        toggle = S.e('action', 'TOGGLE_CONTROL') * 4
+        confirm = S.e('action', 'CONFIRM') * 4
+        key, mouse, pad = (S.e('binding_kind', n) for n in ('KEY', 'MOUSE', 'PAD'))
+        F6, F7, F9, ESC, W = 0x75, 0x76, 0x78, 0x1B, 0x57
+
+        def bind(r, path, kind, code):
+            put(r, path + ['kind'], kind)
+            put(r, path + ['code'], code)
+
+        # The native defaults pass: F8 off, F6/F7 join/leave, P2 owns the keyboard with Esc as PAUSE.
+        self.assertGreaterEqual(self.push(self.rec())[0], 0)
+        # 1. A kill-switch binding equal to a guest's join/leave binding (a key, or a mouse button).
+        r = self.rec(); bind(r, ['kill_switch', 1], key, F6)
+        self.reject(r, E['CONFLICT'], ks, LOC_KILL, 1)
+        r = self.rec(); bind(r, ['kill_switch', 2], key, F7)
+        self.reject(r, E['CONFLICT'], ks, LOC_KILL, 2)
+        r = self.rec(); put(r, ['kbm_seat'], 3); bind(r, ['kill_switch', 1], key, F6)  # P2 does not own the keyboard
+        self.reject(r, E['CONFLICT'], ks, LOC_KILL, 1)
+        r = self.rec(); bind(r, ['seats', 2, 'bindings', toggle + 1], mouse, 2); bind(r, ['kill_switch', 1], mouse, 2)
+        self.reject(r, E['CONFLICT'], ks, LOC_KILL, 1)
+        # falsifiers: a free key, and the right button with no join/leave on it (nobody owns the keyboard, so rule 3
+        # does not see P2's CANCEL on the right button)
+        r = self.rec(); bind(r, ['kill_switch', 1], key, F9)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        r = self.rec(); put(r, ['kbm_seat'], 0); bind(r, ['kill_switch', 1], mouse, 2)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        # 2. Two seats with the same join/leave key (or mouse button), reported at the later seat's binding.
+        r = self.rec(); bind(r, ['seats', 2, 'bindings', toggle + 1], key, F6)
+        self.reject(r, E['CONFLICT'], bindings, 2, toggle + 1)
+        r = self.rec(); bind(r, ['seats', 3, 'bindings', toggle], key, F7)
+        self.reject(r, E['CONFLICT'], bindings, 3, toggle)
+        r = self.rec(); bind(r, ['seats', 1, 'bindings', toggle + 1], mouse, 2); bind(r, ['seats', 2, 'bindings', toggle + 1], mouse, 2)
+        self.reject(r, E['CONFLICT'], bindings, 2, toggle + 1)
+        # falsifiers: another key; the same pad control on two seats' join/leave (two different pads)
+        r = self.rec(); bind(r, ['seats', 3, 'bindings', toggle], key, F9)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        r = self.rec()
+        bind(r, ['seats', 1, 'bindings', toggle + 1], pad, S.e('pad_control', 'R3'))
+        bind(r, ['seats', 2, 'bindings', toggle + 1], pad, S.e('pad_control', 'R3'))
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        # 3. A kill-switch key or mouse button equal to any key or mouse button the keyboard's seat has bound.
+        r = self.rec(); bind(r, ['kill_switch', 1], key, ESC)  # P2's PAUSE
+        self.reject(r, E['CONFLICT'], ks, LOC_KILL, 1)
+        r = self.rec(); bind(r, ['kill_switch', 3], key, W)    # P2's MOVE_UP
+        self.reject(r, E['CONFLICT'], ks, LOC_KILL, 3)
+        r = self.rec(); put(r, ['kbm_seat'], 1); bind(r, ['seats', 0, 'bindings', confirm + 1], key, W)
+        bind(r, ['kill_switch', 1], key, W)                    # P1 owns the keyboard and binds W
+        self.reject(r, E['CONFLICT'], ks, LOC_KILL, 1)
+        # falsifiers: nobody owns the keyboard (the guests' keys do not count then); P1 owns it but binds no key
+        r = self.rec(); put(r, ['kbm_seat'], 0); bind(r, ['kill_switch', 1], key, ESC)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        r = self.rec(); put(r, ['kbm_seat'], 1); bind(r, ['kill_switch', 1], key, W)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        # mouse buttons count too: the right button is P2's default CANCEL (slot 2)
+        r = self.rec(); bind(r, ['kill_switch', 1], mouse, 2)
+        self.reject(r, E['CONFLICT'], ks, LOC_KILL, 1)
+        r = self.rec(); put(r, ['kbm_seat'], 1); bind(r, ['seats', 0, 'bindings', confirm + 2], mouse, 2)
+        bind(r, ['kill_switch', 2], mouse, 2)                  # P1 owns the keyboard and binds the right button
+        self.reject(r, E['CONFLICT'], ks, LOC_KILL, 2)
+        # falsifiers: the same right button once P2's CANCEL no longer uses it; P1 owning the keyboard with no
+        # mouse binding
+        cancel = S.e('action', 'CANCEL') * 4
+        r = self.rec(); bind(r, ['seats', 1, 'bindings', cancel + 2], 0, 0); bind(r, ['kill_switch', 1], mouse, 2)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        r = self.rec(); put(r, ['kbm_seat'], 1); bind(r, ['kill_switch', 1], mouse, 2)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        # 4. A guest's join/leave key or mouse button equal to any key or mouse button of the keyboard's seat, reported
+        #    at that guest's binding (the guest reads its join key from the keyboard too, so one press acts twice).
+        Q = 0x51
+        r = self.rec(); bind(r, ['seats', 2, 'bindings', toggle + 1], key, W)      # P3 join = P2's MOVE_UP
+        self.reject(r, E['CONFLICT'], bindings, 2, toggle + 1)
+        r = self.rec(); bind(r, ['seats', 2, 'bindings', toggle + 2], mouse, 2)    # P3 join = P2's CANCEL button
+        self.reject(r, E['CONFLICT'], bindings, 2, toggle + 2)
+        r = self.rec(); put(r, ['kbm_seat'], 1); bind(r, ['seats', 0, 'bindings', confirm + 1], key, F6)
+        self.reject(r, E['CONFLICT'], bindings, 1, toggle)                          # P1's F6 = P2's join key
+        r = self.rec(); put(r, ['kbm_seat'], 3); bind(r, ['seats', 2, 'bindings', confirm + 1], key, F6)
+        self.reject(r, E['CONFLICT'], bindings, 1, toggle)                          # P3 owns it and binds F6
+        # falsifiers: nobody owns the keyboard; P2's CANCEL off the right button; P1 binding a free key; the
+        # keyboard's own seat may give its join key a key it also uses (Q is P2's MENU_LEFT), another guest may not
+        r = self.rec(); put(r, ['kbm_seat'], 0); bind(r, ['seats', 2, 'bindings', toggle + 1], key, W)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        r = self.rec(); bind(r, ['seats', 1, 'bindings', cancel + 2], 0, 0)
+        bind(r, ['seats', 2, 'bindings', toggle + 2], mouse, 2)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        r = self.rec(); put(r, ['kbm_seat'], 1); bind(r, ['seats', 0, 'bindings', confirm + 1], key, F9)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        r = self.rec(); bind(r, ['seats', 1, 'bindings', toggle + 1], key, Q)
+        self.assertGreaterEqual(self.push(r)[0], 0)
+        r = self.rec(); bind(r, ['seats', 2, 'bindings', toggle + 1], key, Q)
+        self.reject(r, E['CONFLICT'], bindings, 2, toggle + 1)
+
     def test_economy_rules(self):
         r = self.rec(); put(r, ['economy', 'version_minor'], 2)
         self.reject(r, E['BAD_FIELD'], S.field_id('ilc_settings', 'economy'))
@@ -535,9 +668,10 @@ class ProtocolTest(BridgeCase):
         # Null pointers, query ops with input, unknown ops, small outputs.
         self.assertEqual(self.b.raw(OP['GET_STATUS'], None, 0, None, 4096), E['BAD_ARGS'])
         self.assertEqual(self.b.raw(OP['SET_SETTINGS'], None, SETTINGS_SIZE, None, 4096), E['BAD_ARGS'])
-        for op in ('GET_STATUS', 'GET_SEATS', 'GET_DEVICES', 'POP_EVENTS', 'GET_SETTINGS', 'TEST_SAFE_POINT'):
+        for op in ('GET_STATUS', 'GET_SEATS', 'GET_DEVICES', 'POP_EVENTS', 'GET_SETTINGS', 'GET_COUNTERS',
+                   'TEST_SAFE_POINT'):
             self.assertEqual(self.b.call(OP[op], b'\0' * 16)[0], E['BAD_LENGTH'], op)
-        for op in (0, 9, 0x7F00, 0x7F02, 0xFFFFFFFF):
+        for op in (0, 10, 0x7F00, 0x7F02, 0xFFFFFFFF):
             self.assertEqual(self.b.call(op)[0], E['UNKNOWN_OP'])
         sizes = {'HELLO': 'ilc_hello_reply', 'GET_STATUS': 'ilc_status', 'GET_SEATS': 'ilc_seats_reply',
                  'GET_SETTINGS': 'ilc_settings', 'TEST_SAFE_POINT': 'ilc_safe_point_result'}
@@ -551,6 +685,9 @@ class ProtocolTest(BridgeCase):
         valid = [('PARK', 0, 1, 0), ('PARK', 3, 0, 0), ('MOVE_SEAT_NOW', 2, 4, 0), ('PAIRING_START', 2, 77, 3),
                  ('PAIRING_CANCEL', 3, 0, 0), ('CAPTURE_START', 1, S.e('action', 'CONFIRM'), 3),
                  ('CAPTURE_START', 3, S.e('action', 'FLEE'), 0), ('CAPTURE_CANCEL', 2, 0, 0),
+                 # seat 0: the co-op on/off key, slot 0..KILL_SWITCH_BINDINGS-1
+                 ('CAPTURE_START', 0, 0, 0), ('CAPTURE_START', 0, 0, S.const['KILL_SWITCH_BINDINGS'] - 1),
+                 ('CAPTURE_CANCEL', 0, 0, 0),
                  ('RESTORE_DEFAULTS', 0, 0, 0)]
         for cmd, seat, a0, a1 in valid:
             with self.subTest(cmd=cmd, seat=seat):
@@ -563,9 +700,14 @@ class ProtocolTest(BridgeCase):
         cmd_fields = {n: S.field_id('ilc_command', n) for n in ('seat', 'arg0', 'arg1')}
         invalid = [('PARK', 1, 1, 0, 'seat'), ('PARK', 0, 2, 0, 'arg0'), ('MOVE_SEAT_NOW', 0, 1, 0, 'seat'),
                    ('MOVE_SEAT_NOW', 2, 6, 0, 'arg0'), ('PAIRING_START', 2, 0, 0, 'arg0'),
-                   ('CAPTURE_START', 1, S.e('action', 'FLEE'), 0, 'arg0'), ('CAPTURE_START', 2, 19, 0, 'arg0'),
+                   ('CAPTURE_START', 1, S.e('action', 'FLEE'), 0, 'arg0'), ('CAPTURE_START', 2, S.const['ACTIONS'], 0, 'arg0'),
                    ('CAPTURE_START', 2, 0, 4, 'arg1'), ('PAIRING_CANCEL', 2, 1, 0, 'arg0'),
-                   ('RESTORE_DEFAULTS', 1, 0, 1, 'arg1'), ('KILL_SWITCH', 1, 0, 0, 'seat')]
+                   ('RESTORE_DEFAULTS', 1, 0, 1, 'arg1'), ('KILL_SWITCH', 1, 0, 0, 'seat'),
+                   # seat 0 (the co-op on/off key): arg0 must be 0, the slot below KILL_SWITCH_BINDINGS
+                   ('CAPTURE_START', 0, 1, 0, 'arg0'), ('CAPTURE_START', 0, 0xFF, 0, 'arg0'),
+                   ('CAPTURE_START', 0, 0, S.const['KILL_SWITCH_BINDINGS'], 'arg1'),
+                   ('CAPTURE_START', 0, 0, 0xFFFFFFFF, 'arg1'),
+                   ('CAPTURE_CANCEL', 0, 1, 0, 'arg0'), ('CAPTURE_CANCEL', 0, 0, 1, 'arg1')]
         for cmd, seat, a0, a1, field in invalid:
             with self.subTest(cmd=cmd, field=field):
                 self.assertEqual(self.b.call(OP['COMMAND'], command(cmd, seat, a0, a1, request=40))[0], E['BAD_FIELD'])
@@ -575,6 +717,85 @@ class ProtocolTest(BridgeCase):
         self.assertEqual(len(events), len(invalid) + 1)
         self.assertEqual({e['kind'] for e in events}, {S.e('event_kind', 'COMMAND_REJECTED')})
         self.assertEqual(events[0]['generation'], 40)
+
+    def test_stall_command_rules(self):
+        """The co-op thread stall is a developer test: its shape is validated like any command, then it is refused with
+        CONFLICT (field: the settings' developer flag) unless the applied settings have developer = 1, and answers
+        NOT_READY while no co-op thread runs (this bridge-only instance never boots)."""
+        cmd_fields = {n: S.field_id('ilc_command', n) for n in ('seat', 'arg0', 'arg1')}
+        top = S.const['STALL_MAX_MS']
+        for seat, a0, a1, field in ((1, 3000, 0, 'seat'), (0, 0, 0, 'arg0'), (0, top + 1, 0, 'arg0'),
+                                    (0, 0xFFFFFFFF, 0, 'arg0'), (0, 3000, 1, 'arg1')):
+            with self.subTest(seat=seat, arg0=a0, arg1=a1):
+                self.assertEqual(self.b.call(OP['COMMAND'], command('STALL_COOP_THREAD', seat, a0, a1))[0], E['BAD_FIELD'])
+                self.assertEqual(self.status()['last_reject_field'], cmd_fields[field])
+        developer = S.field_id('ilc_settings', 'developer')
+        self.events()  # drop the refusals above
+        # developer = 0 (the native default): CONFLICT naming the developer field, with a COMMAND_REJECTED event
+        for a0 in (1, 3000, top):
+            with self.subTest(developer=0, arg0=a0):
+                self.assertEqual(self.b.call(OP['COMMAND'], command('STALL_COOP_THREAD', 0, a0, 0, request=7))[0],
+                                 E['CONFLICT'])
+                st = self.status()
+                self.assertEqual((st['last_reject_code'], st['last_reject_field']), (E['CONFLICT'], developer))
+        _, events = self.events()
+        self.assertEqual([(e['kind'], e['generation'], e['a'], e['code']) for e in events],
+                         [(S.e('event_kind', 'COMMAND_REJECTED'), 7, S.e('command', 'STALL_COOP_THREAD'), E['CONFLICT'])] * 3)
+        # staged but not applied yet: still refused (the applied record decides)
+        record = settings(1); put(record, ['developer'], 1)
+        self.assertGreaterEqual(self.push(record)[0], 0)
+        self.assertEqual(self.b.call(OP['COMMAND'], command('STALL_COOP_THREAD', 0, 3000, 0))[0], E['CONFLICT'])
+        # applied: allowed, but no co-op thread runs here -> NOT_READY (not counted as a reject)
+        self.assertEqual(self.safe_point()['result'], S.e('safe_point_outcome', 'APPLIED'))
+        rejects = self.status()['rejects']
+        self.assertEqual(self.b.call(OP['COMMAND'], command('STALL_COOP_THREAD', 0, 3000, 0))[0], E['NOT_READY'])
+        self.assertEqual(self.status()['rejects'], rejects)
+        # and back to 0: refused again
+        record = settings(2); put(record, ['developer'], 0)
+        self.assertGreaterEqual(self.push(record)[0], 0)
+        self.safe_point()
+        self.assertEqual(self.b.call(OP['COMMAND'], command('STALL_COOP_THREAD', 0, 3000, 0))[0], E['CONFLICT'])
+
+    def test_counters_record(self):
+        """GET_COUNTERS: a versioned flat record whose field names are all in the schema; read-only (two reads change
+        no state but the call counters); answers whatever the developer flag and the module state are."""
+        size = S.size('ilc_counters')
+        st0 = self.status()
+        status, out = self.b.call(OP['GET_COUNTERS'], out_cap=size)
+        self.assertEqual(status, size)
+        k = S.decode('ilc_counters', out)
+        self.assertEqual((k['header']['record_type'], k['header']['size'], k['layout']),
+                         (S.e('record_type', 'COUNTERS'), size, S.const['COUNTERS_LAYOUT']))
+        names = [f['name'] for f in S.structs['ilc_counters']['fields']]
+        self.assertEqual(names[0], 'header')
+        self.assertTrue(all(re.fullmatch(r'[a-z][a-z0-9_]*', n) for n in names), names)
+        self.assertEqual(len(names), len(set(names)))
+        for f in S.structs['ilc_counters']['fields'][1:]:
+            self.assertIn(f['type'], ('uint32_t', 'int32_t'), f['name'])
+        # Never booted: dry, no liveness, nothing installed, no co-op thread.
+        self.assertEqual((k['mode'], k['live_at_ms'], k['liveness_armed'], k['liveness_fresh'], k['liveness_age_ms']),
+                         (0, 0, 0, 0, 0xFFFFFFFF))
+        self.assertEqual((k['hooks_installed'], k['install_attempts'], k['coop_thread_id'], k['stalls_done']), (0, 0, 0, 0))
+        self.assertGreater(k['patch_rows'], 0)
+        self.assertEqual(k['caller_thread_id'], threading.get_native_id())
+        self.assertEqual((k['rejects'], k['applies'], k['subsystems_applied']),
+                         (st0['rejects'], st0['applies'], st0['applied_subsystems']))
+        self.assertEqual(k['ti_pin_row'], -1)
+        # Read-only: a second read changes no state (only the bridge's own call counters move).
+        k2 = S.decode('ilc_counters', self.b.call(OP['GET_COUNTERS'])[1])
+        moving = {'now_ms', 'bridge_calls', 'bridge_max_us', 'poll_calls', 'poll_max_us'}
+        self.assertEqual({n: v for n, v in k.items() if n not in moving | {'header'}},
+                         {n: v for n, v in k2.items() if n not in moving | {'header'}})
+        self.assertGreater(k2['bridge_calls'], k['bridge_calls'])
+        self.assertGreater(k2['poll_calls'], k['poll_calls'])
+        st1 = self.status()
+        self.assertEqual({n: st1[n] for n in ('rejects', 'applies', 'accepted_generation', 'events_pending')},
+                         {n: st0[n] for n in ('rejects', 'applies', 'accepted_generation', 'events_pending')})
+        # Too small an output buffer: OUT_TOO_SMALL, nothing written.
+        self.assertEqual(self.b.call(OP['GET_COUNTERS'], out_cap=size - 1)[0], E['OUT_TOO_SMALL'])
+        # HELLO advertises the op.
+        hello = S.decode('ilc_hello_reply', self.ok(OP['HELLO']))
+        self.assertTrue(hello['ops_mask'] >> OP['GET_COUNTERS'] & 1)
 
     def test_seats_and_devices_views(self):
         seats = S.decode('ilc_seats_reply', self.ok(OP['GET_SEATS']))
@@ -771,7 +992,7 @@ class FaultSafetyTest(BridgeCase):
                 in_len = len(data)
                 if rng.random() < 0.05 and in_len:
                     in_len = rng.randrange(0, in_len)  # claim less than is there: must read only in_len
-                out_cap = rng.choice((0, 16, 31, 32, 64, 95, 96, 111, 112, 3487, 3488, 3491, 3492, 4096, rng.randrange(0, 4097)))
+                out_cap = rng.choice((0, 16, 31, 32, 64, 95, 96, 111, 112, 3527, 3528, 3531, 3532, 4096, rng.randrange(0, 4097)))
                 lead = rng.random() < 0.3
                 inbound = GuardedBuffer(max(in_len, 1), lead=lead)
                 out = GuardedBuffer(max(out_cap, 1), lead=lead)

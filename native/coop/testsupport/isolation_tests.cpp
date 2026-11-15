@@ -1,6 +1,7 @@
 // Ivalice Legacy co-op module, host tests only: the input-isolation exports (ILCT_Iso*).
 #include <string.h>
 
+#include "focus/focus.h"
 #include "input/pad_mirror.h"
 #include "isolation/isolation.h"
 #include "patch/patch_engine.h"
@@ -63,7 +64,7 @@ void ILCT_IsoBlock(const ilc_xinput_gamepad* pad, uint32_t extra, int32_t flee, 
     isolation::platform_block(*pad, extra, flee != 0, out);
 }
 
-// which: 1 IN-01, 2 IN-02, 3 IN-03, 5 IN-05, 6 IN-06, 7 IN-07 (the fail-open handlers, called directly)
+// which: 1 IN-01, 2 IN-02, 3 IN-03, 5 IN-05 (the fail-open handlers, called directly); 6 IN-06 (the focus setting's)
 int32_t ILCT_IsoCall(uint32_t which, patch::ctx* c, uint32_t epoch)
 {
     switch (which) {
@@ -71,8 +72,7 @@ int32_t ILCT_IsoCall(uint32_t which, patch::ctx* c, uint32_t epoch)
     case 2: return isolation::in02(c, epoch);
     case 3: return isolation::in03(c, epoch);
     case 5: return isolation::in05(c, epoch);
-    case 6: return isolation::in06(c, epoch);
-    case 7: return isolation::in07(c, epoch);
+    case 6: return focus::in06(c, epoch);
     default: return -1;
     }
 }
@@ -125,6 +125,11 @@ uint32_t ILCT_IsoSessionRecordSize(void)
 void ILCT_IsoPublishNow(void)
 {
     isolation::publish(patch::now_ms());
+}
+
+int32_t ILCT_IsoFleeLast(void)
+{
+    return isolation::test_flee_last() ? 1 : 0;
 }
 
 void ILCT_IsoBeginRelease(void)

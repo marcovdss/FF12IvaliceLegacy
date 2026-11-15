@@ -222,7 +222,7 @@ class CtypesHostTest(unittest.TestCase):
                          (ILC_ABI_MAGIC, ILC_ABI_VERSION, 2, HELLO_SIZE, 0))
         self.assertEqual((major, minor, patch), VERSION)
         self.assertEqual((state, reason, flags, reserved), (1, self.expected_reason, 0, 0))
-        self.assertEqual((settings_size, accepted, applied), (3492, 0, 0))
+        self.assertEqual((settings_size, accepted, applied), (3532, 0, 0))  # sizeof(ilc_settings)
         self.assertEqual(tid, threading.get_native_id())
         source_id = struct.pack('>2Q', *fields[17:19]).hex()
         self.assertEqual(source_id, _built['manifest']['sourceId'][:32])
@@ -324,10 +324,12 @@ class CtypesHostTest(unittest.TestCase):
         self.assert_untouched(out)
 
     def test_unknown_ops_write_nothing(self):
-        for op in (0, 9, 0x7F00, 0xFFFFFFFF):
+        # 10 is the first op number after the defined ones (9 is GET_COUNTERS).
+        for op in (0, 10, 0x7F00, 0xFFFFFFFF):
             status, out = self.call(op)
             self.assertEqual(status, UNKNOWN_OP)
             self.assert_untouched(out)
+        self.assertNotEqual(self.call(9)[0], UNKNOWN_OP, 'op 9 (GET_COUNTERS) is defined')
 
     def test_unaligned_output_buffer(self):
         raw = (ctypes.c_ubyte * (HELLO_SIZE + 32))()
@@ -347,7 +349,7 @@ class CtypesHostTest(unittest.TestCase):
         eight = ctypes.CFUNCTYPE(ctypes.c_int32, u64, ptr, u64, ptr, u64, u64, u64, u64)(address)
         junk = (0xDEADBEEF_CAFEF00D, 0x5A5A5A5A_5A5A5A5A, 0xFFFFFFFF_FFFFFFFF)
         cases = [(1, b'', HELLO_SIZE), (1, header(), HELLO_SIZE), (1, header(magic=0), BAD_HEADER),
-                 (5, b"", 96), (9, b'', UNKNOWN_OP)]
+                 (5, b"", 96), (10, b'', UNKNOWN_OP)]
         for op, record, expected in cases:
             in_buf = ctypes.create_string_buffer(record, len(record)) if record else None
             with self.subTest(op=op, record=record.hex(), upper='clean'):

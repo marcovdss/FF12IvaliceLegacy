@@ -1,6 +1,6 @@
 // Ivalice Legacy co-op module: call-site hooks by rel32 rewrite ("call islands").
 //
-// A PATCH row whose hook window holds a `call rel32` (the 14 CALL rows, and the four `mov rcx, reg; call` rows
+// A PATCH row whose hook window holds a `call rel32` (the 16 CALL rows, and the four `mov rcx, reg; call` rows
 // whose call sits 3 bytes in) is not hooked with MinHook. MinHook would relocate the call into its buffer as
 // `call [rip+2]`, so the game callee would run with its return address in memory that has no unwind data. Here
 // the game's own E8 stays where it is and only its rel32 changes:
@@ -80,7 +80,7 @@ constexpr uint32_t count_call_rows()
 }
 
 constexpr uint32_t ROWS = count_call_rows();  // keep in step with ILC_CALL_ROWS in call_stubs.cpp
-static_assert(ROWS == 18, "the call-type rows: 14 CALL rows plus four `mov rcx, reg; call` rows");
+static_assert(ROWS == 22, "the call-type rows: 18 CALL rows plus four `mov rcx, reg; call` rows");
 
 // Call index k (0..ROWS-1, in site-table order) <-> row.
 constexpr uint32_t row_of(uint32_t k)

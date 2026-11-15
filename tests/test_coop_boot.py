@@ -657,7 +657,7 @@ class BootLiveTest(Instrument):
         self.assertEqual(d.ILCT_BootInputStartThreadId(), init_tid, 'start_live() must run on the init thread')
         self.assertEqual(events(d), [EV['INIT_THREAD'], EV['INPUT_START_CALL'], EV['INPUT_STARTED'],
                                      EV['HOOKS_INSTALLED'], EV['ARMED']])
-        # Hooks: every PATCH row hooked; only MinHook's 43 x 5 jump bytes and the 18 call rows' rel32s differ.
+        # Hooks: every PATCH row hooked; only MinHook's 49 x 5 jump bytes and the 16 call rows' rel32s differ.
         self.assertEqual(d.ILCT_PatchState(), STATE_INSTALLED)
         image = self.twin.image()
         expected = bytearray(self.twin.baseline)
@@ -669,10 +669,11 @@ class BootLiveTest(Instrument):
             span = pe.written_bytes(r)
             expected[span.start:span.stop] = image[span.start:span.stop]
         self.assertEqual(image, bytes(expected), 'bytes outside the jumps and rel32s changed')
-        # Dry-armed: DRY mode, subsystem bits closed, every non-CORE gate closed, UT-01 open.
+        # Dry-armed: DRY mode, subsystem bits closed, every non-CORE gate closed; UT-01 and the four background rows
+        # (the player's own setting, acting with every subsystem off) open.
         self.assertEqual((d.ILCT_PatchMode(), d.ILCT_PatchSubsystems()), (0, 0))
         gates = self.gates(d)
-        self.assertEqual({k for k, (g, _) in gates.items() if g}, {'UT-01'})
+        self.assertEqual({k for k, (g, _) in gates.items() if g}, {'UT-01', 'FP-01', 'FP-03', 'FP-04', 'IN-06'})
         live = Liveness()
         self.assertEqual(d.ILCT_LivenessSample(ctypes.byref(live)), 1)
         self.assertEqual((live.armed, live.epoch, live.fresh), (1, 1, True))
@@ -687,13 +688,16 @@ class BootLiveTest(Instrument):
         # The game finished starting.
         d.FF12HinitDone()
         self.assert_status(d, 'READY', 'DRY_ARMED', 0)
-        # Settings pushed by Lua reach the arm bits and the input service at the safe point, and nothing leaves DRY.
+        # Settings pushed by Lua reach the arm bits and the input service at the safe point. That first applied record
+        # takes the layer LIVE once its mask is in: the armed subsystems' rows open next to the CORE rows, no others.
         self.push(d, 1, 0x05, park_p2=True)
-        self.assertEqual(d.ILCT_PatchSubsystems(), 0)
-        self.assertEqual(d.ILCT_TickRun(1), 0)
-        self.assertEqual(d.ILCT_PatchSubsystems(), 0x05)
-        self.assertEqual(d.ILCT_PatchMode(), 0)
-        self.assertEqual({k for k, (g, _) in self.gates(d).items() if g}, {'UT-01'})
+        self.assertEqual((d.ILCT_PatchSubsystems(), d.ILCT_PatchMode()), (0, 0), 'staged is not applied')
+        self.assertEqual(d.ILCT_TickRun(1), 2, 'PARTY live: the stock tick runs from our frame (CALL_AROUND)')
+        self.assertEqual((d.ILCT_PatchSubsystems(), d.ILCT_PatchMode()), (0x05, 1))
+        open_now = {k: sub for k, (g, sub) in self.gates(d).items() if g}
+        self.assertTrue({'UT-01', 'FP-01', 'FP-03', 'FP-04', 'IN-06'} <= set(open_now))
+        self.assertEqual(set(open_now.values()), {0, 0x01, 0x04}, 'only CORE, INPUT_ISOLATION and PARTY rows open')
+        self.assert_status(d, 'READY', 'LIVE', 0)
         view = ControlView()
         deadline = time.time() + 2
         while time.time() < deadline:
@@ -723,6 +727,25 @@ class BootLiveTest(Instrument):
         d.FF12Hcleanup()
         self.assertEqual(events(d)[-1], EV['CLEANUP_END'])
         self.assertEqual(events(d).count(EV['CLEANUP_BEGIN']), 1)
+
+    def test_guest_interactions_that_cannot_attach_set_their_boot_flag_and_the_rest_arms(self):
+        """interaction::attach() fails (fault injected after it armed its rows; it disarms them again): the boot latches
+        INTERACTIONS_FAILED and arms as usual. Control: the happy path above has exactly the six usual flags."""
+        self.game.module_switch(True)
+        d = self.boot_copy()
+        d.ILCT_IxFailAttach.argtypes, d.ILCT_IxFailAttach.restype = [ctypes.c_uint32], None
+        d.ILCT_IxFailAttach(1)
+        self.init(d)
+        self.settle(d)
+        s = self.assert_status(d, 'ARMED', 'DRY_ARMED', 0)
+        self.assertEqual(s.flags, FLAG['INIT_CALLED'] | FLAG['GUARD_HELD'] | FLAG['THREAD_STARTED'] |
+                         FLAG['INPUT_RUNNING'] | FLAG['HOOKS_INSTALLED'] | FLAG['ARMED'] |
+                         FLAG['INTERACTIONS_FAILED'])
+        self.assertEqual(FLAG['INTERACTIONS_FAILED'], 0x0400)
+        self.assertEqual(d.ILCT_PatchState(), STATE_INSTALLED, 'the hooks went in all the same')
+        d.FF12HinitDone()
+        s = self.assert_status(d, 'READY', 'DRY_ARMED', 0)
+        self.assertTrue(s.flags & FLAG['INTERACTIONS_FAILED'], 'the flag stays latched')
 
     def test_init_done_before_arming_goes_straight_to_ready(self):
         self.game.module_switch(True)
@@ -832,6 +855,184 @@ class BootLiveTest(Instrument):
         self.assertIn(EV['INPUT_STOPPED'], events(d))
         self.assertEqual(d.ILCT_PatchState(), STATE_IDLE)
         self.assertEqual(self.twin.image(), reference, 'a refused install wrote to the image')
+
+    # ---- the DRY -> LIVE switch, the Status reason, the kill switch after LIVE, the counters and the stall drill ----
+    def push_record(self, d, generation: int, mask: int, developer: int = 0):
+        record = bytearray(S.defaults())
+        struct.pack_into('<I', record, S.locate('ilc_settings', ['header', 'generation'])[0], generation)
+        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_armed'])[0], mask)
+        record[S.locate('ilc_settings', ['developer'])[0]] = developer
+        status_code, _ = Bridge(d).call(S.e('op', 'SET_SETTINGS'), bytes(record))
+        self.assertGreater(status_code, 0)
+
+    def counters(self, d) -> dict:
+        return S.decode('ilc_counters', Bridge(d).call(S.e('op', 'GET_COUNTERS'))[1])
+
+    def command(self, d, cmd: str, arg0: int, request: int) -> int:
+        record = bytes(S.encode('ilc_command', {'header': S.header('COMMAND', S.size('ilc_command'), request),
+                                                'command': S.e('command', cmd), 'seat': 0, 'arg0': arg0, 'arg1': 0}))
+        return Bridge(d).call(S.e('op', 'COMMAND'), record)[0]
+
+    def pop_events(self, d) -> list[dict]:
+        out = Bridge(d).call(S.e('op', 'POP_EVENTS'))[1]
+        head = S.decode('ilc_events_reply', out + bytes(S.size('ilc_events_reply') - len(out)))
+        return head['events'][:head['count']]
+
+    def wait_for(self, predicate, timeout: float, what: str):
+        deadline = time.perf_counter() + timeout
+        while time.perf_counter() < deadline:
+            if predicate():
+                return
+            time.sleep(0.005)
+        self.fail(f'timed out waiting for {what}')
+
+    def booted_ready(self):
+        self.game.module_switch(True)
+        d = self.boot_copy()
+        self.init(d)
+        self.settle(d)
+        d.FF12HinitDone()
+        d.ILCT_PatchDispatchRow.argtypes = [ctypes.c_uint32]
+        d.ILCT_PatchDispatchRow.restype = ctypes.c_int32
+        return d
+
+    def party_minhook_row(self, d) -> int:
+        """A PARTY row hooked through MinHook, given the host-safe test handler (its real handler would read the game)."""
+        for row in self.twin.patch:
+            info = pe.SiteInfo()
+            d.ILCT_PatchSiteInfo(row, ctypes.byref(info))
+            if info.subsystem == 0x04 and d.ILCT_PatchDispatchRow(row) != -1:
+                self.assertEqual(d.ILCT_RecordSetHandler(row), 1)
+                d.ILCT_PatchSetSiteArmed(row, 1)
+                return row
+        self.fail('no MinHook row of PARTY')
+
+    def test_live_switch_reason_and_kill_switch_after_live(self):
+        """Booted: DRY / DRY_ARMED. The first applied record goes LIVE but, with mask 0, still reports DRY_ARMED (every
+        non-CORE row stock); a record arming PARTY reports LIVE. The kill switch then keeps LIVE (it changes the mask,
+        never the mode): DRY_ARMED with every non-CORE gate closed while off; back on, the settings' mask
+        returns at the next safe point and LIVE with it."""
+        d = self.booted_ready()
+        core = {'UT-01', 'FP-01', 'FP-03', 'FP-04', 'IN-06'}
+        self.assert_status(d, 'READY', 'DRY_ARMED', 0)
+        k = self.counters(d)
+        tid = threading.get_native_id()
+        self.assertEqual((k['mode'], k['init_thread_id'], k['init_done_thread_id'], k['coop_thread_id']),
+                         (0, tid, tid, d.ILCT_BootInitThreadId()))
+        self.assertEqual((k['hooks_installed'], k['install_attempts'], k['gated_off']), (len(self.twin.patch), 1, 0))
+        self.wait_for(lambda: self.counters(d)['beats'] > 0, 1.0, 'a co-op beat')
+        # 1. LIVE with mask 0: dry-armed
+        self.push_record(d, 1, 0)
+        d.ILCT_TickRun(1)
+        self.assertEqual((d.ILCT_PatchMode(), d.ILCT_PatchSubsystems()), (1, 0))
+        self.assert_status(d, 'READY', 'DRY_ARMED', 0)
+        self.assertEqual({n for n, (g, _) in self.gates(d).items() if g}, core)
+        # 2. PARTY armed: LIVE
+        self.push_record(d, 2, 0x04)
+        d.ILCT_TickRun(1)
+        self.assert_status(d, 'READY', 'LIVE', 0)
+        self.assertEqual({sub for _, (g, sub) in self.gates(d).items() if g}, {0, 0x04})
+        k = self.counters(d)
+        self.assertEqual((k['mode'], k['tick_live_switches'], k['subsystems_gates'], k['subsystems_live']), (1, 1, 0x04, 0x04))
+        # the tick timed itself (calibrated against the performance counter since FF12Hinit), the bridge too
+        self.assertGreater(k['tick_max_us'], 0)
+        self.assertGreater(k['poll_calls'], 0)
+        self.assertLess(k['poll_max_us'], 1_000_000)
+        # 3. kill switch: the co-op thread runs the ordered disarm; the mode stays LIVE
+        self.assertEqual(self.command(d, 'KILL_SWITCH', 1, 31), 0)
+        off = S.e('coop_switch', 'OFF')
+        self.wait_for(lambda: S.decode('ilc_status', Bridge(d).call(S.e('op', 'GET_STATUS'))[1])['coop_switch'] == off,
+                      2.0, 'co-op off')
+        self.assertEqual((d.ILCT_PatchMode(), d.ILCT_PatchSubsystems()), (1, 0))
+        self.assert_status(d, 'READY', 'DRY_ARMED', 0)
+        self.assertEqual({n for n, (g, _) in self.gates(d).items() if g}, core, 'co-op off: every non-CORE row stock')
+        # a record applied while off is remembered, not armed, and does not touch the mode
+        self.push_record(d, 3, 0x06)
+        d.ILCT_TickRun(1)
+        self.assertEqual((d.ILCT_PatchMode(), d.ILCT_PatchSubsystems()), (1, 0))
+        # 4. back on: the settings' mask comes back at the next safe point
+        self.assertEqual(self.command(d, 'KILL_SWITCH', 0, 32), 0)
+        on = S.e('coop_switch', 'ON')
+        self.wait_for(lambda: S.decode('ilc_status', Bridge(d).call(S.e('op', 'GET_STATUS'))[1])['coop_switch'] == on,
+                      2.0, 'co-op on')
+        self.wait_for(lambda: (d.ILCT_TickRun(1), d.ILCT_PatchSubsystems())[1] == 0x06, 2.0, 'the mask back')
+        self.assertEqual(d.ILCT_PatchMode(), 1)
+        self.assert_status(d, 'READY', 'LIVE', 0)
+        self.assertEqual(self.counters(d)['tick_live_switches'], 1, 'never switched again')
+
+    def test_stall_drill(self):
+        """The developer stall: the co-op thread sleeps once; after 2 s without a heartbeat every detour runs stock (a
+        PARTY row with the test handler: stock, counted as a stale fallback, its handler not run), the Status stays as
+        it was (no fault is latched); when the thread wakes it heartbeats, reports COMMAND_RESULT with the time slept,
+        and the same row runs its handler again. Refused while the developer flag is 0 and while a stall runs."""
+        d = self.booted_ready()
+        row = self.party_minhook_row(d)
+        self.push_record(d, 1, 0x04, developer=0)
+        d.ILCT_TickRun(1)
+        self.assertEqual(self.command(d, 'STALL_COOP_THREAD', 3000, 40), S.e('error', 'CONFLICT'))
+        self.push_record(d, 2, 0x04, developer=1)
+        d.ILCT_TickRun(1)
+        self.assert_status(d, 'READY', 'LIVE', 0)
+        self.pop_events(d)
+        self.wait_for(lambda: self.counters(d)['beats'] >= 3, 1.0, 'a few co-op beats')
+        k0 = self.counters(d)
+        self.assertLess(k0['beat_gap_max_ms'], 200)
+        self.assertEqual(d.ILCT_PatchDispatchRow(row), 1)
+        k1 = self.counters(d)
+        self.assertEqual((k1['detour_handled'] - k0['detour_handled'], k1['stale_fallbacks'] - k0['stale_fallbacks']), (1, 0),
+                         'control: fresh liveness runs the handler')
+        live = Liveness()
+        posted = time.perf_counter()
+        self.assertEqual(self.command(d, 'STALL_COOP_THREAD', 3000, 41), 0)
+        self.assertEqual(self.command(d, 'STALL_COOP_THREAD', 100, 42), S.e('error', 'BUSY'), 'one stall at a time')
+        # During: fresh until about 2 s after the last heartbeat, then stale.
+        self.wait_for(lambda: d.ILCT_LivenessSample(ctypes.byref(live)) == 0, 2.8, 'the liveness to go stale')
+        stale_after = time.perf_counter() - posted
+        self.assertTrue(1.9 <= stale_after <= 2.4, f'stale after {stale_after:.3f} s')
+        self.assertEqual((live.coherent, live.armed), (True, 1))
+        k2 = self.counters(d)
+        self.assertEqual(d.ILCT_PatchDispatchRow(row), 1)
+        k3 = self.counters(d)
+        self.assertEqual((k3['detour_handled'] - k2['detour_handled'], k3['stale_fallbacks'] - k2['stale_fallbacks']), (0, 1),
+                         'stale: stock without the handler')
+        self.assertEqual((k3['liveness_fresh'], k3['stall_requests'], k3['stalls_done']), (0, 1, 0))
+        self.assertGreaterEqual(k3['liveness_age_ms'], 2000)
+        self.assert_status(d, 'READY', 'LIVE', 0)  # no fault: a stale heartbeat latches nothing
+        self.assertEqual((d.ILCT_PatchMode(), d.ILCT_PatchSubsystems()), (1, 0x04))
+        # After: the thread wakes, heartbeats and reports.
+        self.wait_for(lambda: d.ILCT_LivenessSample(ctypes.byref(live)) == 1, 1.5, 'the liveness to come back')
+        back_after = time.perf_counter() - posted
+        self.assertTrue(2.95 <= back_after <= 3.4, f'fresh again after {back_after:.3f} s')
+        result = [e for e in self.pop_events(d) if e['kind'] == S.e('event_kind', 'COMMAND_RESULT')]
+        self.assertEqual(len(result), 1)
+        self.assertEqual((result[0]['generation'], result[0]['a'], result[0]['seat']), (41, S.e('command', 'STALL_COOP_THREAD'), 0))
+        self.assertTrue(2950 <= result[0]['b'] <= 3100, result[0]['b'])  # GetTickCount64 steps ~16 ms
+        k4 = self.counters(d)
+        self.assertEqual((k4['stalls_done'], k4['liveness_fresh']), (1, 1))
+        self.assertEqual(k4['stall_last_ms'], result[0]['b'])
+        self.assertGreaterEqual(k4['beat_gap_max_ms'], 2950)
+        self.assertEqual(d.ILCT_PatchDispatchRow(row), 1)
+        k5 = self.counters(d)
+        self.assertEqual((k5['detour_handled'] - k4['detour_handled'], k5['stale_fallbacks'] - k4['stale_fallbacks']), (1, 0),
+                         'recovered: the handler runs again')
+        self.assert_status(d, 'READY', 'LIVE', 0)
+        # Another stall is accepted once the first has finished.
+        self.assertEqual(self.command(d, 'STALL_COOP_THREAD', 1, 43), 0)
+        self.wait_for(lambda: self.counters(d)['stalls_done'] == 2, 1.0, 'the second stall')
+
+    def test_stall_ends_at_once_on_shutdown(self):
+        """A stall in progress never holds up the exit: cleanup's stop event ends the sleep and the thread joins."""
+        d = self.booted_ready()
+        self.push_record(d, 1, 0, developer=1)
+        d.ILCT_TickRun(1)
+        self.assertEqual(self.command(d, 'STALL_COOP_THREAD', 5000, 50), 0)
+        self.wait_for(lambda: self.counters(d)['stall_requests'] == 1, 0.5, 'the stall to be posted')
+        time.sleep(0.2)  # the thread is asleep now
+        started = time.perf_counter()
+        d.FF12Hcleanup()
+        self.assertLess(time.perf_counter() - started, 1.0, 'cleanup waited for the stall')
+        self.assertIn(EV['THREAD_JOINED'], events(d))
+        self.assert_status(d, 'INERT', 'SHUT_DOWN', 0)
 
 
 @unittest.skipUnless(NATIVE, 'requires the pinned MSYS2 g++')

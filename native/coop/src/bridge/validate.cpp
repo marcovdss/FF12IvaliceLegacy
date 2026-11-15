@@ -236,6 +236,13 @@ bool same_identity(const ilc_device_identity& a, const ilc_device_identity& b)
 
 // ---- Bindings -------------------------------------------------------------------------------------------
 
+// The mouse buttons' virtual-key codes (0x01 left, 0x02 right, 0x04 middle, 0x05/0x06 X1/X2) are not keys. As a KEY
+// binding of the kill switch or a seat toggle they are refused (a click would switch co-op off or drop a seat out).
+bool mouse_button_vk(uint8_t code)
+{
+    return code == 0x01 || code == 0x02 || (code >= 0x04 && code <= 0x06);
+}
+
 bool check_binding(const ilc_binding& b, uint32_t field, uint32_t outer, uint32_t inner, bool allow_pad,
                    reject* out)
 {
@@ -327,6 +334,14 @@ bool check_seat(const ilc_seat_settings& seat, uint32_t index, reject* out)
                                  out)) {
             return false;
         }
+        if (action == ILC_ACTION_TOGGLE_CONTROL) {
+            for (uint32_t slot = 0; slot < ILC_BINDINGS_PER_ACTION; ++slot) {
+                const ilc_binding& b = seat.bindings[first + slot];
+                if (b.kind == ILC_BIND_KEY && mouse_button_vk(b.code)) {
+                    return fail(out, ILC_E_BAD_FIELD, bindings, index, first + slot);
+                }
+            }
+        }
         if (index == 0 && (ILC_P1_ACTION_MASK & (1u << action)) == 0) {
             for (uint32_t slot = 0; slot < ILC_BINDINGS_PER_ACTION; ++slot) {
                 if (seat.bindings[first + slot].kind != ILC_BIND_NONE) {
@@ -361,6 +376,91 @@ pad_key key_of(const ilc_settings& s, const ilc_seat_device& device)
     return {ILC_DEVICE_NONE, 0, nullptr};
 }
 
+// A keyboard key or a mouse button: the inputs every seat shares. Pad bindings belong to the seat's own pad.
+bool shared_input(const ilc_binding& b)
+{
+    return b.kind == ILC_BIND_KEY || b.kind == ILC_BIND_MOUSE;
+}
+
+bool same_binding(const ilc_binding& a, const ilc_binding& b)
+{
+    return a.kind == b.kind && a.code == b.code;
+}
+
+// Hotkeys that would act twice on one press (see validate.h). Runs after every other rule.
+bool check_hotkey_clashes(const ilc_settings& s, reject* out)
+{
+    using T = ilc_settings;
+    using S = ilc_seat_settings;
+    constexpr uint32_t TOGGLE = ILC_ACTION_TOGGLE_CONTROL * ILC_BINDINGS_PER_ACTION;
+    // The kill switch against every guest seat's join/leave binding.
+    for (uint32_t k = 0; k < ILC_KILL_SWITCH_BINDINGS; ++k) {
+        const ilc_binding& kill = s.kill_switch[k];
+        if (!shared_input(kill)) {
+            continue;
+        }
+        for (uint32_t seat = 1; seat < ILC_SEATS; ++seat) {
+            for (uint32_t slot = 0; slot < ILC_BINDINGS_PER_ACTION; ++slot) {
+                if (same_binding(kill, s.seats[seat].bindings[TOGGLE + slot])) {
+                    return fail(out, ILC_E_CONFLICT, FID(T, kill_switch), ILC_LOC_KILL_SWITCH, k);
+                }
+            }
+        }
+    }
+    // Two seats' join/leave bindings.
+    for (uint32_t seat = 1; seat < ILC_SEATS; ++seat) {
+        for (uint32_t slot = 0; slot < ILC_BINDINGS_PER_ACTION; ++slot) {
+            const ilc_binding& mine = s.seats[seat].bindings[TOGGLE + slot];
+            if (!shared_input(mine)) {
+                continue;
+            }
+            for (uint32_t other = 0; other < seat; ++other) {
+                for (uint32_t k = 0; k < ILC_BINDINGS_PER_ACTION; ++k) {
+                    if (same_binding(mine, s.seats[other].bindings[TOGGLE + k])) {
+                        return fail(out, ILC_E_CONFLICT, FID(S, bindings), seat, TOGGLE + slot);
+                    }
+                }
+            }
+        }
+    }
+    // The kill switch against any key or mouse button the keyboard's seat has bound (one press would act twice:
+    // the right button is P2's default CANCEL, so it can be the kill switch only once that binding moves).
+    if (s.kbm_seat >= 1 && s.kbm_seat <= ILC_ACTIVE_SEATS_MAX) {
+        const ilc_seat_settings& owner = s.seats[s.kbm_seat - 1u];
+        for (uint32_t k = 0; k < ILC_KILL_SWITCH_BINDINGS; ++k) {
+            const ilc_binding& kill = s.kill_switch[k];
+            if (!shared_input(kill)) {
+                continue;
+            }
+            for (uint32_t i = 0; i < ILC_SEAT_BINDINGS; ++i) {
+                if (same_binding(kill, owner.bindings[i])) {
+                    return fail(out, ILC_E_CONFLICT, FID(T, kill_switch), ILC_LOC_KILL_SWITCH, k);
+                }
+            }
+        }
+        // A guest's join/leave key or mouse button against any key or mouse button of the keyboard's seat: a guest
+        // that does not own the keyboard reads its own join/leave keys from it, so one press would act for both.
+        // The keyboard's seat itself is exempt (its own join key is one of its own bindings).
+        for (uint32_t seat = 1; seat < ILC_SEATS; ++seat) {
+            if (seat == s.kbm_seat - 1u) {
+                continue;
+            }
+            for (uint32_t slot = 0; slot < ILC_BINDINGS_PER_ACTION; ++slot) {
+                const ilc_binding& join = s.seats[seat].bindings[TOGGLE + slot];
+                if (!shared_input(join)) {
+                    continue;
+                }
+                for (uint32_t i = 0; i < ILC_SEAT_BINDINGS; ++i) {
+                    if (same_binding(join, owner.bindings[i])) {
+                        return fail(out, ILC_E_CONFLICT, FID(S, bindings), seat, TOGGLE + slot);
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
+
 bool same_pad(const pad_key& a, const pad_key& b)
 {
     if (a.kind == ILC_DEVICE_NONE || a.kind != b.kind) {
@@ -381,6 +481,11 @@ uint32_t header_generation_field()
 uint32_t kbm_seat_field()
 {
     return FID(ilc_settings, kbm_seat);
+}
+
+uint32_t developer_field()
+{
+    return FID(ilc_settings, developer);
 }
 
 bool validate_header(const ilc_header& header, uint32_t in_len, uint16_t record_type, reject* out)
@@ -411,6 +516,15 @@ bool validate_settings(const ilc_settings& s, reject* out)
     if (!check_binding_group(s.kill_switch, ILC_KILL_SWITCH_BINDINGS, FID(T, kill_switch), ILC_LOC_KILL_SWITCH,
                              0, false, out)) {
         return false;
+    }
+    for (uint32_t i = 0; i < ILC_KILL_SWITCH_BINDINGS; ++i) {
+        // The left mouse button is the game's own click: it would switch co-op off on every click. The mouse buttons'
+        // virtual-key codes are not keys (mouse_button_vk); the right button is bound as MOUSE 2.
+        const uint8_t code = s.kill_switch[i].code;
+        if ((s.kill_switch[i].kind == ILC_BIND_MOUSE && code == 1) ||
+            (s.kill_switch[i].kind == ILC_BIND_KEY && mouse_button_vk(code))) {
+            return fail(out, ILC_E_BAD_FIELD, FID(T, kill_switch), ILC_LOC_KILL_SWITCH, i);
+        }
     }
 
     const ilc_economy& economy = s.economy;
@@ -485,7 +599,7 @@ bool validate_settings(const ilc_settings& s, reject* out)
     if (s.seats[0].device.kind == ILC_DEVICE_NONE && s.kbm_seat != 1) {
         return fail(out, ILC_E_CONFLICT, FID(T, kbm_seat), 0, 0);
     }
-    return true;
+    return check_hotkey_clashes(s, out);
 }
 
 bool validate_command(const ilc_command& c, reject* out)
@@ -517,13 +631,22 @@ bool validate_command(const ilc_command& c, reject* out)
         arg0_ok = c.arg0 != 0;
         break;
     case ILC_CMD_CAPTURE_START:
-        seat_ok = c.seat >= 1;
-        arg0_ok = c.arg0 < ILC_ACTIONS && (c.seat != 1 || (ILC_P1_ACTION_MASK & (1u << c.arg0)) != 0);
-        arg1_ok = c.arg1 < ILC_BINDINGS_PER_ACTION;
+        seat_ok = true;  // 0 = the co-op on/off key, 1..4 = a seat's action
+        if (c.seat == 0) {
+            arg0_ok = c.arg0 == 0;
+            arg1_ok = c.arg1 < ILC_KILL_SWITCH_BINDINGS;
+        } else {
+            arg0_ok = c.arg0 < ILC_ACTIONS && (c.seat != 1 || (ILC_P1_ACTION_MASK & (1u << c.arg0)) != 0);
+            arg1_ok = c.arg1 < ILC_BINDINGS_PER_ACTION;
+        }
         break;
     case ILC_CMD_PAIRING_CANCEL:
-    case ILC_CMD_CAPTURE_CANCEL:
         seat_ok = c.seat >= 1;
+        arg0_ok = c.arg0 == 0;
+        arg1_ok = c.arg1 == 0;
+        break;
+    case ILC_CMD_CAPTURE_CANCEL:
+        seat_ok = true;  // 0 = the co-op on/off key's capture
         arg0_ok = c.arg0 == 0;
         arg1_ok = c.arg1 == 0;
         break;
@@ -537,8 +660,13 @@ bool validate_command(const ilc_command& c, reject* out)
         arg0_ok = c.arg0 <= 1;
         arg1_ok = c.arg1 == 0;
         break;
+    case ILC_CMD_STALL_COOP_THREAD:
+        seat_ok = c.seat == 0;
+        arg0_ok = c.arg0 >= 1 && c.arg0 <= ILC_STALL_MAX_MS;
+        arg1_ok = c.arg1 == 0;
+        break;
     default:
-        return fail(out, ILC_E_BAD_FIELD, FID(C, command), 0, 0);  // unreachable: range 1..8 checked
+        return fail(out, ILC_E_BAD_FIELD, FID(C, command), 0, 0);  // unreachable: the command range is checked
     }
     if (c.seat > ILC_ACTIVE_SEATS_MAX) {
         return fail(out, ILC_E_BAD_FIELD, seat, c.seat - 1u, 0);  // no command reaches a seat that cannot play

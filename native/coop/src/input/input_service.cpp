@@ -18,6 +18,7 @@
 #include "input/input_live.h"
 #include "input/input_service.h"
 #include "input/sha256.h"
+#include "runtime/loopback.h"
 
 namespace ilc::input {
 namespace {
@@ -70,6 +71,24 @@ uint64_t g_manual_now = 0;
 // Published.
 uint32_t g_pub_seq = 0;
 snapshot g_pub;
+
+// A capture that reads the whole keyboard (the co-op on/off key's, or the keyboard seat's own), for the co-op
+// switches (control.h): bit 0 running, the rest a serial that moves at every start and end. Never reset, so a reader
+// that missed a whole session still sees the serial move.
+volatile uint32_t g_kill_word = 0;
+uint32_t g_kill_serial = 0;  // writer-owned
+bool g_kill_running = false;
+
+void publish_kill_capture()
+{
+    const bool running = control_wants_all_keys(g_ctl, g_settings.kbm_seat);
+    if (running == g_kill_running) {
+        return;
+    }
+    g_kill_running = running;
+    ++g_kill_serial;
+    __atomic_store_n(&g_kill_word, (g_kill_serial << 1) | (running ? 1u : 0u), __ATOMIC_RELEASE);
+}
 
 uint64_t qpc_now_us()
 {
@@ -183,6 +202,7 @@ void stop_commands()
     g_inbox_count = 0;
     ReleaseSRWLockExclusive(&g_ctl_lock);
     control_shutdown(g_ctl, g_sink);
+    publish_kill_capture();
     for (uint32_t i = 0; i < n; ++i) {
         control_event e;
         memset(&e, 0, sizeof(e));
@@ -194,7 +214,8 @@ void stop_commands()
             e.b = batch[i].arg1;
         } else if (batch[i].command == ILC_CMD_CAPTURE_START) {
             e.kind = ILC_EV_CAPTURE_RESULT;
-            e.a = ILC_CAPT_CANCELLED | ((batch[i].arg0 & 0xFFu) << 8) | ((batch[i].arg1 & 0xFFu) << 16);
+            const uint32_t action = batch[i].seat == 0 ? ILC_CAPTURE_KILL_SWITCH_ACTION : (batch[i].arg0 & 0xFFu);
+            e.a = ILC_CAPT_CANCELLED | (action << 8) | ((batch[i].arg1 & 0xFFu) << 16);
         } else {
             continue;  // park, seat move and cancels need no answer once the service is gone
         }
@@ -206,12 +227,12 @@ void read_keys(keyboard_api* keyboard, uint8_t kbm_seat, bool* focused, key_stat
 {
     memset(keys, 0, sizeof(*keys));
     *focused = keyboard != nullptr && keyboard->focused();
-    if (!*focused || kbm_seat < 1 || kbm_seat > SEATS) {
-        return;  // keys are read only in the foreground, and only for the seat that owns them
+    if (!*focused) {
+        return;  // keys are read only in the foreground
     }
-    key_state wanted;
+    const bool all = control_wants_all_keys(g_ctl, kbm_seat);  // a capture (the co-op on/off key's: any owner)
+    key_state wanted;  // the kbm seat's bindings and the other guests' drop-in/out keys
     actions_wanted_keys(g_settings, &wanted);
-    const bool all = control_wants_all_keys(g_ctl, kbm_seat);
     for (uint32_t vk = 1; vk < 255; ++vk) {
         if ((all || key_is_down(wanted, vk)) && keyboard->down(static_cast<uint8_t>(vk))) {
             key_set(*keys, vk);
@@ -262,6 +283,7 @@ void tick(uint64_t now, xinput_api* xinput, sdl_api* sdl, keyboard_api* keyboard
     key_state keys;
     read_keys(keyboard, g_settings.kbm_seat, &focused, &keys);
     control_step(g_ctl, g_core, keys, focused, g_settings.kbm_seat, now, g_sink);
+    publish_kill_capture();  // a start taken above and an end in this step
 
     action_inputs in;
     memset(&in, 0, sizeof(in));
@@ -271,22 +293,27 @@ void tick(uint64_t now, xinput_api* xinput, sdl_api* sdl, keyboard_api* keyboard
     in.focused = focused ? 1 : 0;
     in.decide_swap = g_swap;
     memcpy(in.fast, g_fast, sizeof(in.fast));
-    control_suppressed(g_ctl, in.suppress);
+    control_suppressed(g_ctl, g_settings.kbm_seat, in.suppress);
+    in.hot_off = control_wants_all_keys(g_ctl, g_settings.kbm_seat) ? 1 : 0;  // no drop-in/out during a key capture
     memcpy(in.reseed, g_ctl.reseed_now, sizeof(in.reseed));
     memset(g_ctl.reseed_now, 0, sizeof(g_ctl.reseed_now));
     actions_step(g_actions, in, now, g_core.seq, g_work.actions);
-    edges::record(g_core.seq, g_core.frames, g_work.actions);  // each consumer's cursor sees this tick's edges
-    pads::record(g_core.frames, g_work.actions);  // the small per-seat copy detours read
+    // The seam: every consumer below reads these frames and action frames (host tests: through the loopback codec).
+    ILC_LOOPBACK_EACH(FAM_ACTION, g_work.actions, SEATS);
+    ILC_LOOPBACK_ARRAY(ilc_seat_input_frame, FAM_FRAME, g_core.frames, SEATS, seam_frames);
+    edges::record(g_core.seq, seam_frames, g_work.actions);  // each consumer's cursor sees this tick's edges
+    pads::record(seam_frames, g_work.actions);  // the small per-seat copy detours read
 
     g_work.seq = g_core.seq;
     g_work.time_us = now;
-    memcpy(g_work.frames, g_core.frames, sizeof(g_work.frames));
+    memcpy(g_work.frames, seam_frames, sizeof(g_work.frames));
     g_work.inventory_count = core_inventory(g_core, g_work.inventory, ILC_DEVICES_MAX);
     g_work.counters = g_core.counters;
     control_view& v = g_work.control;
     v.pairing_stage = g_ctl.pairing.stage;
     v.pairing_seat = g_ctl.pairing.stage != PAIR_IDLE ? g_ctl.pairing.seat : 0;
     v.capture_seat = g_ctl.capture.active ? g_ctl.capture.seat : 0;
+    v.kill_capture = control_kill_capture(g_ctl) ? 1 : 0;
     v.override_active = g_ctl.override_active;
     v.parked = 0;
     for (uint32_t s = 0; s < SEATS; ++s) {
@@ -300,6 +327,7 @@ void tick(uint64_t now, xinput_api* xinput, sdl_api* sdl, keyboard_api* keyboard
     AcquireSRWLockExclusive(&g_ctl_lock);
     v.events_dropped = g_out_dropped;
     ReleaseSRWLockExclusive(&g_ctl_lock);
+    ILC_LOOPBACK(FAM_CONTROL_VIEW, g_work.control);
     publish(g_work);
 }
 
@@ -428,6 +456,11 @@ bool snapshot_read(snapshot* out)
     }
     memset(out, 0, sizeof(*out));
     return false;
+}
+
+uint32_t kill_capture_word()
+{
+    return __atomic_load_n(&g_kill_word, __ATOMIC_ACQUIRE);
 }
 
 void configure(const config& cfg)
@@ -578,8 +611,9 @@ seat_action_source& local_actions()
     return g_local_actions;
 }
 
-int32_t post_command(const command_msg& m)
+int32_t post_command(const command_msg& m_in)
 {
+    ILC_LOOPBACK_COPY(command_msg, FAM_COMMAND, m_in, m);
     int32_t rc = 0;
     AcquireSRWLockExclusive(&g_ctl_lock);
     if (!__atomic_load_n(&g_accepting, __ATOMIC_ACQUIRE)) {
@@ -603,6 +637,7 @@ uint32_t drain_events(control_event* out, uint32_t max)
     g_out_head = (g_out_head + n) % OUTBOX;
     g_out_count -= n;
     ReleaseSRWLockExclusive(&g_ctl_lock);
+    ILC_LOOPBACK_EACH(FAM_EVENT, out, n);
     return n;
 }
 
@@ -621,6 +656,14 @@ void set_decide_swap(bool circle_confirms)
     AcquireSRWLockExclusive(&g_cfg_lock);
     g_knob_swap = circle_confirms ? 1 : 0;
     ReleaseSRWLockExclusive(&g_cfg_lock);
+}
+
+bool decide_swap_knob()
+{
+    AcquireSRWLockShared(&g_cfg_lock);
+    const bool on = g_knob_swap != 0;
+    ReleaseSRWLockShared(&g_cfg_lock);
+    return on;
 }
 
 void manual_keyboard(keyboard_api* keyboard)

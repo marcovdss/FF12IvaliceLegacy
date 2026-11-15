@@ -107,10 +107,9 @@ struct ilc_seat_action_frame {
     uint32_t repeated;           // a repeat pulse this tick (held menu directions only; never on the press tick)
     uint32_t absorbed;           // held only through controls/keys absorbed by a discontinuity: no edges until released
     uint16_t strength[ILC_ACTIONS];  // 0 while not held
-    uint8_t reserved[2];
 };
 static_assert(sizeof(ilc_seat_action_frame) == 80, "ilc_seat_action_frame");
-static_assert(__builtin_offsetof(ilc_seat_action_frame, reserved) + 2 == sizeof(ilc_seat_action_frame),
+static_assert(__builtin_offsetof(ilc_seat_action_frame, strength) + 2 * ILC_ACTIONS == sizeof(ilc_seat_action_frame),
               "ilc_seat_action_frame has no implicit padding");
 
 namespace ilc {

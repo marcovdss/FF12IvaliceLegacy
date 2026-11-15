@@ -4,9 +4,11 @@
 #include <string.h>
 
 #include "bridge/bridge_internal.h"
+#include "camera/camera.h"
 #include "input/edge_history.h"
 #include "input/input_service.h"
 #include "isolation/isolation.h"
+#include "wait/wait.h"
 #include "patch/patch_engine.h"
 #include "session/session.h"
 
@@ -17,6 +19,10 @@ constexpr uint32_t ISOLATION = static_cast<uint32_t>(ILC_SUBSYS_INPUT_ISOLATION)
 constexpr uint32_t GUESTS = ILC_ACTIVE_SEATS_MAX;  // seats 2..GUESTS can toggle (P1 never)
 constexpr uint32_t TOGGLE_BIT = 1u << ILC_ACTION_TOGGLE_CONTROL;
 static_assert(ILC_ACTIVE_SEATS_MAX <= ILC_SEATS, "seat cap");
+static_assert(uint32_t{STATE_ON} == uint32_t{ILC_COOP_SWITCH_ON} &&
+                  uint32_t{STATE_RELEASING} == uint32_t{ILC_COOP_SWITCH_RELEASING} &&
+                  uint32_t{STATE_OFF} == uint32_t{ILC_COOP_SWITCH_OFF},
+              "the status field reports these states as they are");
 
 // ---- shared with the UI tick and the bridge (atomics) ----------------------------------------------------------
 volatile uint32_t g_state = STATE_ON;
@@ -27,12 +33,12 @@ volatile uint32_t g_drop_pending = 0;     // a settings record turned INPUT_ISOL
 volatile uint32_t g_reapply = 0;
 volatile uint32_t g_reapply_mask = 0;
 volatile uint32_t g_parked = 0;
+volatile uint32_t g_capture_posted = 0;  // the bridge queued an on/off key capture
 counters g_counters;
 
 // ---- co-op thread only ---------------------------------------------------------------------------------------------
 struct keys {
-    uint8_t kill[ILC_KILL_SWITCH_BINDINGS];             // VK (keyboard or mouse button), 0 = none
-    uint8_t toggle[ILC_SEATS][ILC_BINDINGS_PER_ACTION]; // guest toggle keys, 0 = none or read as actions
+    uint8_t kill[ILC_KILL_SWITCH_BINDINGS];  // VK (keyboard or mouse button), 0 = none
 };
 keys g_keys = {};
 bool g_configured = false;
@@ -49,6 +55,11 @@ bool g_override_sticky[ILC_SEATS] = {};  // the input service is not running: th
 input::snapshot g_snapshot;     // too large for the stack
 uint32_t g_log[16];
 uint32_t g_log_count = 0;
+uint32_t g_capture_word = 0;       // the input service's on/off key capture word, as last seen
+uint64_t g_capture_post_until = 0; // a queued capture holds the keys until then (the input thread takes it)
+uint64_t g_capture_since = 0;      // the current hold began (0 = no hold)
+bool g_capture_capped = false;     // this hold ran past the cap: ignored until the word moves
+int64_t g_test_capture_word = -1;
 
 void bump(volatile uint64_t& c, uint64_t by = 1)
 {
@@ -77,11 +88,47 @@ uint32_t settings_mask()
     return applied.subsystems_armed;
 }
 
-// A press edge needs this sample and the previous one in the foreground (no edge out of an alt-tab).
-uint32_t read_keys(bool* kill)
+// Is the co-op on/off key being captured (control.h)? Then key samples only record state.
+bool capture_holds(uint64_t now)
 {
-    *kill = false;
-    uint32_t toggles = 0;
+    if (__atomic_exchange_n(&g_capture_posted, 0u, __ATOMIC_ACQ_REL) != 0) {
+        g_capture_post_until = now + CAPTURE_POST_HOLD_MS;
+        g_capture_capped = false;
+    }
+    const uint32_t word = g_test_capture_word >= 0 ? static_cast<uint32_t>(g_test_capture_word)
+                                                   : input::kill_capture_word();
+    const bool moved = word != g_capture_word;
+    g_capture_word = word;
+    if (moved) {
+        g_capture_capped = false;  // a new start or an end: a fresh hold
+        g_capture_post_until = 0;  // the input thread has taken the queued capture: its word rules from now on
+    }
+    const bool holds = (word & 1u) != 0 || moved || now < g_capture_post_until;
+    if (!holds) {
+        g_capture_since = 0;
+        g_capture_capped = false;
+        return false;
+    }
+    if (g_capture_since == 0 || moved) {
+        g_capture_since = now != 0 ? now : 1;
+    }
+    if (g_capture_capped) {
+        return false;
+    }
+    if (now - g_capture_since > CAPTURE_HOLD_CAP_MS) {
+        g_capture_capped = true;
+        bump(g_counters.capture_capped);
+        return false;
+    }
+    return true;
+}
+
+// A press edge needs this sample and the previous one in the foreground (no edge out of an alt-tab). While the
+// on/off key is being captured no sample is trusted: the keys' state is recorded and nothing fires. Only the
+// kill-switch keys are read here (host-only); the guests' drop-in/out keys arrive as action edges.
+bool read_kill_key(bool hold)
+{
+    bool kill = false;
     input::keyboard_api* kb = g_test_keyboard != nullptr ? g_test_keyboard : input::live_keyboard();
     const bool focused = kb->focused();
     uint8_t down[256];
@@ -92,33 +139,27 @@ uint32_t read_keys(bool* kill)
                 down[vk] = kb->down(vk) ? 1 : 0;
             }
         }
-        for (uint32_t s = 1; s < GUESTS; ++s) {
-            for (const uint8_t vk : g_keys.toggle[s]) {
-                if (vk != 0) {
-                    down[vk] = kb->down(vk) ? 1 : 0;
-                }
-            }
-        }
     }
-    const bool trusted = focused && g_prev_focused;
-    if (trusted) {
+    if (focused && g_prev_focused) {
+        bool edge = false;
         for (const uint8_t vk : g_keys.kill) {
-            *kill = *kill || (vk != 0 && down[vk] && !g_prev_down[vk]);
+            edge = edge || (vk != 0 && down[vk] && !g_prev_down[vk]);
         }
-        for (uint32_t s = 1; s < GUESTS; ++s) {
-            for (const uint8_t vk : g_keys.toggle[s]) {
-                if (vk != 0 && down[vk] && !g_prev_down[vk]) {
-                    toggles |= 1u << s;
-                }
+        if (hold) {
+            if (edge) {
+                bump(g_counters.capture_held);
             }
+        } else {
+            kill = edge;
         }
     }
     memcpy(g_prev_down, down, sizeof(down));
     g_prev_focused = focused;
-    return toggles;
+    return kill;
 }
 
-// Pad bindings (and the keys of the seat that owns the keyboard) arrive as TOGGLE_CONTROL press edges.
+// Every guest's drop-in/out (pad, keyboard owner's keys, and the other guests' own toggle keys, which the action
+// layer reads for them) arrives as a TOGGLE_CONTROL press edge.
 uint32_t read_action_toggles()
 {
     uint32_t toggles = 0;
@@ -165,6 +206,7 @@ void toggle_seat(uint32_t s, uint64_t now, uint32_t current)
     g_override_value = park ? (g_override_value | bit) : (g_override_value & ~bit);
     g_override_until[s] = now + OVERRIDE_HOLD_MS;
     g_override_sticky[s] = posted == ILC_E_NOT_READY;  // no service: the toggle is the only park source
+    camera::request_reset();  // every toggle resets the shared camera in place (snap to the new centre: no fly-in)
     bump(g_counters.toggles);
 }
 
@@ -176,7 +218,9 @@ void begin_release(uint64_t now)
 
 bool release_done(uint64_t now)
 {
-    if (isolation::release_settled()) {
+    // Isolation has released every pad and the Wait engine holds no pause (it gives a pause back at its next UI
+    // tick once co-op is off), or the cap ran out.
+    if (isolation::release_settled() && !wait::owned()) {
         bump(g_counters.released_by_settle);
     } else if (now - g_release_t0 >= RELEASE_CAP_MS) {
         bump(g_counters.released_by_cap);
@@ -190,6 +234,7 @@ bool release_done(uint64_t now)
 void kill_on(uint64_t now)
 {
     session::set_live_enabled(false);
+    __atomic_store_n(&g_drop_pending, 0u, __ATOMIC_RELEASE);  // the kill switch's sequence supersedes it
     if (!g_releasing_for_drop) {
         begin_release(now);  // an ordered drop already in progress keeps its start time
     }
@@ -207,6 +252,7 @@ void finish_kill(uint64_t now)
         return;  // retried next beat; the release stays published meanwhile
     }
     isolation::end_release();
+    __atomic_store_n(&g_drop_pending, 0u, __ATOMIC_RELEASE);
     __atomic_store_n(&g_state, STATE_OFF, __ATOMIC_RELEASE);
     bump(g_counters.kills);
 }
@@ -227,22 +273,15 @@ void configure_from_settings(const ilc_settings& s)
     keys k = {};
     for (uint32_t i = 0; i < ILC_KILL_SWITCH_BINDINGS; ++i) {
         const ilc_binding& b = s.kill_switch[i];
-        if (b.kind == ILC_BIND_KEY) {
+        const bool mouse_vk = b.code == 0x01 || b.code == 0x02 || (b.code >= 0x04 && b.code <= 0x06);
+        if (b.kind == ILC_BIND_KEY && !mouse_vk) {  // mouse buttons as KEY codes are refused (validator too)
             k.kill[i] = static_cast<uint8_t>(b.code);
-        } else if (b.kind == ILC_BIND_MOUSE && (b.code == 1 || b.code == 2)) {
-            k.kill[i] = static_cast<uint8_t>(b.code);  // VK_LBUTTON / VK_RBUTTON
+        } else if (b.kind == ILC_BIND_MOUSE && b.code == 2) {
+            k.kill[i] = 2;  // VK_RBUTTON; the left button is never a kill switch (the validator refuses it too)
         }
     }
-    for (uint32_t seat = 1; seat < GUESTS; ++seat) {
-        if (s.kbm_seat == seat + 1) {
-            continue;  // that seat's keys are its own bindings: they arrive as action edges
-        }
-        for (uint32_t slot = 0; slot < ILC_BINDINGS_PER_ACTION; ++slot) {
-            const ilc_binding& b = s.seats[seat].bindings[ILC_ACTION_TOGGLE_CONTROL * ILC_BINDINGS_PER_ACTION + slot];
-            if (b.kind == ILC_BIND_KEY) {
-                k.toggle[seat][slot] = static_cast<uint8_t>(b.code);
-            }
-        }
+    if (!g_configured || memcmp(&k, &g_keys, sizeof(k)) != 0) {
+        g_prev_focused = false;  // the next sample only records the keys' state: a rebind never fires at once
     }
     g_keys = k;
     g_configured = true;
@@ -250,9 +289,9 @@ void configure_from_settings(const ilc_settings& s)
 
 void step(uint64_t now_ms)
 {
-    bool kill_key = false;
-    const uint32_t key_toggles = g_configured ? read_keys(&kill_key) : 0u;
-    const uint32_t pad_toggles = read_action_toggles();
+    const bool hold = capture_holds(now_ms);
+    const bool kill_key = g_configured && read_kill_key(hold);
+    const uint32_t action_toggles = read_action_toggles();
     const uint32_t request = __atomic_exchange_n(&g_kill_request, 0u, __ATOMIC_ACQ_REL);
     if (kill_key) {
         bump(g_counters.kill_presses);
@@ -264,6 +303,12 @@ void step(uint64_t now_ms)
     if (state == STATE_ON) {
         if (want_off) {
             kill_on(now_ms);
+        } else if (g_releasing_for_drop && __atomic_load_n(&g_drop_pending, __ATOMIC_ACQUIRE) == 0) {
+            // A later settings record wanted INPUT_ISOLATION back before the drop ran: nothing to drop, and
+            // isolation must leave its release (else it would publish release-only records for good).
+            isolation::end_release();
+            g_releasing_for_drop = false;
+            bump(g_counters.drops_cancelled);
         } else if (__atomic_load_n(&g_drop_pending, __ATOMIC_ACQUIRE) != 0) {
             // A settings record turned INPUT_ISOLATION off: release first, then apply the record's mask.
             if (!g_releasing_for_drop) {
@@ -280,10 +325,16 @@ void step(uint64_t now_ms)
         finish_kill(now_ms);
     } else if (want_on) {
         revive();
+    } else if (patch::subsystems_mask() != 0) {
+        // OFF holds by itself: a mask computed before the kill and applied late by the UI tick (its retry after a
+        // busy lock) is taken back on the next beat.
+        if (apply_mask(0)) {
+            bump(g_counters.off_reasserted);
+        }
     }
 
     uint32_t current = park_bits(now_ms);
-    const uint32_t toggles = key_toggles | pad_toggles;
+    const uint32_t toggles = action_toggles;
     if (toggles != 0) {
         if (__atomic_load_n(&g_state, __ATOMIC_ACQUIRE) != STATE_ON) {
             bump(g_counters.toggles_ignored);
@@ -303,6 +354,11 @@ void step(uint64_t now_ms)
 void post_kill(bool off)
 {
     __atomic_store_n(&g_kill_request, off ? 1u : 2u, __ATOMIC_RELEASE);
+}
+
+void note_kill_capture_posted()
+{
+    __atomic_store_n(&g_capture_posted, 1u, __ATOMIC_RELEASE);
 }
 
 uint32_t current_state()
@@ -337,6 +393,18 @@ uint32_t mask_for_safe_point(uint32_t requested)
     return requested;
 }
 
+uint32_t mask_for_safe_point_retry(uint32_t pending)
+{
+    const uint32_t state = __atomic_load_n(&g_state, __ATOMIC_ACQUIRE);
+    if (state == STATE_OFF) {
+        return 0;
+    }
+    if (state == STATE_RELEASING) {
+        return patch::subsystems_mask();
+    }
+    return pending;
+}
+
 bool take_reapply(uint32_t* mask)
 {
     if (__atomic_exchange_n(&g_reapply, 0u, __ATOMIC_ACQ_REL) == 0) {
@@ -361,6 +429,7 @@ void test_reset()
     g_reapply = 0;
     g_reapply_mask = 0;
     g_parked = 0;
+    g_capture_posted = 0;
     memset(&g_counters, 0, sizeof(g_counters));
     g_keys = {};
     g_configured = false;
@@ -375,11 +444,21 @@ void test_reset()
     memset(g_override_until, 0, sizeof(g_override_until));
     memset(g_override_sticky, 0, sizeof(g_override_sticky));
     g_log_count = 0;
+    g_capture_word = input::kill_capture_word();  // what an earlier run left is not a change
+    g_capture_post_until = 0;
+    g_capture_since = 0;
+    g_capture_capped = false;
+    g_test_capture_word = -1;
 }
 
 void test_keyboard(input::keyboard_api* keyboard)
 {
     g_test_keyboard = keyboard;
+}
+
+void test_capture_word(int64_t word)
+{
+    g_test_capture_word = word;
 }
 
 uint32_t test_mask_log(uint32_t* out, uint32_t max)

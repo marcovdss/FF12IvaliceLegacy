@@ -9,6 +9,11 @@
 // bindings count only for the seat that owns the keyboard and mouse (kbm_seat), and only while the game window
 // is in the foreground. When the game confirms with Circle (the decide setting), every pad binding of CONFIRM
 // and CANCEL swaps A and B; keyboard bindings never swap.
+// Drop-in/out keys. One exception to keyboard ownership: a guest seat (P2..ILC_ACTIVE_SEATS_MAX) that does not own
+// the keyboard still reads the KEY bindings of its own TOGGLE_CONTROL action (never a mouse button, never another
+// action), in the foreground only, so every seat's drop-in/out arrives as its own action edge. They do not change
+// the seat's prompt device. While a capture reads the whole keyboard (hot_off) they read as released; when it ends,
+// or when the window regains the foreground, a key still held is absorbed (no press until released).
 //
 // Edges and repeat. pressed/released are per action. A held menu direction (MENU_UP/DOWN/LEFT/RIGHT) repeats
 // after 0.250 s, then every 0.100 s; with fast repeat on, after 0.100 s, then every 0.035 s. Turning fast repeat
@@ -70,6 +75,7 @@ struct action_inputs {
     uint8_t fast[SEATS];
     uint8_t suppress[SEATS];              // pairing/capture owns the seat: neutral frame
     uint8_t reseed[SEATS];                // explicit discontinuity this tick (both parts)
+    uint8_t hot_off;                      // a capture reads the whole keyboard: drop-in/out keys read as released
 };
 
 struct seat_action_state {
@@ -94,6 +100,8 @@ struct action_layer {
     uint8_t last_focused;
     uint8_t last_kbm;
     uint8_t last_swap;
+    uint8_t last_hot_off;
+    uint8_t reserved[3];
     seat_action_state seats[SEATS];
 };
 
@@ -101,8 +109,13 @@ void actions_reset(action_layer& st);
 void actions_step(action_layer& st, const action_inputs& in, uint64_t now_us, uint32_t seq,
                   ilc_seat_action_frame out[SEATS]);
 
-// The virtual keys the kbm seat's bindings name (keys and mouse buttons): what the service needs to read.
+// The virtual keys the service needs to read: the kbm seat's bindings (keys and mouse buttons) and the other guest
+// seats' drop-in/out keys.
 void actions_wanted_keys(const config& cfg, key_state* out);
+
+// Does this seat (0-based) read its drop-in/out keys without owning the keyboard, and is this binding one of them?
+bool hot_seat(const config& cfg, uint32_t seat);
+bool hot_binding(uint32_t action, const ilc_binding& b);
 
 // One binding of a seat's table, after the decide swap (exposed for tests and button prompts).
 ilc_binding effective_binding(const ilc_binding& b, uint32_t action, bool decide_swap);

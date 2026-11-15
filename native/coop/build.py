@@ -67,8 +67,12 @@ SOURCES += ['src/patch/call_island.cpp', 'src/patch/call_stubs.cpp']
 SOURCES += ['src/input/pad_mirror.cpp', 'src/isolation/isolation.cpp']
 # Co-op switches: kill switch (ordered disarm), seat drop-in/out toggles, P1 lock.
 SOURCES += ['src/control/control.cpp']
+# Shared camera: group focus and zoom, collision limiter, pair-wise corridor capsules, the camera hooks.
+SOURCES += ['src/camera/camera_math.cpp', 'src/camera/camera.cpp']
 # Game-thread queue and the UI-tick handler (UT-01): linked, not called until the boot wires them.
 SOURCES += ['src/runtime/game_thread.cpp', 'src/runtime/tick.cpp']
+# Diagnostics for the Mod Menu's developer options: the counters record and the co-op thread stall test.
+SOURCES += ['src/runtime/diag.cpp']
 # Boot: host probe, instance guard, Ivalice Together detection, the start-up switch, the init thread.
 SOURCES += ['src/boot/boot.cpp', 'src/boot/together_detect.cpp', 'src/boot/settings_file.cpp']
 # Session core: world reads through the fault-safe probe, epochs and gates, the seat table, ownership hand-off,
@@ -81,6 +85,46 @@ SOURCES += ['src/movement/steering.cpp', 'src/movement/planner.cpp', 'src/moveme
             'src/movement/hooks.cpp']
 # Town visibility (PARTY): only player-controlled characters keep a body in towns (TW-01 filter, rebuild job).
 SOURCES += ['src/towns/filter.cpp', 'src/towns/towns.cpp', 'src/towns/hooks.cpp']
+# Guest interactions: gateways, doors/chests/crystals, NPC talk and shops through the consumer window, loot.
+SOURCES += ['src/interaction/rules.cpp', 'src/interaction/interaction.cpp', 'src/interaction/hooks.cpp']
+# Seat changes (PARTY): change-character requests, atomic swaps and leader changes, the leader watcher.
+SOURCES += ['src/party/assign.cpp', 'src/party/remap.cpp', 'src/party/party.cpp']
+# Guest battle menus: catalogs from the game's loaded tables, the per-seat menu model, Gambits state (data model).
+SOURCES += ['src/menu/tables.cpp', 'src/menu/catalog.cpp', 'src/menu/model.cpp', 'src/menu/gambits.cpp',
+            'src/menu/live.cpp', 'src/menu/menus.cpp']
+# What an action costs as the game charges it (MP, Mist charges, gil) plus Legacy's MP economy; help from the game's text.
+SOURCES += ['src/menu/cost.cpp', 'src/menu/help.cpp']
+# Input firewall and stock-frontend gate (FIREWALL_MENUS): per-device masks, pulses, P1 parity, refused frontends.
+SOURCES += ['src/firewall/policy.cpp', 'src/firewall/firewall.cpp', 'src/firewall/hooks.cpp']
+# Battle-menu targets and requests: target candidates and cursor, the request slots, the game-thread operations
+# (actions, Gambits, Dismiss, combat indicator, menu sounds) and the summon owner.
+SOURCES += ['src/targets/targets.cpp', 'src/targets/live.cpp', 'src/submit/submit.cpp', 'src/submit/ops.cpp']
+# The co-op battle menus at run time (input bindings, external frontends, the native Party request, the party-down
+# policy, the firewall's menu report) and the Wait engine (pause reason 0 from the UI tick).
+SOURCES += ['src/wait/wait.cpp', 'src/frontend/rules.cpp', 'src/frontend/presenter.cpp', 'src/frontend/frontend.cpp']
+# Keep running in background (the player's own setting): the application stays active in windowed and borderless
+# mode, and player 1's pads and mouse read neutral while another window has the focus.
+SOURCES += ['src/focus/focus.cpp']
+# The co-op HUD canvas: the frame hook HD-01 replays a canvas frame with the game's own text and sprite functions
+# under a draw guard.
+SOURCES += ['src/runtime/guard.cpp', 'src/hud/canvas.cpp', 'src/hud/replay.cpp']
+# Native HUD relayout and toggles (RENDER): the reduced party list (live field-layout edit) and target circles off.
+SOURCES += ['src/hud/relayout.cpp', 'src/hud/circles.cpp', 'src/hud/native.cpp']
+# The HUD frame driver (element passes in order, the presenter stamp) and the HudSnapshot sampler.
+SOURCES += ['src/hud/driver.cpp', 'src/hud/snapshot.cpp']
+# The party list row additions (the party-extras pass) and the low-HP glow's HP colour call rows.
+SOURCES += ['src/hud/party_rows.cpp']
+# The co-op battle menus drawn in the native window style (the menu pass) and the view they are drawn from.
+SOURCES += ['src/hud/menus_draw.cpp', 'src/hud/menus_draw_view.cpp']
+# The expanded Target Info (its pass, the view the co-op thread composes, TI-01 keeping the native window closed).
+SOURCES += ['src/hud/target_info.cpp', 'src/hud/target_info_sample.cpp']
+# The native TARGET INFO window given back when ours stops, and the target mode's aim for the snapshot.
+SOURCES += ['src/hud/target_info_native.cpp']
+# The battle log (its pass, the model, the view the co-op thread composes, LG-01 copying the message feed).
+SOURCES += ['src/hud/battle_log.cpp', 'src/hud/battle_log_model.cpp', 'src/hud/battle_log_sample.cpp']
+# Seat marks in the world (seat-coloured target lines, seat diamonds) and the AoE-only ring rule (TARGETS_CARDS).
+SOURCES += ['src/hud/world_marks.cpp', 'src/hud/rings.cpp']
+SOURCES += ['src/hud/battle_hud.cpp', 'src/hud/layout.cpp']
 MINHOOK_DIR = Path(os.environ.get('ILC_MINHOOK_DIR', str(HERE / 'build' / 'minhook')))
 MINHOOK_LOCK = 'third_party/minhook/minhook.lock.json'
 # Input service: SDL 2.32.10, static, built by third_party/sdl2/build_sdl2.py into SDL2_DIR (pinned in its lock).
@@ -94,16 +138,38 @@ TEST_DLL_NAME = 'ilc-coop-test.dll'
 TEST_SOURCES = ['testsupport/input_replay.cpp', 'testsupport/test_exports.cpp']
 TEST_SOURCES += ['testsupport/patch_tests.cpp', 'testsupport/island_tests.cpp', 'testsupport/isolation_tests.cpp']
 TEST_SOURCES += ['testsupport/control_tests.cpp']
+# The loopback codec at the seam (src/runtime/loopback.h): host-test builds only. The shipped DLL is compiled without
+# ILC_LOOPBACK_CODEC, so every hook is empty there.
+TEST_SOURCES += ['testsupport/loopback.cpp', 'testsupport/loopback_drill.cpp']
+TEST_DEFINES = ['-DILC_LOOPBACK_CODEC=1']
+TEST_SOURCES += ['testsupport/camera_tests.cpp']
 TEST_SOURCES += ['testsupport/twin_drills.cpp']
 TEST_SOURCES += ['testsupport/action_tests.cpp']
 TEST_SOURCES += ['testsupport/boot_tests.cpp']
 TEST_SOURCES += ['testsupport/session_tests.cpp']
 TEST_SOURCES += ['testsupport/movement_tests.cpp']
 TEST_SOURCES += ['testsupport/towns_tests.cpp']
+TEST_SOURCES += ['testsupport/interaction_tests.cpp']
+TEST_SOURCES += ['testsupport/party_tests.cpp']
+TEST_SOURCES += ['testsupport/menu_tests.cpp']
+TEST_SOURCES += ['testsupport/cost_help_tests.cpp']
+TEST_SOURCES += ['testsupport/firewall_tests.cpp']
+TEST_SOURCES += ['testsupport/submit_tests.cpp']
+TEST_SOURCES += ['testsupport/frontend_tests.cpp']
+TEST_SOURCES += ['testsupport/focus_tests.cpp']
+TEST_SOURCES += ['testsupport/hud_tests.cpp']
+TEST_SOURCES += ['testsupport/relayout_tests.cpp']
+TEST_SOURCES += ['testsupport/hud_driver_tests.cpp']
+TEST_SOURCES += ['testsupport/party_rows_tests.cpp']
+TEST_SOURCES += ['testsupport/menus_draw_tests.cpp']
+TEST_SOURCES += ['testsupport/target_info_tests.cpp']
+TEST_SOURCES += ['testsupport/battle_log_tests.cpp']
+TEST_SOURCES += ['testsupport/world_marks_tests.cpp']
+TEST_SOURCES += ['testsupport/battle_hud_tests.cpp', 'testsupport/layout_tests.cpp']
 SCHEMA_TOOL = 'tools/bridge_schema.cpp'
 DEF_FILE = 'coop.def'
 CXXFLAGS = ['-std=c++20', '-O2', '-Wall', '-Wextra', '-Werror', '-fno-exceptions', '-fno-rtti',
-            '-fno-stack-protector', '-fno-ident', '-ffunction-sections', '-fdata-sections', '-U_FORTIFY_SOURCE',
+            '-fno-stack-protector', '-fno-ident', '-ffunction-sections', '-U_FORTIFY_SOURCE',
             '-Iinclude', '-Isrc']
 LDFLAGS = ['-shared', '-s', '-static-libgcc', '-static-libstdc++', '-Wl,--entry,DllMainCRTStartup',
            '-Wl,--subsystem,windows', '-Wl,--no-insert-timestamp', '-Wl,--image-base,0x180000000',
@@ -237,7 +303,8 @@ def build_test_dll(compiler: Path, out: Path, sdl2_tarball: Path | None = None,
     out.mkdir(parents=True, exist_ok=True)
     def_file = test_def_file(out)
     flags = [f for f in LDFLAGS if not f.startswith('-Wl,-Map')]
-    command = [str(compiler), *CXXFLAGS, *sdl_include, '-Itestsupport', *SOURCES, *TEST_SOURCES, str(def_file),
+    command = [str(compiler), *CXXFLAGS, *TEST_DEFINES, *sdl_include, '-Itestsupport', *SOURCES, *TEST_SOURCES,
+               str(def_file),
                *flags, '-o', str(out / TEST_DLL_NAME), *sdl_link]
     subprocess.run(command, check=True, cwd=HERE, env=tool_environment(compiler))
     return out / TEST_DLL_NAME

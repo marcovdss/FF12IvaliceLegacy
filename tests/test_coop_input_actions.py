@@ -11,7 +11,8 @@ The tables restate the module's rules as pass/fail rows:
   strength still count): start, reconnect, settings, keyboard transfer, focus, seat move, park, pairing, capture;
 * pairing proof: held A, two pads, mirrors, Player 1's lock, another guest's pad (refuse, then a confirmed swap),
   timeout, disconnect, stale session, cancel; Player 1's guarded change (confirm, revert, commit window);
-* capture, park and seat move;
+* capture, park and seat move; seat 0 captures the co-op on/off key (keys and the right mouse button only, from the
+  keyboard whoever owns it), and the co-op switches leave their keys alone meanwhile;
 * replay: a recorded run replays to the same action frames and events.
 
 ILC_REQUIRE_NATIVE=1 makes a missing toolchain a failure instead of a skip.
@@ -37,8 +38,8 @@ PADC = S.enums['pad_control']
 BK = S.enums['binding_kind']
 PR = S.enums['pairing_outcome']
 CO = S.enums['capture_outcome']
-ACTION_FRAME = struct.Struct('<IIQBBBBIIIII19H2x')
-CONTROL_VIEW = struct.Struct('<BBBBBB2x4I4BI')
+ACTION_FRAME = struct.Struct('<IIQBBBBIIIII20H')
+CONTROL_VIEW = struct.Struct('<BBBBBBBx4I4BI')
 EVENT = struct.Struct('<IHBxIiIIII')
 F_PAD, F_KBM, F_FOCUSED, F_SUPPRESSED, F_RESEEDED, F_FAST = 0x01, 0x02, 0x04, 0x08, 0x10, 0x20
 ACTIVE_NONE, ACTIVE_PAD, ACTIVE_KEYBOARD = 0, 1, 2
@@ -91,7 +92,7 @@ class Rig(Service):
         names = ('seq', 'gen', 'time', 'seat', 'active', 'flags', 'r0', 'held', 'pressed', 'released', 'repeated',
                  'absorbed')
         f = dict(zip(names, v[:12]))
-        f['strength'] = list(v[12:31])
+        f['strength'] = list(v[12:32])
         f['raw'] = raw.raw
         return f
 
@@ -100,8 +101,8 @@ class Rig(Service):
         self.dll.ILCT_Control(raw)
         v = CONTROL_VIEW.unpack(raw.raw)
         return {'stage': v[0], 'pairing_seat': v[1], 'capture_seat': v[2], 'override': v[3], 'parked': v[4],
-                'focused': v[5], 'move_request': list(v[6:10]), 'move_character': list(v[10:14]),
-                'dropped': v[14]}
+                'focused': v[5], 'kill_capture': v[6], 'move_request': list(v[7:11]),
+                'move_character': list(v[11:15]), 'dropped': v[15]}
 
     # ---- bridge ----------------------------------------------------------------------------------------
     def command(self, name, seat, a0=0, a1=0, request=None) -> tuple[int, int]:
@@ -241,15 +242,17 @@ class RigCase(unittest.TestCase):
 @native_test
 class BindingTableTest(RigCase):
     def test_defaults_cover_every_action_and_p1_has_exactly_its_eight(self):
+        # P1's Identify is unbound by default (every button of P1's pad also reaches the game); P1 may bind it.
+        self.assertTrue(S.const['P1_ACTION_MASK'] & (1 << ACT['IDENTIFY']))
         p1_actions = {a for a, _, _ in defaults_bindings(1)}
         self.assertEqual(p1_actions, {ACT[n] for n in ('MENU_UP', 'MENU_DOWN', 'MENU_LEFT', 'MENU_RIGHT', 'CONFIRM',
                                                        'CANCEL', 'PARTY', 'PAUSE')})
         self.assertEqual(defaults_bindings(4), [], 'P4 cannot play in this release: no default bindings')
         for seat in (2, 3):
             with self.subTest(seat=seat):
-                self.assertEqual({a for a, _, _ in defaults_bindings(seat)}, set(range(19)))
+                self.assertEqual({a for a, _, _ in defaults_bindings(seat)}, set(range(S.const['ACTIONS'])))
                 kinds = {(a, k) for a, k, _ in defaults_bindings(seat)}
-                for action in range(19):
+                for action in range(S.const['ACTIONS']):
                     if action == ACT['TOGGLE_CONTROL']:
                         continue
                     self.assertIn((action, BK['PAD']), kinds, f'P{seat} action {action} has a pad binding')
@@ -338,6 +341,7 @@ class BindingTableTest(RigCase):
         self.tick()
         reads, focus_queries, asked = self.s.key_reads()
         wanted = {c for _, k, c in defaults_bindings(2) if k in (BK['KEY'], BK['MOUSE'])}
+        wanted.add(VK_F7)  # P3's drop-in/out key: read for P3 although P3 does not own the keyboard
         self.assertEqual(asked, wanted)
         self.assertEqual(focus_queries, 1)
         self.s.focus(False)
@@ -350,7 +354,7 @@ class BindingTableTest(RigCase):
         self.assertEqual(f['held'], abit('CONFIRM'), 'pads keep working in the background')
         self.assertFalse(f['flags'] & F_FOCUSED)
 
-    def test_no_keys_are_read_without_a_keyboard_seat(self):
+    def test_without_a_keyboard_seat_only_the_drop_in_out_keys_are_read(self):
         self.two_guests(kbm=0)
         self.s.keyboard()
         self.s.begin()
@@ -358,8 +362,9 @@ class BindingTableTest(RigCase):
         self.s.key_reads()
         self.s.key('W')
         self.tick(3)
-        reads, _, _ = self.s.key_reads()
-        self.assertEqual(reads, 0)
+        reads, _, asked = self.s.key_reads()
+        self.assertEqual(asked, {VK_F6, VK_F7}, 'the guests read their own drop-in/out keys, nothing else')
+        self.assertEqual(reads, 6)
         self.assertEqual(self.s.act(2)['held'], 0)
 
     def test_decide_swap_swaps_pad_a_and_b_only(self):
@@ -1289,6 +1294,458 @@ class CaptureTest(RigCase):
         self.s.xinput(0, buttons=['BACK'])
         self.tick()
         self.assertEqual(self.captures(), [(1, CO['CAPTURED'], ACT['PARTY'], 1, BK['PAD'], PADC['BACK'])])
+
+
+# =====================================================================================================
+# F2. The co-op on/off key (seat 0)
+# =====================================================================================================
+VK_LBUTTON, VK_RBUTTON, VK_MBUTTON, VK_XBUTTON1, VK_XBUTTON2 = 0x01, 0x02, 0x04, 0x05, 0x06
+VK_F8, VK_ESCAPE = 0x77, 0x1B
+KILL = S.const['CAPTURE_KILL_SWITCH_ACTION']
+
+
+@native_test
+class OnOffKeyCaptureTest(RigCase):
+    def setUp(self):
+        super().setUp()
+        self.s.dll.ILCT_KillCaptureWord.restype = ctypes.c_uint32
+        self.two_guests(kbm=2)                     # pads present at the start (absent slots are probed slowly)
+        self.s.keyboard()
+        self.s.begin()
+        self.at(0)
+        self.tick()
+
+    def captures(self):
+        return [(e['seat'], e['outcome'], (e['a'] >> 8) & 0xFF, (e['a'] >> 16) & 0xFF, e['b'] & 0xFF, e['b'] >> 8)
+                for e in self.s.results('CAPTURE_RESULT')]
+
+    def start(self, slot=0):
+        status, request = self.s.command('CAPTURE_START', 0, 0, slot)
+        self.assertEqual(status, 0)
+        return request
+
+    def word(self) -> int:
+        return self.s.dll.ILCT_KillCaptureWord()
+
+    def test_keys_are_captured_whoever_owns_the_keyboard(self):
+        self.assertEqual(KILL, 0xFF)
+        for slot, kbm in enumerate((2, 3, 1, 0)):
+            with self.subTest(kbm=kbm):
+                self.two_guests(kbm=kbm)
+                self.tick()
+                self.start(slot)
+                self.tick(2)
+                self.s.key(VK_F8)
+                self.tick()
+                self.assertEqual(self.captures(), [(0, CO['CAPTURED'], KILL, slot, BK['KEY'], VK_F8)])
+                self.s.key(VK_F8, False)
+                self.tick()
+        # Falsifier: a guest's own capture still reads keys only when it owns the keyboard.
+        self.s.command('CAPTURE_START', 3, ACT['FLEE'], 0)
+        self.tick()
+        self.s.key('G')
+        self.tick(2)
+        self.assertEqual(self.captures(), [], 'P3 does not own the keyboard (kbm 0)')
+        self.s.key('G', False)
+
+    def test_a_key_held_at_the_start_must_be_released_first(self):
+        self.two_guests(kbm=2)
+        self.tick()
+        self.s.key(VK_F8)                          # held before, and pressed on the start tick itself
+        self.start(1)
+        self.tick(4)
+        self.assertEqual(self.captures(), [])
+        self.s.key(VK_F8, False)
+        self.tick()
+        self.assertEqual(self.captures(), [])
+        self.s.key(VK_F8)
+        self.tick()
+        self.assertEqual(self.captures(), [(0, CO['CAPTURED'], KILL, 1, BK['KEY'], VK_F8)])
+
+    def test_pads_and_the_left_and_other_mouse_buttons_neither_capture_nor_end_it(self):
+        self.two_guests(kbm=2)
+        self.tick()
+        self.start(3)
+        self.tick(2)
+        for vk in (VK_LBUTTON, VK_MBUTTON, VK_XBUTTON1, VK_XBUTTON2):
+            self.s.key(vk)
+            self.tick()
+            self.s.key(vk, False)
+            self.tick()
+        for slot in (0, 1, 2):
+            self.s.xinput(slot, buttons=['A', 'X', 'START'], rt=255)
+        self.tick(3)
+        for slot in (0, 1, 2):
+            self.s.xinput(slot)
+        self.tick()
+        self.assertEqual(self.captures(), [])
+        self.assertEqual((self.s.control()['kill_capture'], self.word() & 1), (1, 1), 'still running')
+        self.s.key(VK_RBUTTON)                     # control: the right button is read and captured as MOUSE 2
+        self.tick()
+        self.assertEqual(self.captures(), [(0, CO['CAPTURED'], KILL, 3, BK['MOUSE'], 2)])
+        self.s.key(VK_RBUTTON, False)
+
+    def test_modifiers_and_escape_are_keys(self):
+        self.two_guests(kbm=2)
+        self.tick()
+        rows = [([VK_SHIFT, VK_LSHIFT], VK_LSHIFT), ([VK_ESCAPE], VK_ESCAPE)]
+        for keys, code in rows:
+            with self.subTest(code=code):
+                self.start(0)
+                self.tick(2)
+                for vk in keys:
+                    self.s.key(vk)
+                self.tick()
+                self.assertEqual(self.captures(), [(0, CO['CAPTURED'], KILL, 0, BK['KEY'], code)])
+                for vk in keys:
+                    self.s.key(vk, False)
+                self.tick()
+
+    def test_a_key_held_while_unfocused_must_be_released(self):
+        self.two_guests(kbm=0)
+        self.tick()
+        self.start(2)
+        self.tick()
+        self.s.focus(False)
+        self.tick()
+        self.s.key('P')
+        self.tick()
+        self.s.focus(True)
+        self.tick(3)
+        self.assertEqual(self.captures(), [])
+        self.s.key('P', False)
+        self.tick()
+        self.s.key('P')
+        self.tick()
+        self.assertEqual(self.captures(), [(0, CO['CAPTURED'], KILL, 2, BK['KEY'], ord('P'))])
+
+    def test_timeout_cancel_and_supersede(self):
+        self.two_guests(kbm=2)
+        self.tick()
+        self.start(1)
+        self.tick()
+        start = self.t
+        self.until(start + 19990)
+        self.assertEqual(self.captures(), [])
+        self.until(start + 20010)
+        self.assertEqual(self.captures(), [(0, CO['TIMEOUT'], KILL, 1, BK['NONE'], 0)])
+        # CAPTURE_CANCEL seat 0 ends it; a guest seat's cancel does not.
+        request = self.start(2)
+        self.tick()
+        self.s.command('CAPTURE_CANCEL', 2)
+        self.tick()
+        self.assertEqual([(e['seat'], e['outcome']) for e in self.s.results('CAPTURE_RESULT')], [(2, CO['CANCELLED'])])
+        self.assertEqual(self.s.control()['kill_capture'], 1, 'a guest cancel leaves the on/off key capture running')
+        self.s.command('CAPTURE_CANCEL', 0)
+        self.tick()
+        events = self.s.results('CAPTURE_RESULT')
+        self.assertEqual([(e['seat'], e['request'], e['outcome'], (e['a'] >> 8) & 0xFF, (e['a'] >> 16) & 0xFF)
+                          for e in events], [(0, request, CO['CANCELLED'], KILL, 2)])
+        self.assertEqual(self.s.control()['kill_capture'], 0)
+        # A cancel with nothing running still answers, naming the on/off key.
+        _, idle = self.s.command('CAPTURE_CANCEL', 0)
+        self.tick()
+        self.assertEqual([(e['seat'], e['request'], e['outcome'], (e['a'] >> 8) & 0xFF)
+                          for e in self.s.results('CAPTURE_RESULT')], [(0, idle, CO['CANCELLED'], KILL)])
+        # A newer start for any seat cancels a running one, both ways.
+        self.start(0)
+        self.tick()
+        self.s.command('CAPTURE_START', 2, ACT['FLEE'], 0)
+        self.tick()
+        self.assertEqual([(c[0], c[1], c[2]) for c in self.captures()], [(0, CO['CANCELLED'], KILL)])
+        self.start(3)
+        self.tick()
+        self.assertEqual([(c[0], c[1], c[2]) for c in self.captures()], [(2, CO['CANCELLED'], ACT['FLEE'])])
+        self.assertEqual((self.s.control()['kill_capture'], self.s.control()['capture_seat']), (1, 0))
+
+    def test_the_keyboard_seat_reads_neutral_and_the_captured_key_stays_absorbed(self):
+        self.two_guests(kbm=2)
+        self.tick()
+        w0 = self.word()
+        self.start(0)
+        self.tick()
+        self.assertEqual(self.word(), ((w0 >> 1) + 1) << 1 | 1, 'running, the serial moved')
+        self.assertTrue(self.s.act(2)['flags'] & F_SUPPRESSED, 'P2 owns the keyboard: neutral during the capture')
+        self.assertFalse(self.s.act(3)['flags'] & F_SUPPRESSED)
+        self.assertFalse(self.s.act(1)['flags'] & F_SUPPRESSED)
+        self.s.key(VK_SPACE)                       # also P2's CONFIRM key
+        self.tick()
+        self.assertEqual(self.captures(), [(0, CO['CAPTURED'], KILL, 0, BK['KEY'], VK_SPACE)])
+        self.assertEqual(self.word(), ((w0 >> 1) + 2) << 1, 'ended, the serial moved again')
+        f = self.s.act(2)
+        self.assertFalse(f['flags'] & F_SUPPRESSED)
+        self.assertEqual((f['pressed'] & abit('CONFIRM'), f['absorbed'] & abit('CONFIRM')), (0, abit('CONFIRM')),
+                         'the captured key does not leak into P2 as a press')
+        self.tick(2)
+        self.assertEqual(self.s.act(2)['pressed'] & abit('CONFIRM'), 0)
+        self.s.key(VK_SPACE, False)
+        self.tick()
+        self.s.key(VK_SPACE)
+        self.tick()
+        self.assertEqual(self.s.act(2)['pressed'] & abit('CONFIRM'), abit('CONFIRM'), 'control: the next press counts')
+
+    def test_service_stop_cancels_a_running_and_a_queued_capture(self):
+        self.two_guests(kbm=2)
+        self.tick()
+        running = self.start(1)
+        self.tick()
+        queued = self.start(2)                     # supersedes the first only once the service takes it
+        self.s.end()
+        events = [(e['seat'], e['request'], e['outcome'], (e['a'] >> 8) & 0xFF, (e['a'] >> 16) & 0xFF)
+                  for e in self.s.results('CAPTURE_RESULT')]
+        self.assertEqual(events, [(0, running, CO['CANCELLED'], KILL, 1), (0, queued, CO['CANCELLED'], KILL, 2)])
+        self.assertEqual(self.word() & 1, 0)
+
+    def test_the_co_op_switches_hold_their_keys_while_the_service_captures(self):
+        """End to end: the real bridge, input service and co-op switches in one module. F8 is the kill switch and F7
+        P3's toggle (P2 owns the keyboard); the switches read their own scripted keyboard, so both get each key."""
+        d = self.s.dll
+        d.ILCT_CtlConfigure.argtypes = [ctypes.c_char_p]
+        d.ILCT_CtlKey.argtypes = [ctypes.c_uint32, ctypes.c_int32]
+        d.ILCT_CtlStep.argtypes = [ctypes.c_uint64]
+        d.ILCT_CtlState.restype = ctypes.c_uint32
+        d.ILCT_CtlParked.restype = ctypes.c_uint32
+        d.ILCT_CtlReset()
+        record = self.two_guests(kbm=2)
+        d.ILCT_CtlConfigure(bytes(record))
+        self.tick()
+
+        def key(vk, down=True):
+            self.s.key(vk, down)
+            d.ILCT_CtlKey(vk, 1 if down else 0)
+
+        def beat():                                 # one co-op beat (20 ms) after the input ticks of that time
+            self.tick()
+            d.ILCT_CtlStep(self.t)
+
+        beat()
+        beat()
+        self.start(0)
+        key(VK_F8)                                  # pressed before the input thread has even taken the command
+        d.ILCT_CtlStep(self.t + 1)
+        self.assertEqual(d.ILCT_CtlState(), 0, 'the bridge notice holds the kill switch')
+        beat()
+        key(VK_F8, False)
+        beat()
+        key(VK_F8)                                  # the current F8 pressed to re-bind F8
+        beat()
+        self.assertEqual(self.captures(), [(0, CO['CAPTURED'], KILL, 0, BK['KEY'], VK_F8)])
+        for _ in range(3):
+            beat()                                  # still held after the end
+        self.assertEqual(d.ILCT_CtlState(), 0, 're-binding F8 with F8 never turns co-op off')
+        key(VK_F8, False)
+        beat()
+        self.start(1)
+        beat()
+        key(VK_F7)                                  # P3's toggle, pressed as the new on/off key
+        beat()
+        key(VK_F7, False)
+        beat()
+        self.assertEqual(self.captures(), [(0, CO['CAPTURED'], KILL, 1, BK['KEY'], VK_F7)])
+        self.assertEqual(d.ILCT_CtlParked(), 0, 'the toggle key did not drop P3 out')
+        # Control: with no capture the same keys act.
+        key(VK_F7)
+        beat()
+        key(VK_F7, False)
+        beat()
+        self.assertEqual(d.ILCT_CtlParked(), 0b100, 'control: F7 toggles P3')
+        key(VK_F8)
+        beat()
+        self.assertNotEqual(d.ILCT_CtlState(), 0, 'control: F8 turns co-op off')
+
+    def test_the_kill_key_is_held_during_the_keyboard_seats_own_capture(self):
+        """The keyboard player (P2) captures a key for one of its actions and tries F8: the capture reads the whole
+        keyboard, so the switches hold the kill switch as for the on/off key's capture. Falsifier: P3's capture (pad
+        only, P3 does not own the keyboard) reads no key and F8 still turns co-op off."""
+        d = self.s.dll
+        d.ILCT_CtlConfigure.argtypes = [ctypes.c_char_p]
+        d.ILCT_CtlKey.argtypes = [ctypes.c_uint32, ctypes.c_int32]
+        d.ILCT_CtlStep.argtypes = [ctypes.c_uint64]
+        d.ILCT_CtlState.restype = ctypes.c_uint32
+        d.ILCT_CtlReset()
+        record = self.two_guests(kbm=2)
+        d.ILCT_CtlConfigure(bytes(record))
+        self.tick()
+
+        def key(vk, down=True):
+            self.s.key(vk, down)
+            d.ILCT_CtlKey(vk, 1 if down else 0)
+
+        def beat():
+            self.tick()
+            d.ILCT_CtlStep(self.t)
+
+        beat()
+        beat()
+        w0 = self.word()
+        status, _ = self.s.command('CAPTURE_START', 2, ACT['FLEE'], 1)
+        self.assertEqual(status, 0)
+        key(VK_F8)                                  # before the input thread took the command: the bridge notice
+        d.ILCT_CtlStep(self.t + 1)
+        self.assertEqual(d.ILCT_CtlState(), 0)
+        beat()
+        self.assertEqual(self.word() & 1, 1, 'a capture that reads the keyboard is reported running')
+        self.assertNotEqual(self.word() >> 1, w0 >> 1)
+        key(VK_F8, False)
+        beat()
+        key(VK_F8)                                  # P2 tries F8 as its Flee key
+        beat()
+        self.assertEqual(self.captures(), [(2, CO['CAPTURED'], ACT['FLEE'], 1, BK['KEY'], VK_F8)])
+        for _ in range(3):
+            beat()
+        self.assertEqual(d.ILCT_CtlState(), 0, 'trying F8 as a binding never turns co-op off')
+        key(VK_F8, False)
+        beat()
+        # Falsifier: P3's own capture reads its pad only; the word stays clear and F8 acts.
+        status, _ = self.s.command('CAPTURE_START', 3, ACT['FLEE'], 0)
+        self.assertEqual(status, 0)
+        beat()
+        beat()
+        self.assertEqual(self.word() & 1, 0)
+        key(VK_F8)
+        beat()
+        self.assertNotEqual(d.ILCT_CtlState(), 0, 'F8 turns co-op off during a capture that reads no key')
+        key(VK_F8, False)
+        self.s.command('CAPTURE_CANCEL', 3)
+        self.tick()
+
+
+# =====================================================================================================
+# F3. Drop-in/out keys of guests that do not own the keyboard
+# =====================================================================================================
+TOGGLE = abit('TOGGLE_CONTROL')
+
+
+@native_test
+class DropInOutKeyTest(RigCase):
+    """A guest that does not own the keyboard still reads its own TOGGLE_CONTROL keys (foreground only) as its own
+    action edge, at the input service's 125 Hz, so the co-op switches read no key for it any more."""
+
+    def setUp(self):
+        super().setUp()
+        self.two_guests(kbm=2)                     # P2 owns the keyboard; P3's F7 is a drop-in/out key
+        self.s.keyboard()
+        self.s.begin()
+        self.at(0)
+        self.tick()
+
+    def cursor(self):
+        from coop_session_support import EdgeCursor
+        return EdgeCursor()
+
+    def since(self, cursor, seat):
+        from coop_session_support import EdgeDelta
+        d = EdgeDelta()
+        self.assertEqual(self.s.dll.ILCT_EdgeSince(ctypes.byref(cursor), seat, ctypes.byref(d)), 1)
+        return d
+
+    def test_only_the_toggle_key_counts_and_it_keeps_the_prompt(self):
+        prompt = self.s.act(3)['active']
+        self.s.key(VK_F7)
+        self.tick()
+        f = self.s.act(3)
+        self.assertEqual((f['pressed'], f['held']), (TOGGLE, TOGGLE))
+        self.assertFalse(f['flags'] & F_KBM, 'P3 still does not own the keyboard')
+        self.assertEqual(f['active'], prompt, 'a drop-in/out key does not switch P3 to keyboard prompts')
+        self.assertNotEqual(prompt, ACTIVE_KEYBOARD)
+        self.s.key(VK_F7, False)
+        self.s.key('W')                            # P3 has W bound too (MOVE_UP): not a drop-in/out key
+        self.tick()
+        self.assertEqual(self.s.act(3)['held'], 0)
+        self.assertEqual(self.s.act(2)['held'], abit('MOVE_UP'), 'control: W is P2\'s, the keyboard owner')
+        self.s.key('W', False)
+        self.tick()
+
+    def test_a_tap_shorter_than_a_co_op_beat_is_seen_once(self):
+        """Timing: the key used to be sampled by the switches every 20 ms beat (a tap between two beats was lost);
+        now it is an action edge at 125 Hz kept in the edge history, so an 8 ms tap reaches a slow reader once."""
+        self.s.dll.ILCT_EdgeSince.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p]
+        cur = self.cursor()
+        self.since(cur, 3)                         # seeds
+        self.s.key(VK_F7)
+        self.tick()                                # one 8 ms tick down
+        self.s.key(VK_F7, False)
+        self.tick(2)                               # released before the next 20 ms beat reads
+        d = self.since(cur, 3)
+        self.assertEqual((d.act_pressed & TOGGLE, d.act_released & TOGGLE), (TOGGLE, TOGGLE))
+        self.assertEqual(self.since(cur, 3).act_pressed & TOGGLE, 0, 'seen exactly once')
+
+    def test_the_switches_toggle_from_the_edge_on_their_next_beat(self):
+        d = self.s.dll
+        d.ILCT_CtlConfigure.argtypes = [ctypes.c_char_p]
+        d.ILCT_CtlKey.argtypes = [ctypes.c_uint32, ctypes.c_int32]
+        d.ILCT_CtlStep.argtypes = [ctypes.c_uint64]
+        d.ILCT_CtlParked.restype = ctypes.c_uint32
+        d.ILCT_CtlKeyReads.restype = ctypes.c_uint32
+        d.ILCT_CtlReset()
+        record = self.two_guests(kbm=2)
+        d.ILCT_CtlConfigure(bytes(record))
+        self.tick()
+        d.ILCT_CtlStep(self.t)                     # the switches' cursor seeds
+        reads = d.ILCT_CtlKeyReads()
+        self.s.key(VK_F7)                          # an 8 ms tap between two 20 ms beats; only the service sees it
+        self.tick()
+        self.s.key(VK_F7, False)
+        self.tick(2)
+        d.ILCT_CtlStep(self.t)
+        self.assertEqual(d.ILCT_CtlParked(), 0b100, 'P3 dropped out from its own edge')
+        self.assertEqual(d.ILCT_CtlKeyReads() - reads, 1, 'the switches read only the kill-switch key (F8)')
+        self.tick()
+        self.assertEqual(self.s.control()['parked'] & 0b100, 0b100, 'the input service parked P3 (PARK command)')
+
+    def test_no_toggle_while_the_game_is_in_the_background(self):
+        self.s.focus(False)
+        self.s.key(VK_F7)
+        self.tick(3)
+        self.assertEqual(self.s.act(3)['held'], 0, 'the key is not even read in the background')
+        self.s.focus(True)                         # focus comes back with F7 still held: absorbed, no press
+        self.tick()
+        f = self.s.act(3)
+        self.assertEqual((f['pressed'], f['held'], f['absorbed']), (0, TOGGLE, TOGGLE))
+        self.s.key(VK_F7, False)
+        self.tick()
+        self.s.key(VK_F7)                          # control: a fresh press in the foreground
+        self.tick()
+        self.assertEqual(self.s.act(3)['pressed'], TOGGLE)
+
+    def test_a_mouse_button_is_never_a_drop_in_out_key_without_the_keyboard(self):
+        # P2's CANCEL leaves the right button first: the validator refuses a guest's join button that the keyboard
+        # player also binds.
+        def p3_toggle(r):
+            binding(r, 2, 'CANCEL', 2, 'NONE', 0)
+            binding(r, 3, 'TOGGLE_CONTROL', 1, 'MOUSE', 2)
+        self.two_guests(kbm=2, record_hook=p3_toggle)
+        self.tick()
+        self.s.key(VK_RBUTTON)
+        self.tick()
+        self.assertEqual(self.s.act(3)['held'], 0)
+        self.s.key(VK_RBUTTON, False)
+        self.s.key(VK_LBUTTON)
+        self.tick()
+        self.assertEqual(self.s.act(2)['pressed'], abit('CONFIRM'), 'control: the mouse is read (P2\'s left button)')
+        self.s.key(VK_LBUTTON, False)
+        self.tick()
+
+    def test_drop_in_out_keys_read_as_released_during_a_keyboard_capture(self):
+        for seat, action in ((0, 0), (2, ACT['FLEE'])):   # the co-op on/off key; P2's own (keyboard) capture
+            with self.subTest(capture_seat=seat):
+                status, _ = self.s.command('CAPTURE_START', seat, action, 0)
+                self.assertEqual(status, 0)
+                self.tick(2)
+                self.s.key(VK_F7)                  # captured, and must not drop P3 out
+                self.tick()
+                self.assertEqual(self.s.act(3)['pressed'], 0)
+                self.tick(2)                       # the capture ended with F7 still held: absorbed
+                f = self.s.act(3)
+                self.assertEqual((f['pressed'], f['absorbed'] & TOGGLE), (0, TOGGLE))
+                self.s.key(VK_F7, False)
+                self.tick()
+                self.s.key(VK_F7)                  # control: the next press drops P3 out
+                self.tick()
+                self.assertEqual(self.s.act(3)['pressed'], TOGGLE)
+                self.s.key(VK_F7, False)
+                self.tick()
+                self.s.results('CAPTURE_RESULT')
 
 
 # =====================================================================================================

@@ -13,6 +13,12 @@ uint16_t max_strength(uint16_t a, uint16_t b)
     return a > b ? a : b;
 }
 
+// Mouse buttons by virtual-key code (0x01 left, 0x02 right, 0x04 middle, 0x05/0x06 X1/X2): never a drop-in/out key.
+bool mouse_vk(uint32_t vk)
+{
+    return vk == 0x01 || vk == 0x02 || (vk >= 0x04 && vk <= 0x06);
+}
+
 void seat_neutral(ilc_seat_action_frame& f, uint32_t seat, uint32_t seq, uint64_t now)
 {
     memset(&f, 0, sizeof(f));
@@ -41,15 +47,35 @@ void actions_reset(action_layer& st)
     memset(&st, 0, sizeof(st));
 }
 
+bool hot_seat(const config& cfg, uint32_t seat)
+{
+    return seat >= 1 && seat < ILC_ACTIVE_SEATS_MAX && cfg.kbm_seat != seat + 1;
+}
+
+bool hot_binding(uint32_t action, const ilc_binding& b)
+{
+    return action == ILC_ACTION_TOGGLE_CONTROL && b.kind == ILC_BIND_KEY && b.code != 0 && !mouse_vk(b.code);
+}
+
 void actions_wanted_keys(const config& cfg, key_state* out)
 {
     memset(out, 0, sizeof(*out));
-    if (cfg.kbm_seat < 1 || cfg.kbm_seat > SEATS) {
-        return;
+    if (cfg.kbm_seat >= 1 && cfg.kbm_seat <= SEATS) {
+        for (const ilc_binding& b : cfg.bindings[cfg.kbm_seat - 1]) {
+            if (b.kind == ILC_BIND_KEY || b.kind == ILC_BIND_MOUSE) {
+                key_set(*out, b.code);  // MOUSE 1/2 are VK_LBUTTON/VK_RBUTTON
+            }
+        }
     }
-    for (const ilc_binding& b : cfg.bindings[cfg.kbm_seat - 1]) {
-        if (b.kind == ILC_BIND_KEY || b.kind == ILC_BIND_MOUSE) {
-            key_set(*out, b.code);  // MOUSE 1/2 are VK_LBUTTON/VK_RBUTTON
+    for (uint32_t s = 0; s < SEATS; ++s) {
+        if (!hot_seat(cfg, s)) {
+            continue;
+        }
+        for (uint32_t k = 0; k < ILC_BINDINGS_PER_ACTION; ++k) {
+            const ilc_binding& b = cfg.bindings[s][ILC_ACTION_TOGGLE_CONTROL * ILC_BINDINGS_PER_ACTION + k];
+            if (hot_binding(ILC_ACTION_TOGGLE_CONTROL, b)) {
+                key_set(*out, b.code);
+            }
         }
     }
 }
@@ -62,6 +88,7 @@ void actions_step(action_layer& st, const action_inputs& in, uint64_t now, uint3
     const bool focus_regained = st.started && in.focused && !st.last_focused;
     const bool kbm_moved = st.started && kbm != st.last_kbm;
     const bool swap_changed = st.started && (in.decide_swap != 0) != (st.last_swap != 0);
+    const bool hot_back = st.started && in.hot_off == 0 && st.last_hot_off != 0;
 
     for (uint32_t s = 0; s < SEATS; ++s) {
         seat_action_state& ss = st.seats[s];
@@ -72,14 +99,15 @@ void actions_step(action_layer& st, const action_inputs& in, uint64_t now, uint3
 
         const bool pad_live = (frame.flags & ILC_FRAMEF_CONNECTED) != 0;
         const bool owns_kbm = kbm == s + 1;
-        const bool keys_on = owns_kbm && in.focused;
+        const bool hot = hot_seat(cfg, s);  // reads its own drop-in/out keys without owning the keyboard
+        const bool keys_on = in.focused && (owns_kbm || (hot && in.hot_off == 0));
         const bool tables_changed = memcmp(ss.bindings, cfg.bindings[s], sizeof(ss.bindings)) != 0;
         const bool suppressed = in.suppress[s] != 0;
         const bool unsuppressed = ss.suppressed && !suppressed;
 
         const bool reseed_all = !st.started || tables_changed || in.reseed[s] || unsuppressed;
         const bool reseed_keys = reseed_all || (kbm_moved && (owns_kbm || st.last_kbm == s + 1)) ||
-                                 (focus_regained && owns_kbm);
+                                 (focus_regained && (owns_kbm || hot)) || (hot_back && hot);
 
         // Absorption is per control and per key: what is held at a discontinuity produces no edge until it is
         // released. The pad frame already absorbed device changes (frame.absorbed); this layer adds its own.
@@ -103,7 +131,7 @@ void actions_step(action_layer& st, const action_inputs& in, uint64_t now, uint3
         }
 
         // Bindings: held (raw, for steering and other continuous use) and the parts that may make edges.
-        uint32_t held = 0, pad_edge = 0, key_edge = 0, key_held = 0;
+        uint32_t held = 0, pad_edge = 0, key_edge = 0, key_held = 0, hot_edge = 0;
         uint16_t pad_strength[ILC_ACTIONS];
         memset(pad_strength, 0, sizeof(pad_strength));
         for (uint32_t a = 0; a < ILC_ACTIONS; ++a) {
@@ -124,11 +152,18 @@ void actions_step(action_layer& st, const action_inputs& in, uint64_t now, uint3
                         }
                     }
                 } else if (b.kind == ILC_BIND_KEY || b.kind == ILC_BIND_MOUSE) {
+                    if (!owns_kbm && !hot_binding(a, b)) {
+                        continue;  // without the keyboard only the drop-in/out keys count
+                    }
                     if (key_is_down(keys, b.code)) {
                         held |= bit;
                         key_held |= bit;
                         if (key_is_down(edge_keys, b.code)) {
-                            key_edge |= bit;
+                            if (owns_kbm) {
+                                key_edge |= bit;
+                            } else {
+                                hot_edge |= bit;  // no prompt change for a drop-in/out key
+                            }
                         }
                     }
                 }
@@ -169,7 +204,7 @@ void actions_step(action_layer& st, const action_inputs& in, uint64_t now, uint3
             continue;
         }
 
-        const uint32_t edge = pad_edge | key_edge;
+        const uint32_t edge = pad_edge | key_edge | hot_edge;
         const uint32_t pressed = edge & ~ss.prev_edge;
         const uint32_t released = ss.prev_held & ~held;
         if ((pad_edge & ~ss.prev_pad) != 0) {
@@ -237,6 +272,7 @@ void actions_step(action_layer& st, const action_inputs& in, uint64_t now, uint3
     st.last_focused = in.focused;
     st.last_kbm = kbm;
     st.last_swap = in.decide_swap;
+    st.last_hot_off = in.hot_off != 0 ? 1 : 0;
 }
 
 }  // namespace ilc::input

@@ -35,6 +35,7 @@
 #define ILC_SITE_FLAG_INTERIOR 0x01u
 #define ILC_SITE_FLAG_DROPPED 0x02u
 #define ILC_SITE_FLAG_RIPREL 0x04u
+#define ILC_SITE_FLAG_OPTIONAL 0x08u  // PATCH: a mismatch skips this row (another mod rewrote it) instead of refusing
 
 #define ILC_SITE_NO_GATE 0xFFFFu
 
@@ -83,7 +84,8 @@ ILC_SITE_LIST(ILC_SITE_CHECK)
 
 static_assert((ILC_ENUM_OR(ILC_SUBSYSTEMS) & ILC_SITE_SUBSYS_NONE) == 0, "NONE sentinel collides with a bit");
 
-// Every GATE row names a PATCH row, no two GATE rows name the same one, and only GATE rows carry a gate.
+// Every GATE row names a PATCH row and only GATE rows carry a gate. Several GATE rows may name the same PATCH row
+// (the HUD frame hook needs its callee and every draw function it calls): any one of them not matching skips it.
 constexpr bool gates_well_formed()
 {
     for (uint32_t i = 0; i < SITE_COUNT; ++i) {
@@ -96,11 +98,6 @@ constexpr bool gates_well_formed()
         }
         if (g.gate >= SITE_COUNT || SITES[g.gate].policy != ILC_SITE_POLICY_PATCH) {
             return false;
-        }
-        for (uint32_t j = 0; j < i; ++j) {
-            if (SITES[j].policy == ILC_SITE_POLICY_GATE && SITES[j].gate == g.gate) {
-                return false;
-            }
         }
     }
     return true;
@@ -117,5 +114,18 @@ constexpr uint8_t checked_byte(const site& s, uint32_t k)
 {
     return static_cast<uint8_t>(k < s.length ? s.expected[k] : s.hook_tail[k - s.length]);
 }
+
+// The patch engine compares a row through a stack buffer of this size; a longer row would always read as a mismatch.
+constexpr uint32_t CHECKED_MAX = 128;
+constexpr bool rows_fit_the_check_buffer()
+{
+    for (uint32_t i = 0; i < SITE_COUNT; ++i) {
+        if (checked_len(SITES[i]) > CHECKED_MAX) {
+            return false;
+        }
+    }
+    return true;
+}
+static_assert(rows_fit_the_check_buffer(), "a site row is longer than the patch engine's check buffer (CHECKED_MAX)");
 
 }  // namespace ilc::patch

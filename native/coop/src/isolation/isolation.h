@@ -7,10 +7,12 @@
 //   IN-02  DirectInput pad finalize   (call row, tick thread)
 //   IN-03  Steam pad finalize         (call row, tick thread)
 //   IN-05  keyboard finalize          (call row, tick thread)   the keyboard filter
-//   IN-06  pad focus gate             (mid-function, tick thread) pads keep working while the window is unfocused
-//   IN-06a verify-only gate row: if the bytes before IN-06 are not stock (another mod rewrote that approach), the
-//          patch layer skips IN-06 at install and status() reports it
-//   IN-07  focus-loss event dispatch  (call row, main thread)   focus loss reads as "active": the game keeps running
+//
+// The pad focus gate (IN-06, with its IN-06a guard) belongs to the background setting now (focus/focus.h): while the
+// window is unfocused and the game keeps running, player 1's pads read neutral, and so does the substitution host
+// below (P1 fed from SDL, or a guest driving the native menus): it gets the neutral block, and the presses made
+// meanwhile are consumed, never replayed on refocus. The focus-loss event rewrite (IN-07)
+// was dropped: keeping the game running is that setting's own row. status() still reports whether IN-06 is hooked.
 //
 // Pad policy, per device object at IN-01/02/03, when the record says isolation applies (some guest seat has a pad
 // or the keyboard configured, or P1 is fed by substitution):
@@ -25,6 +27,9 @@
 //     next real packet is interpreted again). That is every guest pad, and also any unowned pad, as the reference
 //     behaviour did: a pad nobody paired must not drive P1's character either.
 //   * When isolation stops applying, the previous host gets the neutral block once (release), then stock.
+// Menu driver: while a guest's own dialog, menu or shop is open (interaction::menu_driver), that guest drives the
+// native menus "just like player 1": the host object (elected as for substitution) carries the guest's pad, every
+// other pad object is masked, P1's own included, and the keyboard is filtered unless that guest owns it. P1 waits.
 // Keyboard: while a guest seat (or nobody) owns keyboard and mouse and isolation applies, every key state is
 // cleared except a few shared keys (map, speed, map transparency), rebuilt from the raw sample. The filter has a
 // lease: each game keyboard update spends one unit of a budget the co-op thread refills to KB_BUDGET every beat,
@@ -63,9 +68,11 @@ enum record_flag : uint32_t {
     ISO_SUBST = 0x02,       // P1's live source is SDL: feed P1 through the host object (masks the rest too)
     ISO_KB_FILTER = 0x04,   // filter the keyboard (a guest or nobody owns it, and GUARD)
     ISO_FLEE = 0x08,        // force flee on P1's device (tests); guests' requests come from movement::flee_seats
-    ISO_BACKGROUND = 0x10,  // pads work unfocused (IN-06) and focus loss does not pause (IN-07)
+    ISO_BACKGROUND = 0x10,  // isolation applies (informational: the background behaviour is the focus setting's)
     ISO_RELEASE = 0x20,     // isolation just stopped: neutralize the previous host once
     ISO_P1_NATIVE = 0x40,   // P1's live source is an XInput slot (p1_slot)
+    ISO_DRIVER = 0x80,      // a guest drives the native menus (its dialog or shop is open): driver_seat's pad goes
+                            // through the host object, every other pad object (P1's own included) is masked
 };
 
 // The published record (small on purpose: a mid-function body copies it).
@@ -74,7 +81,7 @@ struct iso_record {
     uint8_t p1_slot;          // XInput user index of P1's live pad, 0xFF none
     uint8_t kbm_seat;         // settings value (0 none, 1..)
     uint8_t guest_seats;      // bit s: seat s+1 has a configured guest device or the keyboard
-    uint8_t reserved0;
+    uint8_t driver_seat;      // ISO_DRIVER: the session seat (1..) whose guest drives the native menus, else 0
     uint16_t p1_vid;          // P1's SDL pad vendor/product (0 unknown): host preference only
     uint16_t p1_pid;
     uint32_t reserved1;
@@ -89,13 +96,14 @@ iso_record compose(uint32_t epoch, uint64_t generation, const session::session_r
 void withdraw();                                        // at stop: detours fall back to stock
 // Release before a disarm (for the kill switch): from the next publish on, records carry only ISO_RELEASE, so no
 // pad is masked or substituted and the current host gets the neutral block (and its packet number cleared) once.
-// release_settled() is true once such a record was built and no host remains. end_release() returns to normal.
+// release_settled() is true once such a record was built, no host remains and P1's flee byte has been given back
+// its real RT. end_release() returns to normal.
 // The caller owns the sequence and its time cap.
 void begin_release();
 bool release_settled();
 void end_release();
 
-// Boot (once, before arming): registers the handlers and arms IN-01/02/03/05/06/07. False if a row is missing.
+// Boot (once, before arming): registers the handlers and arms IN-01/02/03/05. False if a row is missing.
 bool attach();
 
 // ---- pure functions (host tests) ------------------------------------------------------------------------------
@@ -113,18 +121,24 @@ struct counters {
     volatile uint64_t probe_failed; // a probe read or write failed: stock
     volatile uint64_t kb_filtered;
     volatile uint64_t kb_expired;   // budget spent: stock
-    volatile uint64_t background;   // IN-06 unfocused runs
-    volatile uint64_t focus_kept;   // IN-07 events rewritten
+    volatile uint64_t background;   // host visits made neutral: the game runs unfocused (focus::running_unfocused)
+    volatile uint64_t focus_kept;   // retired (always 0): the focus-loss event rewrite was dropped
     volatile uint64_t host_changes;
+    volatile uint64_t feed_drains;  // a menu drive started or ended: the incoming seat's presses consumed unused
 };
 const counters* stats();
 
 struct status_view {
-    uint32_t in06_armed;    // 0 = IN-06 not hooked (IN-06a did not match at install: background pads off)
+    uint32_t in06_armed;    // 0 = IN-06 not hooked (IN-06a did not match at install: no neutral pads unfocused)
     uint32_t published;     // records published
     uint64_t host;          // current host object (compare only)
 };
 status_view status();
+// The current host object (substitution or menu driver), 0 none; any thread, one atomic load (the firewall's P1
+// device check).
+uint64_t host_object();
+// P1's own XInput object (ISO_P1_NATIVE) as the last pad visit found it, 0 none; any thread, one atomic load.
+uint64_t p1_object();
 
 // ---- host tests ----------------------------------------------------------------------------------------------
 patch::record_slot<iso_record>& slot();
@@ -134,14 +148,14 @@ int32_t test_budget();
 void test_set_budget(int32_t value);
 enum block_variant : uint32_t { VARIANT_OK = 0, VARIANT_NO_NEGATE = 1, VARIANT_SHIFT = 2, VARIANT_NO_CLEAR = 3,
                                 VARIANT_NONE = 4 };
+bool test_flee_last();                 // a flee byte on P1's device still waits for its real RT
 void test_block_variant(uint32_t v);   // instrument controls for the substitution test (must make it fail)
 void test_flee_source(uint32_t (*source)(uint32_t epoch));  // nullptr = the movement subsystem's flee word
+void test_driver_source(uint32_t (*source)());               // nullptr = the interaction subsystem's menu driver
 // The handlers, for direct calls in host tests.
 int32_t in01(patch::ctx* c, uint32_t epoch);
 int32_t in02(patch::ctx* c, uint32_t epoch);
 int32_t in03(patch::ctx* c, uint32_t epoch);
 int32_t in05(patch::ctx* c, uint32_t epoch);
-int32_t in06(patch::ctx* c, uint32_t epoch);
-int32_t in07(patch::ctx* c, uint32_t epoch);
 
 }  // namespace ilc::isolation

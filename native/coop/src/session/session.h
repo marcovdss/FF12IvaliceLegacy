@@ -20,6 +20,11 @@
 // own in which the record is fresh but GATE_WORLD is clear. Detours and game-thread ops that touch world objects
 // must check GATE_WORLD (and their own gates), never the epoch alone. The game-thread queue enforces this for
 // world-requiring ops (set_world each step; runtime/game_thread.h).
+// Two documented exceptions read no world object through the record and so act without GATE_WORLD: input
+// isolation (src/isolation: decisions from the settings and the input service only, so guest input stays out of
+// loads, menus and cutscenes too) and the town layout detour TW-01 (src/towns: it touches only the layout block
+// the interrupted builder is writing and reads the town state itself through the probe, so it also runs during
+// the area-entry rebuild). Each states its exception in its own header.
 //
 // Seats: arrays are ILC_SEATS long; only seats below ILC_ACTIVE_SEATS_MAX are ever filled. A seat beyond the cap
 // stays empty whatever the settings say.
@@ -96,6 +101,7 @@ enum seat_flag : uint16_t {
     SEATF_LEADER = 0x0100,        // its character is the native leader
     SEATF_MENU = 0x0200,          // its battle menu may open
     SEATF_KO_PROMOTED = 0x0400,   // the game made it leader because P1 is down
+    SEATF_BENCHED = 0x0800,       // playing (in session, not parked, co-op on) but no character was free for it
 };
 
 struct seat_entry {
@@ -157,6 +163,25 @@ struct pending_effect {
     effect fx;
 };
 uint32_t take_effects(pending_effect* out, uint32_t max);
+
+// A seat change the party subsystem has just made in the game (on the game thread, in the same callback as the
+// leader write and the steering remap). The session adopts it at its next step without the identity settle,
+// provided the world it reads agrees: the same session epoch, the native leader equal to `leader`, every named
+// member in both party layouts, one member per seat, Player 1 with a character. A world that still shows the
+// leader from before (the read raced the change) keeps it for a few steps; anything else drops it, and the
+// ordinary settled adoption decides from the live party instead.
+struct adoption {
+    uint32_t seq;              // non-zero
+    uint32_t epoch;            // the session epoch the change was made in
+    uint32_t mask;             // bit s: seat s now controls member[s]
+    uint16_t member[SEATS];
+    uint16_t leader;           // the native leader after the change
+    uint16_t reserved;
+};
+constexpr uint32_t ADOPTION_TRIES = 5;   // steps a lagging world read may hold a posted change
+void post_adoption(const adoption& a);   // any thread; a newer post replaces an unapplied one
+uint32_t adopted_seq();                  // any thread: the last posted change the session applied (0 none)
+uint32_t adoptions_dropped();            // posted changes the session refused
 
 struct counters {
     volatile uint64_t steps;

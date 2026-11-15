@@ -34,6 +34,7 @@ CAPACITY, BUDGET, COMPLETIONS = 64, 16, 128
 NOW, EPOCH, GEN = 1_000_000, 7, 5
 FAULT_ALL = 0xFFFFFFFF
 MOVEMENT = 0x02
+BACKGROUND_ROWS = ('FP-01', 'FP-03', 'FP-04', 'IN-06')  # CORE rows of the background setting (src/focus)
 
 
 class Completion(ctypes.Structure):
@@ -50,7 +51,8 @@ class GtqCounters(ctypes.Structure):
 class TickCounters(ctypes.Structure):
     _fields_ = [(n, ctypes.c_uint64) for n in ('ticks', 'reentered', 'settings_applied', 'safe_point_busy',
                                                'mask_applied', 'mask_deferred', 'jobs_drained', 'jobs_flushed',
-                                               'last_tick_ms')]
+                                               'last_tick_ms', 'stale_releases', 'stale_ticks', 'live_switches',
+                                               'live_deferred', 'live_at_ms', 'max_ticks')]
 
 
 class LivenessView(ctypes.Structure):
@@ -429,6 +431,183 @@ class TickTest(unittest.TestCase):
 
 
 @unittest.skipUnless(NATIVE and GAME, 'requires the pinned MSYS2 g++ and IVALICE_LEGACY_GAME (a copy of the exe)')
+class LiveSwitchTest(unittest.TestCase):
+    """The one DRY -> LIVE switch at the UT-01 safe point: after the first applied settings record (generation >= 1)
+    has had its mask handed to the arm gates, never for the native defaults, never back. Every PATCH row gets the
+    host-safe test handler and is site-armed, so each gate shows exactly what mode, mask and liveness allow."""
+
+    generation = 500
+    CORE = 0
+
+    def setUp(self):
+        self.w = world()
+        self.w.setup(mode=DRY)
+        self.d = self.w.d
+        self.d.ILCT_PatchDispatchRow.argtypes = [ctypes.c_uint32]
+        self.d.ILCT_PatchDispatchRow.restype = ctypes.c_int32
+        self.bridge = Bridge(self.d)
+        self.twin = self.w.twin
+        # As the boot leaves it: every subsystem bit closed, the co-op switches on with no ordered release pending.
+        self.d.ILCT_CtlReset()
+        self.d.ILCT_PatchApplySubsystems(0)
+        for row in self.twin.patch:
+            if row != self.w.ut01:
+                self.assertEqual(self.d.ILCT_RecordSetHandler(row), 1)
+            self.d.ILCT_PatchSetSiteArmed(row, 1)
+
+    def tearDown(self):
+        self.w.twin.reset()
+
+    def stage(self, mask: int, generation: int | None = None) -> int:
+        if generation is None:
+            LiveSwitchTest.generation += 1
+            generation = LiveSwitchTest.generation
+        record = bytearray(S.defaults())
+        struct.pack_into('<I', record, S.locate('ilc_settings', ['header', 'generation'])[0], generation)
+        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_armed'])[0], mask)
+        status, _ = self.bridge.call(S.e('op', 'SET_SETTINGS'), bytes(record))
+        return status
+
+    def open_rows(self) -> dict[int, set[str]]:
+        """subsystem bit -> ids of the PATCH rows whose gate is open."""
+        out: dict[int, set[str]] = {}
+        for row in self.twin.patch:
+            info = self.twin.info(row)
+            if info.gate_open:
+                out.setdefault(info.subsystem, set()).add(info.id.decode())
+        return out
+
+    def counters(self) -> dict:
+        return S.decode('ilc_counters', self.bridge.call(S.e('op', 'GET_COUNTERS'))[1])
+
+    def minhook_row(self, subsystem: int) -> int:
+        """A PATCH row of `subsystem` hooked through MinHook (ILCT_PatchDispatchRow answers -1 for call rows)."""
+        for row in self.twin.patch:
+            if self.twin.info(row).subsystem == subsystem and self.d.ILCT_PatchDispatchRow(row) != -1:
+                return row
+        raise AssertionError(f'no MinHook row of subsystem {subsystem:#x}')
+
+    def test_dry_until_the_first_applied_record_then_live_once(self):
+        core = self.open_rows()
+        self.assertEqual(set(core), {self.CORE}, 'DRY: only CORE rows open')
+        for _ in range(5):
+            self.assertEqual(self.d.ILCT_TickRun(EPOCH), 0)
+        self.assertEqual((self.d.ILCT_PatchMode(), self.w.tick().live_switches), (DRY, 0), 'no record: still DRY')
+        self.assertEqual(self.counters()['mode'], DRY)
+        # falsifier: the first applied record takes the layer LIVE in the same frame, with its mask
+        self.assertGreater(self.stage(MOVEMENT), 0)
+        self.assertEqual(self.d.ILCT_PatchMode(), DRY, 'staged is not applied')
+        self.d.ILCT_TickRun(EPOCH)
+        t = self.w.tick()
+        self.assertEqual((self.d.ILCT_PatchMode(), self.d.ILCT_PatchSubsystems()), (LIVE, MOVEMENT))
+        self.assertEqual((t.live_switches, t.live_deferred, t.live_at_ms, t.mask_applied), (1, 0, NOW, 1))
+        k = self.counters()
+        self.assertEqual((k['mode'], k['live_at_ms'], k['tick_live_switches'], k['subsystems_gates']),
+                         (LIVE, NOW & 0xFFFFFFFF, 1, MOVEMENT))
+        self.assertEqual(k['subsystems_live'], MOVEMENT)
+        # one-way: later records (mask 0 included) never bring DRY back, and never switch again
+        for mask in (0, 0xFE, 0):  # (INPUT_ISOLATION off goes through the ordered release: kept out here)
+            self.assertGreater(self.stage(mask), 0)
+            self.d.ILCT_TickRun(EPOCH)
+            self.assertEqual((self.d.ILCT_PatchMode(), self.d.ILCT_PatchSubsystems()), (LIVE, mask))
+        self.assertEqual(self.w.tick().live_switches, 1)
+
+    def test_generation_zero_never_goes_live(self):
+        # The native defaults are generation 0: the bridge refuses a record that claims it, and nothing is applied.
+        self.assertEqual(self.stage(0xFF, generation=0), S.e('error', 'BAD_FIELD'))
+        bad = bytearray(S.defaults())
+        struct.pack_into('<I', bad, S.locate('ilc_settings', ['header', 'generation'])[0], 900)
+        bad[S.locate('ilc_settings', ['developer'])[0]] = 2  # out of range: refused
+        self.assertEqual(self.bridge.call(S.e('op', 'SET_SETTINGS'), bytes(bad))[0], S.e('error', 'BAD_FIELD'))
+        for _ in range(20):
+            self.d.ILCT_TickRun(EPOCH)
+        t = self.w.tick()
+        self.assertEqual((self.d.ILCT_PatchMode(), self.d.ILCT_PatchSubsystems(), t.settings_applied, t.live_switches),
+                         (DRY, 0, 0, 0))
+        self.assertEqual(set(self.open_rows()), {self.CORE})
+        # falsifier: a valid record (the next generation) does go LIVE
+        self.assertGreater(self.stage(0), 0)
+        self.d.ILCT_TickRun(EPOCH)
+        self.assertEqual((self.d.ILCT_PatchMode(), self.w.tick().live_switches), (LIVE, 1))
+
+    def test_live_waits_until_the_mask_is_in(self):
+        self.assertGreater(self.stage(MOVEMENT), 0)
+        holder_ready, release = threading.Event(), threading.Event()
+
+        def hold():
+            self.d.ILCT_PatchHoldLock(1)
+            holder_ready.set()
+            release.wait()
+            self.d.ILCT_PatchHoldLock(0)
+
+        holder = threading.Thread(target=hold)
+        holder.start()
+        holder_ready.wait()
+        try:
+            self.assertEqual(self.d.ILCT_TickRun(EPOCH), 0)  # must not block
+            t = self.w.tick()
+            self.assertEqual((t.settings_applied, t.mask_deferred, t.live_switches), (1, 1, 0))
+            self.assertEqual((self.d.ILCT_PatchMode(), self.d.ILCT_PatchSubsystems()), (DRY, 0),
+                             'LIVE before the mask reached the gates')
+        finally:
+            release.set()
+            holder.join()
+        self.d.ILCT_TickRun(EPOCH)
+        self.assertEqual((self.d.ILCT_PatchMode(), self.d.ILCT_PatchSubsystems()), (LIVE, MOVEMENT))
+        self.assertEqual(self.w.tick().live_switches, 1)
+
+    def test_mask_zero_keeps_every_non_core_row_stock_and_one_bit_opens_only_its_rows(self):
+        self.assertGreater(self.stage(0), 0)
+        self.d.ILCT_TickRun(EPOCH)
+        self.assertEqual(self.d.ILCT_PatchMode(), LIVE, 'a record with mask 0 still goes LIVE')
+        self.assertEqual(set(self.open_rows()), {self.CORE}, 'LIVE + mask 0: only CORE rows open (dry-armed)')
+        self.assertEqual(self.counters()['subsystems_live'], 0)
+        by_subsystem: dict[int, set[str]] = {}
+        for row in self.twin.patch:
+            info = self.twin.info(row)
+            by_subsystem.setdefault(info.subsystem, set()).add(info.id.decode())
+        core_rows = by_subsystem[self.CORE]
+        for bit in [1 << k for k in range(7, -1, -1)]:  # INPUT_ISOLATION last: leaving it is an ordered release
+            self.assertGreater(self.stage(bit), 0)
+            self.d.ILCT_TickRun(EPOCH)
+            with self.subTest(bit=bit):
+                expected = {self.CORE: core_rows}
+                if bit in by_subsystem:
+                    expected[bit] = by_subsystem[bit]
+                self.assertEqual(self.open_rows(), expected)
+        # falsifier in the dispatcher itself: a MinHook row of MOVEMENT runs its handler only while MOVEMENT is armed
+        row = self.minhook_row(MOVEMENT)
+        for mask, handled in ((0, 0), (MOVEMENT, 1), (0x01, 0)):
+            self.assertGreater(self.stage(mask), 0)
+            self.d.ILCT_TickRun(EPOCH)
+            k0 = self.counters()['detour_handled']
+            self.assertEqual(self.d.ILCT_PatchDispatchRow(row), 1, 'the test handler always continues stock')
+            self.assertEqual(self.counters()['detour_handled'] - k0, handled, f'mask {mask:#x}')
+
+    def test_stale_liveness_after_live_falls_back_to_stock(self):
+        self.assertGreater(self.stage(MOVEMENT), 0)
+        self.d.ILCT_TickRun(EPOCH)
+        self.assertEqual(self.d.ILCT_PatchMode(), LIVE)
+        row = self.minhook_row(MOVEMENT)
+        k0 = self.counters()
+        self.d.ILCT_PatchDispatchRow(row)  # fresh: the handler runs
+        k1 = self.counters()
+        self.assertEqual((k1['detour_handled'] - k0['detour_handled'], k1['stale_fallbacks'] - k0['stale_fallbacks']), (1, 0))
+        self.d.ILCT_SetFixedClock(NOW + 2001)  # the co-op thread's heartbeat is now older than 2 s
+        self.assertEqual(self.d.ILCT_PatchDispatchRow(row), 1)
+        k2 = self.counters()
+        self.assertEqual((k2['detour_handled'] - k1['detour_handled'], k2['stale_fallbacks'] - k1['stale_fallbacks'],
+                          k2['liveness_fresh'], k2['liveness_age_ms']), (0, 1, 0, 2001))
+        self.assertEqual((self.d.ILCT_PatchMode(), self.d.ILCT_PatchSubsystems()), (LIVE, MOVEMENT), 'stale latches nothing')
+        # the UI tick runs its stale clean-up through the call row's dispatcher (unicorn: Ut01EmulationTest); the next
+        # fresh heartbeat opens the path again, no latch
+        self.d.ILCT_PatchHeartbeat(EPOCH)
+        self.d.ILCT_PatchDispatchRow(row)
+        k3 = self.counters()
+        self.assertEqual((k3['detour_handled'] - k2['detour_handled'], k3['stale_fallbacks'] - k2['stale_fallbacks']), (1, 0))
+
+
+@unittest.skipUnless(NATIVE and GAME, 'requires the pinned MSYS2 g++ and IVALICE_LEGACY_GAME (a copy of the exe)')
 class FailOpenTemplateTest(unittest.TestCase):
     def setUp(self):
         self.w = world()
@@ -737,19 +916,28 @@ class DryArmEquivalenceTest(unittest.TestCase):
         w.setup(mode=LIVE)
         d = w.d
         cls.twin = w.twin
+        # The background rows are CORE too (they act on the player's own setting): their real handlers, the setting
+        # off, must equal stock in DRY like the tick. Every other row gets a handler that would clobber registers.
+        cls.background = {cls.twin.index[sid] for sid in BACKGROUND_ROWS}
+        d.ILCT_FocusAttach.restype = ctypes.c_int32
+        d.ILCT_FocusSetKeep.argtypes = [ctypes.c_int32]
+        if d.ILCT_FocusAttach() != 1:
+            raise AssertionError('the background handlers did not register')
+        d.ILCT_FocusSetKeep(0)
         for row in cls.twin.patch:
-            if row != w.ut01:
+            if row != w.ut01 and row not in cls.background:
                 d.ILCT_PatchSetClobber(row)
             d.ILCT_PatchSetSiteArmed(row, 1)
         w.push(arg=1)
         d.ILCT_PatchSetMode(DRY)
         gates = {cls.twin.rows[r]['id'] for r in cls.twin.patch if cls.twin.info(r).gate_open}
-        if gates != {'UT-01'}:
+        if gates != {'UT-01', *BACKGROUND_ROWS}:
             raise AssertionError(f'DRY gates: {sorted(gates)}')
         cls.emu = TickEmulator(cls.twin)
 
     @classmethod
     def tearDownClass(cls):
+        cls.w.d.ILCT_FocusReset()
         cls.twin.reset()
 
     def test_every_detour_behaves_exactly_like_stock_in_dry_mode(self):
@@ -760,7 +948,7 @@ class DryArmEquivalenceTest(unittest.TestCase):
             site = TWIN_BASE + r['rva']
             window = (site, site + r['hook_len'])
             patched = bytes(uc.mem_read(site, r['hook_len']))
-            core = row == self.w.ut01
+            core = row == self.w.ut01 or row in self.background
             ok = True
             for forced in (False, True):
                 for trial in range(self.TRIALS):
@@ -769,7 +957,7 @@ class DryArmEquivalenceTest(unittest.TestCase):
                     if forced:  # every gate byte open, as if a gate lagged the mode change
                         for other in twin.patch:  # call rows: also their entry slot (pe.Emulator.force_gate)
                             emu.force_gate(other, True)
-                    state = pe.random_state(random.Random(0xD12 * 100 + row * 10 + trial))
+                    state = pe.fix_state(uc, r['id'], pe.random_state(random.Random(0xD12 * 100 + row * 10 + trial)))
                     emu.write_code(site, checked(r)[:r['hook_len']])
                     a = emu.run(site, lambda x: not (TWIN_BASE <= x < TWIN_BASE + TWIN_SIZE) or
                                 window[0] <= x < window[1], state)

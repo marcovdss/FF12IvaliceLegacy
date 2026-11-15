@@ -111,6 +111,12 @@ uint32_t ILCT_ControlViewSize(void)
     return sizeof(control_view);
 }
 
+// The co-op on/off key's capture word the co-op switches read (input_service.h).
+uint32_t ILCT_KillCaptureWord(void)
+{
+    return kill_capture_word();
+}
+
 // The binding a seat's table holds after the decide swap (for prompt tests): kind | code << 8.
 uint32_t ILCT_EffectiveBinding(uint32_t kind, uint32_t code, uint32_t action, uint32_t swap)
 {

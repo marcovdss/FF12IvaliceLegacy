@@ -26,6 +26,11 @@
 //   is in the foreground) after the start; what was held at the start must be released first (below 0.55), and a
 //   pad press must reach 0.72. 20 s timeout.
 //   The seat reads neutral actions meanwhile; the captured control stays absorbed until released.
+//   Seat 0 captures the co-op on/off key (slot = arg1): keyboard keys and the right mouse button only, read from
+//   the keyboard whichever seat owns it (or none), in the foreground only. Pads, the left mouse button and the
+//   other mouse buttons' key codes (0x04..0x06) neither capture nor end it. The same start tick, release-first rule,
+//   timeout and cancels apply; the result names action CAPTURE_KILL_SWITCH_ACTION (0xFF). The keyboard seat reads
+//   neutral actions meanwhile (as a guest's own capture does) and the captured key stays absorbed for it.
 // Park: live now for the seat (or every guest); a later settings record that changes the seat's parked field
 //   takes over again. Seat move: the seat's held input is absorbed and the move waits for the session core.
 #pragma once
@@ -91,11 +96,12 @@ struct pairing_session {
 
 struct capture_session {
     uint8_t active;
-    uint8_t seat;
-    uint8_t action;
+    uint8_t seat;    // 1..4, or 0 = the co-op on/off key
+    uint8_t action;  // ilc_action, or ILC_CAPTURE_KILL_SWITCH_ACTION for seat 0
     uint8_t slot;
     uint8_t baseline_pending;
-    uint8_t reserved[3];
+    uint8_t kbm_seat;  // seat 0: the keyboard's seat as last seen (absorbs the captured key at the end)
+    uint8_t reserved[2];
     uint32_t request_id;
     uint32_t pad_baseline;  // controls held at the start, cleared as they are released
     uint64_t started_us;
@@ -143,8 +149,12 @@ void control_shutdown(control_state& st, event_sink& out);
 // The configuration the core resolves devices with: settings plus park overrides and Player 1's provisional pad.
 void control_effective(const control_state& st, const config& settings, config* out);
 
-// Seats whose actions read neutral this tick (pairing or capture), and whether the kbm seat needs every key.
-void control_suppressed(const control_state& st, uint8_t out[SEATS]);
+// Seats whose actions read neutral this tick (pairing or capture; the keyboard's seat during a seat-0 capture),
+// and whether every key must be read this tick (a capture for the kbm seat, or a seat-0 capture whoever owns it).
+void control_suppressed(const control_state& st, uint8_t kbm_seat, uint8_t out[SEATS]);
 bool control_wants_all_keys(const control_state& st, uint8_t kbm_seat);
+
+// A seat-0 capture (the co-op on/off key) is running.
+bool control_kill_capture(const control_state& st);
 
 }  // namespace ilc::input

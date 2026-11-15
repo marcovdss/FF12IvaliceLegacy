@@ -9,8 +9,11 @@ local function load(name)
 end
 
 -- First run only: is Ivalice Together installed? (Then the co-op module starts Off, as native also decides at init.)
--- Paths are relative to x64, where the loader runs scripts.
-local TOGETHER_PATHS = {'IvaliceTogetherRuntime', 'IvaliceTogetherConfig.exe'}
+-- The files native's own check looks for (a leftover folder alone does not count). Paths are relative to x64, where the
+-- loader runs scripts [U: the filesystem plugin resolves relative paths against the game's working directory, as the
+-- settings path does; forward slashes are accepted].
+local TOGETHER_PATHS = {'modules/ivalice-together-autostart.dll', 'IvaliceTogetherRuntime/IvaliceTogetherRuntime.exe',
+                        'IvaliceTogetherConfig.exe'}
 local function togetherPresent()
   local fs = rawget(_G, 'filesystem')
   if not (fs and fs.exists) then return false end
@@ -26,9 +29,11 @@ local ok, why = pcall(function()
   local codec = load('codec').new(schema)
   local views = load('views').new(codec)
   local bridge = load('bridge').create({codec = codec, after = event.executeAfterMs})
+  -- Legacy's MP economy parameters (absent without Legacy's mp_economy.lua): the co-op menus show what a cast costs.
+  local economy = load('economy').provider(loadfile, _ENV)
   local store = load('store').create({
     codec = codec, config = config, io = io,
-    fs = rawget(_G, 'filesystem'), log = print, together = togetherPresent,
+    fs = rawget(_G, 'filesystem'), log = print, together = togetherPresent, economy = economy,
   })
   store.load()
   local dialogs = load('dialogs').create({dialog = rawget(_G, 'dialog'), log = print})
@@ -37,6 +42,12 @@ local ok, why = pcall(function()
   local page = load('page').create({
     modmenu = modmenu, store = store, bridge = bridge, codec = codec, views = views, flows = flows, dialogs = dialogs,
     statusview = load('statusview'), after = event.executeAfterMs, log = print,
+    -- Insurgent's Vision's settings, read only (the Battle HUD page shows its minimap/overhead/combat-log toggles)
+    vision = function()
+      local path, fs = 'scripts/config/TheInsurgentsVisionConfig.json', rawget(_G, 'filesystem')
+      if fs and fs.exists and fs.exists(path) ~= true then return nil end   -- not installed: no read at all
+      return config.loadJson(path)
+    end,
   })
   page.start()
   event.registerEventAsync('onInitDone', function()

@@ -289,6 +289,7 @@ function M.create(opts)
   end
 
   function B.get_status() return call(E.op.GET_STATUS, nil, 'ilc_status') end
+  function B.get_counters() return call(E.op.GET_COUNTERS, nil, 'ilc_counters') end
   function B.get_seats() return call(E.op.GET_SEATS, nil, 'ilc_seats_reply') end
 
   function B.get_devices()

@@ -8,7 +8,7 @@ local M = {}
 -- Field positions inside the schema structs (0-based, the header is 0 where there is one).
 local STATUS = {state = 1, reason = 2, buildFlags = 3, acceptedGeneration = 5, acceptedDigest = 6, appliedGeneration = 7,
                 appliedDigest = 8, stagedPending = 9, eventsPending = 11, lastRejectCode = 18, lastRejectField = 19,
-                appliedSubsystems = 21, reasonDetail = 22, bootFlags = 23}
+                appliedSubsystems = 21, reasonDetail = 22, bootFlags = 23, coopSwitch = 24, hudReport = 25}
 local SEATS = {sessionState = 1, epoch = 2, count = 3, seats = 5}
 local SEATVIEW = {seat = 0, flags = 1, configuredCharacter = 2, liveMember = 3, deviceKind = 4, xinputSlot = 5, colour = 6,
                   uiSounds = 7, generation = 8}
@@ -18,6 +18,7 @@ local EVENT = {seq = 0, kind = 1, seat = 2, generation = 4, code = 5, field = 6,
 local IDENTITY = {guid = 0, uid = 1, ordinal = 2, hasUid = 3, nameLen = 4, name = 5}
 M.POSITIONS = {status = STATUS, seats = SEATS, seatView = SEATVIEW, devices = DEVICES, entry = ENTRY, event = EVENT,
                identity = IDENTITY}
+M.KILL_SWITCH_ACTION = 0xFF       -- the action byte of a capture answer that belongs to the co-op on/off key
 M.STRUCTS = {status = 'ilc_status', seats = 'ilc_seats_reply', seatView = 'ilc_seat_view', devices = 'ilc_devices_reply',
              entry = 'ilc_device_entry', event = 'ilc_event', identity = 'ilc_device_identity'}
 
@@ -27,6 +28,8 @@ local function hex(s) return (s:gsub('.', function(c) return string.format('%02x
 function M.new(C)
   local E = C.enums
   local V = {}
+  local KILL = C.schema.const.CAPTURE_KILL_SWITCH_ACTION or M.KILL_SWITCH_ACTION
+  V.KILL_SWITCH_ACTION = KILL
 
   local function get(kind, rec, key)
     return rec[C.field_at(M.STRUCTS[kind], M.POSITIONS[kind][key])]
@@ -100,9 +103,14 @@ function M.new(C)
             learnedSlot = slot ~= 0xFF and slot or nil, entry = ev.b, request = ev.generation, seat = ev.seat}
   end
 
-  -- CAPTURE_RESULT: a = outcome | action << 8 | slot << 16; b = binding kind | code << 8 (when captured)
+  -- CAPTURE_RESULT: a = outcome | action << 8 | slot << 16; b = binding kind | code << 8 (when captured).
+  -- The schema's on/off key action byte (0xFF) is not an action: no name is looked up for it and killSwitch is true.
   function V.capture(ev)
-    return {outcome = C.name_of('capture_outcome', ev.a & 0xFF), action = C.name_of('action', (ev.a >> 8) & 0xFF),
+    local action = (ev.a >> 8) & 0xFF
+    local isKill = action == KILL
+    return {outcome = C.name_of('capture_outcome', ev.a & 0xFF),
+            action = not isKill and C.name_of('action', action) or nil,
+            killSwitch = isKill,
             slot = (ev.a >> 16) & 0xFF, kind = C.name_of('binding_kind', ev.b & 0xFF), code = (ev.b >> 8) & 0xFF,
             request = ev.generation, seat = ev.seat}
   end

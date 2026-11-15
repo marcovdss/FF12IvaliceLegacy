@@ -38,4 +38,8 @@ bool copy_from_checked(void* dst, const void* src, size_t count);
 bool load_from_caller(void* dst, const void* src, size_t width);
 bool load_from_checked(void* dst, const void* src, size_t width);
 
+// True if a fault at `rip` is one of the probe's own guarded instructions (its handler resumes those). Other
+// vectored handlers (runtime/guard.h) leave such faults alone.
+bool probe_fault_site(uint64_t rip);
+
 }  // namespace ilc

@@ -45,6 +45,7 @@ M.REASONS = {
   PATCH_BUSY = {kind = 'fault', text = 'Co-op could not install (busy)'},
   PATCH_FAILED = {kind = 'fault', text = 'Co-op install failed and was undone'},
   DRY_ARMED = {kind = 'ok', text = 'Ready (dry-armed)'},
+  LIVE = {kind = 'ok', text = 'Ready'},
   THREAD_FAILED = {kind = 'fault', text = 'Co-op could not start (thread)'},
   SHUT_DOWN = {kind = 'ok', text = 'Shut down'},
   BOOT_ABORTED = {kind = 'fault', text = 'Co-op start-up was cut short'},
@@ -55,6 +56,10 @@ M.REASON_ADVICE = {
   PATCH_CONFLICT = 'Another mod or a different game build changed code that co-op needs. Co-op stays off so the game is left untouched.',
   DUPLICATE_INSTANCE = 'Two copies of the co-op module were loaded. Remove the extra copy from the game folder.',
 }
+
+-- The kill switch (status coop_switch): shown on the Status row while the module is otherwise fine.
+M.SWITCH_TEXT = {RELEASING = 'Co-op switching off', OFF = 'Co-op off (kill switch)'}
+M.SWITCH_ADVICE = 'Co-op is off for everyone: the game plays as normal. Press the kill switch key (F8 by default) or use Co-op on to resume.'
 
 -- SETTINGS_INVALID with reason_detail 3: the file is from a newer version. It is left alone on purpose (read-only).
 M.NEWER_SCHEMA_TEXT = 'Off (settings file is from a newer version)'
@@ -107,7 +112,9 @@ function M.classify(bridgeStatus, native, C)
   if known then
     kind, text = known.kind, known.text
     advice = M.REASON_ADVICE[reasonName]
-    if reasonName == 'DRY_ARMED' and state ~= 'READY' then text = 'Starting' end      -- ready only after FF12HinitDone
+    if (reasonName == 'DRY_ARMED' or reasonName == 'LIVE') and state ~= 'READY' then
+      text = 'Starting'                                                                -- ready only after FF12HinitDone
+    end
     if reasonName == 'SETTINGS_INVALID' and native.reasonDetail == 3 then
       text, advice = M.NEWER_SCHEMA_TEXT, M.NEWER_SCHEMA_ADVICE
     end
@@ -127,8 +134,15 @@ function M.classify(bridgeStatus, native, C)
   end
   if kind ~= 'ok' and advice == nil then advice = M.ADVICE[kind] end
   if kind == 'ok' then advice = nil end
+  local switch = E.coop_switch and native.coopSwitch and C.name_of('coop_switch', native.coopSwitch) or 'ON'
+  if kind == 'ok' and M.SWITCH_TEXT[switch] then
+    kind, text, advice = 'switched_off', M.SWITCH_TEXT[switch], M.SWITCH_ADVICE
+  end
   local residue = E.boot_flag and (native.bootFlags or 0) & E.boot_flag.TOGETHER_RESIDUE ~= 0 or false
-  return {kind = kind, text = text, detail = detail, advice = advice, reason = reasonName, state = state, residue = residue}
+  local interactionsFailed = E.boot_flag and E.boot_flag.INTERACTIONS_FAILED and
+                             (native.bootFlags or 0) & E.boot_flag.INTERACTIONS_FAILED ~= 0 or false
+  return {kind = kind, text = text, detail = detail, advice = advice, reason = reasonName, state = state, residue = residue,
+          switch = switch, interactionsFailed = interactionsFailed}
 end
 
 -- A view that replaces the settings pages with an explanation.

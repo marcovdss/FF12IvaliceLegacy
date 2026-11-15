@@ -223,6 +223,14 @@ bool load_from_caller(void* dst, const void* src, size_t width)
     return ilc_probe_load_raw(dst, src, width) == 0;
 }
 
+bool probe_fault_site(uint64_t rip)
+{
+    return (rip >= reinterpret_cast<uint64_t>(ilc_probe_guard_begin) &&
+            rip < reinterpret_cast<uint64_t>(ilc_probe_guard_end)) ||
+           (rip >= reinterpret_cast<uint64_t>(ilc_probe_load_begin) &&
+            rip < reinterpret_cast<uint64_t>(ilc_probe_load_end));
+}
+
 bool load_from_checked(void* dst, const void* src, size_t width)
 {
     if ((width != 1 && width != 2 && width != 4 && width != 8) ||

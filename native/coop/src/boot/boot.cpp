@@ -13,13 +13,33 @@
 #include "input/input_service.h"
 #include "movement/movement.h"
 #include "patch/patch_engine.h"
+#include "runtime/diag.h"
 #include "runtime/game_thread.h"
 #include "runtime/probe.h"
 #include "runtime/tick.h"
+#include "camera/camera.h"
 #include "control/control.h"
+#include "firewall/firewall.h"
+#include "focus/focus.h"
+#include "hud/battle_hud.h"
+#include "hud/battle_log.h"
+#include "hud/canvas.h"
+#include "hud/menus_draw.h"
+#include "hud/native.h"
+#include "hud/party_rows.h"
+#include "hud/rings.h"
+#include "hud/snapshot.h"
+#include "hud/target_info.h"
+#include "hud/world_marks.h"
+#include "frontend/frontend.h"
+#include "interaction/interaction.h"
 #include "isolation/isolation.h"
+#include "menu/cost.h"
 #include "towns/towns.h"
+#include "party/party.h"
 #include "session/session.h"
+#include "submit/submit.h"
+#include "wait/wait.h"
 
 namespace ilc::boot {
 namespace {
@@ -312,17 +332,20 @@ bool run_steps()
     patch::apply_subsystems(0);
     patch::report r;
     int32_t result = patch::OK;
+    uint32_t attempts = 0;
     for (uint32_t attempt = 0; attempt < PATCH_BUSY_ATTEMPTS; ++attempt) {
         if (stopping()) {
             return false;
         }
         memset(&r, 0, sizeof(r));
+        ++attempts;
         result = patch::install(g_host.image_base, &r);
         if (result != patch::QUIESCE_BUSY) {
             break;
         }
         Sleep(PATCH_BUSY_WAIT_MS);
     }
+    diag::note_install(r, attempts);
     if (result != patch::OK) {
         stop_input();
         const uint32_t site = r.site >= 0 ? static_cast<uint32_t>(r.site) + 1 : 0;
@@ -353,9 +376,52 @@ bool run_steps()
     if (!isolation::attach()) {
         patch::fault_subsystem(ILC_SUBSYS_INPUT_ISOLATION);
     }
+    if (!camera::attach()) {
+        patch::fault_subsystem(ILC_SUBSYS_CAMERA);
+    }
     if (!towns::attach()) {
         patch::fault_subsystem(ILC_SUBSYS_PARTY);
     }
+    if (!party::attach()) {
+        patch::fault_subsystem(ILC_SUBSYS_PARTY);
+    }
+    // Guest interactions arm all their rows or none (the rows belong to MOVEMENT and PARTY, which keep running).
+    // A failure is latched in the boot flags, so the Mod Menu's diagnostics can say guests cannot interact.
+    if (!interaction::attach()) {
+        set_flags(ILC_BOOTF_INTERACTIONS_FAILED);
+    }
+    if (!firewall::attach()) {
+        patch::fault_subsystem(ILC_SUBSYS_FIREWALL_MENUS);
+    }
+    // Keep running in background: its rows stay stock if it cannot attach (no fault bit: the rest is unaffected).
+    focus::attach();
+    // The co-op HUD canvas: the frame hook's native draw functions must start with the pinned bytes and the draw
+    // guard must be installed, else RENDER is latched faulted (the hook stays stock; nothing else depends on it).
+    if (!hud::attach(g_host.image_base)) {
+        patch::fault_subsystem(ILC_SUBSYS_RENDER);
+    }
+    // The native HUD changes (reduced party list, target circles off): a RENDER game-thread job; without it the
+    // stock HUD stays as it is.
+    hud::native::attach();
+    // The party list row additions: the low-HP glow's two call rows stay stock if their handlers cannot be set.
+    hud::party_rows::attach(g_host.image_base);
+    // The expanded Target Info: TI-01 (the native window's open call) stays stock if its handler cannot be set.
+    hud::target_info::attach(g_host.image_base);
+    // The battle log: its feed LG-01 stays stock if its handler cannot be set (lines then come from the HP and status
+    // diffs alone).
+    hud::battle_log::attach(g_host.image_base);
+    // Seat marks in the world and the AoE-only ring rule: each row (and the ring operation) stays stock on its own if
+    // its handler or its pinned game functions are missing.
+    hud::world_marks::attach(g_host.image_base);
+    hud::rings::attach(g_host.image_base);
+    // The Battle HUD page's report reads the frame hook's call bytes (fault-safe, from the co-op thread).
+    hud::battle_hud::attach(g_host.image_base);
+    // Battle-menu requests: the game functions they call must start with the pinned bytes, else no operation is
+    // registered and every menu request is refused (the firewall and the rest keep running).
+    submit::attach(g_host.image_base);
+    // The Wait engine calls four game functions from the UI tick: their first bytes must be the pinned ones, else it
+    // never calls anything (co-op Wait just never pauses; everything else runs).
+    wait::attach(g_host.image_base);
     gtq::seal();
     // The session core owns the epoch from here on: FIRST_EPOCH until a world exists, a new one at every boundary.
     static ilc_settings applied_now;
@@ -363,9 +429,27 @@ bool run_steps()
     session::configure_from_settings(applied_now);
     isolation::configure_from_settings(applied_now);
     control::configure_from_settings(applied_now);
+    firewall::configure_from_settings(applied_now);
+    submit::configure_from_settings(applied_now);
+    menu::configure_from_settings(applied_now);
+    focus::configure_from_settings(applied_now);
+    hud::configure_from_settings(applied_now);
+    hud::party_rows::configure_from_settings(applied_now);
+    hud::menus_draw::configure_from_settings(applied_now);
+    hud::world_marks::configure_from_settings(applied_now);
+    hud::rings::configure_from_settings(applied_now);
+    hud::battle_hud::configure_from_settings(applied_now);  // after the elements' own: it sets their switches
     session::start(g_host.image_base, patch::now_ms());
     movement::start(g_host.image_base, patch::now_ms());
+    camera::start(g_host.image_base);
     towns::start(g_host.image_base, patch::now_ms());
+    party::start(g_host.image_base, patch::now_ms());
+    interaction::start(g_host.image_base, patch::now_ms());
+    firewall::start(g_host.image_base, patch::now_ms());
+    submit::start(g_host.image_base, patch::now_ms());
+    frontend::start(g_host.image_base, patch::now_ms());
+    hud::snapshot::start(g_host.image_base, patch::now_ms());
+    hud::menus_draw::start(g_host.image_base, patch::now_ms());
     patch::heartbeat(session::epoch());
     patch::set_armed(true);
     AcquireSRWLockExclusive(&g_status_lock);
@@ -382,6 +466,7 @@ bool run_steps()
 DWORD WINAPI init_main(void*)
 {
     __atomic_store_n(&g_init_tid, GetCurrentThreadId(), __ATOMIC_RELEASE);
+    diag::note_coop_thread(GetCurrentThreadId());
     record(EV_INIT_THREAD);
     const bool armed = run_steps();
     __atomic_store_n(&g_settled, 1u, __ATOMIC_RELEASE);
@@ -390,7 +475,24 @@ DWORD WINAPI init_main(void*)
         // The co-op thread: one session step per beat, then the liveness heartbeat with the session's epoch.
         // Every detour falls back to stock if this stops for more than 2 s.
         uint32_t beat = 0;
+        diag::loop_begin();
         while (WaitForSingleObject(g_stop, HEARTBEAT_MS) == WAIT_TIMEOUT) {
+            // The developer stall (diag.h): one sleep on the stop event, so a shutdown still ends it at once. Nothing
+            // heartbeats meanwhile: past the stale threshold every detour runs stock. The beat after it carries on.
+            uint32_t stall_request = 0;
+            const uint32_t stall_ms = diag::take_stall(&stall_request);
+            if (stall_ms != 0) {
+                const ULONGLONG from = GetTickCount64();
+                const bool stop_seen = WaitForSingleObject(g_stop, stall_ms) == WAIT_OBJECT_0;
+                const uint64_t slept = GetTickCount64() - from;
+                const uint32_t slept_ms = slept > 0xFFFFFFFFull ? 0xFFFFFFFFu : static_cast<uint32_t>(slept);
+                diag::note_stall_done(slept_ms);
+                bridge_note_command_result(stall_request, ILC_CMD_STALL_COOP_THREAD, slept_ms);
+                if (stop_seen) {
+                    break;
+                }
+            }
+            const uint64_t beat_started = diag::beat_begin();
             if (++beat % SETTINGS_EVERY == 0) {
                 static ilc_settings applied;
                 static uint32_t applied_generation = 0;
@@ -400,6 +502,16 @@ DWORD WINAPI init_main(void*)
                     session::configure_from_settings(applied);
                     isolation::configure_from_settings(applied);
                     control::configure_from_settings(applied);
+                    firewall::configure_from_settings(applied);
+                    submit::configure_from_settings(applied);
+                    menu::configure_from_settings(applied);
+                    focus::configure_from_settings(applied);
+                    hud::configure_from_settings(applied);
+                    hud::party_rows::configure_from_settings(applied);
+                    hud::menus_draw::configure_from_settings(applied);
+                    hud::world_marks::configure_from_settings(applied);
+                    hud::rings::configure_from_settings(applied);
+                    hud::battle_hud::configure_from_settings(applied);
                 }
             }
             const uint64_t now = patch::now_ms();
@@ -409,18 +521,54 @@ DWORD WINAPI init_main(void*)
             session::step(now);
             // The liveness epoch moves right after the session step, before any subsystem publishes for it.
             patch::heartbeat(session::epoch());
+            // The co-op battle menus: players' menu input, external frontends, the Party request, the recovery
+            // policy, the report the firewall composes from and the Wait request. Before interaction (a guest's
+            // CONFIRM in an open menu is not an interaction) and before the firewall (the report of this beat).
+            frontend::step(now);
+            hud::step(now);       // the canvas frame (Diagnostics test draw) for the frame hook
+            hud::native::step(now);   // the reduced party list and circles off, as a game-thread job while wanted
+            hud::snapshot::step(now);  // the HUD snapshot the frame driver's passes draw from (after the menus)
+            hud::party_rows::step(now);  // what the party pass adds to the snapshot (after it)
+            hud::target_info::step(now);  // the Target Info's view (after the snapshot)
+            hud::menus_draw::step(now);  // the co-op menus as the menu pass draws them (after the snapshot)
+            hud::battle_log::step(now);  // the battle log's view (after the snapshot and the menus' names)
+            hud::battle_hud::step(now);  // Identify presses (before the diamonds' beat) and the page's report
+            hud::world_marks::step(now);  // seat lines and diamonds (after the snapshot)
+            hud::rings::step(now);  // the AoE rings the seats' target pages want (after the snapshot and the menus)
+            interaction::step(now);   // guest interactions: record, requests, the hold and its menu driver
             isolation::publish(now);  // after the heartbeat: this epoch; refills the keyboard lease
+            firewall::step(now);      // after isolation (P1's device) and interaction (the menu driver)
             movement::step(now);  // reads the record the session step just published
+            camera::step(now);    // the shared camera: the same record
             towns::step(now);     // town visibility: the same record
+            party::step(now);     // seat changes; retires a steering remap once movement has caught up
+            submit::step(now);    // battle-menu requests: results, summon owner, combat indicator, menu sounds
             // Jobs the game thread cannot reach (stalled frames, disarmed or faulted subsystems) get their terminal
             // result here instead of staying PENDING.
             const uint64_t last_tick = tick::stats()->last_tick_ms;
             if (now > last_tick + REAP_AFTER_MS) {
                 gtq::reap();
             }
+            diag::beat_end(beat_started);
         }
+        frontend::stop();
+        hud::stop();
+        hud::snapshot::stop();
+        hud::party_rows::stop();
+        hud::target_info::stop();
+        hud::menus_draw::stop();
+        hud::battle_log::stop();
+        hud::world_marks::stop();
+        hud::rings::stop();
+        hud::battle_hud::stop();
+        hud::native::stop();
+        submit::stop();
+        firewall::stop();
+        interaction::stop();
+        camera::stop();
         movement::stop();
         towns::stop();
+        party::stop();
         isolation::withdraw();
         session::stop();
         // Cleanup disarmed before it stopped this loop; its own reap may have found the game thread draining.
@@ -439,6 +587,8 @@ void on_init()
         return;  // a second FF12Hinit in this copy changes nothing
     }
     set_flags(ILC_BOOTF_INIT_CALLED);
+    diag::calibrate_once();
+    diag::note_init_thread(GetCurrentThreadId());
     resolve_host();
     set_status(ILC_STATE_STARTING, ILC_REASON_BOOTING, ILC_BOOT_STEP_CHECKS);
 
@@ -504,6 +654,7 @@ void on_init()
 void on_init_done()
 {
     record(EV_INIT_DONE);
+    diag::note_init_done_thread(GetCurrentThreadId());
     AcquireSRWLockExclusive(&g_status_lock);
     g_status.flags |= ILC_BOOTF_INIT_DONE;
     if (g_status.state == ILC_STATE_ARMED) {
@@ -544,6 +695,8 @@ void on_cleanup()
     }
     // 3. the input service (after the init thread, so it cannot be started again behind our back)
     stop_input();
+    // The native HUD changes go back to stock (the UI tick no longer runs our code once disarmed).
+    hud::native::restore_at_exit();
     // 4. the hooks stay installed: disarmed, they run stock until the process ends.
     set_status(ILC_STATE_INERT, was_armed ? ILC_REASON_SHUT_DOWN : ILC_REASON_BOOT_ABORTED, 0);
     set_flags(ILC_BOOTF_CLEANUP_DONE);
@@ -553,8 +706,14 @@ void on_cleanup()
 status current()
 {
     AcquireSRWLockShared(&g_status_lock);
-    const status s = g_status;
+    status s = g_status;
     ReleaseSRWLockShared(&g_status_lock);
+    // An armed module reports DRY_ARMED while nothing beyond the CORE rows can act: the layer is still DRY, or the
+    // arm gates hold no subsystem that is not faulted (none armed, or co-op switched off). Otherwise LIVE.
+    if (s.reason == ILC_REASON_DRY_ARMED && patch::current_mode() == patch::MODE_LIVE &&
+        (patch::subsystems_mask() & ~patch::faulted_mask()) != 0) {
+        s.reason = ILC_REASON_LIVE;
+    }
     return s;
 }
 

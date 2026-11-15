@@ -1,9 +1,10 @@
 // Ivalice Legacy co-op module: the settings the module runs on until the Lua page sends its first record.
 //
 // They match the Mod Menu defaults: P1 on XInput 0, guests without a pad, keyboard and mouse on
-// P2, P2 Basch, P3 Balthier, P4 and P1 automatic, the canonical colour set, every battle sound on, and the
-// follower binding tables. constexpr, so the module holds them as constant data (no start-up code) and the
-// schema generator emits the same bytes into schema/bridge-abi-v1.json for the Lua seed to compare against.
+// P2, P2 Basch, P3 Balthier, P4 and P1 automatic, the canonical colour set, every battle sound on, the
+// follower binding tables and the Battle HUD with every element on. constexpr, so the module holds them as
+// constant data (no start-up code) and the schema generator emits the same bytes into schema/bridge-abi-v1.json
+// for the Lua seed to compare against.
 #pragma once
 
 #include "ilc/bridge_abi.h"
@@ -87,6 +88,10 @@ constexpr void guest_bindings(ilc_seat_settings& seat, uint8_t toggle_vk, uint8_
     pad(seat, ILC_ACTION_PARTY, ILC_PAD_Y);
     key(seat, ILC_ACTION_PAUSE, 0x1B);  // Esc
     pad(seat, ILC_ACTION_PAUSE, ILC_PAD_START);
+    // Identify (Battle HUD): controls no other guest action uses. A guest's pad and keys never reach the game, and the
+    // co-op menus, the firewall and the frontend gate read no IDENTIFY, so neither one does anything else.
+    key(seat, ILC_ACTION_IDENTIFY, 'T');
+    pad(seat, ILC_ACTION_IDENTIFY, ILC_PAD_BACK);
 }
 
 constexpr ilc_settings default_settings()
@@ -107,7 +112,13 @@ constexpr ilc_settings default_settings()
     s.character_colour[ILC_CHAR_BALTHIER] = ILC_COLOUR_BRONZE;
     s.character_colour[ILC_CHAR_BASCH] = ILC_COLOUR_EMERALD;
     s.character_colour[ILC_CHAR_PENELO] = ILC_COLOUR_GOLD;
+    s.keep_running = 1;  // the game keeps running when alt-tabbed (windowed and borderless; fullscreen is stock)
     s.subsystems_armed = static_cast<uint32_t>(ILC_ENUM_OR(ILC_SUBSYSTEMS));  // all armed; bisect by clearing
+    s.hud_enabled = 1;  // Battle HUD on, every element on, log filter All, no expand button
+    s.hud_elements = static_cast<uint32_t>(ILC_ENUM_OR(ILC_HUD_ELEMENTS));
+    s.log_filter = ILC_LOG_FILTER_ALL;
+    s.log_filter_seat = 1;
+    s.log_expand_control = 0;
     s.kill_switch[0].kind = ILC_BIND_KEY;
     s.kill_switch[0].code = 0x77;  // F8
 
@@ -133,6 +144,7 @@ constexpr ilc_settings default_settings()
     pad(p1, ILC_ACTION_CANCEL, ILC_PAD_B);
     pad(p1, ILC_ACTION_PARTY, ILC_PAD_Y);
     pad(p1, ILC_ACTION_PAUSE, ILC_PAD_START);
+    // P1 has no Identify by default: every button of P1's pad also reaches the game. P1 may bind one (P1_ACTION_MASK).
 
     // FF12's Quickening slot buttons: P2 Square (X), P3 Cross (A). P4 keeps no bindings: only
     // ILC_ACTIVE_SEATS_MAX seats play in this release.

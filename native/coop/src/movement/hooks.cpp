@@ -8,6 +8,7 @@
 
 #include "movement/movement.h"
 #include "movement/movement_facts.h"
+#include "party/remap.h"
 #include "patch/call_island.h"
 #include "patch/detour.h"
 #include "runtime/probe.h"
@@ -251,36 +252,49 @@ int32_t mv06_body(ctx* c, const steer_record& r)
     return RESUME;
 }
 
+// A seat change made on the game thread this frame (party/remap.h) applies on top of the steering record until
+// the co-op thread has published one built from it. One atomic compare when there is none.
+template <int32_t (*Body)(ctx*, const steer_record&)>
+int32_t remapped(ctx* c, const steer_record& r)
+{
+    if (!party::remap_pending()) {
+        return Body(c, r);
+    }
+    steer_record local = r;
+    party::remap_apply(local);
+    return Body(c, local);
+}
+
 }  // namespace
 
 int32_t mv01(ctx* c, uint32_t epoch)
 {
-    return patch::fail_open<steer_record, detail::g_slot, mv01_body>(c, epoch);
+    return patch::fail_open<steer_record, detail::g_slot, remapped<mv01_body>>(c, epoch);
 }
 
 int32_t mv02(ctx* c, uint32_t epoch)
 {
-    return patch::fail_open<steer_record, detail::g_slot, mv02_body>(c, epoch);
+    return patch::fail_open<steer_record, detail::g_slot, remapped<mv02_body>>(c, epoch);
 }
 
 int32_t mv03(ctx* c, uint32_t epoch)
 {
-    return patch::fail_open<steer_record, detail::g_slot, mv03_body>(c, epoch);
+    return patch::fail_open<steer_record, detail::g_slot, remapped<mv03_body>>(c, epoch);
 }
 
 int32_t mv04(ctx* c, uint32_t epoch)
 {
-    return patch::fail_open<steer_record, detail::g_slot, mv04_body>(c, epoch);
+    return patch::fail_open<steer_record, detail::g_slot, remapped<mv04_body>>(c, epoch);
 }
 
 int32_t mv05(ctx* c, uint32_t epoch)
 {
-    return patch::fail_open<steer_record, detail::g_slot, mv05_body>(c, epoch);
+    return patch::fail_open<steer_record, detail::g_slot, remapped<mv05_body>>(c, epoch);
 }
 
 int32_t mv06(ctx* c, uint32_t epoch)
 {
-    return patch::fail_open<steer_record, detail::g_slot, mv06_body>(c, epoch);
+    return patch::fail_open<steer_record, detail::g_slot, remapped<mv06_body>>(c, epoch);
 }
 
 int32_t row_of(const char* id)

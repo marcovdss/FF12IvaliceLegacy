@@ -65,7 +65,8 @@ class SeatLimitTest(BridgeCase):
     def test_every_command_for_seat_4_is_rejected(self):
         seat_field = S.field_id('ilc_command', 'seat')
         args = {'PARK': (1, 0), 'MOVE_SEAT_NOW': (0, 0), 'PAIRING_START': (1, 1), 'PAIRING_CANCEL': (0, 0),
-                'CAPTURE_START': (0, 0), 'CAPTURE_CANCEL': (0, 0), 'RESTORE_DEFAULTS': (0, 0), 'KILL_SWITCH': (0, 0)}
+                'CAPTURE_START': (0, 0), 'CAPTURE_CANCEL': (0, 0), 'RESTORE_DEFAULTS': (0, 0), 'KILL_SWITCH': (0, 0),
+                'STALL_COOP_THREAD': (3000, 0)}
         self.assertEqual(set(args), set(S.enums['command']))
         for request, (name, (arg0, arg1)) in enumerate(sorted(args.items()), 1):
             with self.subTest(name):

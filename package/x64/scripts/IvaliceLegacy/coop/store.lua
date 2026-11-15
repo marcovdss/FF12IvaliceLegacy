@@ -2,7 +2,7 @@
 --
 -- * Lua is the only writer of coop.json. Native never parses it live (it reads the module-enable flag once at start).
 -- * The file is schema 1. Unknown keys are kept at every level of the structural containers (module, colours, each seat,
---   its bindings, diagnostics.arm), an older schema is migrated step by step (the old file is kept as coop.json.v<n>), a
+--   its bindings, diagnostics.arm, battleHud and its elements and log), an older schema is migrated step by step (the old file is kept as coop.json.v<n>), a
 --   newer schema makes the store read-only, a file that does not parse is copied to a rotating coop.json.bad[-n] sidecar
 --   (ten slots, the oldest is dropped) and replaced by defaults. Nothing here can raise on bad data.
 -- * Seeding is runtime-only: the package never ships coop.json (the package carries no settings file). A missing file is created from the
@@ -26,11 +26,19 @@ M.SUBSYSTEMS = {'inputIsolation', 'movement', 'party', 'camera', 'firewallMenus'
 -- our key -> the schema's `subsystem` enum name (the bit comes from the schema, not from this file)
 M.SUBSYSTEM_BIT = {inputIsolation = 'INPUT_ISOLATION', movement = 'MOVEMENT', party = 'PARTY', camera = 'CAMERA',
                    firewallMenus = 'FIREWALL_MENUS', wait = 'WAIT', render = 'RENDER', targetsCards = 'TARGETS_CARDS'}
+-- Battle HUD elements in page order: our key -> the schema's `hud_element` enum name (the bit comes from the schema).
+M.HUD_ELEMENTS = {'partyShrink', 'seatEdge', 'lowHpGlow', 'damageGhost', 'actionLine', 'targetInfo', 'battleLog',
+                  'seatLines', 'seatDiamonds', 'aoeRing', 'circlesOff'}
+M.HUD_ELEMENT_BIT = {partyShrink = 'PARTY_SHRINK', seatEdge = 'SEAT_EDGE', lowHpGlow = 'LOW_HP_GLOW',
+                     damageGhost = 'DAMAGE_GHOST', actionLine = 'ACTION_LINE', targetInfo = 'TARGET_INFO',
+                     battleLog = 'BATTLE_LOG', seatLines = 'SEAT_LINES', seatDiamonds = 'SEAT_DIAMONDS', aoeRing = 'AOE_RING',
+                     circlesOff = 'CIRCLES_OFF'}
 
 -- Field positions inside the schema structs (0-based, header = 0 where there is one).
 local SET = {moduleEnabled = 1, fullRoster = 2, keyboardSeat = 3, colourMode = 4, logLevel = 5, networkMode = 6,
-             aliasCount = 7, characterColour = 9, killSwitch = 11, economy = 12, seats = 13, aliases = 14,
-             subsystemsArmed = 15}
+             aliasCount = 7, keepRunning = 8, characterColour = 9, hudTestDraw = 10, developer = 11, killSwitch = 12, economy = 13,
+             seats = 14, aliases = 15, subsystemsArmed = 16, hudEnabled = 17, logExpand = 18, logFilter = 19,
+             logFilterSeat = 20, hudElements = 21}
 local SEAT = {character = 0, colour = 1, uiSounds = 2, parked = 3, device = 5, bindings = 6}
 local ECO = {present = 0, major = 1, minor = 2, patch = 3, divisor = 4, cap = 5}
 local DEV = {kind = 0, slot = 1, sdl = 3}
@@ -99,7 +107,8 @@ function M.create(opts)
   local ACTIVE = schema.const.ACTIVE_SEATS_MAX or 3     -- seats with a human player (fail closed: 3)
   local migrations = opts.migrations or M.MIGRATIONS
   local T = {path = path, fileStatus = 'new', unsaved = false, copy = copy, same = same,
-             ACTIVE_SEATS = ACTIVE, CHARACTERS = M.CHARACTERS, COLOURS = M.COLOURS, SUBSYSTEMS = M.SUBSYSTEMS}
+             ACTIVE_SEATS = ACTIVE, CHARACTERS = M.CHARACTERS, COLOURS = M.COLOURS, SUBSYSTEMS = M.SUBSYSTEMS,
+             HUD_ELEMENTS = M.HUD_ELEMENTS}
 
   local function fname(sname, idx) return (C.field_at(sname, idx)) end
   local N = {
@@ -194,6 +203,7 @@ function M.create(opts)
     local st = {schema = CURRENT}
     st.module = {enabledAtStart = rec[N.settings('moduleEnabled')] == 1}
     st.fullRoster = rec[N.settings('fullRoster')] == 1
+    st.keepRunning = rec[N.settings('keepRunning')] == 1
     st.keyboardSeat = rec[N.settings('keyboardSeat')]
     st.colours = {mode = enumName('colour_mode', rec[N.settings('colourMode')]), characters = {}}
     for i, name in ipairs(M.CHARACTERS) do
@@ -212,9 +222,15 @@ function M.create(opts)
       local a = rec[N.settings('aliases')][i]
       st.aliases[i] = {slot = a[N.alias('slot')], sdl = identityFromRecord(a[N.alias('sdl')])}
     end
-    st.diagnostics = {arm = {}}
+    st.diagnostics = {arm = {}, hudTestDraw = rec[N.settings('hudTestDraw')] == 1,
+                      developer = rec[N.settings('developer')] == 1}
     local mask = rec[N.settings('subsystemsArmed')]
     for _, k in ipairs(M.SUBSYSTEMS) do st.diagnostics.arm[k] = (mask & E.subsystem[M.SUBSYSTEM_BIT[k]]) ~= 0 end
+    local hud = rec[N.settings('hudElements')]
+    st.battleHud = {enabled = rec[N.settings('hudEnabled')] == 1, elements = {}, log = {
+      expandButton = rec[N.settings('logExpand')] == 0 and 'NONE' or enumName('pad_control', rec[N.settings('logExpand')]),
+      filter = enumName('log_filter', rec[N.settings('logFilter')]), filterSeat = rec[N.settings('logFilterSeat')]}}
+    for _, k in ipairs(M.HUD_ELEMENTS) do st.battleHud.elements[k] = (hud & E.hud_element[M.HUD_ELEMENT_BIT[k]]) ~= 0 end
     return st
   end
 
@@ -226,6 +242,7 @@ function M.create(opts)
     local rec = {header = C.header('SETTINGS', C.size('ilc_settings'), generation)}
     rec[N.settings('moduleEnabled')] = st.module.enabledAtStart and 1 or 0
     rec[N.settings('fullRoster')] = st.fullRoster and 1 or 0
+    rec[N.settings('keepRunning')] = st.keepRunning and 1 or 0
     rec[N.settings('keyboardSeat')] = st.keyboardSeat
     rec[N.settings('colourMode')] = enumVal('colour_mode', st.colours.mode)
     rec[N.settings('logLevel')] = st.logLevel == 'VERBOSE' and 1 or 0
@@ -235,6 +252,18 @@ function M.create(opts)
       if st.diagnostics.arm[k] then mask = mask | E.subsystem[M.SUBSYSTEM_BIT[k]] end
     end
     rec[N.settings('subsystemsArmed')] = mask
+    rec[N.settings('hudTestDraw')] = st.diagnostics.hudTestDraw and 1 or 0
+    rec[N.settings('developer')] = st.diagnostics.developer and 1 or 0
+    local hud = 0
+    for _, k in ipairs(M.HUD_ELEMENTS) do
+      if st.battleHud.elements[k] then hud = hud | E.hud_element[M.HUD_ELEMENT_BIT[k]] end
+    end
+    rec[N.settings('hudEnabled')] = st.battleHud.enabled and 1 or 0
+    rec[N.settings('hudElements')] = hud
+    local button = st.battleHud.log.expandButton
+    rec[N.settings('logExpand')] = button == 'NONE' and 0 or (enumVal('pad_control', button) or 0)
+    rec[N.settings('logFilter')] = enumVal('log_filter', st.battleHud.log.filter) or 0
+    rec[N.settings('logFilterSeat')] = st.battleHud.log.filterSeat
     local cc = {}
     for i, name in ipairs(M.CHARACTERS) do cc[i] = enumVal('colour', st.colours.characters[name]) end
     rec[N.settings('characterColour')] = cc
@@ -304,9 +333,19 @@ function M.create(opts)
   ---- validation of loaded JSON: every bad value falls back to its default --------------------------------------------
   local function isBool(v) return type(v) == 'boolean' end
   local function isInt(v, lo, hi) return math.type(v) == 'integer' and v >= lo and v <= hi end
+  -- As native's check: a MOUSE binding names the left or right button only (code 1 or 2).
   local function validBinding(b)
-    return type(b) == 'table' and E.binding_kind[b.kind] ~= nil and b.kind ~= 'NONE' and isInt(b.code, 0, 255)
+    if type(b) ~= 'table' or E.binding_kind[b.kind] == nil or b.kind == 'NONE' or not isInt(b.code, 0, 255) then
+      return false
+    end
+    return b.kind ~= 'MOUSE' or b.code == 1 or b.code == 2
   end
+  -- The mouse buttons' virtual-key codes (1 left, 2 right, 4 middle, 5/6 X1/X2) are not keys: as a KEY binding of the
+  -- kill switch or a seat toggle they are refused, and the left button is never the kill switch (native refuses the
+  -- same). A refused list falls back to its default (the kill switch: F8), that field only.
+  local function mouseButtonKey(b) return b.kind == 'KEY' and (b.code == 1 or b.code == 2 or (b.code >= 4 and b.code <= 6)) end
+  local function validToggleBinding(b) return validBinding(b) and not mouseButtonKey(b) end
+  local function validKillBinding(b) return validToggleBinding(b) and not (b.kind == 'MOUSE' and b.code == 1) end
   local function validIdentity(s)
     if type(s) ~= 'table' or not unhex(s.guid, 16) or not isInt(s.ordinal, 0, 255) then return false end
     if s.uid ~= nil and not unhex(s.uid, 16) then return false end
@@ -330,6 +369,7 @@ function M.create(opts)
       take(isBool(loaded.module.enabledAtStart), function() st.module.enabledAtStart = loaded.module.enabledAtStart end)
     end
     if present(loaded.fullRoster) then take(isBool(loaded.fullRoster), function() st.fullRoster = loaded.fullRoster end) end
+    if present(loaded.keepRunning) then take(isBool(loaded.keepRunning), function() st.keepRunning = loaded.keepRunning end) end
     if present(loaded.keyboardSeat) then take(isInt(loaded.keyboardSeat, 0, ACTIVE), function() st.keyboardSeat = loaded.keyboardSeat end) end
     if present(loaded.logLevel) then
       take(loaded.logLevel == 'NORMAL' or loaded.logLevel == 'VERBOSE', function() st.logLevel = loaded.logLevel end)
@@ -346,7 +386,10 @@ function M.create(opts)
     end
     if type(loaded.killSwitch) == 'table' then
       local list, ok = {}, #loaded.killSwitch <= schema.const.KILL_SWITCH_BINDINGS
-      for _, b in ipairs(loaded.killSwitch) do ok = ok and validBinding(b); list[#list + 1] = {kind = b.kind, code = b.code} end
+      for _, b in ipairs(loaded.killSwitch) do
+        ok = ok and validKillBinding(b)
+        if ok then list[#list + 1] = {kind = b.kind, code = b.code} end  -- a non-table entry is never indexed
+      end
       take(ok, function() st.killSwitch = list end)
     end
     if type(loaded.seats) == 'table' then
@@ -365,7 +408,8 @@ function M.create(opts)
               local list = s.bindings[action]
               if present(list) then
                 local ok = type(list) == 'table' and #list <= schema.const.BINDINGS_PER_ACTION
-                if ok then for _, b in ipairs(list) do ok = ok and validBinding(b) end end
+                local valid = action == 'TOGGLE_CONTROL' and validToggleBinding or validBinding
+                if ok then for _, b in ipairs(list) do ok = ok and valid(b) end end
                 take(ok, function()
                   local out = {}
                   for _, b in ipairs(list) do out[#out + 1] = {kind = b.kind, code = b.code} end
@@ -396,6 +440,35 @@ function M.create(opts)
       for _, k in ipairs(M.SUBSYSTEMS) do
         local v = loaded.diagnostics.arm[k]
         if present(v) then take(isBool(v), function() st.diagnostics.arm[k] = v end) end
+      end
+    end
+    if type(loaded.diagnostics) == 'table' and present(loaded.diagnostics.hudTestDraw) then
+      local v = loaded.diagnostics.hudTestDraw
+      take(isBool(v), function() st.diagnostics.hudTestDraw = v end)
+    end
+    if type(loaded.diagnostics) == 'table' and present(loaded.diagnostics.developer) then
+      local v = loaded.diagnostics.developer
+      take(isBool(v), function() st.diagnostics.developer = v end)
+    end
+    if type(loaded.battleHud) == 'table' then
+      local h, d = loaded.battleHud, st.battleHud
+      if present(h.enabled) then take(isBool(h.enabled), function() d.enabled = h.enabled end) end
+      if type(h.elements) == 'table' then
+        for _, k in ipairs(M.HUD_ELEMENTS) do
+          local v = h.elements[k]
+          if present(v) then take(isBool(v), function() d.elements[k] = v end) end
+        end
+      end
+      if type(h.log) == 'table' then
+        local l = h.log
+        if present(l.expandButton) then
+          take(l.expandButton == 'NONE' or (type(l.expandButton) == 'string' and E.pad_control[l.expandButton] ~= nil),
+               function() d.log.expandButton = l.expandButton end)
+        end
+        if present(l.filter) then
+          take(type(l.filter) == 'string' and E.log_filter[l.filter] ~= nil, function() d.log.filter = l.filter end)
+        end
+        if present(l.filterSeat) then take(isInt(l.filterSeat, 1, ACTIVE), function() d.log.filterSeat = l.filterSeat end) end
       end
     end
     return st, fixes
@@ -492,7 +565,8 @@ function M.create(opts)
   -- are merged (their unknown keys survive); every record the schema owns (devices, aliases, binding lists, kill switch)
   -- is replaced wholesale, so a key the schema no longer uses cannot come back from an old copy.
   local MERGE = {[''] = true, module = true, colours = true, ['colours.characters'] = true, seats = true,
-                 ['seats.#'] = true, ['seats.#.bindings'] = true, diagnostics = true, ['diagnostics.arm'] = true}
+                 ['seats.#'] = true, ['seats.#.bindings'] = true, diagnostics = true, ['diagnostics.arm'] = true,
+                 battleHud = true, ['battleHud.elements'] = true, ['battleHud.log'] = true}
   local function isMap(t) return type(t) == 'table' and next(t) ~= nil and #t == 0 end
   local function overlay(base, st, where)
     local out = {}
@@ -685,6 +759,9 @@ function M.create(opts)
     if status and status.last_reject_code ~= 0 then
       local field = C.field_name(status.last_reject_field)
       text = string.format('%s (%s)', bridge.describe_error(status.last_reject_code), field)
+      T.lastRejectField, T.lastRejectLocation = field, status.last_reject_location
+    else
+      T.lastRejectField, T.lastRejectLocation = nil, nil
     end
     return text
   end
@@ -734,7 +811,7 @@ function M.create(opts)
       return false, T.lastRejection
     end
     succeeded('sync')
-    T.pushed, T.lastRejection = true, nil
+    T.pushed, T.lastRejection, T.lastRejectField, T.lastRejectLocation = true, nil, nil, nil
     return true, how
   end
 
@@ -756,7 +833,7 @@ function M.create(opts)
         T.lastRejection = rejection(bridge, how)
         return false, 'the co-op module refused it: ' .. T.lastRejection
       end
-      T.pushed, T.lastRejection = true, nil
+      T.pushed, T.lastRejection, T.lastRejectField, T.lastRejectLocation = true, nil, nil, nil
       succeeded('sync')
     else
       T.pushed = false

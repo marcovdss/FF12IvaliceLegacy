@@ -31,12 +31,13 @@
 //  * Arm state: per site (site_armed), per subsystem (the subsystems_armed mask; CORE rows have no bit), a global
 //    armed flag, the mode, the fault latch and a registered handler together open one gate byte per site. The
 //    mode starts DRY (first boot, "dry-armed"): every non-CORE gate stays closed whatever else is set, so every
-//    detour runs stock; only the CORE tick (UT-01) may run, for the module's own housekeeping. LIVE lets
+//    detour runs stock; only the CORE rows may run: the tick (UT-01, housekeeping) and the background rows (the
+//    player's own setting, focus.h). LIVE lets
 //    the other gates open. A fault latched for a subsystem (or for everything) closes its rows in the dispatcher
 //    at once, without the lock, and in the gates at the next recompute. A closed gate is the stub's fast
 //    path: four instructions that touch no register or flag and jump to the trampoline (stock). There is no
 //    hot reinstall: after a rolled-back install, install() refuses.
-//  * Call-type rows (a `call rel32` inside the hook window: 18 rows) do not use MinHook at all. Their rel32 is
+//  * Call-type rows (a `call rel32` inside the hook window: 16 rows) do not use MinHook at all. Their rel32 is
 //    retargeted to a jump-only island near the image, the island jumps to a stub with static unwind data, and
 //    a closed gate sends the call straight to the original callee. See call_island.h. They take part in the
 //    same transaction: preflight, quiescence, islands prepared with the MinHook creates, rel32s committed after
@@ -95,7 +96,7 @@ constexpr uint32_t QUIESCE_DELAY_MS = 2;      // between probes; install() never
 constexpr uint32_t QUIESCE_MAX_THREADS = 1024;
 
 enum mode : uint32_t {
-    MODE_DRY = 0,   // first boot: hooks installed, every non-CORE detour stock (the CORE tick does housekeeping only)
+    MODE_DRY = 0,   // first boot: hooks installed, every non-CORE detour stock (CORE: the tick and the background rows)
     MODE_LIVE = 1,
 };
 constexpr uint32_t FAULT_CORE = 0x40000000u;  // NOTADDR: fault bit for CORE rows (no subsystem bit of their own)
@@ -189,11 +190,19 @@ void apply_subsystems(uint32_t mask);              // ilc_settings.subsystems_ar
 bool set_site_armed(uint32_t row, bool armed);     // false for a non-PATCH row
 bool set_handler(uint32_t row, handler_fn handler);
 bool set_after(uint32_t row, after_fn after);      // false unless a call row
+// CORE call rows only: runs (instead of nothing) when every check passes but the liveness sample is stale (coherent,
+// armed 1, heartbeat older than LIVENESS_STALE_MS or epoch 0). Its return value is ignored: the callee runs stock.
+bool set_stale_handler(uint32_t row, handler_fn stale);
 bool is_call_row(uint32_t row);                    // hooked through a call island (call_island.h)
 void set_armed(bool armed);                        // liveness.armed (1 or 0)
 void heartbeat(uint32_t epoch);                    // co-op thread tick (one writer): epoch and the module clock
 void set_mode(uint32_t mode);                      // MODE_DRY or MODE_LIVE (others ignored)
 uint32_t current_mode();
+// Game-thread variant of set_mode: only tries the layer lock (false = busy or a bad mode; try again next tick).
+bool try_set_mode(uint32_t mode);
+// Slow-path entries whose gate, handler, mode and fault checks passed but whose liveness sample was stale or torn,
+// so the original ran (every row; the call rows' stale clean-up included). Any thread.
+uint64_t stale_fallbacks();
 // Game-thread variants: never block. try_apply_subsystems() only tries the layer lock (false = busy, try again
 // next tick). fault_subsystem() latches a bit (FAULT_CORE, FAULT_ALL or a subsystem bit) with one atomic OR; the
 // dispatcher honours it at once and the gates follow at the next recompute.

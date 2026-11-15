@@ -23,4 +23,8 @@ void bridge_copy_applied(ilc_settings* out);
 // ILC_OP_TEST_SAFE_POINT answers ILC_E_NOT_AVAILABLE, so no script thread can apply settings.
 void bridge_attach_tick();
 
+// A COMMAND_RESULT event for a command the co-op thread finished (STALL_COOP_THREAD): generation = request id,
+// a = command, b = its result value. Takes the bridge lock (never from the game thread).
+void bridge_note_command_result(uint32_t request_id, uint16_t command, uint32_t b);
+
 }  // namespace ilc

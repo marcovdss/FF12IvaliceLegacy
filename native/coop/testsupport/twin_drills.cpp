@@ -25,6 +25,8 @@
 using namespace ilc;
 using namespace ilc::patch;
 
+extern "C" uint64_t ilc_patch_dispatch(ilc::patch::ctx* c);  // patch_engine.cpp: a MinHook row's slow path
+
 namespace {
 
 // ---- parked threads ------------------------------------------------------------------------------------------
@@ -787,6 +789,21 @@ void ILCT_RecordSeqPoke(uint32_t seq)
 int32_t ILCT_RecordSetHandler(uint32_t row)
 {
     return set_handler(row, TEST_FAIL_OPEN) ? 1 : 0;
+}
+
+// Runs a MinHook row's slow path (what its stub calls) on the calling thread, with zeroed registers. Returns 1 if it
+// chose the trampoline (stock), 0 if the handler resumed elsewhere, -1 for a call row (they have their own path).
+// Only for rows whose handler is safe to run on the host (the test handler above, or none).
+int32_t ILCT_PatchDispatchRow(uint32_t row)
+{
+    if (row >= SITE_COUNT || is_call_row(row)) {
+        return -1;
+    }
+    ctx c;
+    memset(&c, 0, sizeof(c));
+    c.index = row;
+    const uint64_t next = ilc_patch_dispatch(&c);
+    return next == reinterpret_cast<uint64_t>(trampoline(row)) ? 1 : 0;
 }
 
 // Calls the fail-open handler directly for `row` with `epoch`; returns the handler result, RAX in *rax.

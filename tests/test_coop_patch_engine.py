@@ -8,7 +8,7 @@
   near-image allocations and MinHook calls all unchanged); install hooks every PATCH row or none; every failure
   path restores the image byte for byte; the arm flags open exactly the expected gates;
 * unicorn equivalence: for every PATCH row, the original bytes and the hooked path (MinHook's jump, relay, our stub
-  and MinHook's trampoline; for the 18 call rows the retargeted call, the island, our call stub and the callee)
+  and MinHook's trampoline; for the 16 call rows the retargeted call, the island, our call stub and the callee)
   run from the same random machine state and must leave the same registers, flags,
   XMM registers, memory (outside our own module and the dead stack below RSP) and continuation, with the gate
   closed, with the gate open and stale liveness, and with a fresh liveness and a pass-through handler.
@@ -56,6 +56,8 @@ GAME = os.environ.get('IVALICE_LEGACY_GAME')
 SITE_TABLE = os.environ.get('ILC_SITE_TABLE')
 SITES_INC = COOP / 'src' / 'patch' / 'sites.inc'
 TWIN_BASE, TWIN_SIZE, TIMESTAMP = 0x120000, 0x2F76000, 0x5DCA7FD7
+# PATCH rows in the site table: 49 hooked by MinHook, 20 call-type rows hooked through call islands.
+PATCH_ROWS, CALL_ROWS = 77, 22
 
 # patch::result
 OK, BAD_BASE, BAD_TIMESTAMP, BAD_SIZE, SITE_MISMATCH = 0, 1, 4, 5, 7
@@ -105,12 +107,12 @@ class PatchStaticTest(unittest.TestCase):
         cls.rows = site_rows()
 
     def test_rows_parse(self):
-        self.assertEqual(len(self.rows), 111)
-        self.assertIn('#define ILC_SITE_COUNT 111', SITES_INC.read_text(encoding='utf-8'))
+        self.assertEqual(len(self.rows), 173)
+        self.assertIn('#define ILC_SITE_COUNT 173', SITES_INC.read_text(encoding='utf-8'))
 
     def test_patch_rows_and_hook_windows(self):
         patch = [r for r in self.rows if r['policy'] == 'PATCH']
-        self.assertEqual(len(patch), 61)
+        self.assertEqual(len(patch), PATCH_ROWS)
         for r in self.rows:
             with self.subTest(r['id']):
                 if r['policy'] == 'PATCH':
@@ -121,7 +123,13 @@ class PatchStaticTest(unittest.TestCase):
                 else:
                     self.assertEqual((r['hook_len'], r['tail']), (0, b''))
         interior = {r['id'] for r in self.rows if r['flags'] & 0x01}
-        self.assertEqual(interior, {'CL-02', 'RT-07'})
+        # MN-V1 (a verify-only check of the name lookup), WT-V1/WT-V3 (the Wait engine's acquire and aggregate) and
+        # HD-V3 (the HUD's text parameter init) have a possible branch or a dword that could be one into their range;
+        # so do the battle log's gates HR-V1 (its own short jumps over the flag stores), HR-V3, HR-V4 and KR-V1:
+        # harmless for rows that are only compared, never written. So do the Target Info give-back's TI-V1, TI-V5
+        # and TI-V9 (branches inside the owner tick, the window update and the request entry they pin).
+        self.assertEqual(interior, {'CL-02', 'RT-07', 'MN-V1', 'WT-V1', 'WT-V3', 'HD-V3', 'HR-V1', 'HR-V3', 'HR-V4',
+                                    'KR-V1', 'TI-V1', 'TI-V5', 'TI-V9'})
         self.assertFalse(interior & {r['id'] for r in patch}, 'an INTERIOR row is a port site')
         # Hook windows overlap no other row (INFO rows included).
         for a in patch:
@@ -303,6 +311,8 @@ class Twin:
         return cls._instance
 
     def __init__(self):
+        if not GAME:
+            raise unittest.SkipTest('requires IVALICE_LEGACY_GAME (the image twin)')
         exe = Path(GAME) / 'x64' / 'FFXII_TZA.exe'
         self.file = exe.read_bytes()
         pinned = re.search(r'exe-sha256: ([0-9a-f]{64})', SITES_INC.read_text(encoding='utf-8')).group(1)
@@ -401,7 +411,7 @@ class PatchTwinTest(unittest.TestCase):
     def test_preflight_passes_on_the_pinned_image(self):
         report = self.twin.call('ILCT_PatchPreflight')
         self.assertEqual((report.result, report.site, report.patch_rows, report.info_mismatch, report.gated_off,
-                          report.mh_calls), (OK, -1, 61, 0, 0, 0))
+                          report.mh_calls), (OK, -1, PATCH_ROWS, 0, 0, 0))
         self.assertEqual(self.twin.image(), self.twin.baseline)
 
     def test_wrong_expected_byte_gives_zero_writes(self):
@@ -460,8 +470,8 @@ class PatchTwinTest(unittest.TestCase):
 
     def test_install_hooks_every_patch_row_and_release_restores_the_image(self):
         report = self.twin.call('ILCT_PatchInstall')
-        self.assertEqual((report.result, report.hooked, report.state, report.gated_off), (OK, 61, STATE_INSTALLED, 0))
-        self.assertEqual(len(self.twin.calls), 18)
+        self.assertEqual((report.result, report.hooked, report.state, report.gated_off), (OK, PATCH_ROWS, STATE_INSTALLED, 0))
+        self.assertEqual(len(self.twin.calls), CALL_ROWS)
         self.hooked_sites_ok(self.twin.patch)
         after = self.twin.image()
         written = set()
@@ -473,7 +483,7 @@ class PatchTwinTest(unittest.TestCase):
         a = np.frombuffer(after, dtype=np.uint8)
         b = np.frombuffer(self.twin.baseline, dtype=np.uint8)
         changed = set(np.nonzero(a != b)[0].tolist())
-        self.assertLessEqual(changed, written, 'bytes outside the 43 five-byte jumps and 18 rel32s changed')
+        self.assertLessEqual(changed, written, 'bytes outside the 49 five-byte jumps and 16 rel32s changed')
         self.assertEqual(regions(TWIN_BASE, TWIN_BASE + TWIN_SIZE), self.twin.baseline_protections)
         self.assertEqual(self.twin.call('ILCT_PatchInstall').result, 20)  # ALREADY_INSTALLED
         self.assertEqual(self.twin.dll.ILCT_PatchReleaseAll(), OK)
@@ -482,7 +492,7 @@ class PatchTwinTest(unittest.TestCase):
 
     def test_failed_create_removes_everything(self):
         private = near_private()
-        row = self.twin.patch[30]
+        row = self.twin.mh[25]
         self.assertNotIn(row, self.twin.calls)
         self.twin.dll.ILCT_PatchInject(TEST_FAIL_CREATE, row)
         report = self.twin.call('ILCT_PatchInstall')
@@ -497,7 +507,7 @@ class PatchTwinTest(unittest.TestCase):
         self.twin.dll.ILCT_PatchInject(stage, row)
         report = self.twin.call('ILCT_PatchInstall')
         self.assertEqual((report.result, report.state, report.rolled_back, report.retained),
-                         (expected, STATE_RETIRED, 61, 61))
+                         (expected, STATE_RETIRED, PATCH_ROWS, PATCH_ROWS))
         self.assertEqual(self.twin.image(), self.twin.baseline, 'rollback did not restore the image')
         self.assertEqual(regions(TWIN_BASE, TWIN_BASE + TWIN_SIZE), self.twin.baseline_protections)
         callees = {row: self.twin.call_returns()[TWIN_BASE + self.twin.rows[row]['rva'] +
@@ -531,7 +541,7 @@ class PatchTwinTest(unittest.TestCase):
         self.twin.poke(address, b'\x90')
         reference = self.twin.image()
         report = self.twin.call('ILCT_PatchInstall')
-        self.assertEqual((report.result, report.hooked, report.gated_off), (OK, 60, 1))
+        self.assertEqual((report.result, report.hooked, report.gated_off), (OK, PATCH_ROWS - 1, 1))
         gated_site = TWIN_BASE + self.twin.rows[gated]['rva']
         self.assertEqual(ctypes.string_at(gated_site, 6), self.twin.rows[gated]['expected'])
         self.assertEqual(self.twin.info(gated).trampoline, 0)
@@ -542,7 +552,7 @@ class PatchTwinTest(unittest.TestCase):
     def test_info_mismatch_is_counted_not_refused(self):
         self.twin.poke(TWIN_BASE + self.twin.rows[self.twin.index['CL-01']]['rva'], b'\xCC')
         report = self.twin.call('ILCT_PatchInstall')
-        self.assertEqual((report.result, report.info_mismatch, report.hooked), (OK, 1, 61))
+        self.assertEqual((report.result, report.info_mismatch, report.hooked), (OK, 1, PATCH_ROWS))
 
     def test_arm_flags_open_exactly_the_expected_gates(self):
         d, rows = self.twin.dll, self.twin.rows
@@ -565,7 +575,7 @@ class PatchTwinTest(unittest.TestCase):
         self.assertEqual(gates(), {rows[r]['id'] for r in self.twin.patch if rows[r]['subsystem'] != 'MOVEMENT'})
         d.ILCT_PatchApplySubsystems(0)
         self.assertEqual(gates(), {rows[r]['id'] for r in self.twin.patch if rows[r]['subsystem'] == 'CORE'})
-        self.assertEqual(gates(), {'UT-01'})
+        self.assertEqual(gates(), {'UT-01', 'FP-01', 'FP-03', 'FP-04', 'IN-06'})
         d.ILCT_PatchApplySubsystems(0xFF)
         d.ILCT_PatchSetSiteArmed(self.twin.index['FW-01'], 0)
         d.ILCT_PatchSetPassthrough(self.twin.index['CM-01'], 0)
@@ -725,6 +735,16 @@ class Emulator:
         return lambda uc: struct.unpack('<3Q', uc.mem_read(a.stats0 + row * a.stats_stride, 24))
 
 
+def fix_state(uc, sid: str, state: dict) -> dict:
+    """Rows whose hook window dereferences a pointer it loaded (FP-04: mov rcx,[rdi+8]; mov rax,[rcx]) need that
+    pointer to be readable: RDI is pointed at a scratch slot that holds a scratch address."""
+    if sid == 'FP-04':
+        uc.mem_write(SCRATCH + 0x18, struct.pack('<Q', SCRATCH + 0x200))
+        state['gpr']['RDI'] = SCRATCH + 0x10
+        state['gpr']['RCX'] = SCRATCH + 0x200  # a thread parked on the second instruction already loaded it
+    return state
+
+
 def random_state(rng: random.Random) -> dict:
     gpr = {}
     for name in GPRS:
@@ -800,7 +820,7 @@ class TrampolineEquivalenceTest(unittest.TestCase):
                               for i in emu.cs.disasm(original, site))
             exits = set()
             for trial in range(self.TRIALS):
-                state = random_state(rng)
+                state = fix_state(uc, r['id'], random_state(rng))
                 emu.write_code(site, original)
                 a = emu.run(site, lambda x: not (TWIN_BASE <= x < TWIN_BASE + TWIN_SIZE) or
                             window[0] <= x < window[1], state)

@@ -30,6 +30,10 @@
 #include "runtime/game_thread.h"
 #include "towns/filter.h"
 
+namespace ilc::session {
+class game_reader;
+}
+
 namespace ilc::towns {
 
 constexpr uint16_t OP_TOWN_REBUILD = 9;   // game-thread operation number (runtime/game_thread.h table)
@@ -86,6 +90,27 @@ void stop();  // withdraws the record
 // ---- any thread -----------------------------------------------------------------------------------------------
 patch::record_slot<town_record>& slot();
 const counters* stats();
+
+// The town as one read through the fault-safe reader (either thread): the engine's town mode, whether the layout
+// builder's town arm is still stock (no Companions "Party In Towns": a rebuild cannot give a hidden member a body),
+// whether a re-materialize task is in flight, and the roster (default layout slots 0..3).
+struct town_state {
+    uint8_t ok;          // every read succeeded
+    uint8_t in_town;
+    uint8_t degraded;
+    uint8_t task_busy;
+    uint16_t roster[SLOTS];
+};
+bool read_town_state(session::game_reader& r, town_state* out);
+
+// A change of hands onto a member who has no body in this town yet (the party change operation, game thread): the
+// rebuild it runs in the same callback must give that member a body, but the session, and so the town record, names
+// the change only after its next step. Until the record names it (or the epoch moves, or PENDING_MAX_MS pass),
+// TW-01 and the planner count `member` as controlled too. Game thread writes; any thread reads.
+constexpr uint64_t PENDING_MAX_MS = 1000;
+void allow_pending(uint32_t epoch, uint32_t member, uint64_t now_ms);
+void clear_pending();
+uint64_t pending_allowed(uint32_t epoch);  // member bits, 0 when none or for another epoch
 
 // ---- the detour handler and the operation (exposed for host tests) ------------------------------------------
 int32_t tw01(patch::ctx* c, uint32_t epoch);

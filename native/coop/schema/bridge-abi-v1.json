@@ -22,16 +22,19 @@
     "SEATS": 4,
     "ACTIVE_SEATS_MAX": 3,
     "XINPUT_SLOTS": 4,
-    "ACTIONS": 19,
+    "ACTIONS": 20,
     "BINDINGS_PER_ACTION": 4,
-    "SEAT_BINDINGS": 76,
+    "SEAT_BINDINGS": 80,
     "KILL_SWITCH_BINDINGS": 4,
+    "CAPTURE_KILL_SWITCH_ACTION": 255,
     "CHARACTERS": 6,
     "NAME_MAX": 96,
     "ALIASES_MAX": 16,
     "DEVICES_MAX": 16,
     "EVENT_QUEUE": 64,
-    "P1_ACTION_MASK": 495360
+    "P1_ACTION_MASK": 1019648,
+    "STALL_MAX_MS": 5000,
+    "COUNTERS_LAYOUT": 1
   },
   "enums": {
     "op": {
@@ -77,6 +80,11 @@
           "name": "GET_SETTINGS",
           "value": 8,
           "doc": "in: nothing; out: the applied ilc_settings (generation 0 = defaults)"
+        },
+        {
+          "name": "GET_COUNTERS",
+          "value": 9,
+          "doc": "in: nothing; out: ilc_counters, the module's diagnostic counters (read-only, any state; field names in the schema). Read field by field without a lock: each field is untorn, but fields can disagree with each other"
         },
         {
           "name": "TEST_SAFE_POINT",
@@ -234,6 +242,11 @@
           "name": "SAFE_POINT_RESULT",
           "value": 10,
           "doc": ""
+        },
+        {
+          "name": "COUNTERS",
+          "value": 11,
+          "doc": ""
         }
       ]
     },
@@ -269,7 +282,7 @@
         {
           "name": "READY",
           "value": 6,
-          "doc": "hooks installed and the game is running; reason DRY_ARMED = every detour still runs stock"
+          "doc": "hooks installed and the game is running; reason DRY_ARMED = every co-op detour still runs stock, LIVE = armed subsystems act"
         },
         {
           "name": "DEGRADED",
@@ -355,7 +368,7 @@
         {
           "name": "DRY_ARMED",
           "value": 13,
-          "doc": "hooks installed; every detour runs stock, only the settings safe point runs"
+          "doc": "hooks installed; every co-op detour runs stock (the layer is still dry, or no subsystem is armed): only the settings safe point and the player's own background rows run"
         },
         {
           "name": "THREAD_FAILED",
@@ -371,6 +384,11 @@
           "name": "BOOT_ABORTED",
           "value": 16,
           "doc": "the game began exiting before start-up finished; nothing was armed"
+        },
+        {
+          "name": "LIVE",
+          "value": 17,
+          "doc": "hooks installed and live: an applied settings record took the layer out of dry mode, and at least one armed subsystem may act"
         }
       ]
     },
@@ -458,6 +476,11 @@
           "name": "TOGETHER_RESIDUE",
           "value": 512,
           "doc": "files left by Ivalice Together that cannot patch anything (settings folder, Lua menu)"
+        },
+        {
+          "name": "INTERACTIONS_FAILED",
+          "value": 1024,
+          "doc": "guest interactions could not attach: guests cannot use doors, chests, NPCs or loot (the rest runs)"
         }
       ]
     },
@@ -547,12 +570,12 @@
         {
           "name": "CAPTURE_START",
           "value": 5,
-          "doc": "seat 1..4; arg0 = ilc_action (P1: P1 actions only), arg1 = slot 0..3"
+          "doc": "seat 1..4; arg0 = ilc_action (P1: P1 actions only), arg1 = slot 0..3. Seat 0 = the co-op on/off key: arg0 0, arg1 = kill_switch slot 0..3; keys and the right mouse button only, from the keyboard whoever owns it"
         },
         {
           "name": "CAPTURE_CANCEL",
           "value": 6,
-          "doc": "seat 1..4"
+          "doc": "seat 0..4 (0 = the co-op on/off key's capture)"
         },
         {
           "name": "RESTORE_DEFAULTS",
@@ -563,6 +586,11 @@
           "name": "KILL_SWITCH",
           "value": 8,
           "doc": "seat 0; arg0 1 = co-op off now, 0 = back on"
+        },
+        {
+          "name": "STALL_COOP_THREAD",
+          "value": 9,
+          "doc": "developer test, seat 0; arg0 = 1..STALL_MAX_MS: the co-op thread sleeps that long once (its liveness goes stale after 2 s); arg1 0. CONFLICT unless the applied settings have developer = 1; NOT_READY while the co-op thread is not running. The outcome follows as COMMAND_RESULT, b = milliseconds slept"
         }
       ]
     },
@@ -588,7 +616,7 @@
         {
           "name": "COMMAND_RESULT",
           "value": 4,
-          "doc": "generation = request id; a = command; b: PARK = parked seats (bit n = seat n+1), MOVE_SEAT_NOW = character | 0x100 (queued, no session yet)"
+          "doc": "generation = request id; a = command; b: PARK = parked seats (bit n = seat n+1), MOVE_SEAT_NOW = character | 0x100 (queued, no session yet), STALL_COOP_THREAD = milliseconds slept"
         },
         {
           "name": "PAIRING_RESULT",
@@ -598,7 +626,7 @@
         {
           "name": "CAPTURE_RESULT",
           "value": 6,
-          "doc": "generation = request id; a = ilc_capture_outcome | action << 8 | slot << 16; b = binding kind | code << 8 when captured"
+          "doc": "generation = request id; a = ilc_capture_outcome | action << 8 | slot << 16 (seat 0: action = CAPTURE_KILL_SWITCH_ACTION, slot = kill_switch index); b = binding kind | code << 8 when captured"
         },
         {
           "name": "SEAT_CHANGED",
@@ -1027,6 +1055,11 @@
           "name": "PAUSE",
           "value": 18,
           "doc": "P1"
+        },
+        {
+          "name": "IDENTIFY",
+          "value": 19,
+          "doc": "P1 too: flash this seat's diamond over its character (Battle HUD)"
         }
       ]
     },
@@ -1128,6 +1161,27 @@
         }
       ]
     },
+    "coop_switch": {
+      "type": "ilc_coop_switch",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "ON",
+          "value": 0,
+          "doc": "co-op on"
+        },
+        {
+          "name": "RELEASING",
+          "value": 1,
+          "doc": "kill switch pressed: releasing guest input (at most 250 ms)"
+        },
+        {
+          "name": "OFF",
+          "value": 2,
+          "doc": "co-op off (kill switch): stock play until it is switched back on"
+        }
+      ]
+    },
     "subsystem": {
       "type": "ilc_subsystem_bit",
       "underlying": "uint32_t",
@@ -1171,6 +1225,134 @@
           "name": "TARGETS_CARDS",
           "value": 128,
           "doc": "target rings, TARGET INFO and cards"
+        }
+      ]
+    },
+    "hud_element": {
+      "type": "ilc_hud_element_bit",
+      "underlying": "uint32_t",
+      "items": [
+        {
+          "name": "PARTY_SHRINK",
+          "value": 1,
+          "doc": "the reduced native party list (bottom-right)"
+        },
+        {
+          "name": "SEAT_EDGE",
+          "value": 2,
+          "doc": "seat-colour edge and seat numeral on each party row"
+        },
+        {
+          "name": "LOW_HP_GLOW",
+          "value": 4,
+          "doc": "low HP: the native HP number glows red"
+        },
+        {
+          "name": "DAMAGE_GHOST",
+          "value": 8,
+          "doc": "damage ghost on the party HP gauges"
+        },
+        {
+          "name": "ACTION_LINE",
+          "value": 16,
+          "doc": "action line: Choosing... and the ally an action aims at"
+        },
+        {
+          "name": "TARGET_INFO",
+          "value": 32,
+          "doc": "expanded Target Info (top-left); off = the native window"
+        },
+        {
+          "name": "BATTLE_LOG",
+          "value": 64,
+          "doc": "battle log (top-right); off = the native combat log"
+        },
+        {
+          "name": "SEAT_LINES",
+          "value": 128,
+          "doc": "target lines in seat colours (gambit allies silver)"
+        },
+        {
+          "name": "SEAT_DIAMONDS",
+          "value": 256,
+          "doc": "numbered seat diamonds over the players' characters"
+        },
+        {
+          "name": "AOE_RING",
+          "value": 512,
+          "doc": "a ring only while a seat aims an area magick or technick"
+        },
+        {
+          "name": "CIRCLES_OFF",
+          "value": 1024,
+          "doc": "native target circles off"
+        }
+      ]
+    },
+    "log_filter": {
+      "type": "ilc_log_filter",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "ALL",
+          "value": 0,
+          "doc": "every line"
+        },
+        {
+          "name": "PARTY",
+          "value": 1,
+          "doc": "party and gambit allies"
+        },
+        {
+          "name": "FOES",
+          "value": 2,
+          "doc": "foes"
+        },
+        {
+          "name": "STATUSES",
+          "value": 3,
+          "doc": "status lines"
+        },
+        {
+          "name": "MINE",
+          "value": 4,
+          "doc": "one seat (log_filter_seat)"
+        }
+      ]
+    },
+    "hud_report": {
+      "type": "ilc_hud_report_bit",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "FRAME_HOOK_OFF",
+          "value": 1,
+          "doc": "the HUD frame hook does not run (its call is not ours): no co-op HUD or menus are drawn"
+        },
+        {
+          "name": "VISION_NO_COMBAT_LOG",
+          "value": 2,
+          "doc": "Insurgent's Vision No Combat Log is on: its NOPs sit on the frame hook's call"
+        },
+        {
+          "name": "PARTY_LAYOUT_FOREIGN",
+          "value": 4,
+          "doc": "another mod changed the party list layout: left alone (not reduced)"
+        },
+        {
+          "name": "CIRCLES_BY_VISION",
+          "value": 8,
+          "doc": "native target circles are off through Vision's own patch (adopted)"
+        },
+        {
+          "name": "CIRCLES_FOREIGN",
+          "value": 16,
+          "doc": "another mod changed the target-circle code: left alone"
+        },
+        {
+          "name": "RENDER_OFF",
+          "value": 32,
+          "doc": "the HUD is not drawn: rendering is off or faulted, or the frame hook is not attached"
         }
       ]
     },
@@ -1272,7 +1454,7 @@
         {
           "name": "NO_INPUT",
           "value": 4,
-          "doc": "the seat has no connected pad and does not own the keyboard"
+          "doc": "the seat has no connected pad and does not own the keyboard (never for seat 0)"
         }
       ]
     }
@@ -1546,7 +1728,7 @@
     },
     "ilc_seat_settings": {
       "id": 5,
-      "size": 300,
+      "size": 308,
       "align": 2,
       "doc": "",
       "fields": [
@@ -1632,9 +1814,9 @@
           "name": "bindings",
           "kind": "RECS",
           "type": "ilc_binding",
-          "count": 76,
+          "count": 80,
           "offset": 148,
-          "size": 152,
+          "size": 160,
           "elemSize": 2,
           "min": 0,
           "max": 0,
@@ -1778,7 +1960,7 @@
     },
     "ilc_settings": {
       "id": 8,
-      "size": 3492,
+      "size": 3532,
       "align": 4,
       "doc": "SET_SETTINGS in, GET_SETTINGS out",
       "fields": [
@@ -1887,17 +2069,17 @@
           "doc": "aliases in use; the rest are all zero"
         },
         {
-          "name": "reserved0",
-          "kind": "PAD",
+          "name": "keep_running",
+          "kind": "VAL",
           "type": "uint8_t",
           "count": 1,
           "offset": 23,
           "size": 1,
           "elemSize": 1,
           "min": 0,
-          "max": 0,
+          "max": 1,
           "fieldId": 2056,
-          "doc": ""
+          "doc": "keep running while another window has focus (windowed, borderless)"
         },
         {
           "name": "character_colour",
@@ -1913,17 +2095,30 @@
           "doc": "colour per character, by ilc_character 0..5"
         },
         {
-          "name": "reserved1",
-          "kind": "PAD",
+          "name": "hud_test_draw",
+          "kind": "VAL",
           "type": "uint8_t",
-          "count": 2,
+          "count": 1,
           "offset": 30,
-          "size": 2,
+          "size": 1,
           "elemSize": 1,
           "min": 0,
-          "max": 0,
+          "max": 1,
           "fieldId": 2058,
-          "doc": ""
+          "doc": "Diagnostics: co-op canvas test draw; 0 off"
+        },
+        {
+          "name": "developer",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 31,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2059,
+          "doc": "Diagnostics: developer options; 1 allows test-only commands (STALL_COOP_THREAD); 0 off"
         },
         {
           "name": "kill_switch",
@@ -1935,7 +2130,7 @@
           "elemSize": 2,
           "min": 0,
           "max": 0,
-          "fieldId": 2059,
+          "fieldId": 2060,
           "doc": "co-op kill switch binding; keyboard or mouse only"
         },
         {
@@ -1948,7 +2143,7 @@
           "elemSize": 8,
           "min": 0,
           "max": 0,
-          "fieldId": 2060,
+          "fieldId": 2061,
           "doc": "Legacy MP economy parameters"
         },
         {
@@ -1957,11 +2152,11 @@
           "type": "ilc_seat_settings",
           "count": 4,
           "offset": 48,
-          "size": 1200,
-          "elemSize": 300,
+          "size": 1232,
+          "elemSize": 308,
           "min": 0,
           "max": 0,
-          "fieldId": 2061,
+          "fieldId": 2062,
           "doc": "P1..P4"
         },
         {
@@ -1969,12 +2164,12 @@
           "kind": "RECS",
           "type": "ilc_device_alias",
           "count": 16,
-          "offset": 1248,
+          "offset": 1280,
           "size": 2240,
           "elemSize": 140,
           "min": 0,
           "max": 0,
-          "fieldId": 2062,
+          "fieldId": 2063,
           "doc": ""
         },
         {
@@ -1982,13 +2177,78 @@
           "kind": "VAL",
           "type": "uint32_t",
           "count": 1,
-          "offset": 3488,
+          "offset": 3520,
           "size": 4,
           "elemSize": 4,
           "min": 0,
           "max": 255,
-          "fieldId": 2063,
+          "fieldId": 2064,
           "doc": "ilc_subsystem_bit mask; 0 bit = disarmed"
+        },
+        {
+          "name": "hud_enabled",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3524,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2065,
+          "doc": "Battle HUD on/off; off = every element stock (the co-op battle menus stay)"
+        },
+        {
+          "name": "log_expand_control",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3525,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 24,
+          "fieldId": 2066,
+          "doc": "battle log expand button: ilc_pad_control pressed on any seat's pad; 0 none"
+        },
+        {
+          "name": "log_filter",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3526,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 4,
+          "fieldId": 2067,
+          "doc": "battle log filter, ilc_log_filter"
+        },
+        {
+          "name": "log_filter_seat",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3527,
+          "size": 1,
+          "elemSize": 1,
+          "min": 1,
+          "max": 3,
+          "fieldId": 2068,
+          "doc": "seat the MINE filter shows"
+        },
+        {
+          "name": "hud_elements",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 3528,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 2047,
+          "fieldId": 2069,
+          "doc": "ilc_hud_element_bit bits; set = on"
         }
       ]
     },
@@ -2093,7 +2353,7 @@
           "size": 2,
           "elemSize": 2,
           "min": 1,
-          "max": 8,
+          "max": 9,
           "fieldId": 2561,
           "doc": "ilc_command_id"
         },
@@ -2686,16 +2946,42 @@
           "doc": "ilc_boot_flag bits"
         },
         {
+          "name": "coop_switch",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 108,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 2,
+          "fieldId": 3096,
+          "doc": "ilc_coop_switch: the kill switch"
+        },
+        {
+          "name": "hud_report",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 109,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 3097,
+          "doc": "ilc_hud_report_bit bits (the Battle HUD page's status line)"
+        },
+        {
           "name": "reserved",
           "kind": "PAD",
           "type": "uint8_t",
-          "count": 4,
-          "offset": 108,
-          "size": 4,
+          "count": 2,
+          "offset": 110,
+          "size": 2,
           "elemSize": 1,
           "min": 0,
           "max": 0,
-          "fieldId": 3096,
+          "fieldId": 3098,
           "doc": ""
         }
       ]
@@ -3418,6 +3704,1821 @@
           "doc": ""
         }
       ]
+    },
+    "ilc_counters": {
+      "id": 20,
+      "size": 568,
+      "align": 4,
+      "doc": "GET_COUNTERS out",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 5120,
+          "doc": "record_type COUNTERS; generation = applied generation"
+        },
+        {
+          "name": "layout",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5121,
+          "doc": "ILC_COUNTERS_LAYOUT of the writer"
+        },
+        {
+          "name": "now_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5122,
+          "doc": "module clock (low 32 bits); every *_ms field below is on it"
+        },
+        {
+          "name": "caller_thread_id",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5123,
+          "doc": "the thread of this call"
+        },
+        {
+          "name": "init_thread_id",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5124,
+          "doc": "the thread that called FF12Hinit (the game's main thread)"
+        },
+        {
+          "name": "init_done_thread_id",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 32,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5125,
+          "doc": "the thread that called FF12HinitDone (0 = not yet)"
+        },
+        {
+          "name": "coop_thread_id",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 36,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5126,
+          "doc": "the init thread that stays on as the co-op thread (0 = none)"
+        },
+        {
+          "name": "mode",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 40,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5127,
+          "doc": "0 = dry (every co-op detour stock), 1 = live"
+        },
+        {
+          "name": "live_at_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 44,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5128,
+          "doc": "module clock when the layer went live (0 = still dry)"
+        },
+        {
+          "name": "liveness_armed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 48,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5129,
+          "doc": "the liveness record is armed (1)"
+        },
+        {
+          "name": "liveness_epoch",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 52,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5130,
+          "doc": "epoch of the last heartbeat"
+        },
+        {
+          "name": "liveness_age_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 56,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5131,
+          "doc": "time since the last heartbeat; 0xFFFFFFFF = none yet"
+        },
+        {
+          "name": "liveness_fresh",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 60,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5132,
+          "doc": "1 = a detour may act now (coherent, armed, epoch set, heartbeat at most 2 s old)"
+        },
+        {
+          "name": "stale_fallbacks",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 64,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5133,
+          "doc": "detour entries with an open gate that ran stock because the liveness sample was stale or torn"
+        },
+        {
+          "name": "stale_ticks",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 68,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5134,
+          "doc": "UI ticks that ran the stale clean-up instead of the tick"
+        },
+        {
+          "name": "stale_releases",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 72,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5135,
+          "doc": "Wait pauses the stale clean-up gave back"
+        },
+        {
+          "name": "subsystems_applied",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 76,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5136,
+          "doc": "subsystems_armed of the applied settings"
+        },
+        {
+          "name": "subsystems_gates",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 80,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5137,
+          "doc": "the subsystem mask the arm gates use now (0 while co-op is off)"
+        },
+        {
+          "name": "subsystems_faulted",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 84,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5138,
+          "doc": "latched fault bits (0x40000000 = the CORE rows)"
+        },
+        {
+          "name": "subsystems_live",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 88,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5139,
+          "doc": "bit set = that subsystem may act now (live, armed, not faulted)"
+        },
+        {
+          "name": "beats",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 92,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5140,
+          "doc": "co-op thread beats"
+        },
+        {
+          "name": "beat_max_us",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 96,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5141,
+          "doc": "longest beat (its work; the wait between beats excluded)"
+        },
+        {
+          "name": "beat_gap_last_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 100,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5142,
+          "doc": "time between the last two beat starts"
+        },
+        {
+          "name": "beat_gap_max_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 104,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5143,
+          "doc": "longest time between two beat starts (a stalled thread shows here)"
+        },
+        {
+          "name": "stall_requests",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 108,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5144,
+          "doc": "STALL_COOP_THREAD commands accepted"
+        },
+        {
+          "name": "stalls_done",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 112,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5145,
+          "doc": "stalls the co-op thread finished"
+        },
+        {
+          "name": "stall_last_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 116,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5146,
+          "doc": "milliseconds the last stall slept"
+        },
+        {
+          "name": "tick_count",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 120,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5147,
+          "doc": "UI-tick handler runs"
+        },
+        {
+          "name": "tick_max_us",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 124,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5148,
+          "doc": "longest UI-tick handler run, the stock call excluded (0 until the timer is calibrated)"
+        },
+        {
+          "name": "tick_reentered",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 128,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5149,
+          "doc": "tick runs refused because the handler was already running"
+        },
+        {
+          "name": "tick_settings_applied",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 132,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5150,
+          "doc": "safe points that applied staged settings"
+        },
+        {
+          "name": "tick_safe_point_busy",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 136,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5151,
+          "doc": "safe points that found the bridge lock taken"
+        },
+        {
+          "name": "tick_mask_applied",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 140,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5152,
+          "doc": "subsystem masks handed to the arm gates"
+        },
+        {
+          "name": "tick_mask_deferred",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 144,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5153,
+          "doc": "mask hand-offs that found the layer lock taken (retried next frame)"
+        },
+        {
+          "name": "tick_live_switches",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 148,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5154,
+          "doc": "dry to live switches (0 or 1)"
+        },
+        {
+          "name": "tick_live_deferred",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 152,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5155,
+          "doc": "live switches that found the layer lock taken (retried next frame)"
+        },
+        {
+          "name": "tick_jobs_drained",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 156,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5156,
+          "doc": "game-thread jobs taken while live"
+        },
+        {
+          "name": "tick_jobs_flushed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 160,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5157,
+          "doc": "game-thread jobs refused while dry"
+        },
+        {
+          "name": "bridge_calls",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 164,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5158,
+          "doc": "ILC_Bridge calls"
+        },
+        {
+          "name": "bridge_max_us",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 168,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5159,
+          "doc": "longest ILC_Bridge call"
+        },
+        {
+          "name": "poll_calls",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 172,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5160,
+          "doc": "query calls (GET_STATUS, GET_SEATS, GET_DEVICES, POP_EVENTS, GET_SETTINGS, GET_COUNTERS)"
+        },
+        {
+          "name": "poll_max_us",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 176,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5161,
+          "doc": "longest query call"
+        },
+        {
+          "name": "safe_points",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 180,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5162,
+          "doc": "settings safe point runs, busy ones included"
+        },
+        {
+          "name": "applies",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 184,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5163,
+          "doc": "settings records applied"
+        },
+        {
+          "name": "rejects",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 188,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5164,
+          "doc": "every negative bridge return except NOT_READY"
+        },
+        {
+          "name": "last_reject_op",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 192,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5165,
+          "doc": ""
+        },
+        {
+          "name": "last_reject_code",
+          "kind": "VAL",
+          "type": "int32_t",
+          "count": 1,
+          "offset": 196,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 0,
+          "fieldId": 5166,
+          "doc": "ilc_error"
+        },
+        {
+          "name": "events_pending",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 200,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5167,
+          "doc": ""
+        },
+        {
+          "name": "events_dropped",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 204,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5168,
+          "doc": ""
+        },
+        {
+          "name": "patch_rows",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 208,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5169,
+          "doc": "PATCH rows in the site table"
+        },
+        {
+          "name": "hooks_installed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 212,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5170,
+          "doc": "rows the hook transaction hooked"
+        },
+        {
+          "name": "gated_off",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 216,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5171,
+          "doc": "PATCH rows skipped because their GATE row did not match"
+        },
+        {
+          "name": "info_mismatch",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 220,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5172,
+          "doc": "INFO rows that differ (information only)"
+        },
+        {
+          "name": "install_attempts",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 224,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5173,
+          "doc": "hook transactions tried (a busy probe is retried)"
+        },
+        {
+          "name": "quiesce_retries",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 228,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5174,
+          "doc": "busy probes before the last transaction's result"
+        },
+        {
+          "name": "threads_probed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 232,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5175,
+          "doc": "threads the last probe suspended and inspected"
+        },
+        {
+          "name": "island_commits",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 236,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5176,
+          "doc": "call-row rel32 sets written"
+        },
+        {
+          "name": "island_busy",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 240,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5177,
+          "doc": "call-row freezes that found a thread inside a rel32"
+        },
+        {
+          "name": "detour_entered",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 244,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5178,
+          "doc": "slow-path entries, all rows"
+        },
+        {
+          "name": "detour_stock",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 248,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5179,
+          "doc": "... that ran the original because a check failed"
+        },
+        {
+          "name": "detour_handled",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 252,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5180,
+          "doc": "... that ran the handler"
+        },
+        {
+          "name": "detour_declined",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 256,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5181,
+          "doc": "... whose handler chose stock"
+        },
+        {
+          "name": "jobs_pushed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 260,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5182,
+          "doc": "game-thread jobs queued"
+        },
+        {
+          "name": "jobs_push_full",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 264,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5183,
+          "doc": ""
+        },
+        {
+          "name": "jobs_push_refused",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 268,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5184,
+          "doc": ""
+        },
+        {
+          "name": "jobs_ran",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 272,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5185,
+          "doc": ""
+        },
+        {
+          "name": "jobs_rejected",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 276,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5186,
+          "doc": ""
+        },
+        {
+          "name": "jobs_reaped",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 280,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5187,
+          "doc": ""
+        },
+        {
+          "name": "coop_switch",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 284,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5188,
+          "doc": "ilc_coop_switch"
+        },
+        {
+          "name": "kill_presses",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 288,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5189,
+          "doc": "kill-switch edges (keys and commands)"
+        },
+        {
+          "name": "kills",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 292,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5190,
+          "doc": "ordered disarms completed"
+        },
+        {
+          "name": "revives",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 296,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5191,
+          "doc": ""
+        },
+        {
+          "name": "released_by_settle",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 300,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5192,
+          "doc": ""
+        },
+        {
+          "name": "released_by_cap",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 304,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5193,
+          "doc": ""
+        },
+        {
+          "name": "last_release_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 308,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5194,
+          "doc": "duration of the last release wait"
+        },
+        {
+          "name": "toggles",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 312,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5195,
+          "doc": "seat toggles applied"
+        },
+        {
+          "name": "toggles_ignored",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 316,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5196,
+          "doc": ""
+        },
+        {
+          "name": "mask_busy",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 320,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5197,
+          "doc": "co-op switch mask hand-offs that found the layer lock taken"
+        },
+        {
+          "name": "capture_held",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 324,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5198,
+          "doc": "kill or toggle key edges not acted on while the on/off key was being captured"
+        },
+        {
+          "name": "capture_capped",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 328,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5199,
+          "doc": "capture holds ended by their cap"
+        },
+        {
+          "name": "capture_word",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 332,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5200,
+          "doc": "a capture that reads the keyboard (on/off key or keyboard seat): bit 0 running, bits 1..31 a serial"
+        },
+        {
+          "name": "session_epoch_bumps",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 336,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5201,
+          "doc": ""
+        },
+        {
+          "name": "session_read_failures",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 340,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5202,
+          "doc": ""
+        },
+        {
+          "name": "party_requests",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 344,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5203,
+          "doc": "seat change requests taken"
+        },
+        {
+          "name": "party_applied",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 348,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5204,
+          "doc": ""
+        },
+        {
+          "name": "party_refused",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 352,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5205,
+          "doc": ""
+        },
+        {
+          "name": "party_timed_out",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 356,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5206,
+          "doc": ""
+        },
+        {
+          "name": "party_watcher_changes",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 360,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5207,
+          "doc": "leader changes made outside co-op jobs"
+        },
+        {
+          "name": "party_external_swaps",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 364,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5208,
+          "doc": ""
+        },
+        {
+          "name": "party_ko_promotions",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 368,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5209,
+          "doc": ""
+        },
+        {
+          "name": "party_town_rebuilds",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 372,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5210,
+          "doc": ""
+        },
+        {
+          "name": "party_town_takes",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 376,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5211,
+          "doc": ""
+        },
+        {
+          "name": "towns_rebuilds",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 380,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5212,
+          "doc": "town rebuild jobs that ran"
+        },
+        {
+          "name": "towns_gave_up",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 384,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5213,
+          "doc": ""
+        },
+        {
+          "name": "canvas_reached",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 388,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5214,
+          "doc": "frame hook runs with its gate open"
+        },
+        {
+          "name": "canvas_drawn",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 392,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5215,
+          "doc": "frames replayed to the end"
+        },
+        {
+          "name": "canvas_published",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 396,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5216,
+          "doc": "frames the producer published"
+        },
+        {
+          "name": "canvas_declined_off",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 400,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5217,
+          "doc": ""
+        },
+        {
+          "name": "canvas_declined_frame",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 404,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5218,
+          "doc": ""
+        },
+        {
+          "name": "canvas_declined_context",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 408,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5219,
+          "doc": ""
+        },
+        {
+          "name": "canvas_declined_budget",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 412,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5220,
+          "doc": "over a ring limit or the ring unreadable"
+        },
+        {
+          "name": "canvas_ring_gaps",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 416,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5221,
+          "doc": ""
+        },
+        {
+          "name": "canvas_faults",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 420,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5222,
+          "doc": "guarded faults (RENDER latched)"
+        },
+        {
+          "name": "canvas_frame_use",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 424,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5223,
+          "doc": "ring bytes used between the last two hook calls"
+        },
+        {
+          "name": "canvas_peak",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 428,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5224,
+          "doc": "decaying peak of canvas_frame_use"
+        },
+        {
+          "name": "canvas_capacity",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 432,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5225,
+          "doc": "ring size seen"
+        },
+        {
+          "name": "driver_frames",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 436,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5226,
+          "doc": ""
+        },
+        {
+          "name": "driver_composed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 440,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5227,
+          "doc": ""
+        },
+        {
+          "name": "driver_torn",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 444,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5228,
+          "doc": ""
+        },
+        {
+          "name": "driver_pass_faults",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 448,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5229,
+          "doc": ""
+        },
+        {
+          "name": "driver_dropped_frames",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 452,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5230,
+          "doc": "presented frames that left a seat's open window out"
+        },
+        {
+          "name": "driver_menus_no_view",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 456,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5231,
+          "doc": ""
+        },
+        {
+          "name": "presenter_age_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 460,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5232,
+          "doc": "time since the co-op menus were last drawn; 0xFFFFFFFF = never"
+        },
+        {
+          "name": "native_hud_jobs",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 464,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5233,
+          "doc": "native HUD jobs that ran"
+        },
+        {
+          "name": "native_hud_give_backs",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 468,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5234,
+          "doc": ""
+        },
+        {
+          "name": "ti_native_closed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 472,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5235,
+          "doc": "native TARGET INFO opens turned into a close"
+        },
+        {
+          "name": "ti_native_stock",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 476,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5236,
+          "doc": "native TARGET INFO opens left alone"
+        },
+        {
+          "name": "ti_give_opens",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 480,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5237,
+          "doc": "give-back: pending creates written"
+        },
+        {
+          "name": "ti_give_opened",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 484,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5238,
+          "doc": ""
+        },
+        {
+          "name": "ti_give_cancels",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 488,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5239,
+          "doc": ""
+        },
+        {
+          "name": "ti_give_giveups",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 492,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5240,
+          "doc": ""
+        },
+        {
+          "name": "ti_give_rehides",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 496,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5241,
+          "doc": ""
+        },
+        {
+          "name": "ti_pin_checks",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 500,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5242,
+          "doc": ""
+        },
+        {
+          "name": "ti_pin_off",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 504,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5243,
+          "doc": ""
+        },
+        {
+          "name": "ti_aims",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 508,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5244,
+          "doc": ""
+        },
+        {
+          "name": "ti_gated",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 512,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5245,
+          "doc": ""
+        },
+        {
+          "name": "ti_pins",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 516,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5246,
+          "doc": "0 unknown, 1 ok, 2 off"
+        },
+        {
+          "name": "ti_pin_row",
+          "kind": "VAL",
+          "type": "int32_t",
+          "count": 1,
+          "offset": 520,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 0,
+          "fieldId": 5247,
+          "doc": "first pin row found off, -1 none"
+        },
+        {
+          "name": "menu_opens",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 524,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5248,
+          "doc": "co-op battle menus opened"
+        },
+        {
+          "name": "menu_party_requests",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 528,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5249,
+          "doc": ""
+        },
+        {
+          "name": "menu_p1_givebacks",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 532,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5250,
+          "doc": ""
+        },
+        {
+          "name": "menu_owns_p1",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 536,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5251,
+          "doc": "the co-op menus own Player 1's menus (1)"
+        },
+        {
+          "name": "menu_presenter_live",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 540,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5252,
+          "doc": ""
+        },
+        {
+          "name": "iso_background",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 544,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5253,
+          "doc": "host visits made neutral while the game runs unfocused"
+        },
+        {
+          "name": "iso_masked",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 548,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5254,
+          "doc": ""
+        },
+        {
+          "name": "iso_substituted",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 552,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5255,
+          "doc": ""
+        },
+        {
+          "name": "iso_probe_failed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 556,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5256,
+          "doc": ""
+        },
+        {
+          "name": "focus_forced",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 560,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5257,
+          "doc": "application held active while unfocused"
+        },
+        {
+          "name": "focus_probe_failed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 564,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5258,
+          "doc": ""
+        }
+      ]
     }
   },
   "ops": {
@@ -3431,7 +5532,7 @@
     },
     "SET_SETTINGS": {
       "in": [
-        3492
+        3532
       ],
       "inRecord": "ilc_settings",
       "out": "ilc_settings_ack"
@@ -3485,6 +5586,6 @@
   },
   "defaults": {
     "record": "ilc_settings",
-    "hex": "494c434201000300a40d0000000000000101020000000000000205060304000001770000000000000000000000000000fe00010000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030b000000000000030c000000000000030d030500000000030e0306000000000000000000000000000000000000000000000000000000000301000000000000030200000000000003040000000000000308000000000000040301000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000175000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460303000000000120010d0201030101430108020203020152030400000000011b030800000000030601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000176000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460301000000000120010d0201030101430108020203020152030400000000011b030800000000fe05010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ff000000"
+    "hex": "494c434201000300cc0d0000000000000101020000000001000205060304000001770000000000000000000000000000fe00010000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030b000000000000030c000000000000030d030500000000030e03060000000000000000000000000000000000000000000000000000000003010000000000000302000000000000030400000000000003080000000000000000000000000000040301000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000175000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460303000000000120010d0201030101430108020203020152030400000000011b0308000000000154030700000000030601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000176000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460301000000000120010d0201030101430108020203020152030400000000011b0308000000000154030700000000fe050100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ff00000001000001ff070000"
   }
 }

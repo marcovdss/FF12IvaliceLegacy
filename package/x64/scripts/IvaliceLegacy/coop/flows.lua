@@ -22,6 +22,12 @@ local function title(s)
 end
 M.title = title
 
+-- How an action is named for the player (the schema names read badly: "Toggle control", "Walk run").
+local ACTION_LABELS = {TOGGLE_CONTROL = 'Join/leave key', WALK_RUN = 'Walk/run', TARGET_PREV = 'Previous target',
+                       TARGET_NEXT = 'Next target'}
+function M.action_label(action) return ACTION_LABELS[action] or title(action) end
+local actionLabel = M.action_label
+
 -- Windows virtual-key code -> short name (only the common keys; others show their code).
 local function keyName(vk)
   if vk >= 0x70 and vk <= 0x7B then return 'F' .. (vk - 0x6F) end
@@ -41,7 +47,7 @@ function M.create(deps)
   local E = C.enums
   local ACTIVE = C.schema.const.ACTIVE_SEATS_MAX or 3      -- seats with a human player (fail closed: 3)
   local log = deps.log or function() end
-  local F = {now = 0, killed = false, pending = nil, devices = nil, seats = nil, identified = {}, lastSlowPoll = nil}
+  local F = {now = 0, action_label = M.action_label, killed = false, pending = nil, devices = nil, seats = nil, identified = {}, lastSlowPoll = nil}
 
   local base = deps.seed
   if base == nil then base = (type(os) == 'table' and os.time and os.time()) or 0 end
@@ -59,7 +65,8 @@ function M.create(deps)
     local parts = {}
     for _, b in ipairs(list) do
       if b.kind == 'KEY' then parts[#parts + 1] = keyName(b.code)
-      elseif b.kind == 'MOUSE' then parts[#parts + 1] = 'Mouse ' .. b.code
+      elseif b.kind == 'MOUSE' then
+        parts[#parts + 1] = b.code == 1 and 'Left mouse' or b.code == 2 and 'Right mouse' or ('Mouse ' .. b.code)
       elseif b.kind == 'PAD' then parts[#parts + 1] = title(C.name_of('pad_control', b.code) or ('control ' .. b.code))
       else parts[#parts + 1] = '?' end
     end
@@ -189,7 +196,10 @@ function M.create(deps)
   local function pendingText(p)
     local s = secondsLeft(p)
     if p.kind == 'capture' then
-      return string.format('%s, %s: press the new button or key now. (%d s)', seatLabel(p.seat), title(p.action), s)
+      if p.seat == 0 then
+        return string.format('Co-op on/off key: press the new key now (Esc cancels), or the right mouse button. (%d s)', s)
+      end
+      return string.format('%s, %s: press the new button or key now. (%d s)', seatLabel(p.seat), actionLabel(p.action), s)
     end
     if p.phase == 'confirm' then
       return string.format('%s: press A on %s again to confirm. If you do not, the change is undone. (%d s)',
@@ -427,33 +437,266 @@ function M.create(deps)
     TIMEOUT = 'No button or key was pressed in time. Nothing was changed.',
     NO_INPUT = 'That input cannot be used here. Keys work only for the keyboard seat.',
   }
+  local KILL_NOTES = {
+    TIMEOUT = 'No key was pressed in time. Nothing was changed. Keys are only seen while the game window is in front.',
+    NO_INPUT = 'That input cannot be used for the co-op on/off key. Use a keyboard key or the right mouse button.',
+  }
 
+  -- Seat 0 is the co-op on/off key. Its capture takes keyboard keys and the right mouse button only.
   local function startCapture(seat, action, slot)
-    local rid, err = send('CAPTURE_START', seat, E.action[action], slot)
+    local rid, err
+    if seat == 0 then
+      rid, err = send('CAPTURE_START', 0, 0, slot)
+      if not rid and err == 'BAD_FIELD' then
+        D.notify('This version of the co-op module cannot capture the on/off key. Use Co-op right now on the main page.')
+        return
+      end
+    else
+      rid, err = send('CAPTURE_START', seat, E.action[action], slot)
+    end
     if not rid then D.notify(errText(err)) return end
     local p = {kind = 'capture', rid = rid, seat = seat, action = action, slot = slot, deadline = F.now + M.GUARD_MS}
     F.pending = p
     openPanel(p)
   end
 
+  -- The join/leave keys and the co-op on/off key are hotkeys read for every seat, so one key (or the right mouse button)
+  -- on two of them would fire both. Pad buttons belong to one pad and cannot clash. Returns who already holds the
+  -- binding: {kill = true} or {seat = n}, or nil. `skip` leaves out the list being edited ({kill = true} or {seat = n}).
+  local function sameBinding(a, b) return a.kind == b.kind and a.code == b.code end
+  function F.hotkey_holder(st, b, skip)
+    if b.kind ~= 'KEY' and b.kind ~= 'MOUSE' then return nil end
+    for i = 2, ACTIVE do
+      if not (skip and skip.seat == i) then
+        for _, x in ipairs(st.seats[i].bindings.TOGGLE_CONTROL or {}) do
+          if sameBinding(x, b) then return {seat = i} end
+        end
+      end
+    end
+    if not (skip and skip.kill) then
+      for _, x in ipairs(st.killSwitch or {}) do
+        if sameBinding(x, b) then return {kill = true} end
+      end
+    end
+    return nil
+  end
+
+  local function holderName(h) return h.kill and 'the co-op on/off key' or (seatLabel(h.seat) .. '\'s join/leave key') end
+
+  -- Every action in schema order, so the first match is always the same one.
+  local actionOrder = {}
+  for name, idx in pairs(E.action) do actionOrder[#actionOrder + 1] = {name = name, idx = idx} end
+  table.sort(actionOrder, function(a, b) return a.idx < b.idx end)
+
+  -- The seat that owns the keyboard (and the mouse), or nil when none plays.
+  local function keyboardSeatOf(st)
+    local k = st.keyboardSeat
+    if math.type(k) == 'integer' and k >= 1 and k <= ACTIVE then return k end
+    return nil
+  end
+
+  -- The first action of `bindings` (one seat's map) that holds keyboard or mouse binding b.
+  local function actionHolding(bindings, b)
+    if b.kind ~= 'KEY' and b.kind ~= 'MOUSE' then return nil end
+    for _, a in ipairs(actionOrder) do
+      for _, x in ipairs(bindings[a.name] or {}) do
+        if sameBinding(x, b) then return a.name end
+      end
+    end
+    return nil
+  end
+
+  -- An on/off key that is also a key of the keyboard player would fire both on one press.
+  local function keyboardClash(st, b)
+    local ks = keyboardSeatOf(st)
+    local action = ks and actionHolding(st.seats[ks].bindings, b)
+    if not action then return nil end
+    return string.format('%s is already %s\'s %s control. Pick another, or change that one first.', F.binding_text({b}),
+                         seatLabel(ks), actionLabel(action):lower())
+  end
+
+  -- The first keyboard or mouse binding of `bindings` (one seat's map, its own join/leave key left out) that is also a
+  -- hotkey held elsewhere: another seat's join/leave key or an on/off key. Returns binding, action name, holder.
+  local function seatHotkeyClash(st, seat, bindings)
+    for _, a in ipairs(actionOrder) do
+      if a.name ~= 'TOGGLE_CONTROL' then
+        for _, b in ipairs(bindings[a.name] or {}) do
+          local h = F.hotkey_holder(st, b, {seat = seat})
+          if h then return b, a.name, h end
+        end
+      end
+    end
+    return nil
+  end
+
+  -- Why a seat may not take the keyboard: one of its keys is an on/off key or another player's join/leave key. nil
+  -- when it may.
+  function F.keyboard_seat_conflict(st, seat)
+    if math.type(seat) ~= 'integer' or seat < 1 or seat > ACTIVE then return nil end
+    local b, action, h = seatHotkeyClash(st, seat, st.seats[seat].bindings)
+    if not b then return nil end
+    return string.format('%s uses %s for %s, which is also %s. Change that one first.', seatLabel(seat),
+                         F.binding_text({b}), actionLabel(action):lower(), holderName(h))
+  end
+
+  -- The module's own refusal of a record, in words for the player. Lua's refusals come first; this covers what only
+  -- the module can see (a key twice in the on/off list, a clash it checks itself).
+  -- The module reports a clash at a field and a location (store.lastRejectField / lastRejectLocation, read right after
+  -- the refusal; the text alone is the fallback; the location packs the seat (or the kill switch) above the binding index):
+  --   on/off key (kill_switch)         the same key twice in the list, a player's join/leave key, or a key or mouse button
+  --                                    of the keyboard player
+  --   a guest seat's bindings          that seat's join/leave key equals another seat's join/leave key, or a key or mouse
+  --                                    button of the keyboard player
+  --   Player 1's bindings (location 0) the same binding twice in one action
+  function F.explain_refusal(why)
+    local text = tostring(why or '')
+    if not text:find('CONFLICT', 1, true) then return text end
+    local field = tostring(store.lastRejectField or text)
+    local where = store.lastRejectLocation and (store.lastRejectLocation >> 8)   -- location = seat or kill switch << 8 | binding
+    local index = store.lastRejectLocation and (store.lastRejectLocation & 0xFF)
+    if field:find('kill_switch', 1, true) then
+      return 'That on/off key clashes with another key: another on/off key, a join/leave key, or a key or mouse button ' ..
+             'of the keyboard player.'
+    end
+    if field:find('bindings', 1, true) then
+      -- the join/leave sentence only for a join/leave slot of a guest seat (the first BINDINGS_PER_ACTION indexes)
+      local perAction = C.schema.const.BINDINGS_PER_ACTION
+      if where == 0 or (index and index >= perAction) then
+        return 'That key is already used by another control of the same player.'
+      end
+      return "That join/leave key clashes with another player's join/leave key, or with a key or mouse button of the " ..
+             'keyboard player.'
+    end
+    return text
+  end
+
+  local function clashText(b, h)
+    return string.format('%s is already %s. Pick another, or change that one first.', F.binding_text({b}), holderName(h))
+  end
+
+  -- Why a seat's default controls cannot come back right now (one of its default hotkeys is taken), or nil.
+  function F.reset_conflict(st, seat, bindings)
+    for _, b in ipairs(bindings.TOGGLE_CONTROL or {}) do
+      local h = F.hotkey_holder(st, b, {seat = seat})
+      if h then
+        return string.format('%s is now %s. Change that first.', F.binding_text({b}), holderName(h))
+      end
+    end
+    local ks = keyboardSeatOf(st)
+    if seat == ks then
+      local b, action, h = seatHotkeyClash(st, seat, bindings)
+      if b then
+        return string.format('%s is %s and a default key of this player (%s). Change that first.', F.binding_text({b}),
+                             holderName(h), actionLabel(action):lower())
+      end
+    elseif ks and seat >= 2 then
+      for _, b in ipairs(bindings.TOGGLE_CONTROL or {}) do
+        local action = actionHolding(st.seats[ks].bindings, b)
+        if action then
+          return string.format('%s is a default join/leave key of this player, but %s uses it for %s. Change that first.',
+                               F.binding_text({b}), seatLabel(ks), actionLabel(action):lower())
+        end
+      end
+    end
+  end
+
+  -- Keyboard keys (not the mouse buttons' own codes) and the right mouse button.
+  local function killInput(b)
+    if b.kind == 'MOUSE' then return b.code == 2 end
+    return b.kind == 'KEY' and not (b.code == 1 or b.code == 2 or (b.code >= 4 and b.code <= 6))
+  end
+
+  -- What to ask for a binding list: set when empty, replace or add, replace only when full.
+  local function captureChoices(list)
+    if #list == 0 then return {'Set a binding', 'Cancel'}, {'replace'} end
+    if #list < M.MAX_BINDINGS then return {'Replace the first', 'Add another', 'Cancel'}, {'replace', 'add'} end
+    return {'Replace the first', 'Cancel'}, {'replace'}
+  end
+
+  local function readOnlyNote()
+    D.notify('Settings are read-only this session, so controls cannot be changed.')
+  end
+
   -- Opens the capture question for one action of one seat.
   function F.open_capture(seat, action)
     if F.pending then D.notify('Finish or cancel the current controller step first.') return end
     if not bridge.is_ready() then D.notify('The co-op module is not running.') return end
+    if store.readOnly then readOnlyNote() return end
     local list = store.state.seats[seat].bindings[action] or {}
-    local labels, modes = {}, {}
-    if #list == 0 then
-      labels = {'Set a binding', 'Cancel'}; modes = {'replace'}
-    elseif #list < M.MAX_BINDINGS then
-      labels = {'Replace the first', 'Add another', 'Cancel'}; modes = {'replace', 'add'}
-    else
-      labels = {'Replace the first', 'Cancel'}; modes = {'replace'}
-    end
-    D.ask(string.format('%s, %s.\nNow: %s', seatLabel(seat), title(action), F.binding_text(list)), labels, function(i)
+    local labels, modes = captureChoices(list)
+    D.ask(string.format('%s, %s.\nNow: %s', seatLabel(seat), actionLabel(action), F.binding_text(list)), labels, function(i)
       local mode = i and modes[i + 1]
       if not mode then return end
       startCapture(seat, action, mode == 'add' and #list or 0)
     end)
+  end
+
+  -- The co-op on/off key (a few slots, keyboard and right mouse button only).
+  function F.open_kill_capture()
+    if F.pending then D.notify('Finish or cancel the current controller step first.') return end
+    if not bridge.is_ready() then D.notify('The co-op module is not running.') return end
+    if store.readOnly then readOnlyNote() return end
+    local list = store.state.killSwitch or {}
+    local labels, modes = captureChoices(list)
+    D.ask('Co-op on/off key.\nNow: ' .. F.binding_text(list) .. '\nPress a keyboard key, or the right mouse button. Esc cancels.', labels,
+          function(i)
+            local mode = i and modes[i + 1]
+            if not mode then return end
+            startCapture(0, 'KILL_SWITCH', mode == 'add' and #list or 0)
+          end)
+  end
+
+  -- Put `new` into a list at the asked slot: replace that slot, or add at the end (the last slot when full). Any other
+  -- copy of `new` in the list is dropped, so a binding is never held twice (and setting a slot to what it already
+  -- holds changes nothing).
+  local function place(list, slot, new)
+    local at
+    if slot < #list then at = slot + 1
+    elseif #list < M.MAX_BINDINGS then at = #list + 1
+    else at = #list end
+    list[at] = new
+    local kept = {}
+    for i, b in ipairs(list) do
+      if i == at or not sameBinding(b, new) then kept[#kept + 1] = b end
+    end
+    for i = 1, math.max(#list, #kept) do list[i] = kept[i] end
+  end
+
+  local function onKillCapture(p, r)
+    if r.outcome == 'CANCELLED' then finish() return end
+    if r.outcome ~= 'CAPTURED' then finish(KILL_NOTES[r.outcome] or 'Nothing was captured.') return end
+    if not r.killSwitch then
+      log('a capture answer for another action came back with the on/off key request')
+      finish('Nothing was captured.')
+      return
+    end
+    finish()
+    local new = {kind = r.kind, code = r.code}
+    if new.kind == 'KEY' and new.code == 0x1B then            -- Esc is the way out of this capture, never an on/off key
+      D.notify('Cancelled. Nothing was changed.')
+      return
+    end
+    local ok, why = store.change(function(st)
+      if not killInput(new) then
+        return false, 'That cannot be the co-op on/off key. Use a keyboard key or the right mouse button.'
+      end
+      local h = F.hotkey_holder(st, new, {kill = true})
+      if h then return false, clashText(new, h) end
+      local clash = keyboardClash(st, new)
+      if clash then return false, clash end
+      local list = st.killSwitch
+      for i, b in ipairs(list) do
+        if sameBinding(b, new) and i ~= p.slot + 1 then
+          return false, F.binding_text({new}) .. ' is already one of the co-op on/off keys.'
+        end
+      end
+      place(list, p.slot, new)
+    end, bridge)
+    if ok then
+      D.notify('Co-op on/off key: ' .. F.binding_text(store.state.killSwitch) .. '.')
+    else
+      D.notify('Key not saved: ' .. F.explain_refusal(why))
+    end
   end
 
   local function onCapture(ev)
@@ -463,25 +706,38 @@ function M.create(deps)
       log('ignored a stale capture answer ' .. tostring(r.outcome))
       return
     end
+    if p.seat == 0 then onKillCapture(p, r) return end
     if r.outcome == 'CANCELLED' then finish() return end
     if r.outcome ~= 'CAPTURED' then finish(CAPTURE_NOTES[r.outcome] or 'Nothing was captured.') return end
+    if r.killSwitch then
+      log('an on/off key answer came back with a seat request')
+      finish('Nothing was captured.')
+      return
+    end
     finish()
     local ok, why = store.change(function(st)
       local list = st.seats[p.seat].bindings[p.action]
       if not list then list = {}; st.seats[p.seat].bindings[p.action] = list end
       local new = {kind = r.kind, code = r.code}
-      for i = #list, 1, -1 do
-        if list[i].kind == new.kind and list[i].code == new.code then table.remove(list, i) end
+      local ks = keyboardSeatOf(st)
+      if p.action == 'TOGGLE_CONTROL' then
+        local h = F.hotkey_holder(st, new, {seat = p.seat})
+        if h then return false, clashText(new, h) end
+        if ks and p.seat ~= ks then                          -- a guest's join/leave key is read from the keyboard too
+          local clash = keyboardClash(st, new)
+          if clash then return false, clash end
+        end
+      elseif p.seat == ks and (new.kind == 'KEY' or new.kind == 'MOUSE') then
+        local h = F.hotkey_holder(st, new, {seat = p.seat})  -- the on/off key and every other seat's join/leave key
+        if h then return false, clashText(new, h) end
       end
-      if p.slot < #list then list[p.slot + 1] = new
-      elseif #list < M.MAX_BINDINGS then list[#list + 1] = new
-      else list[#list] = new end
+      place(list, p.slot, new)
     end, bridge)
     if ok then
-      D.notify(string.format('%s, %s: %s.', seatLabel(p.seat), title(p.action),
+      D.notify(string.format('%s, %s: %s.', seatLabel(p.seat), actionLabel(p.action),
                              F.binding_text(store.state.seats[p.seat].bindings[p.action])))
     else
-      D.notify('Binding not saved: ' .. tostring(why))
+      D.notify('Binding not saved: ' .. F.explain_refusal(why))
     end
   end
 
@@ -534,6 +790,77 @@ function M.create(deps)
     return true
   end
 
+  ---- developer rows (Diagnostics) ----------------------------------------------------------------------------------------
+  M.STALL_MS = 3000
+  M.STALL_WAIT_MS = 15000        -- how long a requested stall is waited for before it is forgotten
+
+  -- Writes the module's counters to the log: a header line (module time, module state, generation), then one line per
+  -- field, name=value, in schema order. Returns true and the number of values, or false.
+  function F.dump_counters()
+    if not bridge.is_ready() then D.notify('The co-op module is not running.') return false end
+    local r, err = bridge.get_counters()
+    if not r then D.notify('The counters could not be read (' .. tostring(err) .. ').') return false end
+    local want = C.schema.const.COUNTERS_LAYOUT
+    if want and r.layout ~= want then
+      D.notify(string.format('The module sends counters in a layout this script does not know (%s, expected %s).',
+                             tostring(r.layout), tostring(want)))
+      return false
+    end
+    local status = bridge.get_status()
+    local state = status and V.status(status).stateName or '?'
+    log(string.format('co-op counters: time=%s ms, module state=%s, generation=%s', tostring(r.now_ms), tostring(state),
+                      tostring(store.generation)))
+    local count = 0
+    for _, f in ipairs(C.schema.structs.ilc_counters.fields) do
+      if f.name ~= 'header' and f.kind == 'VAL' then
+        log(string.format('%s=%s', f.name, tostring(r[f.name])))
+        count = count + 1
+      end
+    end
+    return true, count
+  end
+
+  local STALL_TEXT = {
+    CONFLICT = 'The developer setting has not been applied yet. Wait a moment and try again.',
+    NOT_READY = 'The co-op module is not running, so there is nothing to stall.',
+    BUSY = 'A stall is already running. Wait for it to end.',
+  }
+
+  -- Asks first, then stalls the co-op thread for STALL_MS (the module answers with a result event when it wakes).
+  function F.ask_stall()
+    if not store.state.diagnostics.developer then D.notify('Turn Developer options on first.') return end
+    if not bridge.is_ready() then D.notify('The co-op module is not running.') return end
+    D.ask(string.format('The co-op module stops for %d seconds; the game plays as stock meanwhile.', M.STALL_MS // 1000),
+          {'Stall', 'Cancel'}, function(i) if i == 0 then F.start_stall() end end)
+  end
+
+  function F.start_stall()
+    local rid, err = send('STALL_COOP_THREAD', 0, M.STALL_MS, 0)
+    if not rid then D.notify(STALL_TEXT[err] or errText(err)) return end
+    F.stall = {rid = rid, deadline = F.now + M.STALL_WAIT_MS}
+    log(string.format('co-op stall requested: %d ms', M.STALL_MS))
+  end
+
+  local function onStallResult(ev)
+    local s = F.stall
+    if not s or ev.generation ~= s.rid then return false end
+    F.stall = nil
+    log(string.format('co-op stall done: %s ms', tostring(ev.b)))
+    local ok = F.dump_counters()
+    D.notify(string.format('The stall ended after %s ms.%s', tostring(ev.b), ok and ' The counters were written to the log.' or ''))
+    return true
+  end
+
+  local function onStallRejected(ev)
+    local s = F.stall
+    if not s or ev.generation ~= s.rid then return false end
+    F.stall = nil
+    local name = tostring(bridge.describe_error(ev.code))
+    log('co-op stall refused: ' .. name)
+    D.notify(STALL_TEXT[name] or errText(name))
+    return true
+  end
+
   ---- events and the clock -------------------------------------------------------------------------------------------------------
   function F.on_events(list)
     for _, raw in ipairs(list or {}) do
@@ -544,9 +871,13 @@ function M.create(deps)
           onPairing(ev)
         elseif kind == 'CAPTURE_RESULT' then
           onCapture(ev)
+        elseif kind == 'COMMAND_RESULT' then
+          onStallResult(ev)
         elseif kind == 'COMMAND_REJECTED' then
           local p = F.pending
-          if p and ev.generation == p.rid then
+          if onStallRejected(ev) then
+            -- handled
+          elseif p and ev.generation == p.rid then
             finish('The co-op module refused that step (' .. tostring(bridge.describe_error(ev.code)) .. ').')
           else
             log('a command was rejected: ' .. tostring(ev.code))
@@ -560,6 +891,10 @@ function M.create(deps)
   -- Page clock in ms. Drives the countdown, the 24 s guard and the slow reads.
   function F.tick(now)
     F.now = now
+    if F.stall and now >= F.stall.deadline then
+      log('co-op stall: no result came back')
+      F.stall = nil
+    end
     local p = F.pending
     if p then
       if now >= p.deadline then

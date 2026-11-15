@@ -13,7 +13,7 @@ Drills: a wrong expected byte in any window gives zero writes (image, protection
 calls, suspensions); a thread inside a window makes the install retry and then commit once it has left, or refuse
 with zero writes if it never leaves; threads that enter a window after the clean probe are moved into the
 trampolines by MinHook (and run equivalently there, by unicorn) and moved back by every rollback path (a thread
-parked at an instruction start of one of the 18 call rows stays where it is: only the rel32 changes, and from there
+parked at an instruction start of one of the 16 call rows stays where it is: only the rel32 changes, and from there
 the hooked code runs like the original); the
 rolled-back image is byte-identical; a row whose restore fails keeps its trampoline as the stub's continuation; a
 site changed between create and enable aborts with nothing enabled; a full cycle leaks nothing.
@@ -26,7 +26,8 @@ import struct
 import unittest
 
 import test_coop_patch_engine as pe
-from test_coop_patch_engine import (GAME, NATIVE, OK, STATE_IDLE, STATE_INSTALLED, STATE_RETIRED, TWIN_BASE, TWIN_SIZE,
+from test_coop_patch_engine import (GAME, NATIVE, OK, PATCH_ROWS, STATE_IDLE, STATE_INSTALLED, STATE_RETIRED,
+                                    TWIN_BASE, TWIN_SIZE,
                                     VERIFY_FAILED, Report, Twin, checked, near_private, regions)
 
 try:
@@ -151,7 +152,10 @@ class ImageTwinDrillTest(unittest.TestCase):
             for insn in cs.disasm(checked(r)[:r['hook_len']], site):
                 if insn.mnemonic == 'call':
                     self.assertEqual(insn.address + insn.size, site + r['hook_len'], r['id'])
-        self.assertEqual(len(self.points), len(self.twin.patch) + 24, 'window boundaries changed: review the drills')
+        # 35 instruction starts inside hook windows (the three NPC guard windows hold two instructions each; FP-01's
+        # push/sub and FP-04's two loads add one each; LG-01's three pushes add two; HR-01's four pushes add three and
+        # HR-02's two moves one).
+        self.assertEqual(len(self.points), len(self.twin.patch) + 35, 'window boundaries changed: review the drills')
 
     # ---- wrong expected byte -> zero writes, threads parked ----
     def test_wrong_expected_byte_in_any_window_gives_zero_writes_with_threads_parked(self):
@@ -159,7 +163,13 @@ class ImageTwinDrillTest(unittest.TestCase):
         private = near_private()
         handles = handle_count()
         cases = 0
-        for row in self.twin.patch:
+        # An OPTIONAL row (flag 0x08: the HUD frame hook, the native TARGET INFO open, the two party-row HP colour
+        # rows, the seat diamonds' overhead pass call, the stock ring call, the battle log feed and its five per-hit and
+        # kill reward copies) that is not stock is skipped instead of refusing; the HUD suites drill that. Every other
+        # PATCH row
+        # refuses with zero writes.
+        refusing = [row for row in self.twin.patch if not self.twin.rows[row]['flags'] & 0x08]
+        for row in refusing:
             r = self.twin.rows[row]
             for offset in sorted({0, r['hook_len'] - 1}):
                 with self.subTest(site=r['id'], offset=offset):
@@ -182,7 +192,8 @@ class ImageTwinDrillTest(unittest.TestCase):
         self.assertEqual(handle_count(), handles)
         for k, address in enumerate(self.sites):
             self.assertEqual(self.d.ILCT_ParkGetRip(k), address, 'a parked thread moved')
-        self.assertEqual(cases, sum(2 if self.twin.rows[r]['hook_len'] > 1 else 1 for r in self.twin.patch))
+        self.assertEqual(cases, sum(2 if self.twin.rows[r]['hook_len'] > 1 else 1 for r in refusing))
+        self.assertEqual(len(self.twin.patch) - len(refusing), 12, 'twelve optional rows')
 
     # ---- RIP in a window -> retry, then commit ----
     def test_rip_in_range_retries_then_commits(self):
@@ -191,7 +202,7 @@ class ImageTwinDrillTest(unittest.TestCase):
             self.d.ILCT_QuiescePlanAdd(PHASE_BUSY, 0, k, start)
         report = self.install()
         self.assertEqual((report.result, report.hooked, report.state, report.quiesce_retries, report.threads_busy),
-                         (OK, 61, STATE_INSTALLED, 1, 0))
+                         (OK, PATCH_ROWS, STATE_INSTALLED, 1, 0))
         self.assertGreaterEqual(report.threads_probed, len(self.sites))
         self.assertEqual((self.d.ILCT_QuiesceHookCalls(PHASE_BUSY), self.d.ILCT_QuiesceHookCalls(PHASE_CLEAN)),
                          (1, 1))
@@ -210,7 +221,7 @@ class ImageTwinDrillTest(unittest.TestCase):
         self.d.ILCT_PatchInject(TEST_FAIL_VERIFY, last)
         report = self.install()
         self.assertEqual((report.result, report.site, report.state, report.quiesce_retries, report.rolled_back),
-                         (VERIFY_FAILED, last, STATE_RETIRED, 3, 61))
+                         (VERIFY_FAILED, last, STATE_RETIRED, 3, PATCH_ROWS))
         self.assertEqual(self.twin.image(), self.twin.baseline, 'rollback did not restore the image')
         self.assertEqual(regions(TWIN_BASE, TWIN_BASE + TWIN_SIZE), self.twin.baseline_protections)
         self.assert_no_allocation_while_suspended()
@@ -237,7 +248,7 @@ class ImageTwinDrillTest(unittest.TestCase):
         # Nothing was written, so a later install may try again: once the thread has left, it commits.
         self.d.ILCT_ParkSetRip(0, start)
         again = self.install()
-        self.assertEqual((again.result, again.hooked, again.quiesce_retries), (OK, 61, 0))
+        self.assertEqual((again.result, again.hooked, again.quiesce_retries), (OK, PATCH_ROWS, 0))
 
     def test_window_start_counts_as_inside(self):
         row = self.twin.index['UT-01']
@@ -256,7 +267,7 @@ class ImageTwinDrillTest(unittest.TestCase):
     def test_threads_entering_after_the_probe_are_relocated_and_moved_back_on_release(self):
         self.enter_after_clean_probe()
         report = self.install()
-        self.assertEqual((report.result, report.hooked, report.quiesce_retries), (OK, 61, 0))
+        self.assertEqual((report.result, report.hooked, report.quiesce_retries), (OK, PATCH_ROWS, 0))
         self.assert_no_allocation_while_suspended()
         moved = {}
         for k, (row, offset) in enumerate(self.points):
@@ -286,7 +297,7 @@ class ImageTwinDrillTest(unittest.TestCase):
         self.d.ILCT_PatchInject(TEST_FAIL_VERIFY, last)
         report = self.install()
         self.assertEqual((report.result, report.state, report.rolled_back, report.retained),
-                         (VERIFY_FAILED, STATE_RETIRED, 61, 61))
+                         (VERIFY_FAILED, STATE_RETIRED, PATCH_ROWS, PATCH_ROWS))
         for k, address in enumerate(self.sites):
             self.assertEqual(self.d.ILCT_ParkGetRip(k), address, 'the rollback did not move the thread back')
         self.assertEqual(self.twin.image(), self.twin.baseline, 'rolled-back image differs')
@@ -305,7 +316,7 @@ class ImageTwinDrillTest(unittest.TestCase):
             patched = bytes(uc.mem_read(site, r['hook_len']))
             rng = random.Random(0x7717 + k)
             for trial in range(6):
-                state = pe.random_state(rng)
+                state = pe.fix_state(uc, r['id'], pe.random_state(rng))
                 emu.write_code(site, checked(r)[:r['hook_len']])
                 a = emu.run(site + offset, lambda x: not (TWIN_BASE <= x < TWIN_BASE + TWIN_SIZE) or
                             site <= x < site + r['hook_len'], state)

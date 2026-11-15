@@ -178,6 +178,84 @@ class SettingsHandshake(unittest.TestCase):
             self.assertLess(depth(json.loads(out)), 30)
             self.assertEqual(self.parse(out), (boot.SETTINGS_ON, 0, False))
 
+    def test_mouse_buttons_as_keys_fall_back_for_the_kill_switch_and_the_toggles_only(self):
+        """The store mirrors the validator: the kill switch refuses MOUSE 1 and the mouse buttons' virtual-key codes as
+        KEY (1, 2, 4-6), a seat toggle refuses the KEY codes; each refused list falls back to its default (the kill
+        switch: F8) and nothing else in the file is reset. MOUSE 2, VK_CANCEL (3) and other actions are untouched."""
+        bad_kill = [[{'kind': 'KEY', 'code': c}] for c in (1, 2, 4, 5, 6)] + [[{'kind': 'MOUSE', 'code': 1}]]
+        for kill in bad_kill + [[{'kind': 'KEY', 'code': 0x79}, 7]]:   # a non-table entry: refused, never indexed
+            with self.subTest(kill=kill), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                lua, s = self.store(root)
+                s.load()
+                doc = json.loads((root / PATH).read_text())
+                default_kill = doc['killSwitch']
+                default_toggle = doc['seats'][2]['bindings']['TOGGLE_CONTROL']
+                self.assertEqual(default_kill, [{'kind': 'KEY', 'code': 0x77}], 'the default kill switch is F8')
+                doc['killSwitch'] = kill
+                doc['seats'][2]['bindings']['TOGGLE_CONTROL'] = [{'kind': 'KEY', 'code': kill[0]['code']}]  # as KEY
+                doc['seats'][1]['bindings']['CONFIRM'] = [{'kind': 'KEY', 'code': 0x01}]  # not a toggle: kept
+                doc['fullRoster'] = not doc['fullRoster']
+                (root / PATH).write_text(json.dumps(doc))
+                lua, s = self.store(root)
+                s.load()
+                out = json.loads((root / PATH).read_text())
+                self.assertEqual(s.fileStatus, 'repaired')
+                self.assertEqual(out['killSwitch'], default_kill, 'the kill switch falls back to F8')
+                code = kill[0]['code']
+                want = default_toggle if code in (1, 2, 4, 5, 6) else [{'kind': 'KEY', 'code': code}]
+                self.assertEqual(out['seats'][2]['bindings']['TOGGLE_CONTROL'], want)
+                self.assertEqual(out['seats'][1]['bindings']['CONFIRM'], [{'kind': 'KEY', 'code': 0x01}])
+                self.assertEqual(out['fullRoster'], doc['fullRoster'], 'only the refused fields are reset')
+                self.assertEqual(self.parse((root / PATH).read_bytes())[0], boot.SETTINGS_ON)
+        for kill, toggle in (([{'kind': 'MOUSE', 'code': 2}], [{'kind': 'KEY', 'code': 3}]),
+                             ([{'kind': 'KEY', 'code': 3}], [{'kind': 'MOUSE', 'code': 1}])):
+            with self.subTest(kept=(kill, toggle)), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                lua, s = self.store(root)
+                s.load()
+                doc = json.loads((root / PATH).read_text())
+                doc['killSwitch'] = kill
+                doc['seats'][2]['bindings']['TOGGLE_CONTROL'] = toggle
+                (root / PATH).write_text(json.dumps(doc))
+                lua, s = self.store(root)
+                s.load()
+                out = json.loads((root / PATH).read_text())
+                self.assertEqual((s.fileStatus, out['killSwitch'], out['seats'][2]['bindings']['TOGGLE_CONTROL']),
+                                 ('ok', kill, toggle))
+
+    def test_mouse_bindings_name_the_left_or_right_button_only_as_native_checks(self):
+        """A MOUSE binding with any code but 1 or 2 is refused by native's validator (validate.cpp check_binding, on
+        the settings push); the store refuses the same one (that list falls back to its default) instead of keeping a
+        binding native would reject. MOUSE 1 and 2 stay (instrument)."""
+        for code in (0, 3, 4, 5, 255):
+            with self.subTest(code=code), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                lua, s = self.store(root)
+                s.load()
+                doc = json.loads((root / PATH).read_text())
+                default_confirm = doc['seats'][1]['bindings']['CONFIRM']
+                doc['seats'][1]['bindings']['CONFIRM'] = [{'kind': 'MOUSE', 'code': code}]
+                (root / PATH).write_text(json.dumps(doc))
+                lua, s = self.store(root)
+                s.load()
+                out = json.loads((root / PATH).read_text())
+                self.assertEqual((s.fileStatus, out['seats'][1]['bindings']['CONFIRM']), ('repaired', default_confirm))
+                self.assertEqual(self.parse((root / PATH).read_bytes())[0], boot.SETTINGS_ON)
+        for code in (1, 2):
+            with self.subTest(kept=code), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                lua, s = self.store(root)
+                s.load()
+                doc = json.loads((root / PATH).read_text())
+                doc['seats'][1]['bindings']['CONFIRM'] = [{'kind': 'MOUSE', 'code': code}]
+                (root / PATH).write_text(json.dumps(doc))
+                lua, s = self.store(root)
+                s.load()
+                out = json.loads((root / PATH).read_text())
+                self.assertEqual((s.fileStatus, out['seats'][1]['bindings']['CONFIRM']),
+                                 ('ok', [{'kind': 'MOUSE', 'code': code}]))
+
 
 if __name__ == '__main__':
     unittest.main()

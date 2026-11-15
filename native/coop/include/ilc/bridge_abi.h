@@ -41,16 +41,19 @@
     X(SEATS, 4u, "P1..P4: every seat array has this many entries")                                          \
     X(ACTIVE_SEATS_MAX, 3u, "seats that may play in this release (P1..P3); P4 is refused as kbm_seat, device owner and command seat")\
     X(XINPUT_SLOTS, 4u, "XInput user indices 0..3")                                                         \
-    X(ACTIONS, 19u, "ilc_action count")                                                                     \
+    X(ACTIONS, 20u, "ilc_action count")                                                                     \
     X(BINDINGS_PER_ACTION, 4u, "")                                                                          \
-    X(SEAT_BINDINGS, 76u, "ACTIONS * BINDINGS_PER_ACTION; index = action * 4 + slot")                       \
-    X(KILL_SWITCH_BINDINGS, 4u, "")                                                                         \
+    X(SEAT_BINDINGS, 80u, "ACTIONS * BINDINGS_PER_ACTION; index = action * 4 + slot")                       \
+    X(KILL_SWITCH_BINDINGS, 4u, "") \
+    X(CAPTURE_KILL_SWITCH_ACTION, 0xFFu, "CAPTURE_RESULT action byte of a seat-0 capture: the co-op on/off key") \
     X(CHARACTERS, 6u, "regular party members 0..5")                                                         \
     X(NAME_MAX, 96u, "UTF-8 bytes in a device name")                                                        \
     X(ALIASES_MAX, 16u, "XInput slot <-> SDL identity pairs")                                               \
     X(DEVICES_MAX, 16u, "entries in a device inventory reply")                                              \
     X(EVENT_QUEUE, 64u, "events held; the oldest is dropped (and counted) when full")                       \
-    X(P1_ACTION_MASK, 0x00078F00u, "bit per ilc_action that P1 may bind")
+    X(P1_ACTION_MASK, 0x000F8F00u, "bit per ilc_action that P1 may bind")                                  \
+    X(STALL_MAX_MS, 5000u, "STALL_COOP_THREAD: the longest sleep arg0 may ask for (milliseconds)")         \
+    X(COUNTERS_LAYOUT, 1u, "ilc_counters.layout: changes whenever a counters field is added, removed or moved")
 
 // ---------------------------------------------------------------------------------------------------------
 // Enums: each item is X(PREFIX, NAME, value, doc) and declares PREFIXNAME = value.
@@ -63,6 +66,7 @@
     X(ILC_OP_, GET_DEVICES, 6, "in: nothing; out: ilc_devices_reply, 32 + count * 148 bytes")               \
     X(ILC_OP_, POP_EVENTS, 7, "in: nothing; out: ilc_events_reply, 32 + count * 32 bytes, as many as fit")  \
     X(ILC_OP_, GET_SETTINGS, 8, "in: nothing; out: the applied ilc_settings (generation 0 = defaults)")      \
+    X(ILC_OP_, GET_COUNTERS, 9, "in: nothing; out: ilc_counters, the module's diagnostic counters (read-only, any state; field names in the schema). Read field by field without a lock: each field is untorn, but fields can disagree with each other") \
     X(ILC_OP_, TEST_SAFE_POINT, 0x7F01, "debug: run the settings safe point now; NOT_AVAILABLE once the boot started its init thread")
 
 #define ILC_ERRORS(X)                                                                                       \
@@ -95,7 +99,8 @@
     X(ILC_REC_, SEATS, 7, "")                                                                               \
     X(ILC_REC_, DEVICES, 8, "")                                                                             \
     X(ILC_REC_, EVENTS, 9, "")                                                                              \
-    X(ILC_REC_, SAFE_POINT_RESULT, 10, "")
+    X(ILC_REC_, SAFE_POINT_RESULT, 10, "")                                                                  \
+    X(ILC_REC_, COUNTERS, 11, "")
 
 #define ILC_STATES(X)                                                                                       \
     X(ILC_STATE_, INERT, 1, "no hooks, no threads, no game memory access: not started, unsupported build, duplicate copy, or shut down")\
@@ -103,7 +108,7 @@
     X(ILC_STATE_, BLOCKED, 3, "another co-op runtime is installed: nothing armed (reason_detail = marker bits)")\
     X(ILC_STATE_, STARTING, 4, "the init thread is starting the input service and installing the hooks")    \
     X(ILC_STATE_, ARMED, 5, "hooks installed, waiting for the game to finish starting")                     \
-    X(ILC_STATE_, READY, 6, "hooks installed and the game is running; reason DRY_ARMED = every detour still runs stock")\
+    X(ILC_STATE_, READY, 6, "hooks installed and the game is running; reason DRY_ARMED = every co-op detour still runs stock, LIVE = armed subsystems act")\
     X(ILC_STATE_, DEGRADED, 7, "reserved: transition")                                                      \
     X(ILC_STATE_, FAULT, 8, "start-up failed and nothing is armed (reason and reason_detail say where)")
 
@@ -122,10 +127,11 @@
     X(ILC_REASON_, PATCH_CONFLICT, 10, "game code differs from the pinned bytes (another mod or build); detail = patch result | (site row + 1) << 16")\
     X(ILC_REASON_, PATCH_BUSY, 11, "a thread stayed inside a patch site, or its context could not be read; detail as PATCH_CONFLICT")\
     X(ILC_REASON_, PATCH_FAILED, 12, "the hook transaction failed and was rolled back; detail as PATCH_CONFLICT")\
-    X(ILC_REASON_, DRY_ARMED, 13, "hooks installed; every detour runs stock, only the settings safe point runs")\
+    X(ILC_REASON_, DRY_ARMED, 13, "hooks installed; every co-op detour runs stock (the layer is still dry, or no subsystem is armed): only the settings safe point and the player's own background rows run")\
     X(ILC_REASON_, THREAD_FAILED, 14, "the init thread could not be created; detail = Win32 error")         \
     X(ILC_REASON_, SHUT_DOWN, 15, "the game is exiting; co-op disarmed and the input service stopped")      \
-    X(ILC_REASON_, BOOT_ABORTED, 16, "the game began exiting before start-up finished; nothing was armed")
+    X(ILC_REASON_, BOOT_ABORTED, 16, "the game began exiting before start-up finished; nothing was armed")   \
+    X(ILC_REASON_, LIVE, 17, "hooks installed and live: an applied settings record took the layer out of dry mode, and at least one armed subsystem may act")
 
 #define ILC_BOOT_STEPS(X)                                                                                   \
     X(ILC_BOOT_STEP_, CHECKS, 1, "host, instance guard, Ivalice Together, co-op module switch (FF12Hinit thread)")\
@@ -144,7 +150,8 @@
     X(ILC_BOOTF_, INIT_DONE, 0x0040, "FF12HinitDone ran: the game is running")                              \
     X(ILC_BOOTF_, CLEANUP_DONE, 0x0080, "FF12Hcleanup ran")                                                 \
     X(ILC_BOOTF_, SETTINGS_DEFAULTED, 0x0100, "the settings file or its switch was missing: the native default decided")\
-    X(ILC_BOOTF_, TOGETHER_RESIDUE, 0x0200, "files left by Ivalice Together that cannot patch anything (settings folder, Lua menu)")
+    X(ILC_BOOTF_, TOGETHER_RESIDUE, 0x0200, "files left by Ivalice Together that cannot patch anything (settings folder, Lua menu)")\
+    X(ILC_BOOTF_, INTERACTIONS_FAILED, 0x0400, "guest interactions could not attach: guests cannot use doors, chests, NPCs or loot (the rest runs)")
 
 #define ILC_BUILD_FLAGS(X) X(ILC_BUILD_, INERT, 1, "reserved: an inert build (no hooks, threads or game memory access)")
 
@@ -164,18 +171,19 @@
     X(ILC_CMD_, MOVE_SEAT_NOW, 2, "seat 1..4; arg0 = ilc_character 0..5. Absorbs the seat's held input and queues the move for the session") \
     X(ILC_CMD_, PAIRING_START, 3, "seat 1..4; arg0 = inventory session (non-zero), arg1 = entry id. Proof by pressing A on that pad; P1 on another pad runs the guarded change") \
     X(ILC_CMD_, PAIRING_CANCEL, 4, "seat 1..4")                                                             \
-    X(ILC_CMD_, CAPTURE_START, 5, "seat 1..4; arg0 = ilc_action (P1: P1 actions only), arg1 = slot 0..3")   \
-    X(ILC_CMD_, CAPTURE_CANCEL, 6, "seat 1..4")                                                             \
+    X(ILC_CMD_, CAPTURE_START, 5, "seat 1..4; arg0 = ilc_action (P1: P1 actions only), arg1 = slot 0..3. Seat 0 = the co-op on/off key: arg0 0, arg1 = kill_switch slot 0..3; keys and the right mouse button only, from the keyboard whoever owns it") \
+    X(ILC_CMD_, CAPTURE_CANCEL, 6, "seat 0..4 (0 = the co-op on/off key's capture)") \
     X(ILC_CMD_, RESTORE_DEFAULTS, 7, "seat 0 = all or 1..4")                                                \
-    X(ILC_CMD_, KILL_SWITCH, 8, "seat 0; arg0 1 = co-op off now, 0 = back on")
+    X(ILC_CMD_, KILL_SWITCH, 8, "seat 0; arg0 1 = co-op off now, 0 = back on")                              \
+    X(ILC_CMD_, STALL_COOP_THREAD, 9, "developer test, seat 0; arg0 = 1..STALL_MAX_MS: the co-op thread sleeps that long once (its liveness goes stale after 2 s); arg1 0. CONFLICT unless the applied settings have developer = 1; NOT_READY while the co-op thread is not running. The outcome follows as COMMAND_RESULT, b = milliseconds slept")
 
 #define ILC_EVENT_KINDS(X)                                                                                  \
     X(ILC_EV_, SETTINGS_APPLIED, 1, "generation; a = body digest")                                          \
     X(ILC_EV_, SETTINGS_REJECTED, 2, "generation as sent; code, field, location")                           \
     X(ILC_EV_, COMMAND_REJECTED, 3, "generation = request id; code, field, location; a = command")          \
-    X(ILC_EV_, COMMAND_RESULT, 4, "generation = request id; a = command; b: PARK = parked seats (bit n = seat n+1), MOVE_SEAT_NOW = character | 0x100 (queued, no session yet)") \
+    X(ILC_EV_, COMMAND_RESULT, 4, "generation = request id; a = command; b: PARK = parked seats (bit n = seat n+1), MOVE_SEAT_NOW = character | 0x100 (queued, no session yet), STALL_COOP_THREAD = milliseconds slept") \
     X(ILC_EV_, PAIRING_RESULT, 5, "generation = request id; a = ilc_pairing_outcome | other seat << 8 | learned xinput slot << 16 (0xFF none); b = entry id") \
-    X(ILC_EV_, CAPTURE_RESULT, 6, "generation = request id; a = ilc_capture_outcome | action << 8 | slot << 16; b = binding kind | code << 8 when captured") \
+    X(ILC_EV_, CAPTURE_RESULT, 6, "generation = request id; a = ilc_capture_outcome | action << 8 | slot << 16 (seat 0: action = CAPTURE_KILL_SWITCH_ACTION, slot = kill_switch index); b = binding kind | code << 8 when captured") \
     X(ILC_EV_, SEAT_CHANGED, 7, "reserved")                                                                 \
     X(ILC_EV_, STATUS_CHANGED, 8, "reserved")                                                               \
     X(ILC_EV_, DEVICES_CHANGED, 9, "reserved")
@@ -267,7 +275,8 @@
     X(ILC_ACTION_, CONFIRM, 15, "P1")                                                                       \
     X(ILC_ACTION_, CANCEL, 16, "P1")                                                                        \
     X(ILC_ACTION_, PARTY, 17, "P1")                                                                         \
-    X(ILC_ACTION_, PAUSE, 18, "P1")
+    X(ILC_ACTION_, PAUSE, 18, "P1")                                                                         \
+    X(ILC_ACTION_, IDENTIFY, 19, "P1 too: flash this seat's diamond over its character (Battle HUD)")
 
 #define ILC_SEAT_FLAGS(X)                                                                                   \
     X(ILC_SEATF_, HAS_DEVICE, 0x01, "configured device is not NONE")                                        \
@@ -287,6 +296,11 @@
     X(ILC_SESSION_, FIELD, 5, "play: seats with a character may steer it")                                  \
     X(ILC_SESSION_, PARTY_DOWN, 6, "every party member is down: the game's own recovery runs")
 
+#define ILC_COOP_SWITCHES(X)                                                                                \
+    X(ILC_COOP_SWITCH_, ON, 0, "co-op on")                                                                  \
+    X(ILC_COOP_SWITCH_, RELEASING, 1, "kill switch pressed: releasing guest input (at most 250 ms)")        \
+    X(ILC_COOP_SWITCH_, OFF, 2, "co-op off (kill switch): stock play until it is switched back on")
+
 #define ILC_SERVICE_STATES(X)                                                                               \
     X(ILC_SERVICE_, NOT_READY, 0, "input service not built yet: show discovery unavailable")                \
     X(ILC_SERVICE_, READY, 1, "the input service runs; the inventory is current")
@@ -302,6 +316,37 @@
     X(ILC_SUBSYS_, WAIT, 0x20, "Wait-mode participant rule")                                                \
     X(ILC_SUBSYS_, RENDER, 0x40, "D3D11 overlay and panels")                                                \
     X(ILC_SUBSYS_, TARGETS_CARDS, 0x80, "target rings, TARGET INFO and cards")
+
+// Battle HUD elements (settings hud_elements): a set bit = that element on. hud_enabled 0 turns every one off.
+#define ILC_HUD_ELEMENTS(X)                                                                                 \
+    X(ILC_HUD_, PARTY_SHRINK, 0x001, "the reduced native party list (bottom-right)")                       \
+    X(ILC_HUD_, SEAT_EDGE, 0x002, "seat-colour edge and seat numeral on each party row")                    \
+    X(ILC_HUD_, LOW_HP_GLOW, 0x004, "low HP: the native HP number glows red")                               \
+    X(ILC_HUD_, DAMAGE_GHOST, 0x008, "damage ghost on the party HP gauges")                                 \
+    X(ILC_HUD_, ACTION_LINE, 0x010, "action line: Choosing... and the ally an action aims at")              \
+    X(ILC_HUD_, TARGET_INFO, 0x020, "expanded Target Info (top-left); off = the native window")             \
+    X(ILC_HUD_, BATTLE_LOG, 0x040, "battle log (top-right); off = the native combat log")                   \
+    X(ILC_HUD_, SEAT_LINES, 0x080, "target lines in seat colours (gambit allies silver)")                   \
+    X(ILC_HUD_, SEAT_DIAMONDS, 0x100, "numbered seat diamonds over the players' characters")                \
+    X(ILC_HUD_, AOE_RING, 0x200, "a ring only while a seat aims an area magick or technick")                \
+    X(ILC_HUD_, CIRCLES_OFF, 0x400, "native target circles off")
+
+// Battle log filters (settings log_filter).
+#define ILC_LOG_FILTERS(X)                                                                                  \
+    X(ILC_LOG_FILTER_, ALL, 0, "every line")                                                                \
+    X(ILC_LOG_FILTER_, PARTY, 1, "party and gambit allies")                                                 \
+    X(ILC_LOG_FILTER_, FOES, 2, "foes")                                                                     \
+    X(ILC_LOG_FILTER_, STATUSES, 3, "status lines")                                                         \
+    X(ILC_LOG_FILTER_, MINE, 4, "one seat (log_filter_seat)")
+
+// What the Battle HUD page shows about the HUD's native pieces (status hud_report).
+#define ILC_HUD_REPORTS(X)                                                                                  \
+    X(ILC_HUD_REPORT_, FRAME_HOOK_OFF, 0x01, "the HUD frame hook does not run (its call is not ours): no co-op HUD or menus are drawn")\
+    X(ILC_HUD_REPORT_, VISION_NO_COMBAT_LOG, 0x02, "Insurgent's Vision No Combat Log is on: its NOPs sit on the frame hook's call")\
+    X(ILC_HUD_REPORT_, PARTY_LAYOUT_FOREIGN, 0x04, "another mod changed the party list layout: left alone (not reduced)")\
+    X(ILC_HUD_REPORT_, CIRCLES_BY_VISION, 0x08, "native target circles are off through Vision's own patch (adopted)")\
+    X(ILC_HUD_REPORT_, CIRCLES_FOREIGN, 0x10, "another mod changed the target-circle code: left alone")\
+    X(ILC_HUD_REPORT_, RENDER_OFF, 0x20, "the HUD is not drawn: rendering is off or faulted, or the frame hook is not attached")
 
 // Pairing outcomes (PAIRING_RESULT a & 0xFF). Success outcomes never change settings: Lua commits them.
 #define ILC_PAIRING_OUTCOMES(X)                                                                             \
@@ -325,7 +370,7 @@
     X(ILC_CAPT_, CAPTURED, 1, "b holds the binding: store it in that action and slot")                      \
     X(ILC_CAPT_, CANCELLED, 2, "CAPTURE_CANCEL, a newer CAPTURE_START or a service stop")                   \
     X(ILC_CAPT_, TIMEOUT, 3, "no fresh press within 20 s")                                                  \
-    X(ILC_CAPT_, NO_INPUT, 4, "the seat has no connected pad and does not own the keyboard")
+    X(ILC_CAPT_, NO_INPUT, 4, "the seat has no connected pad and does not own the keyboard (never for seat 0)")
 
 // The list of enums: E(json name, C++ type name, underlying type, item list).
 #define ILC_ENUMS(E)                                                                                        \
@@ -353,7 +398,11 @@
     E(seat_flag, ilc_seat_flag, uint8_t, ILC_SEAT_FLAGS)                                                    \
     E(session_state, ilc_session_state, uint32_t, ILC_SESSION_STATES)                                       \
     E(service_state, ilc_service_state, uint32_t, ILC_SERVICE_STATES)                                       \
+    E(coop_switch, ilc_coop_switch, uint8_t, ILC_COOP_SWITCHES)                                             \
     E(subsystem, ilc_subsystem_bit, uint32_t, ILC_SUBSYSTEMS)                                               \
+    E(hud_element, ilc_hud_element_bit, uint32_t, ILC_HUD_ELEMENTS)                                         \
+    E(log_filter, ilc_log_filter, uint8_t, ILC_LOG_FILTERS)                                                 \
+    E(hud_report, ilc_hud_report_bit, uint8_t, ILC_HUD_REPORTS)                                             \
     E(pairing_outcome, ilc_pairing_outcome, uint8_t, ILC_PAIRING_OUTCOMES)                                  \
     E(capture_outcome, ilc_capture_outcome, uint8_t, ILC_CAPTURE_OUTCOMES)
 
@@ -424,14 +473,20 @@
     X(VAL, uint8_t, log_level, 1, 0, 1, "0 normal, 1 verbose")                                              \
     X(VAL, uint8_t, network_mode, 1, 0, 0, "phase 1: 0 = local only")                                       \
     X(VAL, uint8_t, alias_count, 1, 0, ILC_ALIASES_MAX, "aliases in use; the rest are all zero")            \
-    X(PAD, uint8_t, reserved0, 1, 0, 0, "")                                                                 \
+    X(VAL, uint8_t, keep_running, 1, 0, 1, "keep running while another window has focus (windowed, borderless)") \
     X(ARR, uint8_t, character_colour, ILC_CHARACTERS, 0, ILC_ENUM_MAX(ILC_COLOURS), "colour per character, by ilc_character 0..5") \
-    X(PAD, uint8_t, reserved1, 2, 0, 0, "")                                                                 \
+    X(VAL, uint8_t, hud_test_draw, 1, 0, 1, "Diagnostics: co-op canvas test draw; 0 off")                   \
+    X(VAL, uint8_t, developer, 1, 0, 1, "Diagnostics: developer options; 1 allows test-only commands (STALL_COOP_THREAD); 0 off") \
     X(RECS, ilc_binding, kill_switch, ILC_KILL_SWITCH_BINDINGS, 0, 0, "co-op kill switch binding; keyboard or mouse only")       \
     X(REC, ilc_economy, economy, 1, 0, 0, "Legacy MP economy parameters")                                   \
     X(RECS, ilc_seat_settings, seats, ILC_SEATS, 0, 0, "P1..P4")                                            \
     X(RECS, ilc_device_alias, aliases, ILC_ALIASES_MAX, 0, 0, "")                                           \
-    X(VAL, uint32_t, subsystems_armed, 1, 0, ILC_ENUM_OR(ILC_SUBSYSTEMS), "ilc_subsystem_bit mask; 0 bit = disarmed")
+    X(VAL, uint32_t, subsystems_armed, 1, 0, ILC_ENUM_OR(ILC_SUBSYSTEMS), "ilc_subsystem_bit mask; 0 bit = disarmed") \
+    X(VAL, uint8_t, hud_enabled, 1, 0, 1, "Battle HUD on/off; off = every element stock (the co-op battle menus stay)") \
+    X(VAL, uint8_t, log_expand_control, 1, 0, ILC_ENUM_MAX(ILC_PAD_CONTROLS), "battle log expand button: ilc_pad_control pressed on any seat's pad; 0 none") \
+    X(VAL, uint8_t, log_filter, 1, 0, ILC_ENUM_MAX(ILC_LOG_FILTERS), "battle log filter, ilc_log_filter") \
+    X(VAL, uint8_t, log_filter_seat, 1, 1, ILC_ACTIVE_SEATS_MAX, "seat the MINE filter shows")          \
+    X(VAL, uint32_t, hud_elements, 1, 0, ILC_ENUM_OR(ILC_HUD_ELEMENTS), "ilc_hud_element_bit bits; set = on")
 
 #define ILC_SETTINGS_ACK_FIELDS(X)                                                                          \
     X(REC, ilc_header, header, 1, 0, 0, "generation = the generation sent")                                 \
@@ -491,7 +546,9 @@
     X(VAL, uint32_t, applied_subsystems, 1, 0, 0xFFFFFFFFu, "subsystems_armed of the applied settings")     \
     X(VAL, uint32_t, reason_detail, 1, 0, 0xFFFFFFFFu, "depends on reason (see ilc_reason)")                \
     X(VAL, uint32_t, boot_flags, 1, 0, 0xFFFFFFFFu, "ilc_boot_flag bits")                                   \
-    X(PAD, uint8_t, reserved, 4, 0, 0, "")
+    X(VAL, uint8_t, coop_switch, 1, 0, ILC_ENUM_MAX(ILC_COOP_SWITCHES), "ilc_coop_switch: the kill switch") \
+    X(VAL, uint8_t, hud_report, 1, 0, 255, "ilc_hud_report_bit bits (the Battle HUD page's status line)") \
+    X(PAD, uint8_t, reserved, 2, 0, 0, "")
 
 #define ILC_SEAT_VIEW_FIELDS(X)                                                                             \
     X(VAL, uint8_t, seat, 1, 1, ILC_SEATS, "")                                                              \
@@ -558,6 +615,147 @@
     X(VAL, uint32_t, applied_digest, 1, 0, 0xFFFFFFFFu, "")                                                 \
     X(VAL, uint32_t, safe_points, 1, 0, 0xFFFFFFFFu, "")
 
+#define ILC_COUNTERS_FIELDS(X)                                                                              \
+    X(REC, ilc_header, header, 1, 0, 0, "record_type COUNTERS; generation = applied generation")            \
+    X(VAL, uint32_t, layout, 1, 0, 0xFFFFFFFFu, "ILC_COUNTERS_LAYOUT of the writer")                        \
+    X(VAL, uint32_t, now_ms, 1, 0, 0xFFFFFFFFu, "module clock (low 32 bits); every *_ms field below is on it") \
+    X(VAL, uint32_t, caller_thread_id, 1, 0, 0xFFFFFFFFu, "the thread of this call")                        \
+    X(VAL, uint32_t, init_thread_id, 1, 0, 0xFFFFFFFFu, "the thread that called FF12Hinit (the game's main thread)") \
+    X(VAL, uint32_t, init_done_thread_id, 1, 0, 0xFFFFFFFFu, "the thread that called FF12HinitDone (0 = not yet)") \
+    X(VAL, uint32_t, coop_thread_id, 1, 0, 0xFFFFFFFFu, "the init thread that stays on as the co-op thread (0 = none)") \
+    X(VAL, uint32_t, mode, 1, 0, 0xFFFFFFFFu, "0 = dry (every co-op detour stock), 1 = live")               \
+    X(VAL, uint32_t, live_at_ms, 1, 0, 0xFFFFFFFFu, "module clock when the layer went live (0 = still dry)") \
+    X(VAL, uint32_t, liveness_armed, 1, 0, 0xFFFFFFFFu, "the liveness record is armed (1)")                 \
+    X(VAL, uint32_t, liveness_epoch, 1, 0, 0xFFFFFFFFu, "epoch of the last heartbeat")                      \
+    X(VAL, uint32_t, liveness_age_ms, 1, 0, 0xFFFFFFFFu, "time since the last heartbeat; 0xFFFFFFFF = none yet") \
+    X(VAL, uint32_t, liveness_fresh, 1, 0, 0xFFFFFFFFu, "1 = a detour may act now (coherent, armed, epoch set, heartbeat at most 2 s old)") \
+    X(VAL, uint32_t, stale_fallbacks, 1, 0, 0xFFFFFFFFu, "detour entries with an open gate that ran stock because the liveness sample was stale or torn") \
+    X(VAL, uint32_t, stale_ticks, 1, 0, 0xFFFFFFFFu, "UI ticks that ran the stale clean-up instead of the tick") \
+    X(VAL, uint32_t, stale_releases, 1, 0, 0xFFFFFFFFu, "Wait pauses the stale clean-up gave back")         \
+    X(VAL, uint32_t, subsystems_applied, 1, 0, 0xFFFFFFFFu, "subsystems_armed of the applied settings")     \
+    X(VAL, uint32_t, subsystems_gates, 1, 0, 0xFFFFFFFFu, "the subsystem mask the arm gates use now (0 while co-op is off)") \
+    X(VAL, uint32_t, subsystems_faulted, 1, 0, 0xFFFFFFFFu, "latched fault bits (0x40000000 = the CORE rows)") \
+    X(VAL, uint32_t, subsystems_live, 1, 0, 0xFFFFFFFFu, "bit set = that subsystem may act now (live, armed, not faulted)") \
+    X(VAL, uint32_t, beats, 1, 0, 0xFFFFFFFFu, "co-op thread beats")                                        \
+    X(VAL, uint32_t, beat_max_us, 1, 0, 0xFFFFFFFFu, "longest beat (its work; the wait between beats excluded)") \
+    X(VAL, uint32_t, beat_gap_last_ms, 1, 0, 0xFFFFFFFFu, "time between the last two beat starts")          \
+    X(VAL, uint32_t, beat_gap_max_ms, 1, 0, 0xFFFFFFFFu, "longest time between two beat starts (a stalled thread shows here)") \
+    X(VAL, uint32_t, stall_requests, 1, 0, 0xFFFFFFFFu, "STALL_COOP_THREAD commands accepted")              \
+    X(VAL, uint32_t, stalls_done, 1, 0, 0xFFFFFFFFu, "stalls the co-op thread finished")                    \
+    X(VAL, uint32_t, stall_last_ms, 1, 0, 0xFFFFFFFFu, "milliseconds the last stall slept")                 \
+    X(VAL, uint32_t, tick_count, 1, 0, 0xFFFFFFFFu, "UI-tick handler runs")                                 \
+    X(VAL, uint32_t, tick_max_us, 1, 0, 0xFFFFFFFFu, "longest UI-tick handler run, the stock call excluded (0 until the timer is calibrated)") \
+    X(VAL, uint32_t, tick_reentered, 1, 0, 0xFFFFFFFFu, "tick runs refused because the handler was already running") \
+    X(VAL, uint32_t, tick_settings_applied, 1, 0, 0xFFFFFFFFu, "safe points that applied staged settings")  \
+    X(VAL, uint32_t, tick_safe_point_busy, 1, 0, 0xFFFFFFFFu, "safe points that found the bridge lock taken") \
+    X(VAL, uint32_t, tick_mask_applied, 1, 0, 0xFFFFFFFFu, "subsystem masks handed to the arm gates")       \
+    X(VAL, uint32_t, tick_mask_deferred, 1, 0, 0xFFFFFFFFu, "mask hand-offs that found the layer lock taken (retried next frame)") \
+    X(VAL, uint32_t, tick_live_switches, 1, 0, 0xFFFFFFFFu, "dry to live switches (0 or 1)")                \
+    X(VAL, uint32_t, tick_live_deferred, 1, 0, 0xFFFFFFFFu, "live switches that found the layer lock taken (retried next frame)") \
+    X(VAL, uint32_t, tick_jobs_drained, 1, 0, 0xFFFFFFFFu, "game-thread jobs taken while live")             \
+    X(VAL, uint32_t, tick_jobs_flushed, 1, 0, 0xFFFFFFFFu, "game-thread jobs refused while dry")            \
+    X(VAL, uint32_t, bridge_calls, 1, 0, 0xFFFFFFFFu, "ILC_Bridge calls")                                   \
+    X(VAL, uint32_t, bridge_max_us, 1, 0, 0xFFFFFFFFu, "longest ILC_Bridge call")                           \
+    X(VAL, uint32_t, poll_calls, 1, 0, 0xFFFFFFFFu, "query calls (GET_STATUS, GET_SEATS, GET_DEVICES, POP_EVENTS, GET_SETTINGS, GET_COUNTERS)") \
+    X(VAL, uint32_t, poll_max_us, 1, 0, 0xFFFFFFFFu, "longest query call")                                  \
+    X(VAL, uint32_t, safe_points, 1, 0, 0xFFFFFFFFu, "settings safe point runs, busy ones included")        \
+    X(VAL, uint32_t, applies, 1, 0, 0xFFFFFFFFu, "settings records applied")                                \
+    X(VAL, uint32_t, rejects, 1, 0, 0xFFFFFFFFu, "every negative bridge return except NOT_READY")           \
+    X(VAL, uint32_t, last_reject_op, 1, 0, 0xFFFFFFFFu, "")                                                 \
+    X(VAL, int32_t, last_reject_code, 1, 0, 0, "ilc_error")                                                 \
+    X(VAL, uint32_t, events_pending, 1, 0, 0xFFFFFFFFu, "")                                                 \
+    X(VAL, uint32_t, events_dropped, 1, 0, 0xFFFFFFFFu, "")                                                 \
+    X(VAL, uint32_t, patch_rows, 1, 0, 0xFFFFFFFFu, "PATCH rows in the site table")                         \
+    X(VAL, uint32_t, hooks_installed, 1, 0, 0xFFFFFFFFu, "rows the hook transaction hooked")                \
+    X(VAL, uint32_t, gated_off, 1, 0, 0xFFFFFFFFu, "PATCH rows skipped because their GATE row did not match") \
+    X(VAL, uint32_t, info_mismatch, 1, 0, 0xFFFFFFFFu, "INFO rows that differ (information only)")          \
+    X(VAL, uint32_t, install_attempts, 1, 0, 0xFFFFFFFFu, "hook transactions tried (a busy probe is retried)") \
+    X(VAL, uint32_t, quiesce_retries, 1, 0, 0xFFFFFFFFu, "busy probes before the last transaction's result") \
+    X(VAL, uint32_t, threads_probed, 1, 0, 0xFFFFFFFFu, "threads the last probe suspended and inspected")   \
+    X(VAL, uint32_t, island_commits, 1, 0, 0xFFFFFFFFu, "call-row rel32 sets written")                      \
+    X(VAL, uint32_t, island_busy, 1, 0, 0xFFFFFFFFu, "call-row freezes that found a thread inside a rel32") \
+    X(VAL, uint32_t, detour_entered, 1, 0, 0xFFFFFFFFu, "slow-path entries, all rows")                      \
+    X(VAL, uint32_t, detour_stock, 1, 0, 0xFFFFFFFFu, "... that ran the original because a check failed")   \
+    X(VAL, uint32_t, detour_handled, 1, 0, 0xFFFFFFFFu, "... that ran the handler")                         \
+    X(VAL, uint32_t, detour_declined, 1, 0, 0xFFFFFFFFu, "... whose handler chose stock")                   \
+    X(VAL, uint32_t, jobs_pushed, 1, 0, 0xFFFFFFFFu, "game-thread jobs queued")                             \
+    X(VAL, uint32_t, jobs_push_full, 1, 0, 0xFFFFFFFFu, "")                                                 \
+    X(VAL, uint32_t, jobs_push_refused, 1, 0, 0xFFFFFFFFu, "")                                              \
+    X(VAL, uint32_t, jobs_ran, 1, 0, 0xFFFFFFFFu, "")                                                       \
+    X(VAL, uint32_t, jobs_rejected, 1, 0, 0xFFFFFFFFu, "")                                                  \
+    X(VAL, uint32_t, jobs_reaped, 1, 0, 0xFFFFFFFFu, "")                                                    \
+    X(VAL, uint32_t, coop_switch, 1, 0, 0xFFFFFFFFu, "ilc_coop_switch")                                     \
+    X(VAL, uint32_t, kill_presses, 1, 0, 0xFFFFFFFFu, "kill-switch edges (keys and commands)")              \
+    X(VAL, uint32_t, kills, 1, 0, 0xFFFFFFFFu, "ordered disarms completed")                                 \
+    X(VAL, uint32_t, revives, 1, 0, 0xFFFFFFFFu, "")                                                        \
+    X(VAL, uint32_t, released_by_settle, 1, 0, 0xFFFFFFFFu, "")                                             \
+    X(VAL, uint32_t, released_by_cap, 1, 0, 0xFFFFFFFFu, "")                                                \
+    X(VAL, uint32_t, last_release_ms, 1, 0, 0xFFFFFFFFu, "duration of the last release wait")               \
+    X(VAL, uint32_t, toggles, 1, 0, 0xFFFFFFFFu, "seat toggles applied")                                    \
+    X(VAL, uint32_t, toggles_ignored, 1, 0, 0xFFFFFFFFu, "")                                                \
+    X(VAL, uint32_t, mask_busy, 1, 0, 0xFFFFFFFFu, "co-op switch mask hand-offs that found the layer lock taken") \
+    X(VAL, uint32_t, capture_held, 1, 0, 0xFFFFFFFFu, "kill or toggle key edges not acted on while the on/off key was being captured") \
+    X(VAL, uint32_t, capture_capped, 1, 0, 0xFFFFFFFFu, "capture holds ended by their cap")                 \
+    X(VAL, uint32_t, capture_word, 1, 0, 0xFFFFFFFFu, "a capture that reads the keyboard (on/off key or keyboard seat): bit 0 running, bits 1..31 a serial") \
+    X(VAL, uint32_t, session_epoch_bumps, 1, 0, 0xFFFFFFFFu, "")                                            \
+    X(VAL, uint32_t, session_read_failures, 1, 0, 0xFFFFFFFFu, "")                                          \
+    X(VAL, uint32_t, party_requests, 1, 0, 0xFFFFFFFFu, "seat change requests taken")                       \
+    X(VAL, uint32_t, party_applied, 1, 0, 0xFFFFFFFFu, "")                                                  \
+    X(VAL, uint32_t, party_refused, 1, 0, 0xFFFFFFFFu, "")                                                  \
+    X(VAL, uint32_t, party_timed_out, 1, 0, 0xFFFFFFFFu, "")                                                \
+    X(VAL, uint32_t, party_watcher_changes, 1, 0, 0xFFFFFFFFu, "leader changes made outside co-op jobs")    \
+    X(VAL, uint32_t, party_external_swaps, 1, 0, 0xFFFFFFFFu, "")                                           \
+    X(VAL, uint32_t, party_ko_promotions, 1, 0, 0xFFFFFFFFu, "")                                            \
+    X(VAL, uint32_t, party_town_rebuilds, 1, 0, 0xFFFFFFFFu, "")                                            \
+    X(VAL, uint32_t, party_town_takes, 1, 0, 0xFFFFFFFFu, "")                                               \
+    X(VAL, uint32_t, towns_rebuilds, 1, 0, 0xFFFFFFFFu, "town rebuild jobs that ran")                       \
+    X(VAL, uint32_t, towns_gave_up, 1, 0, 0xFFFFFFFFu, "")                                                  \
+    X(VAL, uint32_t, canvas_reached, 1, 0, 0xFFFFFFFFu, "frame hook runs with its gate open")               \
+    X(VAL, uint32_t, canvas_drawn, 1, 0, 0xFFFFFFFFu, "frames replayed to the end")                         \
+    X(VAL, uint32_t, canvas_published, 1, 0, 0xFFFFFFFFu, "frames the producer published")                  \
+    X(VAL, uint32_t, canvas_declined_off, 1, 0, 0xFFFFFFFFu, "")                                            \
+    X(VAL, uint32_t, canvas_declined_frame, 1, 0, 0xFFFFFFFFu, "")                                          \
+    X(VAL, uint32_t, canvas_declined_context, 1, 0, 0xFFFFFFFFu, "")                                        \
+    X(VAL, uint32_t, canvas_declined_budget, 1, 0, 0xFFFFFFFFu, "over a ring limit or the ring unreadable") \
+    X(VAL, uint32_t, canvas_ring_gaps, 1, 0, 0xFFFFFFFFu, "")                                               \
+    X(VAL, uint32_t, canvas_faults, 1, 0, 0xFFFFFFFFu, "guarded faults (RENDER latched)")                   \
+    X(VAL, uint32_t, canvas_frame_use, 1, 0, 0xFFFFFFFFu, "ring bytes used between the last two hook calls") \
+    X(VAL, uint32_t, canvas_peak, 1, 0, 0xFFFFFFFFu, "decaying peak of canvas_frame_use")                   \
+    X(VAL, uint32_t, canvas_capacity, 1, 0, 0xFFFFFFFFu, "ring size seen")                                  \
+    X(VAL, uint32_t, driver_frames, 1, 0, 0xFFFFFFFFu, "")                                                  \
+    X(VAL, uint32_t, driver_composed, 1, 0, 0xFFFFFFFFu, "")                                                \
+    X(VAL, uint32_t, driver_torn, 1, 0, 0xFFFFFFFFu, "")                                                    \
+    X(VAL, uint32_t, driver_pass_faults, 1, 0, 0xFFFFFFFFu, "")                                             \
+    X(VAL, uint32_t, driver_dropped_frames, 1, 0, 0xFFFFFFFFu, "presented frames that left a seat's open window out") \
+    X(VAL, uint32_t, driver_menus_no_view, 1, 0, 0xFFFFFFFFu, "")                                           \
+    X(VAL, uint32_t, presenter_age_ms, 1, 0, 0xFFFFFFFFu, "time since the co-op menus were last drawn; 0xFFFFFFFF = never") \
+    X(VAL, uint32_t, native_hud_jobs, 1, 0, 0xFFFFFFFFu, "native HUD jobs that ran")                        \
+    X(VAL, uint32_t, native_hud_give_backs, 1, 0, 0xFFFFFFFFu, "")                                          \
+    X(VAL, uint32_t, ti_native_closed, 1, 0, 0xFFFFFFFFu, "native TARGET INFO opens turned into a close")   \
+    X(VAL, uint32_t, ti_native_stock, 1, 0, 0xFFFFFFFFu, "native TARGET INFO opens left alone")             \
+    X(VAL, uint32_t, ti_give_opens, 1, 0, 0xFFFFFFFFu, "give-back: pending creates written")                \
+    X(VAL, uint32_t, ti_give_opened, 1, 0, 0xFFFFFFFFu, "")                                                 \
+    X(VAL, uint32_t, ti_give_cancels, 1, 0, 0xFFFFFFFFu, "")                                                \
+    X(VAL, uint32_t, ti_give_giveups, 1, 0, 0xFFFFFFFFu, "")                                                \
+    X(VAL, uint32_t, ti_give_rehides, 1, 0, 0xFFFFFFFFu, "")                                                \
+    X(VAL, uint32_t, ti_pin_checks, 1, 0, 0xFFFFFFFFu, "")                                                  \
+    X(VAL, uint32_t, ti_pin_off, 1, 0, 0xFFFFFFFFu, "")                                                     \
+    X(VAL, uint32_t, ti_aims, 1, 0, 0xFFFFFFFFu, "")                                                        \
+    X(VAL, uint32_t, ti_gated, 1, 0, 0xFFFFFFFFu, "")                                                       \
+    X(VAL, uint32_t, ti_pins, 1, 0, 0xFFFFFFFFu, "0 unknown, 1 ok, 2 off")                                  \
+    X(VAL, int32_t, ti_pin_row, 1, 0, 0, "first pin row found off, -1 none")                                \
+    X(VAL, uint32_t, menu_opens, 1, 0, 0xFFFFFFFFu, "co-op battle menus opened")                            \
+    X(VAL, uint32_t, menu_party_requests, 1, 0, 0xFFFFFFFFu, "")                                            \
+    X(VAL, uint32_t, menu_p1_givebacks, 1, 0, 0xFFFFFFFFu, "")                                              \
+    X(VAL, uint32_t, menu_owns_p1, 1, 0, 0xFFFFFFFFu, "the co-op menus own Player 1's menus (1)")           \
+    X(VAL, uint32_t, menu_presenter_live, 1, 0, 0xFFFFFFFFu, "")                                            \
+    X(VAL, uint32_t, iso_background, 1, 0, 0xFFFFFFFFu, "host visits made neutral while the game runs unfocused") \
+    X(VAL, uint32_t, iso_masked, 1, 0, 0xFFFFFFFFu, "")                                                     \
+    X(VAL, uint32_t, iso_substituted, 1, 0, 0xFFFFFFFFu, "")                                                \
+    X(VAL, uint32_t, iso_probe_failed, 1, 0, 0xFFFFFFFFu, "")                                               \
+    X(VAL, uint32_t, focus_forced, 1, 0, 0xFFFFFFFFu, "application held active while unfocused")            \
+    X(VAL, uint32_t, focus_probe_failed, 1, 0, 0xFFFFFFFFu, "")
+
 // The list of records, dependencies first: S(type name, struct id, field list, doc).
 #define ILC_STRUCTS(S)                                                                                      \
     S(ilc_header, 1, ILC_HEADER_FIELDS, "starts every record")                                              \
@@ -578,7 +776,8 @@
     S(ilc_devices_reply, 16, ILC_DEVICES_REPLY_FIELDS, "GET_DEVICES out (variable length)")                 \
     S(ilc_event, 17, ILC_EVENT_FIELDS, "")                                                                  \
     S(ilc_events_reply, 18, ILC_EVENTS_REPLY_FIELDS, "POP_EVENTS out (variable length)")                    \
-    S(ilc_safe_point_result, 19, ILC_SAFE_POINT_RESULT_FIELDS, "TEST_SAFE_POINT out")
+    S(ilc_safe_point_result, 19, ILC_SAFE_POINT_RESULT_FIELDS, "TEST_SAFE_POINT out")                       \
+    S(ilc_counters, 20, ILC_COUNTERS_FIELDS, "GET_COUNTERS out")
 
 // ---------------------------------------------------------------------------------------------------------
 // Expansion into C++.
@@ -651,6 +850,10 @@ static_assert(ILC_ENUM_MAX(ILC_BINDING_KINDS) + 1 == ILC_ENUM_COUNT(ILC_BINDING_
               "binding and device kinds are dense from 0");
 static_assert(ILC_ENUM_OR(ILC_SUBSYSTEMS) + 1 == (1ull << ILC_ENUM_COUNT(ILC_SUBSYSTEMS)),
               "subsystem bits are one bit each, dense from bit 0, so the mask range is exactly the defined bits");
+static_assert(ILC_ENUM_OR(ILC_HUD_ELEMENTS) + 1 == (1ull << ILC_ENUM_COUNT(ILC_HUD_ELEMENTS)),
+              "Battle HUD element bits are one bit each, dense from bit 0");
+static_assert(ILC_ENUM_MIN(ILC_LOG_FILTERS) == 0 && ILC_ENUM_MAX(ILC_LOG_FILTERS) + 1 == ILC_ENUM_COUNT(ILC_LOG_FILTERS),
+              "log filters are dense from 0");
 
 #define ILC_DECL_VAL(type, name, count) type name;
 #define ILC_DECL_ARR(type, name, count) type name[count];
@@ -674,10 +877,10 @@ static_assert(sizeof(ilc_header) == 16, "ilc_header");
 static_assert(sizeof(ilc_binding) == 2, "ilc_binding");
 static_assert(sizeof(ilc_device_identity) == 136, "ilc_device_identity");
 static_assert(sizeof(ilc_seat_device) == 140, "ilc_seat_device");
-static_assert(sizeof(ilc_seat_settings) == 300, "ilc_seat_settings");
+static_assert(sizeof(ilc_seat_settings) == 308, "ilc_seat_settings");
 static_assert(sizeof(ilc_device_alias) == 140, "ilc_device_alias");
 static_assert(sizeof(ilc_economy) == 8, "ilc_economy");
-static_assert(sizeof(ilc_settings) == 3492, "ilc_settings");
+static_assert(sizeof(ilc_settings) == 3532, "ilc_settings");
 static_assert(sizeof(ilc_settings_ack) == 32, "ilc_settings_ack");
 static_assert(sizeof(ilc_command) == 32, "ilc_command");
 static_assert(sizeof(ilc_hello_reply) == 96, "ilc_hello_reply");
@@ -689,9 +892,11 @@ static_assert(sizeof(ilc_devices_reply) == 32 + 16 * 148, "ilc_devices_reply");
 static_assert(sizeof(ilc_event) == 32, "ilc_event");
 static_assert(sizeof(ilc_events_reply) == 32 + 64 * 32, "ilc_events_reply");
 static_assert(sizeof(ilc_safe_point_result) == 32, "ilc_safe_point_result");
+static_assert(sizeof(ilc_counters) == 16 + 138 * 4, "ilc_counters");
 static_assert(ILC_SEAT_BINDINGS == ILC_ACTIONS * ILC_BINDINGS_PER_ACTION, "binding table");
 static_assert(sizeof(ilc_settings) <= ILC_OUT_CAP_RECOMMENDED, "recommended output size");
 static_assert(sizeof(ilc_devices_reply) <= ILC_OUT_CAP_RECOMMENDED, "recommended output size");
 static_assert(sizeof(ilc_events_reply) <= ILC_OUT_CAP_RECOMMENDED, "recommended output size");
+static_assert(sizeof(ilc_counters) <= ILC_OUT_CAP_RECOMMENDED, "recommended output size");
 
 extern "C" int32_t ILC_Bridge(uint64_t op, const void* in, uint64_t in_len, void* out, uint64_t out_cap);

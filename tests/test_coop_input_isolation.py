@@ -8,7 +8,7 @@
   SDL (host election, never a disconnected XInput object, the substituted block, the host's packet number
   cleared); release after isolation stops and the release primitives for a disarm; the keyboard filter (shared
   keys rebuilt from the raw sample through the game's key map) and its budget of 240 updates, refilled every beat;
-  IN-06 (unfocused pad block keeps the focus flag at 0) and IN-07 (focus loss reads as active); IN-06a mismatch
+  IN-06a mismatch
   leaves IN-06 unhooked and reported; the record composition (guards, keyboard owner, release beats, a torn P1
   mirror read keeps the last source, no fourth seat); the co-op thread moves the liveness epoch right after the
   session step;
@@ -58,7 +58,7 @@ EPOCH = 7
 FLEE_ACTION = 6
 KB_BUDGET = 240
 STATS = ['passed', 'substituted', 'masked', 'released', 'stock', 'wrong_class', 'probe_failed', 'kb_filtered',
-         'kb_expired', 'background', 'focus_kept', 'host_changes']
+         'kb_expired', 'background', 'focus_kept', 'host_changes', 'feed_drains']
 
 
 class IsoRecord(ctypes.Structure):
@@ -143,6 +143,7 @@ class Iso:
         d.ILCT_IsoCompose.argtypes = [ctypes.c_uint32, ctypes.c_uint64, ctypes.c_char_p, ctypes.POINTER(IsoRecord)]
         d.ILCT_IsoFakeFlee.argtypes = [ctypes.c_uint32, ctypes.c_uint32]
         d.ILCT_IsoMirrorHold.argtypes = [ctypes.c_uint32, ctypes.c_int32]
+        d.ILCT_IsoFleeLast.restype = ctypes.c_int32
         d.ILCT_IsoSlotAddress.restype = ctypes.c_uint64
         self.rows = {sid: self.twin.index[sid] for sid in ('IN-01', 'IN-02', 'IN-03', 'IN-05', 'IN-06', 'IN-07')}
 
@@ -418,6 +419,30 @@ class IsolationBodyTest(unittest.TestCase):
         finally:
             d.ILCT_IsoFakeFlee(0, 0)
 
+    def test_flee_held_through_the_kill_switch_drops_without_a_new_packet(self):
+        """Flee held by a guest, then the kill switch: the release record leaves P1's device stock, but the flee byte
+        written onto it must still go back to the real RT (no new packet will re-interpret it), and the release is
+        settled only after that."""
+        d = self.d
+        try:
+            self.iso.publish(ISO_GUARD | ISO_NATIVE, p1_slot=0)
+            self.xi0.poke(0x463, b'\0')
+            d.ILCT_IsoFakeFlee(EPOCH, 0b10)
+            self.iso.call(1, self.xi0.ctx())
+            self.assertEqual((self.xi0.peek(0x443, 1), d.ILCT_IsoFleeLast()), (b'\1', 1))
+            d.ILCT_IsoBeginRelease()
+            self.iso.publish(ISO_RELEASE, p1_slot=0)  # what compose builds once the kill switch has begun
+            d.ILCT_IsoCompose(EPOCH, 1, None, ctypes.byref(IsoRecord()))
+            self.assertEqual(d.ILCT_IsoReleaseSettled(), 0, 'not settled while the flee byte is still up')
+            self.iso.call(1, self.xi1.ctx())  # another pad first: nothing to do there
+            self.assertEqual(d.ILCT_IsoReleaseSettled(), 0)
+            self.iso.call(1, self.xi0.ctx())
+            self.assertEqual(self.xi0.peek(0x443, 1), b'\0', 'the flee byte stuck after the kill switch')
+            self.assertEqual((d.ILCT_IsoFleeLast(), d.ILCT_IsoReleaseSettled()), (0, 1))
+        finally:
+            d.ILCT_IsoFakeFlee(0, 0)
+            d.ILCT_IsoEndRelease()
+
     def test_a_disconnected_xinput_object_is_never_the_host(self):
         pad = (0x1000, 0, 0, 1000, 0, 0, 0)
         self.iso.mirror(1, SRC_SDL, pad=pad)
@@ -537,35 +562,6 @@ class IsolationBodyTest(unittest.TestCase):
         self.assertEqual(self.d.ILCT_IsoBudget(), KB_BUDGET - 1)
 
     # ---- focus ----
-    def test_in06_runs_the_pad_block_unfocused_and_keeps_the_flag_honest(self):
-        self.iso.twin.poke(FOCUS_FLAG, b'\1')
-        self.iso.publish(ISO_GUARD | ISO_BG)
-        c = Ctx()
-        c.rflags = 0x202  # ZF clear: the window is not in the foreground
-        self.assertEqual(self.iso.call(6, c), RESUME)
-        self.assertEqual(c.resume, PAD_RESUME)
-        self.assertEqual(ctypes.string_at(FOCUS_FLAG, 1), b'\0')
-        c = Ctx()
-        c.rflags = 0x242  # ZF set: focused, the stock path writes the flag itself
-        self.assertEqual(self.iso.call(6, c), RUN_ORIGINAL)
-        self.iso.publish(ISO_GUARD)
-        c = Ctx()
-        c.rflags = 0x202
-        self.assertEqual(self.iso.call(6, c), RUN_ORIGINAL, 'no background flag: stock (the block is skipped)')
-
-    def test_in07_turns_focus_loss_into_active(self):
-        event = ctypes.create_string_buffer(struct.pack('<II', 4, 0), 8)
-        c = Ctx()
-        c.rdx = ctypes.addressof(event)
-        self.iso.publish(ISO_GUARD | ISO_BG)
-        self.assertEqual(self.iso.call(7, c), RUN_ORIGINAL, 'the dispatch must still run')
-        self.assertEqual(struct.unpack('<II', event.raw), (4, 1))
-        event2 = ctypes.create_string_buffer(struct.pack('<II', 4, 0), 8)
-        c.rdx = ctypes.addressof(event2)
-        self.iso.publish(ISO_GUARD)
-        self.iso.call(7, c)
-        self.assertEqual(struct.unpack('<II', event2.raw), (4, 0))
-
     def test_in06a_mismatch_leaves_in06_unhooked_and_reported(self):
         status = Status()
         self.d.ILCT_IsoStatus(ctypes.byref(status))
@@ -575,7 +571,7 @@ class IsolationBodyTest(unittest.TestCase):
         gate = twin.index['IN-06a']
         twin.poke(TWIN_BASE + twin.rows[gate]['rva'], b'\xE9')  # as a mod that rewrites the approach would
         report = twin.call('ILCT_PatchInstall')
-        self.assertEqual((report.result, report.gated_off, report.hooked), (OK, 1, 60))
+        self.assertEqual((report.result, report.gated_off, report.hooked), (OK, 1, pe.PATCH_ROWS - 1))
         self.d.ILCT_IsoStatus(ctypes.byref(status))
         self.assertEqual(status.in06_armed, 0)
         site = TWIN_BASE + twin.rows[self.iso.rows['IN-06']]['rva']
@@ -741,6 +737,10 @@ class IsoEmulator(gt.TickEmulator):
             return
         if name == 'AddVectoredExceptionHandler':
             uc.reg_write(X.UC_X86_REG_RAX, 1)
+            self.imports.append(name)
+            return
+        if name == 'GetForegroundWindow':  # the module's own focus test (focus.h) sees the same window as the game's
+            uc.reg_write(X.UC_X86_REG_RAX, self.foreground)
             self.imports.append(name)
             return
         super()._trap(uc, address, size, _)

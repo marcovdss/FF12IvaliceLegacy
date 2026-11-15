@@ -7,6 +7,7 @@
 
 #include "input/edge_history.h"
 #include "input/input_service.h"
+#include "interaction/interaction.h"
 #include "movement/movement_facts.h"
 #include "runtime/probe.h"
 #include "session/game_facts.h"
@@ -346,6 +347,11 @@ void step(uint64_t now_ms)
         return;
     }
     gather_input(in);
+    // A guest whose interaction (a request in flight, its dialog, menu or shop) holds its character stands still.
+    const uint32_t held = interaction::hold_seats(in.session.head.epoch);
+    for (uint32_t s = 1; s < ACTIVE_SEATS; ++s) {
+        in.input[s].hold = (held & (1u << s)) != 0 ? 1 : in.input[s].hold;
+    }
     session::game_reader r(g_image_base);
     for (uint32_t s = 1; s < ACTIVE_SEATS; ++s) {
         const session::seat_entry& e = in.session.seat[s];

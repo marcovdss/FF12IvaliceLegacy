@@ -16,6 +16,13 @@
 // (load, title screen, cutscene), and the liveness record is fresh through them. A Body (or a game-thread op)
 // that touches world objects must also check the session record's GATE_WORLD (and its own gates); world-requiring
 // game-thread ops are refused by the queue outside a valid world (runtime/game_thread.h, OPF_ANY_WORLD).
+// Exceptions, each documented where it is built: input isolation dereferences no world object (it uses its own
+// fail-open check, isolation.h) and TW-01 writes only the layout block its interrupted builder owns (towns.h);
+// neither checks GATE_WORLD. The camera hooks CM-01..07 (camera.h) do not check it either: they dereference no world
+// actor, only the object the game handed the hooked code (CM-01's controller in rdi, the collision query's own
+// arguments) and the static camera rig through the fault-safe probe; the co-op thread withdraws both camera records
+// on the beat GATE_WORLD or GATE_CAMERA drops (a record outlives a boundary by at most one beat, and a pose older
+// than 250 ms is stock in any case).
 //
 // The contract for a Body: read only the saved registers and the record copy; reach game memory through the
 // fault-safe probe. A Body on a MinHook row (mid-function) never calls game functions (those are UT-01 jobs,

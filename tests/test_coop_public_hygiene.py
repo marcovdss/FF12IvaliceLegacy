@@ -1,7 +1,9 @@
 """The co-op sources are public: no internal planning identifiers in them.
 
-Comments, strings and documentation in native/coop and the co-op tests describe things in product terms. Planning
-and change identifiers (P0, C1.., S01.., S13b, B01..) belong to the developers' own notes, not to the repository.
+Comments, strings and documentation in native/coop, the co-op Lua, the co-op tests and the repository's top-level
+documents describe things in product terms. Planning, change, review and session identifiers (P0, C1.., S01.., S13b,
+B01.., review findings such as S-1, N-3, N-a or SF-2, session ids such as CS-E1, decision ids such as D-14) belong to the developers' own notes,
+not to the repository.
 Vendored third-party text (licences, the build cache) is excluded; the generated files (sites.inc, the bridge schema)
 are scanned, because they are built from our own sources.
 """
@@ -14,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 COOP = ROOT / 'native' / 'coop'
 LUA_PACKAGE = ROOT / 'package' / 'x64' / 'scripts' / 'IvaliceLegacy' / 'coop'
-PATTERN = re.compile(r'\b(P0|C[0-9]+|S[0-9]{2}b?|B[0-9]{2})\b')
+PATTERN = re.compile(r'\b(P0|C[0-9]+|S[0-9]{2}b?|B[0-9]{2}|[SN]-(?:[0-9]+|[a-z])|SF-[0-9]+|CS-[A-Z0-9]+|D-[0-9]+)\b')
 SUFFIXES = {'.py', '.cpp', '.h', '.inc', '.md', '.json', '.def', '.S', '.lua', '.txt'}
 EXCLUDED_DIRS = {'build', '__pycache__'}
 EXCLUDED_FILES = {'THIRD_PARTY_NOTICES.txt'}  # licence texts, verbatim
@@ -32,8 +34,9 @@ def scanned() -> list[Path]:
     files += sorted(p for p in LUA_PACKAGE.rglob('*.lua') if p.is_file())
     files.append(ROOT / 'package' / 'x64' / 'scripts' / 'IvaliceLegacyCoop.lua')
     files += sorted((ROOT / 'tests').glob('test_coop_*.py'))
-    files.append(ROOT / 'tests' / 'coop_native_support.py')
-    return files
+    files += sorted((ROOT / 'tests').glob('coop_*.py'))
+    files += [ROOT / 'README.md', ROOT / 'docs' / 'FEATURES.md']
+    return [p for p in files if p.is_file()]
 
 
 def hits(text: str) -> list[tuple[int, str]]:
@@ -57,9 +60,12 @@ class PublicHygieneTest(unittest.TestCase):
         self.assertEqual(problems, [])
 
     def test_instrument_catches_each_form(self):
-        for sample in ('the P0 table', 'decision C7', 'row S13b', 'task B09', '(S01-S17)'):
+        for sample in ('the P0 table', 'decision C7', 'row S13b', 'task B09', '(S01-S17)', 'S-1: the hold',
+                       'N-3 and the flag', 'N-a: read back', 'fix SF-2', '(CS-E1)', 'session CS-12', 'decision D-14',
+                       '(D-4)'):
             self.assertTrue(hits(sample), sample)
-        for sample in ('CM-01', '0xC3', 'XINPUT', 'P1 seat', 'SDL2', 'B 09', 'c11'):
+        for sample in ('CM-01', '0xC3', 'XINPUT', 'P1 seat', 'SDL2', 'B 09', 'c11', 'MV-07', 'IX-20', 'TW-01',
+                       'N-way', 'S-curve', 'non-zero', 'CS-', 'HD-01', 'WD-3', 'D-pad'):
             self.assertFalse(hits(sample), sample)
 
 

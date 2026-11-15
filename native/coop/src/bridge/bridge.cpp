@@ -20,7 +20,9 @@
 #include "ilc/bridge_defaults.h"
 #include "ilc/version.h"
 #include "control/control.h"
+#include "hud/battle_hud.h"
 #include "input/input_service.h"
+#include "runtime/diag.h"
 #include "runtime/probe.h"
 #include "session/session.h"
 
@@ -36,7 +38,7 @@ namespace {
 
 constexpr uint32_t OPS_MASK = (1u << ILC_OP_HELLO) | (1u << ILC_OP_SET_SETTINGS) | (1u << ILC_OP_COMMAND) |
                               (1u << ILC_OP_GET_STATUS) | (1u << ILC_OP_GET_SEATS) | (1u << ILC_OP_GET_DEVICES) |
-                              (1u << ILC_OP_POP_EVENTS) | (1u << ILC_OP_GET_SETTINGS);
+                              (1u << ILC_OP_POP_EVENTS) | (1u << ILC_OP_GET_SETTINGS) | (1u << ILC_OP_GET_COUNTERS);
 
 struct bridge_state {
     SRWLOCK lock;
@@ -311,13 +313,43 @@ int32_t op_command(const void* in, uint32_t in_len, uint32_t out_cap)
         if (c.command == ILC_CMD_RESTORE_DEFAULTS) {
             return ILC_E_NOT_READY;  // its subsystem is still to be built
         }
-        // Seat commands run on the input service's next tick; the outcome comes back as an event.
-        const input::command_msg m = {c.command, c.seat, 0, c.header.generation, c.arg0, c.arg1};
-        const int32_t queued = input::post_command(m);
-        if (queued == 0 || queued == ILC_E_NOT_READY) {
-            return queued;
+        if (c.command == ILC_CMD_STALL_COOP_THREAD) {
+            // A developer test: only with the developer setting applied, and only while the co-op thread runs.
+            bool allowed = false;
+            {
+                locked hold;
+                allowed = g.applied.developer == 1;
+            }
+            if (!allowed) {
+                r = {ILC_E_CONFLICT, developer_field(), 0, 0};
+            } else if ((boot::current().flags & ILC_BOOTF_ARMED) == 0) {
+                return ILC_E_NOT_READY;
+            } else if (!diag::post_stall(c.arg0, c.header.generation)) {
+                r.code = ILC_E_BUSY;  // one stall at a time: refused and counted like any other rejection
+            } else {
+                return 0;  // the co-op thread sleeps at its next beat; COMMAND_RESULT follows when it wakes
+            }
+        } else {
+            if (c.command == ILC_CMD_CAPTURE_START) {
+                // A capture that reads the whole keyboard (the co-op on/off key's, or the keyboard seat's own): the
+                // switches stop acting on the kill-switch key before the input thread takes it.
+                uint8_t kbm_seat = 0;
+                {
+                    locked hold;
+                    kbm_seat = g.applied.kbm_seat;
+                }
+                if (c.seat == 0 || c.seat == kbm_seat) {
+                    control::note_kill_capture_posted();
+                }
+            }
+            // Seat commands run on the input service's next tick; the outcome comes back as an event.
+            const input::command_msg m = {c.command, c.seat, 0, c.header.generation, c.arg0, c.arg1};
+            const int32_t queued = input::post_command(m);
+            if (queued == 0 || queued == ILC_E_NOT_READY) {
+                return queued;
+            }
+            r.code = queued;  // BUSY: refused and counted like any other rejection
         }
-        r.code = queued;  // BUSY: refused and counted like any other rejection
     }
     locked hold;
     note_reject(op, r);
@@ -338,6 +370,8 @@ int32_t op_get_status(void* out, uint32_t out_cap)
     st.reason = boot_status.reason;
     st.reason_detail = boot_status.detail;
     st.boot_flags = boot_status.flags;
+    st.coop_switch = static_cast<uint8_t>(control::current_state());  // ON / RELEASING / OFF
+    st.hud_report = hud::battle_hud::report();  // the Battle HUD page's status line (0 before attach)
     st.build_flags = 0;
     st.caller_thread_id = GetCurrentThreadId();
     st.ready_mask = ILC_READY_SETTINGS;
@@ -364,6 +398,30 @@ int32_t op_get_status(void* out, uint32_t out_cap)
         st.applied_subsystems = g.applied.subsystems_armed;
     }
     return deliver(out, &st, sizeof(st));
+}
+
+int32_t op_get_counters(void* out, uint32_t out_cap)
+{
+    if (out_cap < sizeof(ilc_counters)) {
+        return record_failure(ILC_OP_GET_COUNTERS, ILC_E_OUT_TOO_SMALL);
+    }
+    ilc_counters k;
+    memset(&k, 0, sizeof(k));
+    diag::fill(&k);
+    {
+        locked hold;
+        pull_input_events();
+        fill_header(k.header, ILC_REC_COUNTERS, sizeof(k), g.applied.header.generation);
+        k.subsystems_applied = g.applied.subsystems_armed;
+        k.safe_points = g.safe_points;
+        k.applies = g.applies;
+        k.rejects = g.rejects;
+        k.last_reject_op = g.last_reject_op;
+        k.last_reject_code = g.last_reject_code;
+        k.events_pending = g.event_count;
+        k.events_dropped = g.events_dropped;
+    }
+    return deliver(out, &k, sizeof(k));
 }
 
 int32_t op_get_seats(void* out, uint32_t out_cap)
@@ -549,9 +607,17 @@ void bridge_attach_tick()
     __atomic_store_n(&g.tick_attached, 1u, __ATOMIC_RELEASE);
 }
 
+void bridge_note_command_result(uint32_t request_id, uint16_t command, uint32_t b)
+{
+    locked hold;
+    push_event(ILC_EV_COMMAND_RESULT, 0, request_id, 0, 0, 0, command, b);
+}
+
 }  // namespace ilc
 
-extern "C" int32_t ILC_Bridge(uint64_t op_arg, const void* in, uint64_t in_len_arg, void* out, uint64_t out_cap_arg)
+namespace {
+
+int32_t bridge_call(uint64_t op_arg, const void* in, uint64_t in_len_arg, void* out, uint64_t out_cap_arg)
 {
     using namespace ilc;
     // Fail closed: each of op, inLen and outCap must fit in 32 bits (bridge_abi.h).
@@ -579,6 +645,7 @@ extern "C" int32_t ILC_Bridge(uint64_t op_arg, const void* in, uint64_t in_len_a
     case ILC_OP_GET_DEVICES:
     case ILC_OP_POP_EVENTS:
     case ILC_OP_GET_SETTINGS:
+    case ILC_OP_GET_COUNTERS:
     case ILC_OP_TEST_SAFE_POINT:
         break;
     default:
@@ -610,6 +677,9 @@ extern "C" int32_t ILC_Bridge(uint64_t op_arg, const void* in, uint64_t in_len_a
     case ILC_OP_GET_SETTINGS:
         status = op_get_settings(out, out_cap);
         break;
+    case ILC_OP_GET_COUNTERS:
+        status = op_get_counters(out, out_cap);
+        break;
     case ILC_OP_TEST_SAFE_POINT:
         status = op_test_safe_point(out, out_cap);
         break;
@@ -621,4 +691,15 @@ extern "C" int32_t ILC_Bridge(uint64_t op_arg, const void* in, uint64_t in_len_a
         return record_failure(op, status);
     }
     return status;
+}
+
+}  // namespace
+
+extern "C" int32_t ILC_Bridge(uint64_t op_arg, const void* in, uint64_t in_len_arg, void* out, uint64_t out_cap_arg)
+{
+    // Each call is timed for the diagnostics counters (bridge and query maxima).
+    const uint64_t started = ilc::diag::perf_now();
+    const int32_t result = bridge_call(op_arg, in, in_len_arg, out, out_cap_arg);
+    ilc::diag::note_bridge_call(static_cast<uint32_t>(op_arg), started);
+    return result;
 }

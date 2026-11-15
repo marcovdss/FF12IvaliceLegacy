@@ -15,6 +15,25 @@ class CoopLuaStatic(unittest.TestCase):
                            capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
+    def test_the_generator_writes_only_without_arguments(self):
+        """--help prints the usage and an unknown argument is refused; neither writes the file (its bytes and
+        modification time are unchanged). Control: --check still answers current."""
+        gen = ROOT / 'native/coop/schema/gen_lua_schema.py'
+        out = LUA / 'schema_data.lua'
+        before = (out.read_bytes(), out.stat().st_mtime_ns)
+        r = subprocess.run([sys.executable, '-I', str(gen), '--help'], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('usage: gen_lua_schema.py', r.stdout)
+        self.assertNotIn('wrote', r.stdout)
+        for bad in (['--chek'], ['write'], ['--check', '--force']):
+            with self.subTest(argv=bad):
+                r = subprocess.run([sys.executable, '-I', str(gen), *bad], capture_output=True, text=True)
+                self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+                self.assertNotIn('wrote', r.stdout)
+        self.assertEqual((out.read_bytes(), out.stat().st_mtime_ns), before, 'nothing was written')
+        r = subprocess.run([sys.executable, '-I', str(gen), '--check'], capture_output=True, text=True)
+        self.assertEqual((r.returncode, r.stdout.strip()), (0, 'schema_data.lua is current'))
+
     def test_no_debug_op_or_async_execute(self):
         for f in list(LUA.glob('*.lua')) + [ROOT / 'package/x64/scripts/IvaliceLegacyCoop.lua']:
             text = f.read_text(encoding='utf-8')

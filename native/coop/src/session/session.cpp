@@ -21,6 +21,13 @@ constexpr uint8_t NO_SLOT = 0xFF;
 // The kill switch (any thread; read at each step). Outside `core`, so a restart keeps it.
 volatile uint32_t g_live_off = 0;
 
+// A seat change the party subsystem made in the game, waiting for the next step (under g_config_lock).
+adoption g_posted;
+uint8_t g_posted_valid = 0;
+uint32_t g_posted_tries = 0;
+volatile uint32_t g_adopted_seq = 0;
+volatile uint32_t g_adoptions_dropped = 0;
+
 struct core {
     uint8_t started;
     uint8_t config_pending;
@@ -230,6 +237,74 @@ uint64_t fnv(uint64_t h, const void* data, size_t n)
     return h;
 }
 
+// A posted seat change: adopted at once when this step's world read agrees with it (see session.h).
+void adopt_posted(core& c, const world_sample& w)
+{
+    AcquireSRWLockExclusive(&g_config_lock);
+    if (!g_posted_valid) {
+        ReleaseSRWLockExclusive(&g_config_lock);
+        return;
+    }
+    const adoption a = g_posted;
+    ReleaseSRWLockExclusive(&g_config_lock);
+    enum { KEEP, ADOPT, DROP } verdict = ADOPT;
+    identity next = c.live;
+    if (a.epoch != c.session_epoch || !w.roots || a.leader == MEMBER_NONE) {
+        verdict = DROP;
+    } else if (w.leader != a.leader) {
+        verdict = KEEP;  // this read may predate the change; a few steps decide
+    }
+    for (uint32_t s = 0; s < SEATS && verdict == ADOPT; ++s) {
+        if ((a.mask & (1u << s)) == 0) {
+            continue;
+        }
+        if (!seat_in_session(next, s) || (s == 0 && a.member[s] == MEMBER_NONE)) {
+            verdict = DROP;
+        } else {
+            next.member[s] = a.member[s];
+        }
+    }
+    if (verdict == ADOPT && next.member[0] != a.leader) {
+        verdict = DROP;  // Player 1 always drives the native leader
+    }
+    for (uint32_t s = 0; s < ACTIVE_SEATS && verdict == ADOPT; ++s) {
+        const uint16_t m = next.member[s];
+        if (!seat_in_session(next, s) || m == MEMBER_NONE) {
+            continue;
+        }
+        if (!is_regular(m) || !member_in_both(m, w.current, w.ui)) {
+            verdict = DROP;
+        }
+        for (uint32_t t = s + 1; t < ACTIVE_SEATS && verdict == ADOPT; ++t) {
+            if (seat_in_session(next, t) && next.member[t] == m) {
+                verdict = DROP;
+            }
+        }
+    }
+    AcquireSRWLockExclusive(&g_config_lock);
+    const bool still = g_posted_valid && g_posted.seq == a.seq;  // not replaced meanwhile
+    if (still && verdict == KEEP && ++g_posted_tries >= ADOPTION_TRIES) {
+        verdict = DROP;
+    }
+    if (still && verdict != KEEP) {
+        g_posted_valid = 0;
+        g_posted_tries = 0;
+    }
+    ReleaseSRWLockExclusive(&g_config_lock);
+    if (!still || verdict == KEEP) {
+        return;
+    }
+    if (verdict == DROP) {
+        __atomic_add_fetch(&g_adoptions_dropped, 1u, __ATOMIC_RELAXED);
+        return;
+    }
+    c.live = next;
+    c.pending_valid = 0;
+    c.force_scan = 1;
+    bump(g_counters.identity_adoptions);
+    __atomic_store_n(&g_adopted_seq, a.seq, __ATOMIC_RELEASE);
+}
+
 void refresh_party(game_reader& r, core& c, uint64_t now)
 {
     bool scan = c.force_scan || !c.party.manager_ok || now - c.last_scan_ms >= SCAN_INTERVAL_MS || c.last_scan_ms == 0;
@@ -395,6 +470,7 @@ void step(uint64_t now)
         c.pending_valid = 0;
         c.force_scan = 1;
     }
+    adopt_posted(c, w);
     refresh_party(r, c, now);
 
     // P1's own character: is it available to lead (alive, no command-blocking status)? A KO promotion (the game
@@ -421,7 +497,8 @@ void step(uint64_t now)
     // Adopt a party or leader change (the game's, a story script's, another mod's) once it has held for
     // IDENTITY_SETTLE_MS: leader, status and layout words are published separately and must settle first.
     identity candidate;
-    if (c.cfg.enabled && ko_seat == NO_SEAT && !uncertain_leader && identity_from_party(c.live, w, &candidate)) {
+    if (c.cfg.enabled && ko_seat == NO_SEAT && !uncertain_leader &&
+        identity_from_party_prefer(c.live, &c.configured, w, &candidate)) {
         if (!c.pending_valid || !same_identity(candidate, c.pending)) {
             c.pending = candidate;
             c.pending_valid = 1;
@@ -478,6 +555,11 @@ void step(uint64_t now)
         }
         e.member = c.live.member[s];
         if (e.member == MEMBER_NONE) {
+            // Benched: playing, but no member was free for it. It claims one (its preference first) as soon as
+            // the party has one nobody controls.
+            if (s != 0 && c.cfg.enabled && (c.cfg.parked & (1u << s)) == 0 && (live_parked & (1u << s)) == 0) {
+                e.flags |= SEATF_BENCHED;
+            }
             continue;
         }
         e.party_slot = slot_of(w, e.member);
@@ -741,6 +823,28 @@ patch::record_slot<session_record>& slot()
     return g_slot;
 }
 
+void post_adoption(const adoption& a)
+{
+    if (a.seq == 0) {
+        return;
+    }
+    AcquireSRWLockExclusive(&g_config_lock);
+    g_posted = a;
+    g_posted_valid = 1;
+    g_posted_tries = 0;
+    ReleaseSRWLockExclusive(&g_config_lock);
+}
+
+uint32_t adopted_seq()
+{
+    return __atomic_load_n(&g_adopted_seq, __ATOMIC_ACQUIRE);
+}
+
+uint32_t adoptions_dropped()
+{
+    return __atomic_load_n(&g_adoptions_dropped, __ATOMIC_ACQUIRE);
+}
+
 uint32_t take_effects(pending_effect* out, uint32_t max)
 {
     AcquireSRWLockExclusive(&g_effect_lock);
@@ -785,7 +889,12 @@ void test_reset()
 {
     AcquireSRWLockExclusive(&g_config_lock);
     memset(&g, 0, sizeof(g));
+    memset(&g_posted, 0, sizeof(g_posted));
+    g_posted_valid = 0;
+    g_posted_tries = 0;
     ReleaseSRWLockExclusive(&g_config_lock);
+    __atomic_store_n(&g_adopted_seq, 0u, __ATOMIC_RELEASE);
+    __atomic_store_n(&g_adoptions_dropped, 0u, __ATOMIC_RELEASE);
     AcquireSRWLockExclusive(&g_effect_lock);
     memset(g_ring, 0, sizeof(g_ring));
     g_ring_head = 0;

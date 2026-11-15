@@ -16,6 +16,8 @@ namespace detail {
 patch::record_slot<town_record> g_slot;
 counters g_counters;
 volatile uintptr_t g_image_base = facts::IMAGE_VA;  // set once at start, before the module arms
+volatile uint64_t g_pending = 0;     // (epoch << 32) | member bits: see allow_pending()
+volatile uint64_t g_pending_ms = 0;  // when it was set (module clock)
 }  // namespace detail
 
 namespace {
@@ -148,6 +150,21 @@ bool read_view(session::game_reader& r, view* v)
     return true;
 }
 
+// The pending member leaves once the record names it, at another epoch, or after PENDING_MAX_MS.
+void expire_pending(uint32_t epoch, uint64_t allowed, uint64_t now)
+{
+    const uint64_t w = __atomic_load_n(&detail::g_pending, __ATOMIC_ACQUIRE);
+    if (w == 0) {
+        return;
+    }
+    const uint64_t bits = w & 0xFFFFFFFFull;  // NOTADDR: the member bits
+    const uint64_t since = __atomic_load_n(&detail::g_pending_ms, __ATOMIC_ACQUIRE);
+    if (static_cast<uint32_t>(w >> 32) != epoch || (allowed & bits) == bits || now - since > PENDING_MAX_MS) {
+        uint64_t expected = w;
+        __atomic_compare_exchange_n(&detail::g_pending, &expected, 0ull, false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
+    }
+}
+
 void forget_flight()
 {
     if (g_planner.in_flight) {
@@ -191,6 +208,8 @@ void step(uint64_t now)
     g_slot.publish(rec);
     bump(g_counters.published);
     g_last_allowed = rec.allowed;
+    expire_pending(s.head.epoch, rec.allowed, now);
+    const uint64_t allowed = rec.allowed | pending_allowed(s.head.epoch);  // what TW-01 keeps now
 
     // A job in flight: collect its result (await_result reaps it once past its ttl, so it never stays pending).
     if (g_planner.in_flight) {
@@ -217,11 +236,11 @@ void step(uint64_t now)
         bump(g_counters.reads_failed);
         in.key = g_planner.key;  // nothing known: keep the key, ask for nothing
     } else {
-        in.key = rec.allowed | (v.leader < 64 ? (1ull << v.leader) : 0);
+        in.key = allowed | (v.leader < 64 ? (1ull << v.leader) : 0);
         in.in_town = v.in_town ? 1 : 0;
         in.task_busy = v.task_busy ? 1 : 0;
         in.degraded = v.degraded ? 1 : 0;
-        in.need = need_of(rec.allowed, v.leader, v.current, v.roster);
+        in.need = need_of(allowed, v.leader, v.current, v.roster);
         in.world_ok = (s.head.flags & session::GATE_WORLD) != 0 && s.phase == session::PHASE_FIELD &&
                       (s.facts & session::FACT_CONTROL) != 0;
         if (v.in_town && v.degraded) {
@@ -293,6 +312,51 @@ patch::record_slot<town_record>& slot()
     return g_slot;
 }
 
+bool read_town_state(session::game_reader& r, town_state* out)
+{
+    memset(out, 0, sizeof(*out));
+    view v;
+    if (!read_view(r, &v)) {
+        return false;
+    }
+    out->ok = 1;
+    out->in_town = v.in_town ? 1 : 0;
+    out->degraded = v.degraded ? 1 : 0;
+    out->task_busy = v.task_busy ? 1 : 0;
+    memcpy(out->roster, v.roster, sizeof(out->roster));
+    return true;
+}
+
+// One pending member is enough. Only the party change operation writes the word, on the game thread, for a guest's
+// town take, and two takes never hold it at once:
+//  * a take runs the rebuild, which leaves a re-materialize task in flight. Any other take, in the same drain or
+//    until that task ends, reads task_busy and is refused with OP_TOWN_BUSY before it writes anything, the word
+//    included;
+//  * the take posts its change to the session. A guest's take leaves the leader alone, so the session step of the
+//    co-op thread's next beat decides it at once (it waits only while the leader it reads disagrees): adopted, the
+//    record's allowed set names the member. Then towns::step drops the word in expire_pending, and only then does
+//    party::step plan another take (the step order in the boot's beat loop). From then on the record keeps the
+//    first member visible, not the word.
+void allow_pending(uint32_t epoch, uint32_t member, uint64_t now_ms)
+{
+    if (epoch == 0 || member >= 32) {
+        return;
+    }
+    __atomic_store_n(&detail::g_pending_ms, now_ms, __ATOMIC_RELEASE);
+    __atomic_store_n(&detail::g_pending, (static_cast<uint64_t>(epoch) << 32) | (1ull << member), __ATOMIC_RELEASE);
+}
+
+void clear_pending()
+{
+    __atomic_store_n(&detail::g_pending, 0ull, __ATOMIC_RELEASE);
+}
+
+uint64_t pending_allowed(uint32_t epoch)
+{
+    const uint64_t w = __atomic_load_n(&detail::g_pending, __ATOMIC_ACQUIRE);
+    return (epoch != 0 && static_cast<uint32_t>(w >> 32) == epoch) ? (w & 0xFFFFFFFFull) : 0ull;  // NOTADDR: bits
+}
+
 const counters* stats()
 {
     return &g_counters;
@@ -328,6 +392,7 @@ void test_reset()
     g_last_allowed = 0;
     g_started = false;
     g_test_rematerialize = nullptr;
+    clear_pending();
     __atomic_store_n(&detail::g_image_base, facts::IMAGE_VA, __ATOMIC_RELEASE);
 }
 

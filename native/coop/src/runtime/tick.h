@@ -4,9 +4,14 @@
 // Per frame, when the dispatcher lets it run (gate open, liveness fresh; UT-01 is CORE, so it also runs in DRY):
 //   1. the settings safe point (bridge): staged settings become the applied settings; a newly applied
 //      subsystems_armed mask goes to the patch layer's arm gates (try-lock; retried next frame if busy);
-//      the input service receives the applied record (try-lock; retried next frame if busy);
-//   2. LIVE: drain the game-thread queue (game_thread.h); DRY: reject queued jobs as DISARMED without running
-//      any of them, so no game function is called and no game memory is written;
+//      the input service receives the applied record (try-lock; retried next frame if busy). Once the first
+//      applied record (generation >= 1) has had its mask handed to the gates, the patch layer goes LIVE (try-lock,
+//      retried next frame). That happens once per process: nothing in the module ever sets DRY again, the kill
+//      switch and the park keep their own rules, and the native defaults (generation 0) never go LIVE. LIVE with
+//      a mask of 0 still runs every non-CORE detour stock ("dry-armed");
+//   2. LIVE: the Wait engine takes or gives back the game's pause reason 0 (wait/wait.h), then the game-thread
+//      queue is drained (game_thread.h); DRY: reject queued jobs as DISARMED without running any of them, so no
+//      game function is called and no game memory is written;
 //   3. RUN_ORIGINAL: the stock tick call follows exactly once, with every register as it was.
 // Re-entry (a job whose game call reaches this site again, or a second thread) runs stock and is counted.
 // With a stale, torn or disarmed liveness sample the dispatcher never calls this: the frame is stock, the queue
@@ -29,6 +34,12 @@ struct counters {
     volatile uint64_t jobs_drained;     // LIVE
     volatile uint64_t jobs_flushed;     // DRY
     volatile uint64_t last_tick_ms;     // module clock
+    volatile uint64_t stale_releases;   // stale-liveness ticks that gave back a Wait pause the engine owned
+    volatile uint64_t stale_ticks;      // stale-liveness ticks (the clean-up ran instead of the handler)
+    volatile uint64_t live_switches;    // the DRY -> LIVE switch (0 or 1 per process)
+    volatile uint64_t live_deferred;    // ... that found the patch-layer lock taken (retried next frame)
+    volatile uint64_t live_at_ms;       // module clock at the switch (0 = still DRY)
+    volatile uint64_t max_ticks;        // longest handler run in time-stamp counter ticks (the stock call excluded)
 };
 
 // The UT-01 handler (patch::handler_fn).
@@ -43,5 +54,6 @@ const counters* stats();
 
 // Host tests only.
 void test_reset();
+int32_t test_run_stale(uint32_t epoch);   // the stale-liveness handler, called directly
 
 }  // namespace ilc::tick

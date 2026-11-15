@@ -90,7 +90,8 @@ int32_t tw01_body(ctx* c, const town_record& r)
     uint16_t ui[SLOTS];
     __builtin_memcpy(current, raw + facts::L_CURRENT, sizeof(current));
     __builtin_memcpy(ui, raw + facts::L_UI, sizeof(ui));
-    const int32_t hidden = filter_slots(r.allowed, raw[facts::L_LEADER], current, ui);
+    // A member the party change operation just handed to a seat counts as controlled until the record names it.
+    const int32_t hidden = filter_slots(r.allowed | pending_allowed(r.head.epoch), raw[facts::L_LEADER], current, ui);
     if (hidden == FILTER_NO_LEADER) {
         bump(detail::g_counters.no_leader);
         return RUN_ORIGINAL;

@@ -144,6 +144,12 @@ uint16_t p1_member_now(const identity& id, const uint16_t* current, const uint16
 bool resolve_identity(const identity& configured, const uint16_t* current, const uint16_t* ui, uint32_t leader,
                       identity* out)
 {
+    return resolve_identity_prefer(configured, nullptr, current, ui, leader, out);
+}
+
+bool resolve_identity_prefer(const identity& configured, const identity* prefer, const uint16_t* current,
+                             const uint16_t* ui, uint32_t leader, identity* out)
+{
     member_list party = {};
     for (uint32_t k = 0; k < 4; ++k) {
         const uint16_t m = current[k];
@@ -192,6 +198,14 @@ bool resolve_identity(const identity& configured, const uint16_t* current, const
         if (!in_session(configured, s) || next.member[s] != MEMBER_NONE) {
             continue;
         }
+        // A seat that claims a member (it joined, or it was benched) takes its preferred character first when that
+        // one is free; never Player 1's (already taken above).
+        const uint16_t want = prefer != nullptr ? prefer->member[s] : MEMBER_NONE;
+        if (is_regular(want) && party.has(want) && !taken.has(want) && taken.n < 4) {
+            next.member[s] = want;
+            taken.add(want);
+            continue;
+        }
         for (uint32_t k = 0; k < party.n; ++k) {
             if (!taken.has(party.m[k]) && taken.n < 4) {
                 next.member[s] = party.m[k];
@@ -205,6 +219,12 @@ bool resolve_identity(const identity& configured, const uint16_t* current, const
 }
 
 bool identity_from_party(const identity& current_identity, const world_sample& w, identity* out)
+{
+    return identity_from_party_prefer(current_identity, nullptr, w, out);
+}
+
+bool identity_from_party_prefer(const identity& current_identity, const identity* prefer, const world_sample& w,
+                                identity* out)
 {
     // A summon dematerializes the other characters for a while: never a party edit.
     if (summoned_esper(w.current, w.ui) != MEMBER_NONE) {
@@ -220,7 +240,7 @@ bool identity_from_party(const identity& current_identity, const world_sample& w
         return false;
     }
     identity next;
-    if (!resolve_identity(current_identity, w.current, w.ui, w.leader, &next) ||
+    if (!resolve_identity_prefer(current_identity, prefer, w.current, w.ui, w.leader, &next) ||
         same_identity(next, current_identity)) {
         return false;
     }

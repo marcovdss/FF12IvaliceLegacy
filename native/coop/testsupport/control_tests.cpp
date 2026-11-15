@@ -68,6 +68,17 @@ void ILCT_CtlKill(int32_t off)
     control::post_kill(off != 0);
 }
 
+// The on/off key capture word as the switches see it (< 0 = the input service's own), and the bridge's notice.
+void ILCT_CtlCaptureWord(int64_t word)
+{
+    control::test_capture_word(word);
+}
+
+void ILCT_CtlCapturePosted(void)
+{
+    control::note_kill_capture_posted();
+}
+
 uint32_t ILCT_CtlState(void)
 {
     return control::current_state();
@@ -81,6 +92,11 @@ uint32_t ILCT_CtlParked(void)
 uint32_t ILCT_CtlMaskForSafePoint(uint32_t requested)
 {
     return control::mask_for_safe_point(requested);
+}
+
+uint32_t ILCT_CtlMaskRetry(uint32_t pending)
+{
+    return control::mask_for_safe_point_retry(pending);
 }
 
 int32_t ILCT_CtlTakeReapply(uint32_t* mask)

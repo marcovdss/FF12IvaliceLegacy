@@ -5,7 +5,7 @@ No game run, nothing deployed. The exe is read-only input (SHA-256 pinned by sit
 * static: exactly the PATCH rows whose hook window holds a `call rel32` are call rows (capstone), with the right
   call offset and callee; the stubs' unwind data is in the DLL's .pdata (slow paths and the shared body have an
   entry, the entry jumps do not: they are leaves);
-* image twin: install writes only the 18 rel32s (and MinHook's 43 jumps); every call-row failure path (island not
+* image twin: install writes only the 20 rel32s (and MinHook's 46 jumps); every call-row failure path (island not
   made, verify, rollback that cannot restore one row) behaves like the MinHook path;
 * unicorn: for every call row, RESUME skips the callee and returns the faked result, CALL_AROUND with a no-op
   after-handler equals the original call, an after-handler that edits rax is seen;
@@ -26,8 +26,8 @@ import struct
 import unittest
 
 import test_coop_patch_engine as pe
-from test_coop_patch_engine import (GAME, NATIVE, OK, TWIN_BASE, TWIN_SIZE, Twin, call_offset, checked, near_private,
-                                    regions)
+from test_coop_patch_engine import (CALL_ROWS, GAME, NATIVE, OK, PATCH_ROWS, TWIN_BASE, TWIN_SIZE, Twin, call_offset,
+                                    checked, near_private, regions)
 
 try:
     import unicorn
@@ -192,7 +192,7 @@ class CallRowStaticTest(unittest.TestCase):
                 if insn.mnemonic == 'call':
                     found[r['id']] = (insn.address - site, int(insn.op_str, 16))
         island = {self.twin.rows[row]['id']: self.twin.island(row) for row in self.twin.patch}
-        self.assertEqual(len(found), 18)
+        self.assertEqual(len(found), CALL_ROWS)
         self.assertEqual({sid for sid, i in island.items() if i.is_call_row}, set(found))
         self.assertEqual({self.twin.rows[r]['id'] for r in self.twin.calls}, set(found))
         for sid, (offset, target) in found.items():
@@ -200,8 +200,9 @@ class CallRowStaticTest(unittest.TestCase):
             self.assertEqual(island[sid].call_offset, offset, sid)
             self.assertEqual(call_offset(self.twin.rows[row]), offset, sid)
             self.assertEqual(TWIN_BASE + self.twin.dll.ILCT_IslandCalleeRva(row), target, sid)
-        self.assertEqual(set(found), {'UT-01', 'WT-01', 'WT-02', 'WT-03', 'IN-01', 'IN-07', 'MV-04', 'MV-07', 'IX-01',
-                                      'PT-01', 'CM-02', 'CM-03', 'CM-04', 'CM-05', 'IN-02', 'IN-03', 'IN-05', 'FW-05'})
+        self.assertEqual(set(found), {'UT-01', 'IN-01', 'MV-04', 'MV-07', 'IX-01', 'PT-01', 'CM-02', 'CM-03',
+                                      'CM-04', 'CM-05', 'IN-02', 'IN-03', 'IN-05', 'FW-05', 'IX-20', 'LT-01',
+                                      'HD-01', 'TI-01', 'HD-02', 'HD-03', 'WM-01', 'RG-01'})
 
     def test_stub_unwind_data_is_static_pdata(self):
         self.twin.dll.ILCT_IslandCalleeRva.restype = ctypes.c_uint64
@@ -239,7 +240,8 @@ class CallRowStaticTest(unittest.TestCase):
         manifest = pe.built()['manifest']
         self.assertTrue(manifest['audit']['ok'], manifest['audit']['failures'])
         map_text = (pe.built()['dll'].parent / pe.coop_build.MAP_NAME).read_text(encoding='utf-8', errors='replace')
-        for symbol in ('ilc_call_common', 'ilc_call_slow_0', 'ilc_call_slow_17', 'ilc_call_entry_17',
+        last = CALL_ROWS - 1
+        for symbol in ('ilc_call_common', 'ilc_call_slow_0', f'ilc_call_slow_{last}', f'ilc_call_entry_{last}',
                        'ilc_call_dispatch', 'ilc_call_after'):
             self.assertIn(symbol, map_text)
 
@@ -275,7 +277,7 @@ class CallRowTransactionTest(unittest.TestCase):
         self.twin.dll.ILCT_PatchInject(TEST_FAIL_VERIFY, row)
         report = self.twin.call('ILCT_PatchInstall')
         self.assertEqual((report.result, report.site, report.state, report.rolled_back, report.retained),
-                         (VERIFY_FAILED, row, STATE_RETIRED, 61, 61))
+                         (VERIFY_FAILED, row, STATE_RETIRED, PATCH_ROWS, PATCH_ROWS))
         self.assertEqual(self.twin.image(), self.twin.baseline)
         self.assertNotEqual(self.twin.dll.ILCT_IslandRegion(), 0, 'a rel32 was written: the islands must stay')
         for call_row in self.twin.calls:
@@ -308,13 +310,13 @@ class CallRowTransactionTest(unittest.TestCase):
         self.assertEqual(info.slot, info.callee)
 
     def test_rollback_that_cannot_restore_a_call_row_leaves_a_working_island(self):
-        row = self.twin.index['IN-07']
+        row = self.twin.index['IN-05']
         r = self.twin.rows[row]
         self.twin.dll.ILCT_PatchInject(TEST_FAIL_DISABLE, row)
         report = self.twin.call('ILCT_PatchInstall')
         self.assertEqual((report.result, report.state), (ROLLBACK_FAILED, STATE_RETIRED))
         info = self.twin.island(row)
-        call = TWIN_BASE + r['rva']
+        call = TWIN_BASE + r['rva'] + call_offset(r)
         self.assertEqual(call + 5 + struct.unpack('<i', ctypes.string_at(call + 1, 4))[0], info.island)
         self.assertEqual(info.slot, info.callee, 'the left-over island must lead straight to the callee')
         after = self.twin.image()
@@ -511,8 +513,8 @@ class CallRowEmulationTest(unittest.TestCase):
                 named = self.walk_to_site(ctx, row, state, ['dll', 'dll', 'common', 'slow'])
                 self.game_step(ctx, row)
                 results[r['id']] = named
-        print(f'\nunwind from the handler: {len(results)}/18 call rows reach site+5 and the game caller')
-        self.assertEqual(len(results), 18)
+        print(f'\nunwind from the handler: {len(results)}/{CALL_ROWS} call rows reach site+5 and the game caller')
+        self.assertEqual(len(results), CALL_ROWS)
 
     def set_mode_tables(self):
         lo, hi = self.emu.dll
@@ -559,8 +561,8 @@ class CallRowEmulationTest(unittest.TestCase):
                     self.walk_to_site(ctx, row, state, ours)
                     self.assertTrue(TWIN_BASE <= callee < TWIN_BASE + TWIN_SIZE)
                     done += 1
-        print(f'\nunwind from inside the callee: {done} walks (18 rows x around / pre-hook / closed)')
-        self.assertEqual(done, 54)
+        print(f'\nunwind from inside the callee: {done} walks ({CALL_ROWS} rows x around / pre-hook / closed)')
+        self.assertEqual(done, 3 * CALL_ROWS)
 
 
 if __name__ == '__main__':

@@ -22,12 +22,41 @@ namespace {
 volatile uint32_t g_remat_calls = 0;
 uint64_t g_task_value = 0;   // what the "task created" stub stores into the task pointer
 uintptr_t g_task_address = 0;
+uintptr_t g_bind_layouts = 0;  // != 0: the stub also runs the builder's layout step there (see ILCT_TownRebuildBinds)
+
+// The layout builder's part that matters here: default -> current and HUD (slots 0..3; 4..8 cleared), then the real
+// TW-01 handler on that block, with the registers the builder holds at the join point.
+void bind_layouts()
+{
+    uint16_t layouts[facts::L_UI / 2 + 9];
+    memcpy(layouts, reinterpret_cast<const void*>(g_bind_layouts), sizeof(layouts));
+    for (uint32_t k = 0; k < 9; ++k) {
+        const uint16_t m = k < SLOTS ? layouts[k] : facts::EMPTY;
+        layouts[facts::L_CURRENT / 2 + k] = m;
+        layouts[facts::L_UI / 2 + k] = m;
+    }
+    memcpy(reinterpret_cast<void*>(g_bind_layouts), layouts, sizeof(layouts));
+    town_record rec;
+    if (!slot().read(rec)) {
+        return;
+    }
+    patch::ctx c;
+    memset(&c, 0, sizeof(c));
+    c.index = static_cast<uint64_t>(row());
+    c.rdi = g_bind_layouts;
+    c.r15 = g_bind_layouts + facts::L_CURRENT;
+    c.r13 = 0xFFFF;
+    tw01(&c, rec.head.epoch);
+}
 
 void remat_creates_task()
 {
     __atomic_add_fetch(&g_remat_calls, 1u, __ATOMIC_RELAXED);
     if (g_task_address != 0) {
         memcpy(reinterpret_cast<void*>(g_task_address), &g_task_value, sizeof(g_task_value));
+    }
+    if (g_bind_layouts != 0) {
+        bind_layouts();
     }
 }
 
@@ -165,6 +194,7 @@ void ILCT_TownReset(void)
     g_remat_calls = 0;
     g_task_address = 0;
     g_task_value = 0;
+    g_bind_layouts = 0;
 }
 
 void ILCT_TownSetImageBase(uint64_t base)
@@ -184,6 +214,18 @@ void ILCT_TownSetRematerialize(uint32_t mode, uint64_t task_address, uint64_t ta
 uint32_t ILCT_TownRematerializeCalls(void)
 {
     return g_remat_calls;
+}
+
+// The "task created" stub also rebuilds the layouts at `layouts` (party block + 0x5A48) and runs TW-01 on them, as the
+// game's immediate rebuild would (0 = off).
+void ILCT_TownRebuildBinds(uint64_t layouts)
+{
+    g_bind_layouts = static_cast<uintptr_t>(layouts);
+}
+
+uint64_t ILCT_TownPendingAllowed(uint32_t epoch)
+{
+    return pending_allowed(epoch);
 }
 
 int32_t ILCT_TownOp(uint32_t epoch)

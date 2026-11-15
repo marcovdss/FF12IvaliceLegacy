@@ -102,10 +102,58 @@ void end_capture(control_state& st, event_sink& out, uint8_t outcome, uint8_t ki
 {
     capture_session& k = st.capture;
     emit_capture(out, k.seat, k.request_id, outcome, k.action, k.slot, kind, code);
-    if (k.seat >= 1 && k.seat <= SEATS) {
-        st.reseed_now[k.seat - 1] = 1;
+    // The seat whose input the capture held: its own, or for the co-op on/off key the keyboard's seat.
+    const uint8_t held = k.seat != 0 ? k.seat : k.kbm_seat;
+    if (held >= 1 && held <= SEATS) {
+        st.reseed_now[held - 1] = 1;
     }
     memset(&k, 0, sizeof(k));
+}
+
+// Mouse buttons by virtual-key code: 0x01 left, 0x02 right, 0x04 middle, 0x05/0x06 X1/X2.
+bool mouse_vk(uint32_t vk)
+{
+    return vk == 0x01 || vk == 0x02 || (vk >= 0x04 && vk <= 0x06);
+}
+
+// The co-op on/off key: keyboard keys and the right mouse button, from the keyboard whichever seat owns it. Pads,
+// the left button and the other mouse buttons are not looked at, so they neither capture nor end the session.
+void kill_capture_step(control_state& st, const key_state& keys, bool focused, uint8_t kbm_seat, uint64_t now,
+                       event_sink& out)
+{
+    capture_session& k = st.capture;
+    k.kbm_seat = kbm_seat;
+    if (k.baseline_pending) {
+        for (uint32_t i = 0; i < 8; ++i) {
+            k.key_baseline.down[i] = focused ? keys.down[i] : 0xFFFFFFFFu;
+        }
+        k.baseline_pending = 0;
+        return;  // never capture on the start tick
+    }
+    if (now - k.started_us >= CAPTURE_TIMEOUT_US) {
+        end_capture(st, out, ILC_CAPT_TIMEOUT, ILC_BIND_NONE, 0);
+        return;
+    }
+    for (uint32_t i = 0; i < 8; ++i) {
+        k.key_baseline.down[i] = focused ? (k.key_baseline.down[i] & keys.down[i]) : 0xFFFFFFFFu;
+    }
+    if (!focused) {
+        return;
+    }
+    for (uint32_t vk = 1; vk < 255; ++vk) {
+        if (vk == 0x10 || vk == 0x11 || vk == 0x12) {
+            continue;  // generic Shift/Ctrl/Alt: the left/right keys are captured instead
+        }
+        if (mouse_vk(vk) && vk != 0x02) {
+            continue;
+        }
+        if (key_is_down(keys, vk) && !key_is_down(k.key_baseline, vk)) {
+            const bool right_button = vk == 0x02;
+            end_capture(st, out, ILC_CAPT_CAPTURED, right_button ? ILC_BIND_MOUSE : ILC_BIND_KEY,
+                        static_cast<uint8_t>(vk));
+            return;
+        }
+    }
 }
 
 // Does a configured device name a pad in this group (directly, or as a live SDL member of it)?
@@ -282,6 +330,10 @@ void capture_step(control_state& st, const core& c, const key_state& keys, bool 
     if (!k.active) {
         return;
     }
+    if (k.seat == 0) {
+        kill_capture_step(st, keys, focused, kbm_seat, now, out);
+        return;
+    }
     const ilc_seat_input_frame& frame = c.frames[k.seat - 1];
     const bool pad_live = (frame.flags & ILC_FRAMEF_CONNECTED) != 0;
     // Hysteresis: a control counts as held at the start from 0.55, and a capture needs a firm press of 0.72, so
@@ -447,7 +499,22 @@ void control_command(control_state& st, const core& c, const command_msg& m, uin
         if (st.capture.active) {
             end_capture(st, out, ILC_CAPT_CANCELLED, ILC_BIND_NONE, 0);
         }
-        if (m.seat < 1 || m.seat > SEATS) {
+        if (m.seat == 0) {
+            // The co-op on/off key (the bridge checked arg0 == 0 and the slot). The keyboard is always there, so
+            // there is no NO_INPUT answer: unfocused, the session simply waits for the window to come back.
+            capture_session& k = st.capture;
+            memset(&k, 0, sizeof(k));
+            k.active = 1;
+            k.seat = 0;
+            k.action = static_cast<uint8_t>(ILC_CAPTURE_KILL_SWITCH_ACTION);
+            k.slot = static_cast<uint8_t>(m.arg1);
+            k.baseline_pending = 1;
+            k.kbm_seat = kbm_seat;
+            k.request_id = m.request_id;
+            k.started_us = now;
+            return;
+        }
+        if (m.seat > SEATS) {
             return;
         }
         const bool pad_live = (c.frames[m.seat - 1].flags & ILC_FRAMEF_CONNECTED) != 0;
@@ -471,7 +538,8 @@ void control_command(control_state& st, const core& c, const command_msg& m, uin
         if (st.capture.active && st.capture.seat == m.seat) {
             end_capture(st, out, ILC_CAPT_CANCELLED, ILC_BIND_NONE, 0);
         } else {
-            emit_capture(out, m.seat, m.request_id, ILC_CAPT_CANCELLED, 0, 0, ILC_BIND_NONE, 0);
+            const uint8_t action = m.seat == 0 ? static_cast<uint8_t>(ILC_CAPTURE_KILL_SWITCH_ACTION) : 0;
+            emit_capture(out, m.seat, m.request_id, ILC_CAPT_CANCELLED, action, 0, ILC_BIND_NONE, 0);
         }
         return;
     default:
@@ -512,20 +580,29 @@ void control_effective(const control_state& st, const config& settings, config* 
     }
 }
 
-void control_suppressed(const control_state& st, uint8_t out[SEATS])
+void control_suppressed(const control_state& st, uint8_t kbm_seat, uint8_t out[SEATS])
 {
     memset(out, 0, SEATS);
     if (pairing_active(st) && st.pairing.seat >= 1 && st.pairing.seat <= SEATS) {
         out[st.pairing.seat - 1] = 1;
     }
-    if (st.capture.active && st.capture.seat >= 1 && st.capture.seat <= SEATS) {
-        out[st.capture.seat - 1] = 1;
+    if (st.capture.active) {
+        // A seat-0 capture reads the keyboard: whoever owns it reads neutral actions, as for its own capture.
+        const uint8_t seat = st.capture.seat != 0 ? st.capture.seat : kbm_seat;
+        if (seat >= 1 && seat <= SEATS) {
+            out[seat - 1] = 1;
+        }
     }
 }
 
 bool control_wants_all_keys(const control_state& st, uint8_t kbm_seat)
 {
-    return st.capture.active && st.capture.seat == kbm_seat;
+    return st.capture.active && (st.capture.seat == 0 || st.capture.seat == kbm_seat);
+}
+
+bool control_kill_capture(const control_state& st)
+{
+    return st.capture.active && st.capture.seat == 0;
 }
 
 }  // namespace ilc::input

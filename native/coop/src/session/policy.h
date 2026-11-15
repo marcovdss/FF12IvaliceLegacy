@@ -45,9 +45,15 @@ uint16_t p1_member_now(const identity& id, const uint16_t* current, const uint16
 // holds no regular character in both layouts.
 bool resolve_identity(const identity& configured, const uint16_t* current, const uint16_t* ui, uint32_t leader,
                       identity* out);
+// The same, where a seat that has to be filled (it joined, or it was benched) takes its preferred character
+// (prefer->member[s]) when that one is free, before the first free member in party order. prefer may be null.
+bool resolve_identity_prefer(const identity& configured, const identity* prefer, const uint16_t* current,
+                             const uint16_t* ui, uint32_t leader, identity* out);
 // The identity to adopt from a settled live party, or false when nothing must change (a summon, a cutscene, a
 // load, an open menu, a party the two layouts disagree on, a non-regular leader, or the same identity).
 bool identity_from_party(const identity& current_identity, const world_sample& w, identity* out);
+bool identity_from_party_prefer(const identity& current_identity, const identity* prefer, const world_sample& w,
+                                identity* out);
 
 // A coherent temporary Esper formation: its party id, or MEMBER_NONE.
 uint16_t summoned_esper(const uint16_t* current, const uint16_t* ui);

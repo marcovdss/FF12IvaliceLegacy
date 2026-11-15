@@ -3,8 +3,10 @@
 
 #include <string.h>
 
+#include "focus/focus.h"
 #include "input/edge_history.h"
 #include "input/pad_mirror.h"
+#include "interaction/interaction.h"
 #include "movement/movement.h"
 #include "patch/call_island.h"
 #include "patch/patch_engine.h"
@@ -21,8 +23,6 @@ constexpr uint64_t VT_PAD_DINPUT = 0x1CB2638;    // VA: PInputDevicePadDirectInp
 constexpr uint64_t VT_PAD_STEAM = 0x1CB26B8;     // VA: PInputDevicePadSteamController vtable
 constexpr uint64_t VT_KEYBOARD = 0x1CB2430;      // VA: PInputDeviceKeyboard vtable
 constexpr uint64_t KEYMAP = 0x1F3DAB0;           // VA: internal key index -> DIK code (256 bytes)
-constexpr uint64_t PAD_FOCUS_FLAG = 0x2EA5213;   // VA: shared focus flag the pad and desktop inputs write
-constexpr uint64_t PAD_BLOCK_RESUME = 0x7A2243;  // VA: the pad block right after the focused store
 constexpr uint32_t DEV_XINPUT_INDEX = 0x458;     // XInput objects only: the polled user index
 constexpr uint32_t DEV_XINPUT_PACKET = 0x45C;    // XInput objects only: last packet number
 constexpr uint32_t DEV_PRODUCT_GUID = 0x1E4;     // DIDEVICEINSTANCEA.guidProduct (Data1 = VID | PID << 16)
@@ -66,16 +66,14 @@ constexpr int32_t ROW_IN01 = find_row("IN-01");
 constexpr int32_t ROW_IN02 = find_row("IN-02");
 constexpr int32_t ROW_IN03 = find_row("IN-03");
 constexpr int32_t ROW_IN05 = find_row("IN-05");
-constexpr int32_t ROW_IN06 = find_row("IN-06");
-constexpr int32_t ROW_IN07 = find_row("IN-07");
+constexpr int32_t ROW_IN06 = find_row("IN-06");  // the pad focus gate: the background setting's row now (focus.h)
 static_assert(patch::island::is_call_row(ROW_IN01) && patch::island::is_call_row(ROW_IN02) &&
-                  patch::island::is_call_row(ROW_IN03) && patch::island::is_call_row(ROW_IN05) &&
-                  patch::island::is_call_row(ROW_IN07),
-              "the finalize and focus-loss hooks are call rows: their bodies may copy records and read edges");
-static_assert(ROW_IN06 >= 0 && !patch::island::is_call_row(ROW_IN06), "IN-06 is the mid-function focus gate");
+                  patch::island::is_call_row(ROW_IN03) && patch::island::is_call_row(ROW_IN05),
+              "the finalize hooks are call rows: their bodies may copy records and read edges");
 static_assert(patch::SITES[ROW_IN01].subsystem == ILC_SITE_SUBSYS_INPUT_ISOLATION &&
-                  patch::SITES[ROW_IN06].subsystem == ILC_SITE_SUBSYS_INPUT_ISOLATION &&
-                  patch::SITES[ROW_IN07].subsystem == ILC_SITE_SUBSYS_INPUT_ISOLATION,
+                  patch::SITES[ROW_IN02].subsystem == ILC_SITE_SUBSYS_INPUT_ISOLATION &&
+                  patch::SITES[ROW_IN03].subsystem == ILC_SITE_SUBSYS_INPUT_ISOLATION &&
+                  patch::SITES[ROW_IN05].subsystem == ILC_SITE_SUBSYS_INPUT_ISOLATION,
               "all isolation rows carry the INPUT_ISOLATION arm bit");
 
 // ---- state ------------------------------------------------------------------------------------------------------
@@ -86,6 +84,8 @@ volatile uint32_t g_variant = VARIANT_OK;
 volatile uint32_t g_published = 0;
 // Guests' flee requests: the movement subsystem's epoch-tagged word (bit s = seat s asks). Replaceable in tests.
 uint32_t (*volatile g_flee_source)(uint32_t epoch) = movement::flee_seats;
+// The seat whose guest drives the native menus now (0 = none): the interaction subsystem. Replaceable in tests.
+uint32_t (*volatile g_driver_source)() = interaction::menu_driver;
 
 // Co-op thread only.
 struct config {
@@ -105,13 +105,18 @@ pads::pad_view g_last_p1 = {};
 // Tick thread only (the pad finalize bodies all run there, one device after another); g_host is also read by
 // release_settled() on the co-op thread (atomic loads/stores).
 volatile uint64_t g_host = 0;
-bool g_flee_last = false;  // flee was written onto P1's own device last tick: rewrite it from the real RT
+// P1's own XInput object as the last pad visit found it (0 = none): the firewall's P1 device check reads it with
+// one atomic load instead of reading device memory on every get-button call.
+volatile uint64_t g_p1_object = 0;
+volatile bool g_flee_last = false;  // flee was written onto P1's own device last tick: rewrite it from the real RT
+                                    // (release_settled() reads it on the co-op thread)
 uint32_t g_host_rank = 0;
 bool g_host_seen = false;
 uint64_t g_round[8];
 uint32_t g_round_n = 0;
 edges::edge_cursor g_cursor = {};
 uint32_t g_cursor_epoch = 0;
+uint32_t g_feed_seat = 0;  // the input seam seat the host was fed from last (0 = none): a change drains the newcomer
 
 enum pad_class : uint32_t { PAD_XINPUT = 0, PAD_DINPUT = 1, PAD_STEAM = 2 };
 
@@ -236,7 +241,46 @@ bool flee_requested(const iso_record& r)
     return (r.head.flags & ISO_FLEE) != 0 || g_flee_source(r.head.epoch) != 0;
 }
 
-bool write_substitute(uint64_t dev, const iso_record& r, bool xinput)
+// The edge cursor belongs to one epoch: a new epoch starts it afresh (its first read seeds, never replays).
+void cursor_epoch(const iso_record& r)
+{
+    if (r.head.epoch != g_cursor_epoch) {
+        memset(&g_cursor, 0, sizeof(g_cursor));
+        g_cursor_epoch = r.head.epoch;
+    }
+}
+
+// Which seat the record feeds the host from: a driving guest's own seat, P1's (seat 1) when P1 plays on SDL, or
+// none. When it changes (a menu drive starts or ends), the newcomer's presses so far are consumed without being
+// injected: a press made while that seat was not feeding the game (a guest's tap between two drives, P1's taps
+// while a guest drove) never reaches the new drive. Tick thread only.
+void track_feed(const iso_record& r)
+{
+    const uint32_t f = r.head.flags;
+    uint32_t seat = 0;
+    if ((f & ISO_DRIVER) != 0) {
+        seat = static_cast<uint32_t>(r.driver_seat) + 1;
+    } else if ((f & ISO_SUBST) != 0) {
+        seat = 1;
+    }
+    if (seat == g_feed_seat) {
+        return;
+    }
+    if (seat == 0) {
+        g_feed_seat = 0;
+        return;
+    }
+    cursor_epoch(r);
+    edges::edge_delta drained;
+    if (!edges::since(g_cursor, seat, &drained)) {
+        return;  // nothing drained (no history yet, or the service restarted mid-read): try again next visit
+    }
+    g_feed_seat = seat;
+    count(g_counters.feed_drains);
+}
+
+// `seat`: the input seam's seat (1 = P1 fed from SDL; a menu driver's own seat, from any connected pad).
+bool write_substitute(uint64_t dev, const iso_record& r, bool xinput, uint32_t seat = 1)
 {
     const uint32_t variant = g_variant;
     if (variant == VARIANT_NONE) {
@@ -244,19 +288,17 @@ bool write_substitute(uint64_t dev, const iso_record& r, bool xinput)
     }
     pads::pad_view v;
     ilc_xinput_gamepad pad = {};
-    const bool live = pads::read(1, &v) && v.source == ILC_FRAME_SOURCE_SDL && (v.flags & ILC_FRAMEF_CONNECTED) != 0;
+    const bool live = pads::read(seat, &v) && (seat != 1 || v.source == ILC_FRAME_SOURCE_SDL) &&
+                      (v.flags & ILC_FRAMEF_CONNECTED) != 0;
     if (live) {
         pad = v.pad;
     }
     // Presses since this consumer's last read: a tap that started and ended between two device ticks still
     // reaches the game. A new epoch, an overrun or a re-seeded cursor contributes nothing (never a replay).
-    if (r.head.epoch != g_cursor_epoch) {
-        memset(&g_cursor, 0, sizeof(g_cursor));
-        g_cursor_epoch = r.head.epoch;
-    }
+    cursor_epoch(r);
     uint32_t extra = 0;
     edges::edge_delta d;
-    if (edges::since(g_cursor, 1, &d) && !d.overrun && !d.reseeded && live) {
+    if (edges::since(g_cursor, seat, &d) && !d.overrun && !d.reseeded && live) {
         extra = d.pad_pressed;
     }
     uint8_t block[BLOCK_SIZE];
@@ -276,6 +318,29 @@ bool write_substitute(uint64_t dev, const iso_record& r, bool xinput)
     return ok;
 }
 
+// The host's write for this visit. While the game keeps running in the background (focus.h) the host shows a neutral
+// pad, like player 1's own pads there: neither P1 fed from SDL nor a guest driving the native menus reaches the game
+// from another application's foreground. The presses made meanwhile are consumed, so none is replayed on refocus.
+void feed_host(uint64_t dev, const iso_record& r, uint32_t cls, uint32_t seat)
+{
+    if (focus::running_unfocused()) {
+        cursor_epoch(r);
+        edges::edge_delta skipped;
+        (void)edges::since(g_cursor, seat, &skipped);
+        if (write_neutral(dev, cls)) {
+            count(g_counters.background);
+        } else {
+            count(g_counters.probe_failed);
+        }
+        return;
+    }
+    if (write_substitute(dev, r, cls == PAD_XINPUT, seat)) {
+        count(g_counters.substituted);
+    } else {
+        count(g_counters.probe_failed);
+    }
+}
+
 int32_t pad_body(patch::ctx* c, const iso_record& r, uint32_t cls, uint64_t vtable_va)
 {
     const uint64_t dev = c->rcx;  // the finalizer's argument (call row: registers at its entry)
@@ -283,7 +348,9 @@ int32_t pad_body(patch::ctx* c, const iso_record& r, uint32_t cls, uint64_t vtab
         return patch::RUN_ORIGINAL;
     }
     const uint32_t f = r.head.flags;
+    track_feed(r);
     if ((f & (ISO_GUARD | ISO_SUBST)) == 0) {
+        __atomic_store_n(&g_p1_object, 0, __ATOMIC_RELEASE);
         if ((f & ISO_RELEASE) != 0 && dev == g_host && g_host != 0) {
             write_neutral(dev, cls);  // the last substituted state must not persist (XInput skips old packets)
             count(g_counters.released);
@@ -293,6 +360,38 @@ int32_t pad_body(patch::ctx* c, const iso_record& r, uint32_t cls, uint64_t vtab
             if ((f & ISO_RELEASE) == 0) {
                 forget_host();
             }
+        }
+        // A flee byte written onto P1's own device must not outlive isolation (the kill switch, or the last guest
+        // leaving): XInput re-interprets only new packets. Rewrite it once from the real RT of the last packet.
+        if (g_flee_last && cls == PAD_XINPUT && r.p1_slot != 0xFF) {
+            uint32_t index = 0xFFFFFFFFu;
+            uint8_t rt = 0;
+            if (read_game(dev + DEV_XINPUT_INDEX, &index) && index == r.p1_slot &&
+                read_game(dev + DEV_XINPUT_RT, &rt)) {
+                const uint8_t value = rt != 0 ? 1 : 0;
+                write_game(dev + DEV_FLEE, &value, 1);
+                __atomic_store_n(&g_flee_last, false, __ATOMIC_RELEASE);
+            }
+        }
+        return patch::RUN_ORIGINAL;
+    }
+    if ((f & ISO_DRIVER) != 0) {
+        // A guest drives the native menus: the host carries that guest's pad, every other object is masked (P1's
+        // own device too: P1 waits). A disconnected XInput object is never the host.
+        const bool can_host = cls != PAD_XINPUT || static_cast<uint32_t>(c->rdi) == 0;
+        if (can_host) {
+            elect(dev, cls == PAD_XINPUT ? 2u : (cls == PAD_STEAM ? 1u : 0u));
+            if (dev == g_host) {
+                feed_host(dev, r, cls, static_cast<uint32_t>(r.driver_seat) + 1);
+                return patch::RUN_ORIGINAL;
+            }
+        } else if (dev == g_host) {
+            forget_host();
+        }
+        if (write_neutral(dev, cls)) {
+            count(g_counters.masked);
+        } else {
+            count(g_counters.probe_failed);
         }
         return patch::RUN_ORIGINAL;
     }
@@ -313,10 +412,14 @@ int32_t pad_body(patch::ctx* c, const iso_record& r, uint32_t cls, uint64_t vtab
                 const uint8_t value = (rt != 0 || flee) ? 1 : 0;
                 write_game(dev + DEV_FLEE, &value, 1);
             }
-            g_flee_last = flee;
+            __atomic_store_n(&g_flee_last, flee, __ATOMIC_RELEASE);
+            __atomic_store_n(&g_p1_object, dev, __ATOMIC_RELEASE);
             count(g_counters.passed);
             return patch::RUN_ORIGINAL;
         }
+    }
+    if (dev == g_p1_object) {
+        __atomic_store_n(&g_p1_object, 0, __ATOMIC_RELEASE);  // this object is not P1's any more
     }
     // A disconnected XInput object is never the host (IN-01: edi = XInputGetState's result, 0 = connected): the
     // game never interprets it again, so a state substituted there would outlive a hard disarm.
@@ -324,11 +427,7 @@ int32_t pad_body(patch::ctx* c, const iso_record& r, uint32_t cls, uint64_t vtab
     if ((f & ISO_SUBST) != 0 && eligible) {
         elect(dev, host_rank(dev, cls, r));
         if (dev == g_host) {
-            if (write_substitute(dev, r, cls == PAD_XINPUT)) {
-                count(g_counters.substituted);
-            } else {
-                count(g_counters.probe_failed);
-            }
+            feed_host(dev, r, cls, 1);
             return patch::RUN_ORIGINAL;
         }
     } else if ((f & ISO_SUBST) == 0 && g_host != 0) {
@@ -388,38 +487,6 @@ int32_t body05(patch::ctx* c, const iso_record& r)
         write_game(dev + KB_KEYS + key, &down, 1);
     }
     count(g_counters.kb_filtered);
-    return patch::RUN_ORIGINAL;
-}
-
-int32_t body06(patch::ctx* c, const iso_record& r)
-{
-    // Mid-function (jne at the focus gate): ZF set = focused, the stock path continues. Unfocused: run the pad
-    // block anyway, keeping the shared focus flag honest (0) as the stock unfocused path would have.
-    if ((r.head.flags & ISO_BACKGROUND) == 0 || (c->rflags & 0x40) != 0) {
-        return patch::RUN_ORIGINAL;
-    }
-    const uint8_t zero = 0;
-    if (!write_game(game(PAD_FOCUS_FLAG), &zero, 1)) {
-        count(g_counters.probe_failed);
-        return patch::RUN_ORIGINAL;
-    }
-    count(g_counters.background);
-    c->resume = game(PAD_BLOCK_RESUME);
-    return patch::RESUME;
-}
-
-int32_t body07(patch::ctx* c, const iso_record& r)
-{
-    // rdx = &event {type 4, value 0}; value 1 makes the focus loss read as "active": the game keeps running.
-    if ((r.head.flags & ISO_BACKGROUND) == 0) {
-        return patch::RUN_ORIGINAL;
-    }
-    const uint32_t active = 1;
-    if (write_game(c->rdx + 4, &active, 4)) {
-        count(g_counters.focus_kept);
-    } else {
-        count(g_counters.probe_failed);
-    }
     return patch::RUN_ORIGINAL;
 }
 
@@ -497,6 +564,17 @@ iso_record compose(uint32_t epoch, uint64_t generation, const session::session_r
     if ((f & ISO_GUARD) != 0 && g_cfg.kbm_seat != 1) {
         f |= ISO_KB_FILTER;
     }
+    // A guest's dialog, menu or shop is open: that guest drives the native menus with its own pad (or keyboard).
+    const uint32_t driver = g_driver_source();
+    if (driver >= 1 && driver < ILC_ACTIVE_SEATS_MAX && driver < ILC_SEATS) {
+        f |= ISO_DRIVER | ISO_GUARD;
+        r.driver_seat = static_cast<uint8_t>(driver);
+        if (g_cfg.kbm_seat == driver + 1) {
+            f &= ~static_cast<uint32_t>(ISO_KB_FILTER);
+        } else {
+            f |= ISO_KB_FILTER;
+        }
+    }
     // Flee is not decided here: the movement subsystem publishes the guests' requests (flee_seats, tagged with
     // the epoch) and the pad bodies read that word when they write P1's flee byte. The session record is only
     // passed through for future use.
@@ -552,7 +630,7 @@ bool release_settled()
 {
     return __atomic_load_n(&g_release_requested, __ATOMIC_ACQUIRE) != 0 &&
            __atomic_load_n(&g_release_composed, __ATOMIC_ACQUIRE) != 0 &&
-           __atomic_load_n(&g_host, __ATOMIC_ACQUIRE) == 0;
+           __atomic_load_n(&g_host, __ATOMIC_ACQUIRE) == 0 && !__atomic_load_n(&g_flee_last, __ATOMIC_ACQUIRE);
 }
 
 namespace {
@@ -591,16 +669,13 @@ int32_t in01(patch::ctx* c, uint32_t epoch) { return iso_open<body01>(c, epoch);
 int32_t in02(patch::ctx* c, uint32_t epoch) { return iso_open<body02>(c, epoch); }
 int32_t in03(patch::ctx* c, uint32_t epoch) { return iso_open<body03>(c, epoch); }
 int32_t in05(patch::ctx* c, uint32_t epoch) { return iso_open<body05>(c, epoch); }
-int32_t in06(patch::ctx* c, uint32_t epoch) { return iso_open<body06>(c, epoch); }
-int32_t in07(patch::ctx* c, uint32_t epoch) { return iso_open<body07>(c, epoch); }
 
 bool attach()
 {
     const struct {
         int32_t row;
         patch::handler_fn fn;
-    } hooks[] = {{ROW_IN01, in01}, {ROW_IN02, in02}, {ROW_IN03, in03},
-                 {ROW_IN05, in05}, {ROW_IN06, in06}, {ROW_IN07, in07}};
+    } hooks[] = {{ROW_IN01, in01}, {ROW_IN02, in02}, {ROW_IN03, in03}, {ROW_IN05, in05}};
     bool ok = true;
     for (const auto& h : hooks) {
         ok = h.row >= 0 && patch::set_handler(static_cast<uint32_t>(h.row), h.fn) &&
@@ -623,6 +698,16 @@ status_view status()
     return v;
 }
 
+uint64_t host_object()
+{
+    return __atomic_load_n(&g_host, __ATOMIC_ACQUIRE);
+}
+
+uint64_t p1_object()
+{
+    return __atomic_load_n(&g_p1_object, __ATOMIC_ACQUIRE);
+}
+
 patch::record_slot<iso_record>& slot()
 {
     return g_slot;
@@ -639,12 +724,15 @@ void test_reset()
     forget_host();
     memset(&g_cursor, 0, sizeof(g_cursor));
     g_cursor_epoch = 0;
+    g_feed_seat = 0;
     g_budget = KB_BUDGET;
     g_variant = VARIANT_OK;
     g_active_beats_ago = RELEASE_BEATS + 1;
     g_cfg = {};
     g_flee_source = movement::flee_seats;
+    g_driver_source = interaction::menu_driver;
     g_flee_last = false;
+    g_p1_object = 0;
     g_release_requested = 0;
     g_release_composed = 0;
     g_last_p1 = {};
@@ -660,9 +748,19 @@ void test_set_budget(int32_t value)
     g_budget = value;
 }
 
+bool test_flee_last()
+{
+    return __atomic_load_n(&g_flee_last, __ATOMIC_ACQUIRE);
+}
+
 void test_block_variant(uint32_t v)
 {
     g_variant = v;
+}
+
+void test_driver_source(uint32_t (*source)())
+{
+    g_driver_source = source != nullptr ? source : interaction::menu_driver;
 }
 
 void test_flee_source(uint32_t (*source)(uint32_t epoch))

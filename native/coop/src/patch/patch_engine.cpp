@@ -39,11 +39,13 @@ liveness g_live = {0, 0, 0, 0, 0};
 site_stats g_stats[SITE_COUNT];
 handler_fn volatile g_handlers[SITE_COUNT];
 after_fn volatile g_after[SITE_COUNT];   // call rows only
+handler_fn volatile g_stale[SITE_COUNT];  // CORE rows only: runs when the liveness sample is coherent but stale
 bool g_site_armed[SITE_COUNT];
 bool g_hooked[SITE_COUNT];   // MH_CreateHook succeeded for the row and the hook is ours
 volatile uint32_t g_subsystems = 0;  // closed until an applied settings record opens them
 volatile uint32_t g_mode = MODE_DRY;   // first boot is dry-armed
 volatile uint32_t g_faulted = 0;       // latched fault bits (atomic OR; cleared only by test_release_all)
+volatile uint64_t g_stale_fallbacks = 0;  // slow paths sent to stock by a stale or torn liveness sample
 uint32_t g_state = STATE_IDLE;
 uintptr_t g_base = 0;
 bool g_mh_initialized = false;
@@ -128,7 +130,7 @@ bool read_bytes(void* dst, const void* src, size_t size, bool executable)
 // Every checked byte of a call row except the four rel32 bytes still holds its pinned value.
 bool call_row_rest_pinned(uintptr_t base, const site& s)
 {
-    uint8_t buffer[64];
+    uint8_t buffer[CHECKED_MAX];
     const uint32_t n = checked_len(s);
     if (n > sizeof(buffer) || !read_bytes(buffer, site_va(base, s), n, true)) {
         return false;
@@ -145,7 +147,7 @@ bool call_row_rest_pinned(uintptr_t base, const site& s)
 // 1 = the row's checked bytes match; 0 = they differ; -1 = unreadable.
 int row_matches(uintptr_t base, const site& s, uint32_t from = 0)
 {
-    uint8_t buffer[64];
+    uint8_t buffer[CHECKED_MAX];
     const uint32_t n = checked_len(s);
     if (n > sizeof(buffer)) {
         return -1;
@@ -220,6 +222,13 @@ int32_t preflight_locked(uintptr_t base, report* out, bool skip[SITE_COUNT])
         const site& s = SITES[row];
         if (s.policy == ILC_SITE_POLICY_GATE && row_matches(base, s) != 1 && s.gate < SITE_COUNT) {
             skip[s.gate] = true;
+        }
+    }
+    // OPTIONAL PATCH rows (the HUD frame hook): a mismatch skips the row itself, as a failed gate would.
+    for (uint32_t row = 0; row < SITE_COUNT; ++row) {
+        const site& s = SITES[row];
+        if (s.policy == ILC_SITE_POLICY_PATCH && (s.flags & ILC_SITE_FLAG_OPTIONAL) != 0 && row_matches(base, s) != 1) {
+            skip[row] = true;
         }
     }
     for (uint32_t row = 0; row < SITE_COUNT; ++row) {
@@ -644,13 +653,27 @@ int32_t install(uintptr_t base, report* out)
             hook(QUIESCE_PHASE_BEFORE_APPLY, g_inject_row);
         }
     }
+    // A gated row may have several GATE rows: what they decide together now must equal what they decided then.
+    static bool skip_now[SITE_COUNT];
+    for (uint32_t row = 0; row < SITE_COUNT; ++row) {
+        skip_now[row] = false;
+    }
+    for (uint32_t row = 0; row < SITE_COUNT; ++row) {
+        const site& s = SITES[row];
+        if (s.policy == ILC_SITE_POLICY_GATE && s.gate < SITE_COUNT && row_matches(base, s) != 1) {
+            skip_now[s.gate] = true;
+        }
+        if (s.policy == ILC_SITE_POLICY_PATCH && (s.flags & ILC_SITE_FLAG_OPTIONAL) != 0 && skip[row]) {
+            skip_now[row] = true;  // skipped at preflight as rewritten: not hooked, so no gate decision can flip it
+        }
+    }
     for (uint32_t row = 0; row < SITE_COUNT; ++row) {
         const site& s = SITES[row];
         bool changed = false;
         if (g_hooked[row] || s.policy == ILC_SITE_POLICY_REQUIRE) {
             changed = row_matches(base, s) != 1;
         } else if (s.policy == ILC_SITE_POLICY_GATE && s.gate < SITE_COUNT) {
-            changed = (row_matches(base, s) != 1) != skip[s.gate];
+            changed = skip_now[s.gate] != skip[s.gate];
         }
         if (changed) {
             const int32_t undone = rollback(base, out, false, static_cast<int32_t>(row));
@@ -733,6 +756,15 @@ bool set_after(uint32_t row, after_fn after)
     return true;
 }
 
+bool set_stale_handler(uint32_t row, handler_fn stale)
+{
+    if (!is_patch(row) || !island_row(row) || SITES[row].subsystem != ILC_SITE_SUBSYS_CORE) {
+        return false;
+    }
+    __atomic_store_n(&g_stale[row], stale, __ATOMIC_RELEASE);
+    return true;
+}
+
 bool is_call_row(uint32_t row)
 {
     return island_row(row);
@@ -770,6 +802,25 @@ void set_mode(uint32_t mode)
 uint32_t current_mode()
 {
     return g_mode;
+}
+
+bool try_set_mode(uint32_t mode)
+{
+    if (mode != MODE_DRY && mode != MODE_LIVE) {
+        return false;
+    }
+    if (!TryAcquireSRWLockExclusive(&g_lock)) {
+        return false;
+    }
+    g_mode = mode;
+    recompute_gates();
+    ReleaseSRWLockExclusive(&g_lock);
+    return true;
+}
+
+uint64_t stale_fallbacks()
+{
+    return __atomic_load_n(&g_stale_fallbacks, __ATOMIC_RELAXED);
 }
 
 bool try_apply_subsystems(uint32_t mask)
@@ -934,6 +985,7 @@ int32_t test_release_all()
         g_site_armed[row] = false;
         g_handlers[row] = nullptr;
         g_after[row] = nullptr;
+        g_stale[row] = nullptr;
         ilc_patch_tramp[row] = nullptr;
         g_original[row] = nullptr;
         g_stats[row].entered = 0;
@@ -948,6 +1000,7 @@ int32_t test_release_all()
     g_subsystems = static_cast<uint32_t>(ILC_ENUM_OR(ILC_SUBSYSTEMS));
     g_mode = MODE_DRY;
     g_faulted = 0;
+    g_stale_fallbacks = 0;
     g_quiesce_hook = nullptr;
     g_state = STATE_IDLE;
     g_base = 0;
@@ -976,18 +1029,29 @@ void* const* test_trampoline_array()
 namespace {
 
 // The checks every slow path repeats without the lock: a gate byte may lag a mode change or a latched fault.
-// True = the handler may run, with the sampled epoch.
-bool may_run(uint32_t row, handler_fn handler, uint32_t* epoch)
+// True = the handler may run, with the sampled epoch. *stale (when not null) is set when everything but the
+// liveness heartbeat allows the handler: armed exactly 1 and a coherent sample, but too old (or epoch 0). A CORE row
+// with a stale handler runs it then, for clean-up that must not wait for the co-op thread (wait.h).
+bool may_run(uint32_t row, handler_fn handler, uint32_t* epoch, bool* stale = nullptr)
 {
     const site& s = SITES[row];
     bool live = ilc_patch_gate[row] != 0 && handler != nullptr &&
                 (g_mode == MODE_LIVE || s.subsystem == ILC_SITE_SUBSYS_CORE) &&
                 (__atomic_load_n(&g_faulted, __ATOMIC_ACQUIRE) & fault_bit(s)) == 0;
     *epoch = 0;
+    if (stale != nullptr) {
+        *stale = false;
+    }
     if (live) {
         const liveness_view v = sample_liveness();
+        if (stale != nullptr) {
+            *stale = !v.fresh && v.coherent && v.armed == 1;
+        }
         live = v.fresh;
         *epoch = v.epoch;
+        if (!live) {
+            __atomic_add_fetch(&g_stale_fallbacks, 1, __ATOMIC_RELAXED);
+        }
     }
     return live;
 }
@@ -1036,8 +1100,13 @@ extern "C" uint64_t ilc_call_dispatch(ctx* c)
     __atomic_add_fetch(&st.entered, 1, __ATOMIC_RELAXED);
     const handler_fn handler = __atomic_load_n(&g_handlers[row], __ATOMIC_ACQUIRE);
     uint32_t epoch;
-    if (!may_run(row, handler, &epoch)) {
+    bool stale = false;
+    if (!may_run(row, handler, &epoch, &stale)) {
         __atomic_add_fetch(&st.stock, 1, __ATOMIC_RELAXED);
+        const handler_fn on_stale = stale ? __atomic_load_n(&g_stale[row], __ATOMIC_ACQUIRE) : nullptr;
+        if (on_stale != nullptr) {
+            on_stale(c, epoch);  // clean-up only: the callee runs as it is whatever it returns
+        }
         return stock;
     }
     __atomic_add_fetch(&st.handled, 1, __ATOMIC_RELAXED);

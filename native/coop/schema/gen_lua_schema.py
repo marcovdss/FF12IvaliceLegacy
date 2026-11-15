@@ -5,10 +5,13 @@ schema/bridge-abi-v1.json, so the two sides cannot drift: a stale file is caught
 schema-id comparison at run time. Debug-only ops (names starting TEST_) are left out on purpose.
 
     python gen_lua_schema.py            write the file
-    python gen_lua_schema.py --check    exit 1 if the committed file differs
+    python gen_lua_schema.py --check    exit 1 if the committed file differs (writes nothing)
+    python gen_lua_schema.py --help     this usage (writes nothing)
+Any other argument is refused (exit 2) and nothing is written.
 """
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -58,9 +61,13 @@ def render(s: Schema) -> str:
     return '\n'.join(L) + '\n'
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog='gen_lua_schema.py', description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--check', action='store_true', help='exit 1 if the committed file differs; write nothing')
+    args = parser.parse_args(argv)  # unknown arguments and --help exit here, before anything is written
     text = render(Schema())
-    if '--check' in sys.argv:
+    if args.check:
         ok = OUT.exists() and OUT.read_bytes().replace(b'\r\n', b'\n').decode() == text
         print('schema_data.lua is current' if ok else 'schema_data.lua is STALE: run gen_lua_schema.py')
         return 0 if ok else 1

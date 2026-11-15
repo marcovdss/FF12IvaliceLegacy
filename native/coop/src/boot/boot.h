@@ -22,7 +22,9 @@
 //      transaction (any refusal: FAULT / PATCH_CONFLICT, PATCH_BUSY or PATCH_FAILED, input stopped);
 //   d. attaches the UI-tick handler (settings safe point) and arms the liveness record: ARMED / DRY_ARMED, or READY
 //      once FF12HinitDone has run. Every detour still runs stock; the safe point applies settings pushed by Lua, and
-//      only an applied settings record changes the subsystem arm bits. The boot never leaves DRY mode;
+//      only an applied settings record changes the subsystem arm bits. The boot itself never leaves DRY mode: the UI
+//      tick does, once, after the first applied record's mask (runtime/tick.h). current() then reports the reason
+//      LIVE instead of DRY_ARMED whenever an armed, unfaulted subsystem may act;
 //   e. starts the session core (session/session.h) and, every HEARTBEAT_MS until shutdown, runs one session step
 //      and heartbeats the liveness record with the session's epoch (FIRST_EPOCH until a world exists; a new
 //      epoch at every map jump, load, title screen or game over). It also hands the session the applied settings

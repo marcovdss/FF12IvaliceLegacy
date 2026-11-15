@@ -43,11 +43,12 @@ enum start_issue : uint32_t {
 struct control_view {
     uint8_t pairing_stage;  // pairing_stage
     uint8_t pairing_seat;   // 0 none
-    uint8_t capture_seat;   // 0 none
+    uint8_t capture_seat;   // 0 none (a seat-0 capture shows in kill_capture)
     uint8_t override_active;
     uint8_t parked;         // bit s = seat s+1 parked in the configuration the core resolves with
     uint8_t focused;
-    uint8_t reserved[2];
+    uint8_t kill_capture;   // 1 while the co-op on/off key is being captured (seat 0)
+    uint8_t reserved;
     uint32_t move_request[SEATS];
     uint8_t move_character[SEATS];
     uint32_t events_dropped;
@@ -70,6 +71,11 @@ struct snapshot {
 
 // Latest snapshot; false while the service has never published (its state then reads STOPPED).
 bool snapshot_read(snapshot* out);
+
+// A capture that reads the whole keyboard (the co-op on/off key's, seat 0, or the keyboard seat's own) for the co-op
+// switches, one atomic load from any thread: bit 0 = running, bits 1..31 = a serial that moves at every start and
+// end (never reset; 0 = none ever ran).
+uint32_t kill_capture_word();
 
 // Seat configuration: thread-safe, applied at the start of the next tick.
 void configure(const config& cfg);
@@ -105,6 +111,7 @@ uint32_t drain_events(control_event* out, uint32_t max);
 // whether the game confirms with Circle (pad A/B swap for CONFIRM/CANCEL).
 void set_fast(uint32_t seat, bool on);
 void set_decide_swap(bool circle_confirms);
+bool decide_swap_knob();  // what set_decide_swap last stored (the firewall's host tests read it)
 
 // Host tests: the keyboard the manual service reads (null = none, the default).
 void manual_keyboard(keyboard_api* keyboard);

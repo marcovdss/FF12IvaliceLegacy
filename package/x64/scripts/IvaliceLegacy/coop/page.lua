@@ -16,7 +16,49 @@ M.TICK_MS = 100
 M.CHARACTER_OPTIONS = {'AUTO', 'NONE', 'VAAN', 'ASHE', 'FRAN', 'BALTHIER', 'BASCH', 'PENELO'}
 -- rows and pages hidden while the module is missing, blocked, unsupported or has faulted
 M.RESIDUE_TEXT = 'Old Ivalice Together menu files found; they do nothing. Remove them in Vortex.'
-M.SETTINGS_ROWS = {'coopLive', 'guestsParked', 'fullRoster', 'seats', 'controls', 'colours', 'sounds'}
+M.INTERACTIONS_TEXT = 'Guests cannot use doors, chests, NPCs or loot this session (the hooks did not attach). ' ..
+                      'Everything else works. The log file has the details.'
+M.SETTINGS_ROWS = {'coopLive', 'guestsParked', 'fullRoster', 'keepRunning', 'seats', 'controls', 'colours', 'sounds',
+                   'battleHud'}
+
+-- Battle HUD page. Insurgent's Vision owns the minimap and overhead toggles; its settings file is read (never written)
+-- so the page can show their state. Its "No Combat Log" must stay off: the co-op HUD's frame hook sits on that call.
+M.VISION_PATH = 'scripts/config/TheInsurgentsVisionConfig.json'
+M.VISION_EVERY = 50   -- timer ticks between reads of Vision's file (5 s)
+M.VISION_ROWS = {
+  {key = 'noMinimap', id = 'visionMinimap', label = 'Minimap', on = 'Off (Vision)', off = 'Shown'},
+  {key = 'noOverheadHpBars', id = 'visionOverheadHp', label = 'Overhead HP bars', on = 'Off (Vision)', off = 'Shown'},
+  {key = 'noOverheadStatusEffects', id = 'visionOverheadStatus', label = 'Overhead statuses', on = 'Off (Vision)',
+   off = 'Shown'},
+  {key = 'noCombatLog', id = 'visionCombatLog', label = 'Vision No Combat Log', on = 'ON: turn it off', off = 'Off (correct)'},
+}
+M.HUD_ROWS = {
+  {key = 'partyShrink', label = 'Smaller party list', group = 'party',
+   help = 'The native party list at three quarters size in the bottom-right corner. Shows from the next area load.'},
+  {key = 'seatEdge', label = 'Seat edge and number', group = 'party',
+   help = 'A thin edge in the seat colour and the player number (G for a gambit ally) on each party row.'},
+  {key = 'lowHpGlow', label = 'Low HP glow', group = 'party', help = 'The HP number glows red while a member is in danger.'},
+  {key = 'damageGhost', label = 'Damage ghost', group = 'party', help = 'HP just lost stays visible on the gauge for a moment.'},
+  {key = 'actionLine', label = 'Action line', group = 'party',
+   help = 'Shows "Choosing..." while a player is in a battle menu, and which ally an action aims at.'},
+  {key = 'targetInfo', label = 'Target Info', group = 'info',
+   help = "The expanded Target Info in the top-left corner. Off: the game's own target window."},
+  {key = 'battleLog', label = 'Battle log', group = 'info',
+   help = "The battle log in the top-right corner, in place of the game's combat log. Off: the game's combat log."},
+  {key = 'seatLines', label = 'Target lines in seat colours', group = 'world',
+   help = "Each player's target line takes the seat colour; gambit allies stay silver, foes keep the game's colours."},
+  {key = 'seatDiamonds', label = 'Seat diamonds', group = 'world',
+   help = "A numbered diamond over each player's character at the start of a fight, on a swap or drop-in, and on Identify."},
+  {key = 'aoeRing', label = 'Area ring while aiming', group = 'world',
+   help = 'A ring only while a player aims an area magick or technick. Attack never gets one, whatever the weapon.'},
+  {key = 'circlesOff', label = 'Hide target circles', group = 'world',
+   help = "Hides the game's target circles. If Insurgent's Vision already hides them, its setting is used."},
+}
+M.HUD_GROUPS = {party = 'Party list', info = 'Target Info and battle log', world = 'In the world'}
+M.LOG_FILTERS = {'ALL', 'PARTY', 'FOES', 'STATUSES', 'MINE'}
+M.LOG_FILTER_LABELS = {'All', 'Party', 'Foes', 'Statuses', 'One player'}
+M.TEST_DRAW_HELP = "Draws four test lines in the players' colours, a status icon and a bar with the game's own font " ..
+                   "and HUD art, to check the co-op overlay. Off for play."
 
 local function title(s)
   local t = s:lower():gsub('_', ' ')
@@ -28,15 +70,16 @@ local function indexOf(list, v)
   return 0
 end
 
--- deps: modmenu, store, bridge, codec, views, flows, dialogs, statusview; optional: after(ms, fn), log(text), logPath
+-- deps: modmenu, store, bridge, codec, views, flows, dialogs, statusview; optional: after(ms, fn), log(text), logPath,
+-- vision() -> Insurgent's Vision settings table or nil (read only)
 function M.create(deps)
   local modmenu, store, bridge, C = deps.modmenu, deps.store, deps.bridge, deps.codec
   local V, F, D, S = deps.views, deps.flows, deps.dialogs, deps.statusview
   local E = C.enums
   local ACTIVE = C.schema.const.ACTIVE_SEATS_MAX or 3      -- seats with a human player (fail closed: 3)
   local log = deps.log or function() end
-  local P = {rows = {}, order = {}, cache = {}, native = nil, view = {kind = 'starting', text = 'Starting'}, devMode = false,
-             cancelIds = {}}
+  local P = {rows = {}, order = {}, cache = {}, native = nil, view = {kind = 'starting', text = 'Starting'},
+             cancelIds = {}, devIds = {}}
 
   local function notify(text) D.notify(text) end
 
@@ -106,7 +149,7 @@ function M.create(deps)
   ---- schema of the page ------------------------------------------------------------------------------------------------
   function P.build()
     P.rows, P.order, P.cancelIds = {}, {}, {}
-    local main, seats, controls, colours, sounds, diag, subs = {}, {}, {}, {}, {}, {}, {}
+    local main, seats, controls, colours, sounds, diag, subs, hud = {}, {}, {}, {}, {}, {}, {}, {}
 
     -- Status and the co-op module
     statusRow(main, 'status', 'Status', function() return P.statusText() end, function() P.explain() end,
@@ -127,6 +170,12 @@ function M.create(deps)
     toggle(main, 'fullRoster', 'Full roster at start', {'Off', 'On'},
            function(st) return st.fullRoster and 1 or 0 end,
            function(st, v) st.fullRoster = v == 1 end, 'Applies from the next launch.')
+    toggle(main, 'keepRunning', 'Keep running in background', {'Off', 'On'},
+           function(st) return st.keepRunning and 1 or 0 end,
+           function(st, v) st.keepRunning = v == 1 end,
+           'Windowed and borderless only: the game keeps running when you switch to another window. While it is ' ..
+           'unfocused, your controller and mouse are ignored until you come back. Works solo and with co-op off too. ' ..
+           'Exclusive fullscreen pauses as usual.')
     cancelRow(main, 'opCancel')
 
     -- Seats
@@ -160,14 +209,18 @@ function M.create(deps)
     local owners = {'None'}
     for i = 1, ACTIVE do owners[#owners + 1] = seatLabel(i) end
     carousel(seats, 'keyboardSeat', 'Keyboard/mouse seat', owners,
-             function(st) return st.keyboardSeat end, function(st, v) st.keyboardSeat = v end,
+             function(st) return st.keyboardSeat end,
+             function(st, v)
+               local clash = F.keyboard_seat_conflict(st, v)
+               if clash then return false, clash end
+               st.keyboardSeat = v
+             end,
              'Which player uses the keyboard and mouse.')
 
     -- Controls
     statusRow(controls, 'killSwitch', 'Co-op on/off key', function(st) return F.binding_text((st or store.state).killSwitch) end,
-              function()
-                notify('Changing the on/off key is not available yet. Until then use Co-op right now on the main page.')
-              end, 'The key that turns co-op off and on during play.')
+              function() F.open_kill_capture() end,
+              'The key that turns co-op off and on during play. A keyboard key or the right mouse button. Press to change it.')
     cancelRow(controls, 'opCancelControls')
     local actions = {}
     for name, idx in pairs(E.action) do actions[#actions + 1] = {name = name, idx = idx} end
@@ -177,7 +230,7 @@ function M.create(deps)
       cancelRow(rows, 'opCancelControls' .. i)
       for _, a in ipairs(actions) do
         if i > 1 or (P1_MASK >> a.idx) & 1 == 1 then
-          statusRow(rows, 'bind' .. i .. '_' .. a.name, title(a.name),
+          statusRow(rows, 'bind' .. i .. '_' .. a.name, F.action_label(a.name),
                     function(st) return F.binding_text((st or store.state).seats[i].bindings[a.name]) end,
                     function() F.open_capture(i, a.name) end, 'Press, then press the new button or key.')
         end
@@ -186,6 +239,8 @@ function M.create(deps)
                  help = 'Puts this player\'s controls back to the defaults.'}, nil, nil)
       P.rows['bindReset' .. i].button = function(st)
         local d = store.defaults()
+        local clash = F.reset_conflict(st, i, d.seats[i].bindings)
+        if clash then return false, clash end
         st.seats[i].bindings = d.seats[i].bindings
       end
       controls[#controls + 1] = {id = 'controls' .. i, label = seatLabel(i) .. ' controls', type = 'submenu', sub = rows}
@@ -194,23 +249,81 @@ function M.create(deps)
     -- Colours
     toggle(colours, 'colourMode', 'Colours follow', {'Character', 'Player'},
            function(st) return st.colours.mode == 'PLAYER' and 1 or 0 end,
-           function(st, v) st.colours.mode = v == 1 and 'PLAYER' or 'CHARACTER' end)
+           function(st, v) st.colours.mode = v == 1 and 'PLAYER' or 'CHARACTER' end,
+           'Character: a character keeps its colour whoever plays it. Player: a player keeps one colour whichever ' ..
+           'character they play.')
     for i = 1, ACTIVE do
       carousel(colours, 'playerColour' .. i, seatLabel(i) .. ' colour', labelsOf(store.COLOURS),
                function(st) return indexOf(store.COLOURS, st.seats[i].colour) end,
-               function(st, v) st.seats[i].colour = store.COLOURS[v + 1] end)
+               function(st, v) st.seats[i].colour = store.COLOURS[v + 1] end,
+               "This player's colour for their party row, menus and target lines, when colours follow Player.")
     end
     for _, name in ipairs(store.CHARACTERS) do
       carousel(colours, 'characterColour_' .. name, title(name) .. ' colour', labelsOf(store.COLOURS),
                function(st) return indexOf(store.COLOURS, st.colours.characters[name]) end,
-               function(st, v) st.colours.characters[name] = store.COLOURS[v + 1] end)
+               function(st, v) st.colours.characters[name] = store.COLOURS[v + 1] end,
+               "This character's colour for their party row, menus and target lines, when colours follow Character.")
     end
+
+    -- Battle HUD
+    statusRow(hud, 'hudStatus', 'HUD status', function() return P.hudStatusText() end, function() P.explainHud() end,
+              'Whether the co-op HUD can draw. Press for what to do.')
+    toggle(hud, 'hudOn', 'Battle HUD', {'Off', 'On'},
+           function(st) return st.battleHud.enabled and 1 or 0 end,
+           function(st, v) st.battleHud.enabled = v == 1 end,
+           "Off: the game's own battle HUD everywhere. The co-op battle menus stay: guests need them to act.")
+    local lastGroup
+    for _, r in ipairs(M.HUD_ROWS) do
+      if r.group ~= lastGroup then
+        lastGroup = r.group
+        hud[#hud + 1] = {id = 'hudDivider_' .. r.group, type = 'divider', label = M.HUD_GROUPS[r.group]}
+      end
+      toggle(hud, 'hud_' .. r.key, r.label, {'Off', 'On'},
+             function(st) return st.battleHud.elements[r.key] and 1 or 0 end,
+             function(st, v) st.battleHud.elements[r.key] = v == 1 end, r.help)
+      if r.key == 'battleLog' then
+        carousel(hud, 'hudLogExpand', 'Log expand button', P.expandLabels(),
+                 function(st) return P.expandIndex(st.battleHud.log.expandButton) end,
+                 function(st, v) st.battleHud.log.expandButton = P.expandOptions()[v + 1] or 'NONE' end,
+                 "A controller button that shows 20 lines of the log instead of 5. Any player's controller can press it; " ..
+                 "Player 1's press also reaches the game, so pick a button you do not use.")
+        carousel(hud, 'hudLogFilter', 'Log shows', M.LOG_FILTER_LABELS,
+                 function(st) return indexOf(M.LOG_FILTERS, st.battleHud.log.filter) end,
+                 function(st, v) st.battleHud.log.filter = M.LOG_FILTERS[v + 1] or 'ALL' end,
+                 'Which lines the log shows.')
+        local seatsList = {}
+        for i = 1, ACTIVE do seatsList[#seatsList + 1] = seatLabel(i) end
+        carousel(hud, 'hudLogSeat', 'Log player', seatsList,
+                 function(st) return (st.battleHud.log.filterSeat or 1) - 1 end,
+                 function(st, v) st.battleHud.log.filterSeat = v + 1 end,
+                 'The player whose lines "One player" shows.')
+      end
+    end
+    hud[#hud + 1] = {id = 'hudDividerIdentify', type = 'divider', label = 'Identify button'}
+    for i = 1, ACTIVE do
+      statusRow(hud, 'hudIdentify' .. i, seatLabel(i) .. ' Identify',
+                function(st) return F.binding_text((st or store.state).seats[i].bindings.IDENTIFY) end,
+                function() F.open_capture(i, 'IDENTIFY') end,
+                i == 1 and 'Flashes your seat diamond. Unbound at first: every button of your controller also reaches the game.'
+                       or "Flashes this player's seat diamond over their character. Press to change it.")
+    end
+    hud[#hud + 1] = {id = 'hudDividerVision', type = 'divider', label = "Insurgent's Vision (read only)"}
+    for _, v in ipairs(M.VISION_ROWS) do
+      statusRow(hud, v.id, v.label, function() return P.visionText(v) end, nil,
+                v.key == 'noCombatLog' and "Must stay off: the co-op HUD is drawn from the call it removes. Change it on Vision's page."
+                                         or "Set on Insurgent's Vision's own page.")
+    end
+    hud[#hud + 1] = {id = 'hudDividerDiag', type = 'divider', label = 'Diagnostics'}
+    toggle(hud, 'hudTestDraw', 'HUD test draw', {'Off', 'On'},
+           function(st) return st.diagnostics.hudTestDraw and 1 or 0 end,
+           function(st, v) st.diagnostics.hudTestDraw = v == 1 end, M.TEST_DRAW_HELP)
 
     -- Battle menu sounds
     for i = 1, ACTIVE do
       toggle(sounds, 'uiSounds' .. i, seatLabel(i), {'Off', 'On'},
              function(st) return st.seats[i].uiSounds and 1 or 0 end,
-             function(st, v) st.seats[i].uiSounds = v == 1 end)
+             function(st, v) st.seats[i].uiSounds = v == 1 end,
+             "The sounds of this player's battle menus: cursor, confirm, open and close. Off mutes them.")
     end
 
     -- Subsystem switches (hidden until the developer toggle is on)
@@ -232,17 +345,32 @@ function M.create(deps)
               'How many subsystems the module reports as armed.')
     statusRow(diag, 'diagResidue', 'Old Together menu files', function() return P.view.residue and 'Found, harmless' or 'None' end,
               function() notify(M.RESIDUE_TEXT) end, 'Press for what to do.').visible = false
+    statusRow(diag, 'diagInteractions', 'Guest interactions', function()
+                return P.view.interactionsFailed and 'Unavailable' or 'Ready' end,
+              function() notify(M.INTERACTIONS_TEXT) end, 'Shown only when they could not start.').visible = false
     statusRow(diag, 'diagFile', 'Settings file', function() return P.fileText() end, nil,
               'Whether coop.json was read, repaired, upgraded or is read-only.')
-    add(diag, {id = 'devMode', label = 'Developer options', type = 'toggle', options = {'Hidden', 'Shown'}, default = 0,
-               callback = P.onDev}, nil, nil)
-    P.rows.devMode.dev = true
+    toggle(diag, 'devMode', 'Developer options', {'Hidden', 'Shown'},
+           function(st) return st.diagnostics.developer and 1 or 0 end,
+           function(st, v) st.diagnostics.developer = v == 1 end,
+           'Shows the developer rows below. Saved with the settings and sent to the module. For testing only.')
     diag[#diag + 1] = {id = 'subsystems', label = 'Subsystem switches', type = 'submenu', visible = false, sub = subs}
+    diag[#diag + 1] = {id = 'diagCounters', label = 'Write counters to the log', type = 'button', visible = false,
+                       help = 'Writes every counter of the co-op module to the log file, one line each.',
+                       callback = guard(function()
+                         local ok, count = F.dump_counters()
+                         if ok then notify(string.format('%d counters were written to the log file.', count)) end
+                       end)}
+    diag[#diag + 1] = {id = 'diagStall', label = 'Stall the co-op thread (test)', type = 'button', visible = false,
+                       help = 'Stops the co-op module for 3 seconds on purpose. The game should play as stock meanwhile.',
+                       callback = guard(function() F.ask_stall() end)}
+    P.devIds = {'subsystems', 'diagCounters', 'diagStall'}
 
     main[#main + 1] = {id = 'seats', label = 'Seats', type = 'submenu', sub = seats}
     main[#main + 1] = {id = 'controls', label = 'Controls', type = 'submenu', sub = controls}
     main[#main + 1] = {id = 'colours', label = 'Colours', type = 'submenu', sub = colours}
     main[#main + 1] = {id = 'sounds', label = 'Menu sounds in battle', type = 'submenu', sub = sounds}
+    main[#main + 1] = {id = 'battleHud', label = 'Battle HUD', type = 'submenu', sub = hud}
     main[#main + 1] = {id = 'diagnostics', label = 'Diagnostics', type = 'submenu', sub = diag}
     return {id = M.MOD_ID, name = 'Co-op', group = {id = 'IvaliceLegacy', name = 'Ivalice Legacy',
             description = 'Ivalice Legacy settings.'}, schema = main}
@@ -252,6 +380,88 @@ function M.create(deps)
   function P.statusText()
     if P.view.kind == 'ok' and store.lastRejection then return 'Settings refused by the module' end
     return P.view.text
+  end
+
+  -- The log expand button's options: None, then every pad control in schema order.
+  function P.expandOptions()
+    if P.expandList then return P.expandList end
+    local list = {}
+    for name, v in pairs(E.pad_control) do list[#list + 1] = {name = name, v = v} end
+    table.sort(list, function(a, b) return a.v < b.v end)
+    local out = {'NONE'}
+    for _, x in ipairs(list) do out[#out + 1] = x.name end
+    P.expandList = out
+    return out
+  end
+
+  function P.expandLabels()
+    local out = {}
+    for i, n in ipairs(P.expandOptions()) do out[i] = i == 1 and 'None' or title(n) end
+    return out
+  end
+
+  function P.expandIndex(name) return indexOf(P.expandOptions(), name or 'NONE') end
+
+  -- Insurgent's Vision's settings (read only), re-read every VISION_EVERY ticks. nil: not installed or unreadable.
+  function P.readVision()
+    if not deps.vision then P.vision = nil return end
+    local ok, t = pcall(deps.vision)
+    P.vision = ok and type(t) == 'table' and t or nil
+  end
+
+  -- true / false for a Vision option's state, nil when unknown.
+  function P.visionState(key)
+    local o = P.vision and P.vision[key]
+    if type(o) == 'table' and type(o.state) == 'boolean' then return o.state end
+    return nil
+  end
+
+  function P.visionText(row)
+    local state = P.visionState(row.key)
+    if state == nil then return P.vision and 'Unknown' or 'Vision not found' end
+    return state and row.on or row.off
+  end
+
+  -- The Battle HUD's status line: native's report (status hud_report) first, Vision's file second.
+  function P.hudReport()
+    local n = P.native
+    return (bridge.status.state == 'ready' and n and n.hudReport) or 0
+  end
+
+  local function reportHas(name) return (P.hudReport() & ((E.hud_report or {})[name] or 0)) ~= 0 end
+
+  function P.hudStatusText()
+    if reportHas('VISION_NO_COMBAT_LOG') or P.visionState('noCombatLog') == true then
+      return "Turn off Vision's No Combat Log"
+    end
+    if bridge.status.state ~= 'ready' or not P.native then return 'n/a' end
+    if reportHas('FRAME_HOOK_OFF') then return 'Not drawing (frame hook off)' end
+    if reportHas('RENDER_OFF') then return 'Not drawing (rendering off)' end
+    if not store.state.battleHud.enabled then return 'Off' end
+    local notes = {}
+    if reportHas('PARTY_LAYOUT_FOREIGN') then notes[#notes + 1] = 'party list kept as another mod set it' end
+    if reportHas('CIRCLES_BY_VISION') then notes[#notes + 1] = 'circles hidden by Vision' end
+    if reportHas('CIRCLES_FOREIGN') then notes[#notes + 1] = 'circles left to another mod' end
+    return #notes > 0 and ('On; ' .. table.concat(notes, '; ')) or 'On'
+  end
+
+  function P.explainHud()
+    local lines = {P.hudStatusText()}
+    if reportHas('VISION_NO_COMBAT_LOG') or P.visionState('noCombatLog') == true then
+      lines[#lines + 1] = 'Insurgent\'s Vision "No Combat Log" removes the call the co-op HUD is drawn from, so neither ' ..
+                          'the HUD nor the co-op battle menus can show. Turn it off on Vision\'s page; the co-op battle log ' ..
+                          'already replaces the game\'s combat log.'
+    elseif reportHas('FRAME_HOOK_OFF') then
+      lines[#lines + 1] = 'Another mod changed the code the co-op HUD is drawn from, so the game\'s own HUD is used. ' ..
+                          'The log file has the details.'
+    elseif reportHas('RENDER_OFF') then
+      lines[#lines + 1] = 'The co-op HUD is not being drawn: its rendering is switched off, was stopped after an error, ' ..
+                          'or could not start. The game\'s own HUD and battle menus are used. The log file has the details.'
+    end
+    if reportHas('PARTY_LAYOUT_FOREIGN') then
+      lines[#lines + 1] = 'Another mod changed the party list layout, so it is left as that mod set it.'
+    end
+    notify(table.concat(lines, '\n'))
   end
 
   function P.armedText()
@@ -316,7 +526,7 @@ function M.create(deps)
     elseif entry.apply then
       ok, why = entry.apply(value)
     else
-      ok, why = store.change(function(st) entry.set(st, value) end, bridge)
+      ok, why = store.change(function(st) return entry.set(st, value) end, bridge)
     end
     if ok == false and why then notify('Setting not changed: ' .. tostring(why)) end
     -- no setValue here: the timer redraws from the store
@@ -330,14 +540,10 @@ function M.create(deps)
     end
   end
 
-  function P.onDev(modId, fieldId, value)
-    P.devMode = value == 1
-    P.devDirty = true
-  end
-
   ---- refresh (timer) -------------------------------------------------------------------------------------------------
   local ALWAYS_ACTIVE = {status = true, statusDetail = true, moduleOn = true, logPath = true, devMode = true,
-                         diagModule = true, statusArmed = true, diagFile = true, diagResidue = true}
+                         diagModule = true, statusArmed = true, diagFile = true, diagResidue = true, hudStatus = true,
+                         visionMinimap = true, visionOverheadHp = true, visionOverheadStatus = true, visionCombatLog = true}
 
   function P.refresh()
     local active = bridge.is_ready() and not store.readOnly
@@ -353,7 +559,7 @@ function M.create(deps)
         local want = e.get(store.state)
         if modmenu.getValue(M.MOD_ID, id) ~= want then modmenu.setValue(M.MOD_ID, id, want) end
       end
-      if not ALWAYS_ACTIVE[id] and not e.button and not e.dev then
+      if not ALWAYS_ACTIVE[id] and not e.button then
         local key = id .. '#active'
         local want = active
         if e.kind == 'status' then want = bridge.is_ready() end
@@ -380,10 +586,15 @@ function M.create(deps)
       P.cache.residue = residue
       changes.diagResidue = residue
     end
-    if P.devDirty or P.cache.dev == nil then
-      P.devDirty = false
-      P.cache.dev = P.devMode
-      changes.subsystems = P.devMode
+    local interactionsFailed = P.view.interactionsFailed == true
+    if P.cache.interactionsFailed ~= interactionsFailed then
+      P.cache.interactionsFailed = interactionsFailed
+      changes.diagInteractions = interactionsFailed
+    end
+    local dev = store.state.diagnostics.developer == true
+    if P.cache.dev ~= dev then
+      P.cache.dev = dev
+      for _, id in ipairs(P.devIds) do changes[id] = dev end
     end
     if next(changes) ~= nil then modmenu.setVisible(M.MOD_ID, changes) end
   end
@@ -410,12 +621,24 @@ function M.create(deps)
       if r then
         P.lastStatus = r
         P.native = V.status(r.status)
+        -- The kill switch may also be pressed in game (F8): the Co-op right now toggle follows the module's state
+        -- whenever that state changes (a command sent from this page keeps its value until the module reports).
+        local switch = P.native.coopSwitch
+        if switch ~= nil and switch ~= P.lastSwitch then
+          F.killed = switch ~= 0
+          P.lastSwitch = switch
+        end
         F.on_events(r.events)
       end
     else
       P.native = nil
     end
     P.forceSaveIfInvalid()
+    P.visionTicks = (P.visionTicks or 0) + 1
+    if P.visionTicks >= M.VISION_EVERY then
+      P.visionTicks = 0
+      P.readVision()
+    end
     F.tick(P.now)
     P.view = S.classify(bridge.status, P.native, C)
     store.flush(P.now)
@@ -424,6 +647,7 @@ function M.create(deps)
 
   function P.start()
     P.view = S.classify(bridge.status, nil, C)
+    P.readVision()
     local ok = modmenu.addTable(P.build())
     if not ok then
       log('Mod Menu page was not registered')
