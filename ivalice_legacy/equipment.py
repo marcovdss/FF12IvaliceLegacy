@@ -35,7 +35,9 @@ ATTRIBUTE = {'hp': (0, '<H', 'int'), 'mp': (2, '<H', 'int'), 'strength': (4, 'B'
              'immune': (12, '<I', STATUS), 'absorb': (16, 'B', ELEMENTS), 'nullify': (17, 'B', ELEMENTS),
              'half': (18, 'B', ELEMENTS), 'weak': (19, 'B', ELEMENTS), 'boost': (20, 'B', ELEMENTS)}
 HITS_FLYING = 0x04  # flags byte at row +7
+LICENSE_FREE = 0x10  # same flags byte: any character can equip the item without its licence
 CATEGORY_AT, FLAGS_AT, LINK_AT = 9, 7, 40
+ICON_AT, MODEL_AT = 4, 48  # menu icon (u8) and the model the item shows (u16), every category
 
 
 def sha256(data):
@@ -145,13 +147,20 @@ def equipment(read, patch):
                     raise ValueError(f'{what} category: weapons only, [current, new weapon family]')
                 out[at + CATEGORY_AT] = CATEGORIES.index(change[1])
                 changed.add(at + CATEGORY_AT)
-            elif field == 'hitsFlying':
-                if category > 17 or [type(v) for v in change] != [bool, bool]:
-                    raise ValueError(f'{what} hitsFlying: weapons only, [before, after] booleans')
-                if bool(original[at + FLAGS_AT] & HITS_FLYING) != change[0]:
-                    raise ValueError(f'{what} hitsFlying: unexpected value')
-                out[at + FLAGS_AT] = out[at + FLAGS_AT] & ~HITS_FLYING | (HITS_FLYING if change[1] else 0)
+            elif field in ('hitsFlying', 'licenseFree'):
+                # Flag bits of row +7. A shield carries the flying bit too (native guest shields), though only the
+                # weapon slot's bit is ever read in battle.
+                bit = HITS_FLYING if field == 'hitsFlying' else LICENSE_FREE
+                if (field == 'hitsFlying' and category > 18) or [type(v) for v in change] != [bool, bool]:
+                    raise ValueError(f'{what} {field}: [before, after] booleans' + (', weapons and shields only'
+                                     if field == 'hitsFlying' else ''))
+                if bool(original[at + FLAGS_AT] & bit) != change[0]:
+                    raise ValueError(f'{what} {field}: unexpected value')
+                out[at + FLAGS_AT] = out[at + FLAGS_AT] & ~bit | (bit if change[1] else 0)
                 changed.add(at + FLAGS_AT)
+            elif field in ('icon', 'model'):
+                changed |= edit(out, original, at, {'icon': (ICON_AT, 'B', 'int'), 'model': (MODEL_AT, '<H', 'int')},
+                                field, change, what)
             elif field in spec:
                 changed |= edit(out, original, at, spec, field, change, what)
             else:

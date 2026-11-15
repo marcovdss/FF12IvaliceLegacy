@@ -1,6 +1,6 @@
--- A greatsword's basic Attack sweeps an area. Marco's 2026-11-06 balance
--- decision: halve its damage per target, keeping weapon power and skill costs.
-local M = {version = '0.1.0'}
+-- A greatsword's basic Attack sweeps an area: its damage per target is halved, keeping weapon power and skill
+-- costs. 0.2.0: a landed hit never drops below 1 (Excalipur hits for 1, and half of 1 would be no hit at all).
+local M = {version = '0.2.0'}
 
 function M.wrap165(original)
   assert(type(original) == 'function', 'Missing native physical-damage stage')
@@ -12,7 +12,7 @@ function M.wrap165(original)
       if type(weapon) == 'number' and weapon % 1 == 0 and weapon >= 0x1000
           and weapon - 0x1000 < bpack.section13.count
           and bpack.section13[weapon - 0x1000].category == 2 then
-        formula.target.removedHp = math.floor(amount * 0.5)
+        formula.target.removedHp = math.max(1, math.floor(amount * 0.5))
       end
     end
     -- Native Attack Boost / Double Edged, then Proficiency and the later drain

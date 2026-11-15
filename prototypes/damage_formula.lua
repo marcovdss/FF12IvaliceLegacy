@@ -21,8 +21,52 @@
 -- 0.5.0: Glancing. A party dagger or ninja sword Attack keeps only attack/8 as its floor (the others keep attack/4), so
 -- light blades are unchanged against ordinary Defense and bounce off armor. The same floor now also guards formula 23
 -- (axe, hammer, hand-bomb), which damages through Forge 126 (adapter 126.lua wraps it with this module).
-local M = {version = '0.5.0', FLOOR_DIVISOR = 4, FOE_FLOOR_DIVISOR = 2, GLANCING_DIVISOR = 8, ATTACK = 150}
+--
+-- 0.6.0: Reckless. A party axe wielder's Reckless steps raise a foe's hit on them by 5% each (up to +20%), applied to
+-- the attack term after the floor rule, so the cost holds where the floor decides the hit. The Defense dent of 0.5.0
+-- is gone.
+--
+-- 0.7.0: armour type floors and physical-only Reckless. A foe's damaging physical hit on a party member keeps at least
+-- 50% of its attack term in heavy body armour, 60% in light and 70% in mystic (the body armour worn, keep +0x56), so
+-- armour weight matters under the floor. Foe magicks, hits the target absorbs, and a member in no known body armour keep
+-- the half floor of 0.4.0. Reckless now raises only a foe's damaging physical hit, never a magick or an absorbed heal.
+-- "Physical" is a formula that carries Forge 165 (the physical after-hit hook) in Forge 1.0.3's formula lists.
+local M = {version = '0.7.0', FLOOR_DIVISOR = 4, FOE_FLOOR_DIVISOR = 2, GLANCING_DIVISOR = 8, ATTACK = 150}
 M.GLANCING = {dagger = true, ninjaSword = true}
+M.PHYSICAL = {[20] = true, [21] = true, [22] = true, [23] = true, [24] = true, [25] = true, [26] = true, [27] = true,
+              [28] = true, [29] = true, [64] = true, [103] = true, [104] = true}
+-- Body armour item ids by type (section 13: light 4376-4396, mystic 4397-4417, heavy 4418-4435) and the share of a
+-- foe's physical attack term each type always lets through.
+M.ARMOUR_TYPES = {{first = 4376, last = 4396, kind = 'light'}, {first = 4397, last = 4417, kind = 'mystic'},
+                  {first = 4418, last = 4435, kind = 'heavy'}}
+M.TYPE_SHARE = {heavy = 0.5, light = 0.6, mystic = 0.7}
+
+-- The armour type of the body armour `unit` wears, or nil (none, a guest or reserve row, or unreadable).
+function M.armourType(unit)
+  local armour = unit.armor
+  if type(armour) ~= 'number' then return nil end
+  for _, range in ipairs(M.ARMOUR_TYPES) do
+    if armour >= range.first and armour <= range.last then return range.kind end
+  end
+  return nil
+end
+
+-- Whether Forge 113/126 will turn this hit into healing (the target absorbs it): their own test, inverted.
+function M.heals(formula)
+  local absorb, reverse = formula.absorbState, formula.target.statusEffects.reverse
+  return not ((absorb == 1 and reverse == 1) or (absorb == 0 and reverse == 0))
+end
+
+-- What a hit is: a foe (type 1) striking a party member (type 0), then whether its formula is physical and whether it
+-- heals. The side is read on its own, so the half floor never depends on the other two; an unreadable formula reads as
+-- "not a damaging physical hit" (no type floor, no Reckless).
+function M.kind(formula, caster, target)
+  local okSide, foeOnParty = pcall(function() return caster.type == 1 and target.type == 0 end)
+  if not (okSide and foeOnParty == true) then return false, false, true end
+  local ok, physical, heals = pcall(function() return M.PHYSICAL[formula.identifier] == true, M.heals(formula) end)
+  if not ok then return true, false, true end
+  return true, physical == true, heals ~= false
+end
 
 -- The attack term for an attack value against a defense value, or nil when Forge's own subtraction already applies.
 function M.floor(attack, defense, divisor)
@@ -43,14 +87,14 @@ function M.glancing(formula, caster, deps)
   return M.GLANCING[deps.category(caster)] == true
 end
 
--- The target's Reckless-dented Defense, from the shared Family module (read at call time); `defense` unchanged otherwise.
-function M.reckless(target, defense, deps)
+-- The target's Reckless damage multiplier, from the shared Family module (read at call time); 1 otherwise.
+function M.reckless(target, deps)
   local Family = rawget(_G, 'IvaliceLegacyFamily')
-  if type(Family) ~= 'table' or type(Family.recklessDefense) ~= 'function' then return defense end
+  if type(Family) ~= 'table' or type(Family.recklessTaken) ~= 'function' then return 1 end
   local resolved = deps
   if resolved == nil and type(Family.deps) == 'function' then resolved = Family.deps() end
-  if type(resolved) ~= 'table' then return defense end
-  return Family.recklessDefense(target, defense, resolved)
+  if type(resolved) ~= 'table' then return 1 end
+  return Family.recklessTaken(target, resolved)
 end
 
 -- Wrap Forge 113 (or 126). Only hits below the floor change, the party's and foes' alike; formula.multiplier and formula.modifier are restored
@@ -62,29 +106,39 @@ function M.wrap(original, deps)
     end
     local attack, defense = formula.multiplier, formula.modifier
     -- a foe (type 1) striking a party member (type 0); a broken reader falls back to the common floor
-    local okSide, foeOnParty = pcall(function() return caster.type == 1 and target.type == 0 end)
-    local divisor = okSide and foeOnParty and M.FOE_FLOOR_DIVISOR or nil
-    -- Reckless: a party axe wielder's own Defense counts lower against a foe's hit (family_identities.lua keeps the
-    -- state). The floor rule below judges the dented Defense.
-    local effective = defense
-    if okSide and foeOnParty then
-      local okR, dented = pcall(M.reckless, target, defense, deps)
-      if okR and type(dented) == 'number' then effective = dented end
+    local foeOnParty, physical, heals = M.kind(formula, caster, target)
+    local divisor = foeOnParty and M.FOE_FLOOR_DIVISOR or nil
+    local bodyHit = foeOnParty and physical and not heals
+    -- Armour type floors (0.7.0): a damaging physical hit keeps the share its body armour type lets through.
+    if bodyHit then
+      local okT, kind = pcall(M.armourType, target)
+      local share = okT and kind and M.TYPE_SHARE[kind]
+      if type(share) == 'number' and share > 0 then divisor = 1 / share end
+    end
+    -- Reckless: a party axe wielder takes more from a foe's damaging physical hit (family_identities.lua keeps the
+    -- state). The factor scales the attack term the floor rule chose, so it acts whether the floor or the subtraction
+    -- decides.
+    local taken = 1
+    if bodyHit then
+      local okR, factor = pcall(M.reckless, target, deps)
+      local Family = rawget(_G, 'IvaliceLegacyFamily')
+      local cap = type(Family) == 'table' and type(Family.RECKLESS_CAP) == 'number' and Family.RECKLESS_CAP or 0.2
+      if okR and type(factor) == 'number' and factor > 1 and factor <= 1 + cap + 1e-9 then taken = factor end
     end
     if not divisor then
       local okG, glancing = pcall(M.glancing, formula, caster, deps)
       if okG and glancing then divisor = M.GLANCING_DIVISOR end
     end
-    local term = M.floor(attack, effective, divisor)
+    local term = M.floor(attack, defense, divisor)
     if not term then
-      if effective == defense then return original(formula, caster, target, functions, classes, helpers) end
-      formula.modifier = effective
+      if taken == 1 then return original(formula, caster, target, functions, classes, helpers) end
+      formula.multiplier, formula.modifier = attack * taken, defense * taken
       local native = table.pack(pcall(original, formula, caster, target, functions, classes, helpers))
-      formula.modifier = defense
+      formula.multiplier, formula.modifier = attack, defense
       if not native[1] then error(native[2], 0) end
       return table.unpack(native, 2, native.n)
     end
-    formula.multiplier, formula.modifier = term, 0
+    formula.multiplier, formula.modifier = term * taken, 0
     local result = table.pack(pcall(original, formula, caster, target, functions, classes, helpers))
     formula.multiplier, formula.modifier = attack, defense
     if not result[1] then error(result[2], 0) end

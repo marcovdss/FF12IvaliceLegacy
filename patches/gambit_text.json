@@ -29,6 +29,14 @@
       "before": 8990,
       "after": 8249,
       "reason": "Restore authored Status-Immunity meaning; use augment57 instead of no temporary ailments"
+    },
+    {
+      "row": 226,
+      "field": "firstCondition",
+      "offset": 8,
+      "before": 8731,
+      "after": 8734,
+      "reason": "Repurpose the native \"Foe: targeting Vaan\" row, a gambit in Vaan's starting inventory (a save that owns or has set it sees the new meaning; \"Foe: targeting leader\", row 3, stays): the engine's own any-ailment condition 0x221E (target type, parameter, flags, page and order unchanged); name and help rewritten"
     }
   ],
   "records": [
@@ -1618,8 +1626,8 @@
       "row": 226,
       "nameIndex": 224,
       "helpIndex": 226,
-      "name": "Foe: targeting Vaan",
-      "help": "Target a foe targeting Vaan."
+      "name": "Foe: any ailment",
+      "help": "Target a foe with any temporary ailment."
     },
     {
       "row": 227,

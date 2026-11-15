@@ -131,6 +131,11 @@ class HybridLinesTest(unittest.TestCase):
               elseif c == 'allyHasted' then ts.haste = true
               elseif c == 'tough' then t.tough, t.attackerTough = true, true
               elseif c == 'emptyMp' then t.targetMp, t.attackerMp, t.attackerMaxMp = 0, 0, 100
+              elseif c == 'lowMp' then t.targetMp, t.attackerMp, t.attackerMaxMp = 10, 10, 100
+              elseif c == 'staggered' then t.staggered, t.attackerStaggered = true, true
+              elseif c == 'brave' then cs.bravery = true
+              elseif c == 'faithful' then cs.faith = true
+              elseif c == 'lureOrFaith' or c == 'imbuedOrFaith' then cs.faith = true
               elseif c == 'wounded' or c == 'allyCritical' then t.targetHpPct = 20
               elseif c == 'about' then t.charge = {current=25000, required=30000, last=25000}
               elseif c == 'hasted' then cs.haste = true

@@ -92,6 +92,30 @@ class EquipmentTest(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 self.apply(items=[{'contentId': 0x1000, 'category': 'Dagger', 'set': {'category': change}}])
 
+    def test_icon_model_and_flag_bits(self):
+        # Display fields every category has (icon +4, model +48) and the two flag bits of +7 (licence-free 0x10,
+        # flying 0x04, which a shield may carry too); each touches only its own bytes.
+        shield = eq.CATEGORIES.index('Shield')
+        self.section = synthetic([(DAGGER, {7: 0x12, 4: 1}, 0), (shield, {7: 0x34, 48: 0x0F, 49: 1}, 0)], [bytes(24)])
+        out = self.apply(items=[
+            {'contentId': 0x1000, 'category': 'Dagger', 'set': {'licenseFree': [True, False], 'icon': [1, 3]}},
+            {'contentId': 0x1001, 'category': 'Shield',
+             'set': {'hitsFlying': [True, False], 'icon': [0, 18], 'model': [0x10F, 0x115]}}])
+        self.assertEqual((out[32 + 7], out[32 + 4]), (0x02, 3))
+        row = 32 + SIZE
+        self.assertEqual((out[row + 7], out[row + 4], struct.unpack_from('<H', out, row + 48)[0]), (0x30, 18, 0x115))
+        self.assertEqual([i for i, (a, b) in enumerate(zip(self.section, out)) if a != b],
+                         [32 + 4, 32 + 7, row + 4, row + 7, row + 48])
+
+    def test_flag_bits_check_their_before_value(self):
+        self.section = synthetic([(DAGGER, {7: 0x00}, 0), (eq.CATEGORIES.index('Body armor'), {}, 0)], [bytes(24)])
+        for item in ({'contentId': 0x1000, 'category': 'Dagger', 'set': {'licenseFree': [True, False]}},
+                     {'contentId': 0x1000, 'category': 'Dagger', 'set': {'licenseFree': [0, 1]}},
+                     {'contentId': 0x1001, 'category': 'Body armor', 'set': {'hitsFlying': [False, True]}},
+                     {'contentId': 0x1000, 'category': 'Dagger', 'set': {'icon': [1, 2]}}):
+            with self.subTest(item=item), self.assertRaises(ValueError):
+                self.apply(items=[item])
+
     def test_rejects_item_twice(self):
         item = {'contentId': 0x1000, 'category': 'Dagger', 'set': {'attack': [22, 20]}}
         with self.assertRaises(ValueError):

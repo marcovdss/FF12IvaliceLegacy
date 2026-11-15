@@ -1,9 +1,9 @@
 -- Proficiency runtime shared by the Forge adapters (165 physical hits, 170 magick, 110 and 127 healing, 182 statuses,
--- 240 guard reactions, 22 evasion, 222 target initialization). Loaded once and kept in _G so all adapters see one campaign state.
+-- 240 guard reactions, 22 evasion, 222 target initialization; 34, 94 and 231 for accessories). Loaded once and kept in _G so all adapters see one campaign state.
 -- Montblanc hands out the ranks. Since 0.5.3 the party asks him: his menu's "About Proficiency." choice (rbn_a14.ebp,
 -- ivalice_legacy/montblanc.py) sets a byte this runtime polls in the Clan hall (location 302), and the topic runs here
--- through the Lua loader dialog plugin: what Proficiency is, whether a new rank is waiting, and where the party
--- stands. The rewarded rank is stored beside the Legacy save. Leaving the hall no longer hands anything out; with a
+-- through the Lua loader dialog plugin: whether a new rank is waiting, where the party stands and what the next rank
+-- needs, the Writs, and what Proficiency is. The rewarded rank is stored beside the Legacy save. Leaving the hall no longer hands anything out; with a
 -- rank waiting he only calls after the party once per visit.
 local R = {}
 local Proficiency = assert(loadfile('scripts/IvaliceLegacy/proficiency.lua', 't', _ENV))()
@@ -18,6 +18,13 @@ R.Proficiency = P
 local okEconomy, Economy = pcall(function() return assert(loadfile('scripts/IvaliceLegacy/mp_economy.lua', 't', _ENV))() end)
 if not okEconomy then Economy = nil end
 R.Economy = Economy
+-- Accessory effects (accessory_effects.lua): wild cards outside Proficiency, dispatched from the same hooks. A missing or
+-- broken module means no accessory effects; Proficiency is unaffected.
+local okAccessory, Accessory = pcall(function()
+  return assert(loadfile('scripts/IvaliceLegacy/accessory_effects.lua', 't', _ENV))()
+end)
+if not okAccessory or type(Accessory) ~= 'table' then Accessory = nil end
+R.Accessory = Accessory
 
 local CLAN_HALL = 302
 local LOCATION = 0x021654C4
@@ -55,6 +62,11 @@ local function log(line)
 end
 R.log = log
 Hybrid.log = log   -- the hybrid module writes its about-to-act firing counter here
+if Accessory then
+  Accessory.log = log
+  local ok = pcall(Accessory.attach, Hybrid, P)
+  if not ok then Accessory = nil; R.Accessory = nil end
+end
 
 -- Key items through the game's own inventory code: 0x2FD970 is the owned-bit getter (id, kind 0) and 0x2FD420 the
 -- setter (id, amount, mode). Mode 1 sets the amount outright and never reads the setter's stack-only notify
@@ -148,31 +160,57 @@ local function syncTip()
   end
 end
 
-local function clanRank()
+local function clanState()
   local ok, clan = pcall(ClanRank.read, {
     u8 = function(a) return memory.u8[a] end, u32 = function(a) return memory.u32[a] end,
     marks = function() return memory.execute(ClanRank.MARKS_FN, arg.s32) end})
-  if ok and type(clan) == 'table' then return clan.rank end
+  if ok and type(clan) == 'table' then return clan end
   return nil
+end
+local function clanRank()
+  local clan = clanState()
+  return clan and clan.rank or nil
+end
+
+-- A call target's open is a function, or a value whose metatable has __call.
+local function callable(value)
+  if type(value) == 'function' then return true end
+  local ok, mt = pcall(getmetatable, value)
+  return ok and type(mt) == 'table' and type(rawget(mt, '__call')) == 'function'
+end
+
+-- The dialog plugin's call target `kind` (dialog.aaske, dialog.amese) and its open function, or nil when the plugin is
+-- not there. 0.1.50: any indexable target counts (a table or the plugin's userdata) when its open, read under pcall, is
+-- callable.
+local function dialogTarget(kind)
+  if dialog == nil then return nil end
+  local okService, service = pcall(function() return dialog[kind] end)
+  if not okService or service == nil then return nil end
+  local okOpen, openFn = pcall(function() return service.open end)
+  if not okOpen or not callable(openFn) then return nil end
+  return service, openFn
 end
 
 local function speak(boxes)
-  if type(dialog) ~= 'table' or type(dialog.amese) ~= 'table' then
+  local amese, openFn = dialogTarget('amese')   -- 0.1.50: the topic's own test; a target without open only logs
+  if not amese then
     for _, box in ipairs(boxes) do log('speech (no dialog service): ' .. box:gsub('\n', ' ')) end
     return
   end
   for _, box in ipairs(boxes) do
-    local h, reason = dialog.amese.open{speaker = 'Montblanc', body = box, queue = true, lockPlayer = true}
-    if not h then log('dialog refused: ' .. tostring(reason)) end
+    local ok, h, reason = pcall(openFn, {speaker = 'Montblanc', body = box, queue = true, lockPlayer = true})
+    if not ok or not h then log('dialog refused: ' .. tostring(ok and reason or h)) end
   end
 end
 
 -- Asked for a new rank: hand over every Writ the rank calls for FIRST, then reward the rank. A Writ that cannot be
--- granted stops the claim, so a Proficiency never runs without its Writ. Returns how many boxes Montblanc spoke.
+-- granted stops the claim, so a Proficiency never runs without its Writ. Returns how many boxes Montblanc spoke and why:
+-- 'spoke', 'none' (nothing new), 'writ' (a Writ could not be granted), 'rank' (the Clan rank could not be read) or
+-- 'off' (no Legacy campaign). Only 'none' means there is nothing to hand out.
 local function claim()
-  if not campaign or not legacyMode() then return 0 end
+  if not campaign or not legacyMode() then return 0, 'off' end
   local rank = clanRank()
-  if type(rank) ~= 'number' then log('clan rank unreadable; nothing claimed') return 0 end
+  if type(rank) ~= 'number' then log('clan rank unreadable; nothing claimed') return 0, 'rank' end
   local from = claimed
   local to = math.max(rank, claimed)
   refreshWrits()
@@ -182,7 +220,7 @@ local function claim()
       if not grant(P.WRIT_IDS[k]) then
         log(string.format('campaign=%s Writ %d (0x%04X) could not be granted; nothing claimed', campaign, k, P.WRIT_IDS[k]))
         refreshWrits()
-        return 0
+        return 0, 'writ'
       end
       writs[k] = true
       log(string.format('campaign=%s Writ %d (0x%04X) granted', campaign, k, P.WRIT_IDS[k]))
@@ -200,7 +238,7 @@ local function claim()
   refreshWrits()
   syncTip()
   if #boxes > 0 then speak(boxes) end
-  return #boxes
+  return #boxes, #boxes > 0 and 'spoke' or 'none'
 end
 
 -- ---------- Montblanc's Proficiency topic ----------
@@ -208,22 +246,90 @@ end
 -- 0x02099DF0 + 0x99 (Clan Centurio Equipment Progression uses the same byte for its own Montblanc talk; the two mods
 -- replace the same script file, so they never run together). Polled only inside the hall.
 local TOPIC_FLAG = 0x02099DF0 + 0x99
-local TOPIC_POLL_MS, TOPIC_RETRY_MS, TOPIC_RETRIES = 250, 200, 25
+local TOPIC_POLL_MS, TOPIC_RETRY_MS, TOPIC_RETRIES, TOPIC_BUSY_MS = 250, 200, 25, 300
 local topicGeneration, topicBusy, reminded = 0, false, false
 
 local function after(ms, fn)
   if type(event.executeAfterMs) == 'function' then event.executeAfterMs(ms, fn) else fn() end
 end
 
+-- 0.1.51: a talk belongs to the topicGeneration it started in. watchTopic moves the generation on at every map change
+-- and load, so a talk cut off by one is an older chain: its callbacks, steps, retries and next pages are dropped and
+-- change nothing. Only the talk of the current generation ends itself, so an older chain never clears a newer talk's
+-- topicBusy.
+local function endTalk(generation)
+  if generation == topicGeneration then topicBusy = false end
+end
+
+-- 0.1.50: every later topic step (a window's close or failure, a retry, the next page, the menu's choice, the talk coming
+-- back to the menu) runs under pcall: an error is logged and ends the talk, so topicBusy never stays set. 0.1.51: a step
+-- of an older chain does not run.
+local function step(generation, name, fn, ...)
+  if generation ~= topicGeneration then
+    log('topic: ' .. name .. ' of an earlier talk dropped')
+    return false
+  end
+  local ok, err = pcall(fn, ...)
+  if not ok then
+    endTalk(generation)
+    log('topic: ' .. name .. ' failed: ' .. tostring(err))
+  end
+  return ok
+end
+
+-- The dialog plugin's reasons for a window that could open a moment later: a dialogue still closing or owning the
+-- native background, a busy slot, no free slot, or a game not taking windows yet (0.1.50).
+local BUSY_REASONS = {'is still closing', 'already owns the native background', 'is busy', 'no free window slot',
+                      'will not accept a window now'}
+local function busy(reason)
+  if type(reason) ~= 'string' then return false end
+  for _, text in ipairs(BUSY_REASONS) do if reason:find(text, 1, true) then return true end end
+  return false
+end
+
 -- Open one dialogue; if the previous window is still closing, try again shortly. `fail` runs if it never opens.
-local function open(kind, options, fail, tries)
-  local service = type(dialog) == 'table' and dialog[kind]
-  if type(service) ~= 'table' or type(service.open) ~= 'function' then
+-- 0.1.49: an accepted window can still fail later on the game thread (the loader's onError); `fail` runs then too.
+-- The window's onClose and onError share one settled flag: whichever comes first runs, the other is ignored, so the
+-- next step never runs twice. 0.1.50: an onError that reports a busy or conflict reason opens the window once more after
+-- TOPIC_BUSY_MS before failing (the settled flag still lets one step run); every callback body runs under step().
+-- 0.1.51: the window belongs to the talk of `generation`; a close by the game ("gameClosed") ends the talk instead of
+-- running the next step, and the busy retry does not open once the window has settled.
+local function open(kind, options, fail, tries, generation)
+  local service, openFn = dialogTarget(kind)
+  if not service then
     log('topic: dialog.' .. kind .. ' unavailable')
     if fail then fail() end
     return
   end
-  local ok, handle, reason = pcall(service.open, options)
+  if not tries then
+    local settled, retried, onClose = false, false, options.onClose
+    options.onClose = function(...)
+      if settled then return end
+      settled = true
+      if select(2, ...) == 'gameClosed' then
+        log('topic: the game closed the window; the talk ends')
+        endTalk(generation)
+        return
+      end
+      if onClose then step(generation, 'window close', onClose, ...) end
+    end
+    options.onError = function(reason)
+      if settled then return end
+      if not retried and busy(reason) then
+        retried = true
+        log('topic: dialog busy after it was accepted (' .. tostring(reason) .. '): trying once more')
+        after(TOPIC_BUSY_MS, function()
+          if settled then return end   -- a late onClose already ran the step: never a second window
+          step(generation, 'window retry', open, kind, options, fail, 1, generation)
+        end)
+        return
+      end
+      settled = true
+      log('topic: dialog failed after it was accepted: ' .. tostring(reason))
+      if fail then step(generation, 'window failure', fail) end
+    end
+  end
+  local ok, handle, reason = pcall(openFn, options)
   if ok and handle then return end
   tries = (tries or 0) + 1
   if tries > TOPIC_RETRIES then
@@ -231,57 +337,74 @@ local function open(kind, options, fail, tries)
     if fail then fail() end
     return
   end
-  after(TOPIC_RETRY_MS, function() open(kind, options, fail, tries) end)
+  after(TOPIC_RETRY_MS, function() step(generation, 'window retry', open, kind, options, fail, tries, generation) end)
 end
 
--- Montblanc says the boxes one after another, then `done` runs.
-local function pages(boxes, done)
+-- Montblanc says the boxes one after another, then `done` runs. 0.1.51: the pages belong to the talk of `generation`.
+local function pages(boxes, done, generation)
   local i = 0
   local function nextBox()
     i = i + 1
     if i > #boxes then if done then done() end return end
     open('amese', {speaker = 'Montblanc', body = boxes[i], lockPlayer = true,
-                   onClose = function() after(60, nextBox) end},
-         function() topicBusy = false end)
+                   onClose = function() after(60, function() step(generation, 'next page', nextBox) end) end},
+         function() endTalk(generation) end, nil, generation)
   end
   nextBox()
 end
 
 local topic
-local TOPIC_CHOICES = {'What is Proficiency?', 'Have I earned anything new?', 'Where do I stand?', "That's all."}
-local function standing()
-  local rank = clanRank()
-  local L = P.levels(claimed)
-  local boxes = {string.format('Your Clan rank is %s, kupo, and I have\nrewarded you up to rank %d.',
-                               type(rank) == 'number' and tostring(rank) or 'a mystery to me', claimed),
-                 string.format('Proficiency I stands at level %d of 4,\nII at %d of 4 and III at %d of 4, kupo.', L[1], L[2], L[3])}
-  if claimed < P.MAX_RANK then
-    boxes[#boxes + 1] = string.format('Reach Clan rank %d and ask me again,\nkupo! There is more to learn.', claimed + 1)
-  else
-    boxes[#boxes + 1] = 'You hold every Proficiency the clan\nteaches. A master hunter, kupo!'
+-- What Montblanc's lines read (proficiency.lua: greeting, standing, nothingNew, writStatus): the Clan rank and the save's
+-- points, marks and Sky Pirate's Den entries with the game's rank table (clan_rank.lua, no side effects), the next rank's
+-- row, the rewarded rank and the Writs in the Key Items. Read when he speaks; nothing is written.
+local function topicState()
+  local clan = clanState()
+  refreshWrits()
+  local s = {claimed = claimed, writs = writs, rank = clan and clan.rank or nil, have = clan}
+  if clan and type(ClanRank.nextNeeds) == 'function' and type(clan.rank) == 'number' then
+    local ok, need = pcall(ClanRank.nextNeeds, clan, math.max(clan.rank, claimed))
+    if ok then s.need = need end
   end
-  return boxes
+  return s
 end
 
 topic = function()
-  if not campaign or not legacyMode() then topicBusy = false return end
-  open('aaske', {speaker = 'Montblanc', body = 'Proficiency, kupo? What would you\nlike to know?',
-                 choice = TOPIC_CHOICES, cancel = #TOPIC_CHOICES - 1, closeOnCancel = true, lockPlayer = true,
+  -- 0.1.51: the talk carries the generation it started in; its windows, pages and steps are dropped once the
+  -- generation moves on (a map change or a load). A page's `done` re-enters here inside a step of the same talk.
+  local generation = topicGeneration
+  -- 0.1.50: a game that is not Ivalice Legacy stays silent and claims nothing; this is tested first
+  if not legacyMode() then endTalk(generation) return end
+  if not campaign then
+    -- no Legacy campaign loaded (a new game, saved or not, until that save is loaded; or another save): one short line,
+    -- nothing claimed
+    log('topic: no Legacy campaign loaded')
+    pages({P.NO_CAMPAIGN}, function() endTalk(generation) end, generation)
+    return
+  end
+  -- the most used first: claim, standing, Writs, what Proficiency is, and "That's all." (also Cancel)
+  local T = P.TOPIC
+  open('aaske', {speaker = 'Montblanc', body = P.greeting(topicState()),
+                 choice = P.TOPIC_CHOICES, cancel = T.bye, closeOnCancel = true, lockPlayer = true,
                  onClose = function(index)
-                   after(60, function()
-                     if index == 0 then pages(P.TOPIC_PAGES, topic)
-                     elseif index == 1 then
-                       local ok, said = pcall(claim)
-                       if not ok then log('topic: claim failed: ' .. tostring(said)); said = 0 end
-                       if said and said > 0 then
-                         topicBusy = false   -- claim() queued Montblanc's reward boxes; the talk ends with them
+                   after(60, function() step(generation, 'menu choice', function()
+                     if index == T.claim then
+                       local ok, said, why = pcall(claim)
+                       if not ok then log('topic: claim failed: ' .. tostring(said)); said, why = 0, 'error' end
+                       if type(said) == 'number' and said > 0 then
+                         endTalk(generation)   -- claim() queued Montblanc's reward boxes; the talk ends with them
+                       elseif why == 'none' then
+                         pages(P.nothingNew(topicState()), topic, generation)
                        else
-                         pages({'Nothing new yet, kupo! Raise your Clan\nrank and come see me again.'}, topic)
+                         -- the papers could not be handled now (a Writ not granted, the rank unreadable): never "nothing new"
+                         log('topic: claim not completed (' .. tostring(why) .. ')')
+                         pages({P.CLAIM_WAIT}, topic, generation)
                        end
-                     elseif index == 2 then pages(standing(), topic)
-                     else topicBusy = false end
-                   end)
-                 end}, function() topicBusy = false end)
+                     elseif index == T.stand then pages(P.standing(topicState()), topic, generation)
+                     elseif index == T.writs then pages(P.writStatus(topicState()), topic, generation)
+                     elseif index == T.about then pages(P.TOPIC_PAGES, topic, generation)
+                     else endTalk(generation) end
+                   end) end)
+                 end}, function() endTalk(generation) end, nil, generation)
 end
 
 local function topicTick(generation)
@@ -289,11 +412,20 @@ local function topicTick(generation)
   local ok, value = pcall(function() return memory.u8[TOPIC_FLAG] end)
   if ok and value == 1 then
     pcall(function() memory.u8[TOPIC_FLAG] = 0 end)
-    if not topicBusy then
+    if not topicBusy and not (dialogTarget('aaske') and dialogTarget('amese')) then
+      -- 0.1.49: no dialog plugin, so no talk; the question still claims the rank (speak() logs his lines, as in 0.1.47)
+      log(string.format('campaign=%s Montblanc topic asked without the dialog plugin: claiming directly', tostring(campaign)))
+      local okClaim, said, why = pcall(claim)
+      if not okClaim then log('topic: claim failed: ' .. tostring(said))
+      else log('topic: direct claim ' .. tostring(why) .. ' (' .. tostring(said) .. ' lines)') end
+    elseif not topicBusy then
       topicBusy = true
       log(string.format('campaign=%s Montblanc topic opened', tostring(campaign)))
       -- the hall script is closing its own menu: give it a moment before the first window
-      after(300, function() local okTopic, err = pcall(topic) if not okTopic then topicBusy = false log('topic failed: ' .. tostring(err)) end end)
+      after(300, function()
+        if generation ~= topicGeneration then return end   -- 0.1.51: the map changed before the talk began
+        local okTopic, err = pcall(topic) if not okTopic then endTalk(generation) log('topic failed: ' .. tostring(err)) end
+      end)
     end
   end
   after(TOPIC_POLL_MS, function() topicTick(generation) end)
@@ -485,7 +617,7 @@ end
 -- description (1532 px, seen in game 2026-11-03) pushed every description of that menu off the left edge.
 -- The handler's one read of the width is at 0x29244C; its comparison at 0x292452 is now xor eax,eax (the width counts
 -- as 0, and the jle after it is always taken), so the box stays where the layout puts it, in every menu. A long line
--- runs further right, still on screen, as Marco confirmed for Equipment. eax is reloaded at 0x29245F.
+-- runs further right, still on screen, as confirmed in play for Equipment. eax is reloaded at 0x29245F.
 local WIDTH_SITE, WIDTH_ORIGINAL = 0x00292452, {0x3B, 0xC1}
 function R.installWidthFix()
   local raw = memory.readArray(WIDTH_SITE, 2)
@@ -689,6 +821,7 @@ local function reset()
     end
   end
   P.reset()
+  if Accessory then Accessory.reset() end
 end
 
 -- ---------- session logs (lives here until the next main-package release) ----------
@@ -777,6 +910,7 @@ function R.register()
     foes = {}
     -- Battle identifiers are reused by the next map. Old chains and Stop budgets must not follow those slots.
     P.reset()
+    if Accessory then Accessory.reset() end
     pendingCharge = {}
     writsKnown = false  -- the Writs are read again on the next use (a key item can come or go between maps)
     if campaign and not rankLogged then
@@ -799,6 +933,15 @@ local function statusSet(flags)
   return out
 end
 R.statusSet = statusSet
+
+-- A foe's status snapshot (0.1.44, decision 3): the statuses, plus the pseudo-flag `broken` while a party member's cut on it
+-- is under 10 s old, so every "foe has an ailment" test reads Broken too. `foe` is the foe's keep.
+local function foeStatusSet(flags, foe, now)
+  local out = statusSet(flags)
+  if R.isBroken(foe, now) then out.broken = true end
+  return out
+end
+R.foeStatusSet = foeStatusSet
 
 local function clock() return event.getClock and event.getClock() or 0 end
 
@@ -907,6 +1050,51 @@ function R.listens(job, event)
   return rule ~= nil and rule[event] ~= nil
 end
 
+-- Hermes Sandals: the accessory's permanent Haste gives tempo, but it never satisfies a job or hybrid
+-- "Hasted" condition. A wearer's snapshot drops haste from casterStatus and sets casterHeldHaste, which the Haste grant
+-- that carries a rider (Zanshin I) still reads as "already Hasted".
+R.HERMES_SANDALS = 4473
+-- Second Accessory (deployed with Legacy) keeps each party member's second accessory in its own memory: global symbol
+-- sa_saveMem, a u16 per member (stride 4), indexed by the battle-unit keep's identifier byte (+0x04), as its own
+-- assembly and Duplicate Augment Detector read it. Resolved once; anything missing means "no second accessory".
+local secondAccessoryMem
+function R.secondAccessory(keep)
+  if secondAccessoryMem == nil then
+    local ok, mem = pcall(memory.getSymbol, 'sa_saveMem')
+    secondAccessoryMem = ok and type(mem) == 'number' and mem ~= 0 and mem or false
+  end
+  if not secondAccessoryMem then return nil end
+  local index = keep.identifier
+  if type(index) ~= 'number' or index < 0 or index >= 40 then return nil end
+  return memory.u16[secondAccessoryMem + index * 4]
+end
+-- The accessories a party unit wears, both slots, each id once (an id in both slots counts once). {} when unreadable.
+function R.worn(unit, classes)
+  local ok, main, second = pcall(function()
+    local keep = classes.getBattleUnitKeep(unit.address)
+    return keep.accessory, R.secondAccessory(keep)
+  end)
+  if not ok then return {} end
+  local out = {}
+  if type(main) == 'number' then out[1] = main end
+  if type(second) == 'number' and second ~= main then out[#out + 1] = second end
+  return out
+end
+function R.wears(unit, id, classes)
+  for _, worn in ipairs(R.worn(unit, classes)) do if worn == id then return true end end
+  return false
+end
+function R.wearsHermes(unit, classes) return R.wears(unit, R.HERMES_SANDALS, classes) end
+-- Pixie Shoes: the accessory's permanent Float carries the wearer over traps, but it never satisfies a job or hybrid
+-- "While you Float" condition (the Hermes guard, for Float).
+R.PIXIE_SHOES = 4476
+-- The same guard for an ally target's snapshot (allyHasted on heals and ally casts).
+function R.guardTarget(s, unit, classes)
+  if s.targetStatus and s.targetStatus.haste and unit.type == 0 and R.wearsHermes(unit, classes) then
+    s.targetStatus.haste = nil
+  end
+end
+
 function R.base(unit, flags, classes, helpers)
   if unit.type ~= 0 then return nil end
   -- A character with a second job uses its pair's hybrid line, never either parent's.
@@ -914,8 +1102,11 @@ function R.base(unit, flags, classes, helpers)
   if not job then return nil end
   local actor = R.partyActor(unit)
   if not actor then return nil end
-  return {job = job, actorId = actor, self = unit.address, party = R.party(classes, helpers),
-          casterStatus = statusSet(flags), casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100, casterHp = unit.currentHp,
+  local status, heldHaste = statusSet(flags), nil
+  if status.haste and R.wearsHermes(unit, classes) then status.haste, heldHaste = nil, true end
+  if status.float and R.wears(unit, R.PIXIE_SHOES, classes) then status.float = nil end
+  return {job = job, casterHeldHaste = heldHaste, actorId = actor, self = unit.address, party = R.party(classes, helpers),
+          casterStatus = status, casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100, casterHp = unit.currentHp,
           casterMp = unit.currentMp, casterMaxMp = unit.maxMp, selfMaxHp = unit.maxHp,
           roll = function(percent) return helpers.getRandomNumber(100) < percent end,
           canLand = function(address, id)
@@ -964,11 +1155,18 @@ function R.duration(keep, source, id, scale, helpers, plus)
 end
 
 local function grant(plus, keep, source, id, scale, helpers)
-  if not R.mayAdd(keep, id, plus.statusEffects, helpers) then return end
+  if not R.mayAdd(keep, id, plus.statusEffects, helpers) then return false end
   local d = R.duration(keep, source, id, scale, helpers, plus)
-  if not d then return end
+  if not d then return false end
   plus.addedStatusEffects[id] = 1
   plus.statusEffectDurations[id] = d
+  return true
+end
+-- A party member's effect landed status `id` on a foe: the accessory memory keeps who landed it.
+local function landed(keep, id, by)
+  if Accessory and type(keep) == 'table' and keep.type == 1 then
+    pcall(Accessory.noteAilment, keep.address, id, by, clock())
+  end
 end
 
 -- Black Mage: when a spell lands the caster's timer is already at its end and is reset afterwards, so the bonus waits
@@ -998,6 +1196,10 @@ end
 function R.armCharge(address, fraction, classes, helpers)
   local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(address))
   if w.address == 0 then return end
+  -- A bonus already waiting for the same next action (a Proficiency stage and an accessory on one hit) is never cut:
+  -- the larger one stays.
+  local waiting = pendingCharge[address]
+  if waiting and clock() <= waiting.expires and waiting.fraction > fraction then fraction = waiting.fraction end
   pendingCharge[address] = {fraction = fraction, expires = clock() + CHARGE_WAIT, classes = classes, helpers = helpers,
                             above = w.currentChargeTime >= w.requiredChargeTime, last = w.currentChargeTime}
   if not chargePolling and type(event.executeAfterMs) == 'function' then
@@ -1025,17 +1227,127 @@ function R.foeActed(address, w)
   end
   pushes[address] = nil
 end
-function R.resetPushes() pushes = {} end
-function R.pushAllowance(address, w, wanted)
+function R.resetPushes() pushes = {} R.acting = {} end
+-- 0.1.45: the push record also keeps the foe's fingerprint (maxHp, level), like the Broken, dent, cadence and lure tables,
+-- so a foe at a recycled address in a later fight never inherits a spent budget. `foe` is the foe's battle unit keep; a
+-- caller that cannot give one leaves the fingerprint nil and the address-only rule applies.
+function R.foePrint(foe)
+  if type(foe) == 'table' and type(foe.maxHp) == 'number' then return foe.maxHp, foe.level end
+  return nil, nil
+end
+function R.samePrint(rec, hp, level)
+  return hp == nil or rec.hp == nil or (rec.hp == hp and rec.level == level)
+end
+-- 0.1.45: a foe's turn ends its Staggered record. Every foe action reaches one of the hooks that call this (165 and 170 as
+-- before, now also 240 for an evaded or parried attack, 181 for a status or buff spell, 110 and 127 for a heal), so no
+-- spent record survives to be read stale. R.foeActed still tells a counterattack from a real action by the charge.
+function R.foeActs(caster, classes, helpers)
+  local okWork, work = pcall(function()
+    local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(caster.address))
+    return w.address ~= 0 and w or nil
+  end)
+  R.foeActed(caster.address, okWork and work or nil)
+end
+local function pushShare(w)
+  local ok, name = pcall(function() return w.ardUnit.name end)
+  return (ok and TOUGH[KINDS[name]]) and R.PUSH_SHARE_TOUGH or R.PUSH_SHARE
+end
+-- `by` (a party member's keep address) is remembered when its push uses up the budget: that member Staggered the foe.
+function R.pushAllowance(address, w, wanted, by, foe)
   if type(wanted) ~= 'number' or wanted <= 0 then return 0 end
   local cur, req = w.currentChargeTime, w.requiredChargeTime
+  local hp, level = R.foePrint(foe)
   local rec = pushes[address]
-  if not rec or cur < rec.after then rec = {spent = 0}; pushes[address] = rec end
-  local ok, name = pcall(function() return w.ardUnit.name end)
-  local share = (ok and TOUGH[KINDS[name]]) and R.PUSH_SHARE_TOUGH or R.PUSH_SHARE
-  local allowed = math.max(0, math.min(wanted, math.floor(req * share) - rec.spent))
+  if not rec or cur < rec.after or not R.samePrint(rec, hp, level) then rec = {spent = 0}; pushes[address] = rec end
+  if hp and rec.hp == nil then rec.hp, rec.level = hp, level end
+  local cap = math.floor(req * pushShare(w))
+  local allowed = math.max(0, math.min(wanted, cap - rec.spent))
   rec.spent, rec.after = rec.spent + allowed, cur - allowed
+  if allowed > 0 and rec.spent >= cap then rec.by = type(by) == 'number' and by or nil end
   return allowed
+end
+
+-- Staggered (0.1.44): a foe whose push budget for its current turn is used up is Staggered until it acts (R.foeActed clears
+-- the record; 0.1.45: on every foe turn). The budget itself does not change and pushes still stop at it. `w` is the foe's
+-- battle unit work, `foe` (optional) its keep for the fingerprint. A charge found below where the last push left it is a
+-- new cycle. Returns the state and who Staggered it (a keep address or nil).
+function R.isStaggered(address, w, foe)
+  local rec = pushes[address]
+  if not rec or type(w) ~= 'table' then return false, nil end
+  local hp, level = R.foePrint(foe)
+  if not R.samePrint(rec, hp, level) then pushes[address] = nil return false, nil end   -- another foe at this address
+  local ok, cur, req = pcall(function() return w.currentChargeTime, w.requiredChargeTime end)
+  if not ok or type(cur) ~= 'number' or type(req) ~= 'number' or req <= 0 or cur < rec.after then return false, nil end
+  local cap = math.floor(req * pushShare(w))
+  if cap <= 0 or rec.spent < cap then return false, nil end
+  return true, rec.by
+end
+-- The same for a foe by address (reads its battle unit work through the Forge tables); false when it cannot be read.
+function R.foeStaggered(address, classes, helpers)
+  local ok, staggered, by = pcall(function()
+    local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(address))
+    if w.address == 0 then return false end
+    return R.isStaggered(address, w, classes.getBattleUnitKeep(address))
+  end)
+  if not ok then return false, nil end
+  return staggered == true, by
+end
+-- 0.1.46: one foe action reaches hook 240 once for every target and every hit (an area attack, a multi-hit). The first call
+-- of the action reads Staggered and ends the record (R.foeActs); the later calls of the same action reuse that reading, so
+-- every target and every hit hears the state the action started with. The same action: the same foe (address and
+-- fingerprint), the same action id and first target, each call within ACTION_WINDOW of the one before, and (0.1.47) the
+-- foe's charge (current and required, as R.foeActed reads it) unchanged since the latch, so a quick counter, whose charge
+-- has moved on, is read afresh. 0.1.47: a push record made mid-action (a guard push on an earlier target) does not undo
+-- the action's reading: the call reads afresh, ends the record again and answers `last.staggered or fresh`; the charge may
+-- then differ from the latch only by that push (it sits where the record's last push left it). Anything else, or no
+-- clock, or a charge that cannot be read, reads afresh and ends the record again (the per-call rule of 0.1.45).
+R.ACTION_WINDOW = 1000000   -- 1 s between two calls of one action (event clock, microseconds)
+R.acting = {}
+function R.foeCharge(address, classes, helpers)
+  local ok, cur, req = pcall(function()
+    local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(address))
+    if w.address == 0 then return nil end
+    return w.currentChargeTime, w.requiredChargeTime
+  end)
+  if ok and type(cur) == 'number' and type(req) == 'number' then return cur, req end
+  return nil, nil
+end
+function R.foeAction(formula, caster, classes, helpers)
+  local address, now = caster.address, clock()
+  local okA, action, first = pcall(function() return formula.action, formula.initialTargetPointer end)
+  local hp, level = R.foePrint(caster)
+  local cur, req = R.foeCharge(address, classes, helpers)
+  local last = R.acting[address]
+  local carried = false
+  if last and okA and type(now) == 'number' and now > 0 and now >= last.at and now - last.at <= R.ACTION_WINDOW
+     and last.action == action and last.first == first and last.hp == hp and last.level == level and cur ~= nil then
+    local rec = pushes[address]
+    local still = cur == last.cur and req == last.req
+    if rec == last.rec and still then
+      last.at = now
+      return last.staggered, last.by
+    end
+    carried = still or (type(rec) == 'table' and req == last.req and cur == rec.after)
+  end
+  local staggered, by = R.foeStaggered(address, classes, helpers)
+  R.foeActs(caster, classes, helpers)
+  if carried and last.staggered then staggered, by = true, last.by end
+  R.acting[address] = okA and {at = now, action = action, first = first, hp = hp, level = level, rec = pushes[address],
+                               cur = cur, req = req, staggered = staggered, by = by} or nil
+  return staggered, by
+end
+
+-- Push a foe's charge back by `fraction` of what it needs, inside the shared budget. Returns the charge before and after
+-- when something moved. Only a foe that is charging, and whose charge sits where it was last seen, moves.
+function R.pushFoe(w, address, fraction, by, foe)
+  local cur, req, last = w.currentChargeTime, w.requiredChargeTime, w.lastChargeTime
+  if cur > 0 and cur < req and last == cur then
+    local wanted = cur - math.max(1, cur - math.floor(req * fraction))
+    local allowed = R.pushAllowance(address, w, wanted, by, foe)
+    w.currentChargeTime = cur - allowed
+    if allowed > 0 then return cur, cur - allowed end
+  end
+  return nil
 end
 
 -- Whether a foe is a boss, mark or rare game (the kinds table of Dynamic Foes, as the push budget reads it).
@@ -1047,20 +1359,17 @@ function R.isTough(address, classes, helpers)
   return ok and tough == true
 end
 
-local function pushCharge(classes, helpers, unit, fraction)
+local function pushCharge(classes, helpers, unit, fraction, by)
   local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(unit))
   if w.address == 0 then return end
-  local cur, req, last = w.currentChargeTime, w.requiredChargeTime, w.lastChargeTime
-  if cur > 0 and cur < req and last == cur then
-    local wanted = cur - math.max(1, cur - math.floor(req * fraction))
-    w.currentChargeTime = cur - R.pushAllowance(unit, w, wanted)
-  end
+  local okKeep, keep = pcall(classes.getBattleUnitKeep, unit)
+  R.pushFoe(w, unit, fraction, by, okKeep and keep or nil)
 end
 
 -- Forge's modifyHp/modifyMp change the pool silently; the game's own hits show their numbers through Forge 324's
 -- showNumberText. Proficiency's heals, drains and MP returns call the same helper with what actually changed, so a
 -- heal shows green and nothing shows at a full pool. Number types: 0 MP loss, 1 HP damage, 2 HP heal, 3 MP gain.
--- (Before 0.5.1 these effects happened without any number on screen; Marco, 2026-11-10.)
+-- (Before 0.5.1 these effects happened without any number on screen; play report, 2026-11-10.)
 function R.changeShown(classes, helpers, unit, field, amount, change)
   local okBefore, before = pcall(function() return classes.getBattleUnitKeep(unit)[field] end)
   change()
@@ -1090,7 +1399,9 @@ function R.apply(a, formula, member, classes, helpers, target)
       formula.target.removedHp = math.floor(formula.target.removedHp * a.damage)
     end
     for id, scale in pairs(a.casterAdd or {}) do grant(formula.caster, member, member.address, id, scale, helpers) end
-    for id, scale in pairs(a.targetAdd or {}) do grant(formula.target, target, member.address, id, scale, helpers) end
+    for id, scale in pairs(a.targetAdd or {}) do
+      if grant(formula.target, target, member.address, id, scale, helpers) then landed(target, id, member.address) end
+    end
     -- Renewing restarts the timer: the helper writes it even when the status is already on.
     for _, id in ipairs(a.targetRenew or {}) do
       if target.temporaryStatusEffects[id] == 1 then
@@ -1142,7 +1453,7 @@ function R.apply(a, formula, member, classes, helpers, target)
       local w = formula.target.battleUnitWork
       local wanted = w.currentChargeTime - a.chargeTo
       if target and target.address and target.address ~= 0 then
-        w.currentChargeTime = w.currentChargeTime - R.pushAllowance(target.address, w, wanted)
+        w.currentChargeTime = w.currentChargeTime - R.pushAllowance(target.address, w, wanted, member.address, target)
       else
         w.currentChargeTime = a.chargeTo
       end
@@ -1173,14 +1484,17 @@ function R.apply(a, formula, member, classes, helpers, target)
       local keep = classes.getBattleUnitKeep(o.unit)
       if R.mayAdd(keep, o.id, keep.temporaryStatusEffects, helpers) then
         local d = R.duration(keep, member.address, o.id, o.scale or 1, helpers)
-        if d then helpers.addStatusEffect(member.address, o.unit, o.id, d, helpers.getStatusEffectTickDuration(o.id)) end
+        if d then
+          helpers.addStatusEffect(member.address, o.unit, o.id, d, helpers.getStatusEffectTickDuration(o.id))
+          landed(keep, o.id, member.address)
+        end
       end
     elseif o.op == 'remove' then helpers.removeStatusEffect(o.unit, o.id)
     elseif o.op == 'mp' then if o.amount ~= 0 then R.changeShown(classes, helpers, o.unit, 'currentMp', o.amount,
         function() helpers.modifyMp(o.unit, o.amount) end) end
     elseif o.op == 'hp' then R.changeShown(classes, helpers, o.unit, 'currentHp', o.amount,
         function() helpers.modifyHp(member.address, o.unit, o.amount, 0, 0, 0) end)
-    elseif o.op == 'push' then pushCharge(classes, helpers, o.unit, o.fraction)
+    elseif o.op == 'push' then pushCharge(classes, helpers, o.unit, o.fraction, member.address)
     elseif o.op == 'quick' then R.armCharge(o.unit, o.fraction, classes, helpers) end
   end
 end
@@ -1249,14 +1563,44 @@ function R.fullCadence(caster, target)
   if not line or not (line == P.JOB.mystic or line >= Hybrid.FIRST_ID) or not R.listens(line, 'guard') then return end
   local s = R.base(caster, caster.temporaryStatusEffects, env.classes, env.helpers)
   if not s then return end
-  s.attacker, s.attackerStatus, s.attackerMp = target.address, statusSet(target.temporaryStatusEffects), target.currentMp
+  s.attacker, s.attackerStatus, s.attackerMp = target.address, foeStatusSet(target.temporaryStatusEffects, target, clock()), target.currentMp
   s.attackerMaxMp = target.maxMp
+  s.attackerStaggered = R.foeStaggered(target.address, env.classes, env.helpers)
   s.attackerTough = R.isTough(target.address, env.classes, env.helpers)
   s.foes = R.foes(env.classes, target.address)
   s.outcome = 'counter'
   local a = P.decide('guard', s, effective())
   if a then R.apply(a, nil, caster, env.classes, env.helpers); R.report('cadence-counter', s, a) end
 end
+-- Broken (0.1.43): family_identities.lua keeps the clock; a missing or failing module means no foe is Broken. 0.1.44: the
+-- argument is the foe's keep (the entry carries its maxHp and level), and brokenBy says who cut it.
+function R.isBroken(target, now)
+  local family = rawget(_G, 'IvaliceLegacyFamily')
+  if type(family) ~= 'table' or type(family.isBroken) ~= 'function' then return false end
+  local ok, v = pcall(family.isBroken, target, now)
+  return ok and v == true
+end
+function R.brokenBy(target, now)
+  local family = rawget(_G, 'IvaliceLegacyFamily')
+  if type(family) ~= 'table' or type(family.brokenBy) ~= 'function' then return nil end
+  local ok, by = pcall(family.brokenBy, target, now)
+  return ok and by or nil
+end
+-- Channel (staff, 0.1.44): a damage spell cast with Faith Breaks the foe. The family module decides and keeps the clock.
+function R.channel(formula, caster, target)
+  local family = rawget(_G, 'IvaliceLegacyFamily')
+  if type(family) ~= 'table' or type(family.channel) ~= 'function' then return end
+  local ok, noted = pcall(family.channel, formula, caster, target)
+  if ok and noted == true then log(string.format('channel actor=%s foe=%s broken', tostring(caster.identifier), tostring(target.address))) end
+end
+-- Whether an ally (not `caster`) Broke or Staggered this foe: what Hyper Wrist reads.
+function R.alliedHold(caster, target, now, work)
+  local by = R.brokenBy(target, now)
+  local okS, staggered, staggeredBy = pcall(R.isStaggered, target.address, work, target)
+  return by ~= nil and by ~= caster.address,
+         okS and staggered == true and staggeredBy ~= nil and staggeredBy ~= caster.address
+end
+
 function R.bindFamily()
   local family = rawget(_G, 'IvaliceLegacyFamily')
   if type(family) == 'table' and family.onFullCadence == nil then
@@ -1269,11 +1613,7 @@ function R.hook165(formula, caster, target, classes, helpers)
   if target.type == 1 then R.seeFoe(target.address) end
   if caster.type == 1 then
     R.seeFoe(caster.address)
-    local okWork, work = pcall(function()
-      local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(caster.address))
-      return w.address ~= 0 and w or nil
-    end)
-    R.foeActed(caster.address, okWork and work or nil)
+    R.foeActs(caster, classes, helpers)
   end
   if not R.active() then return end
   if caster.type == 0 and target.type == 1 then
@@ -1296,11 +1636,13 @@ function R.hook165(formula, caster, target, classes, helpers)
     s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
     s.distance = R.distance(formula)
     s.bystander = formula.initialTargetPointer ~= 0 and formula.initialTargetPointer ~= target.address
-    s.category, s.targetStatus, s.targetMp = category, statusSet(formula.target.statusEffects), target.currentMp
+    s.category, s.targetStatus, s.targetMp = category, foeStatusSet(formula.target.statusEffects, target, now), target.currentMp
     s.targetMaxMp = target.maxMp
+    s.broken = R.isBroken(target, now)
     if s.job >= Hybrid.FIRST_ID then s.tough = R.isTough(target.address, classes, helpers) end
     if work.address ~= 0 then
       s.charge = {current = work.currentChargeTime, required = work.requiredChargeTime, last = work.lastChargeTime}
+      s.staggered = R.isStaggered(target.address, work, target)
     end
     s.foes = R.foes(classes, target.address)
     local a = P.decide('hit', s, effective())
@@ -1312,7 +1654,7 @@ function R.hook165(formula, caster, target, classes, helpers)
     local mine = formula.target.removedHp > 0 and R.listens(R.lineOf(target.job1, target.job2), 'struck')
       and R.base(target, formula.target.statusEffects, classes, helpers) or nil
     if mine then
-      mine.attacker, mine.attackerStatus, mine.attackerMp = caster.address, statusSet(caster.temporaryStatusEffects), caster.currentMp
+      mine.attacker, mine.attackerStatus, mine.attackerMp = caster.address, foeStatusSet(caster.temporaryStatusEffects, caster, clock()), caster.currentMp
       mine.attackerMaxMp, mine.attackerTough = caster.maxMp, R.isTough(caster.address, classes, helpers)
       mine.damage, mine.dropCritical = formula.target.removedHp, dropped
       mine.foes = R.foes(classes, caster.address)
@@ -1326,7 +1668,7 @@ function R.hook165(formula, caster, target, classes, helpers)
           local s = R.base(k, k.temporaryStatusEffects, classes, helpers)
           if s then
             s.ally = target.address
-            s.attacker, s.attackerStatus, s.attackerMp = caster.address, statusSet(caster.temporaryStatusEffects), caster.currentMp
+            s.attacker, s.attackerStatus, s.attackerMp = caster.address, foeStatusSet(caster.temporaryStatusEffects, caster, clock()), caster.currentMp
             s.attackerMaxMp, s.attackerTough = caster.maxMp, R.isTough(caster.address, classes, helpers)
           end
           local a = s and P.decide('ally', s, effective())
@@ -1345,12 +1687,18 @@ end
 local OUTCOME = {[1] = 'parry', [2] = 'parry', [3] = 'block', [4] = 'block', [5] = 'dodge'}
 function R.hook240(formula, caster, target, classes, helpers)
   if caster.type == 1 then R.seeFoe(caster.address) end
+  -- 0.1.45: every foe attack reaches 240, hit or evaded, so it ends the foe's Staggered record here. 0.1.46: once per foe
+  -- action (R.foeAction): the state is read at the action's first call, before the record ends, and every target and every
+  -- hit of that action hears the same reading (Hex Round I). The early exits below still end the record.
+  local staggered = false
+  if caster.type == 1 then staggered = R.foeAction(formula, caster, classes, helpers) end
   if not R.active() or caster.type ~= 1 or target.type ~= 0 then return end
   local s = R.base(target, formula.target.statusEffects, classes, helpers)
   if not s then return end
   s.attacker = caster.address
-  s.attackerStatus, s.attackerMp = statusSet(caster.temporaryStatusEffects), caster.currentMp
+  s.attackerStatus, s.attackerMp = foeStatusSet(caster.temporaryStatusEffects, caster, clock()), caster.currentMp
   s.attackerMaxMp, s.attackerTough = caster.maxMp, R.isTough(caster.address, classes, helpers)
+  s.attackerStaggered = staggered == true
   s.foes = R.foes(classes, caster.address)
   -- A counter pays only when the blow was answered with a swing (0.1.34, audit B2/D1b): Forge 41-43 write outcome 2 (weapon
   -- parry + counter) or 4 (shield block + counter). A counter roll without a parry or block does nothing visible.
@@ -1371,6 +1719,7 @@ end
 
 -- 110: healing amount. A party White Mage healing an ally past full HP gives 'heal'.
 function R.hook110(formula, caster, target, classes, helpers, _, item)
+  if caster.type == 1 then R.foeActs(caster, classes, helpers) end   -- 0.1.45: a foe's heal is its turn
   if not R.active() or caster.type ~= 0 or target.type ~= 0 or formula.target.addedHp == -1 then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
   if not s or not R.listens(s.job, 'heal') then return end
@@ -1379,6 +1728,7 @@ function R.hook110(formula, caster, target, classes, helpers, _, item)
   s.item = item
   s.healAmount = math.floor(formula.target.addedHp)
   s.targetStatus = statusSet(target.temporaryStatusEffects)
+  R.guardTarget(s, target, classes)
   s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
   s.foes = R.foes(classes)
   if not item then s.castId, s.action = R.castId(caster, formula.action), formula.action end
@@ -1397,6 +1747,7 @@ function R.hook170(formula, caster, target, classes, helpers)
   if target.type == 1 then R.seeFoe(target.address) end
   if caster.type == 1 then R.seeFoe(caster.address); R.foeActed(caster.address) end
   if not R.active() or caster.type ~= 0 or target.type ~= 1 then return end
+  R.channel(formula, caster, target)
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
   if not s or not R.listens(s.job, 'magick') then return end
   s.element, s.mpCost = R.element(formula.action)
@@ -1409,12 +1760,15 @@ function R.hook170(formula, caster, target, classes, helpers)
     local work = formula.target.battleUnitWork
     if work and work.address ~= 0 then
       s.charge = {current = work.currentChargeTime, required = work.requiredChargeTime, last = work.lastChargeTime}
+      s.staggered = R.isStaggered(target.address, work, target)
     end
   end
   s.kill = s.damage ~= -1 and s.damage >= target.currentHp
   s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
   s.now = clock()
-  s.targetStatus = statusSet(formula.target.statusEffects)
+  s.targetStatus = foeStatusSet(formula.target.statusEffects, target, s.now)
+  -- Resonance I (decision 10): another member's hit or spell of this element on the foe in the last 5 s
+  s.partyElement = Accessory ~= nil and Accessory.partyElement(target.address, caster.address, s.element, s.now) == true
   s.foes = R.foes(classes, target.address)
   local a = P.decide('magick', s, effective())
   if a then a.mpBudget = R.castBudget(caster, formula.action, s.now) end
@@ -1467,7 +1821,8 @@ function R.hook182(formula, caster, target, classes, helpers, before)
   s.targetMaxMp = target.maxMp
   if s.job >= Hybrid.FIRST_ID then s.tough = R.isTough(target.address, classes, helpers) end
   s.foe, s.target, s.damage = true, target.address, formula.target.removedHp
-  s.targetStatus, s.targetMp = statusSet(formula.target.statusEffects), target.currentMp
+  s.targetStatus, s.targetMp = foeStatusSet(formula.target.statusEffects, target, clock()), target.currentMp
+  s.staggered = R.foeStaggered(target.address, classes, helpers)
   s.foes = R.foes(classes, target.address)
   -- Damage spells run 182 after 170 for their status riders (Bio, Dark...): one cast, one budget.
   s.castId, s.action, s.now = R.castId(caster, formula.action), formula.action, clock()
@@ -1479,6 +1834,7 @@ end
 -- 181: status spells (formulas 2, 3, 44 end here; Legacy's Magicks adapter wraps it for Decoy first). A party member's
 -- status spell that newly lands statuses gives 'cast' (on a foe or an ally). `before` = added flags before it ran.
 function R.hook181(formula, caster, target, classes, helpers, before)
+  if caster.type == 1 then R.foeActs(caster, classes, helpers) end   -- 0.1.45: a foe's status or buff spell is its turn
   if not R.active() or caster.type ~= 0 or (target.type ~= 0 and target.type ~= 1) then return end
   if not R.listens(R.lineOf(caster.job1, caster.job2), 'cast') then return end
   local s = R.base(caster, formula.caster.statusEffects, classes, helpers)
@@ -1493,7 +1849,9 @@ function R.hook181(formula, caster, target, classes, helpers, before)
     formula.action, clock()
   s.castId = R.castId(caster, formula.action)
   s.foe = target.type == 1
-  s.targetStatus, s.targetMp = statusSet(formula.target.statusEffects), target.currentMp
+  s.targetStatus, s.targetMp = (target.type == 1 and foeStatusSet or statusSet)(formula.target.statusEffects, target, s.now), target.currentMp
+  if target.type == 1 then s.staggered = R.foeStaggered(target.address, classes, helpers) end
+  R.guardTarget(s, target, classes)
   s.targetMaxMp = target.maxMp
   if s.job >= Hybrid.FIRST_ID and target.type == 1 then s.tough = R.isTough(target.address, classes, helpers) end
   s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
@@ -1516,6 +1874,251 @@ function R.hook22(formula, caster, target, classes, helpers)
   end
 end
 
+-- ---------- accessories (accessory_effects.lua) ----------
+-- A party member's accessory snapshot: no job, no Clan rank; nil when it wears nothing with an effect.
+function R.accessoryBase(unit, flags, classes, helpers)
+  if not Accessory or unit.type ~= 0 or not R.inCampaign() then return nil end
+  local worn = R.worn(unit, classes)
+  local ids = Accessory.worn(worn[1], worn[2])
+  if #ids == 0 then return nil end
+  local actor = R.partyActor(unit)
+  if not actor then return nil end
+  local status, heldHaste = statusSet(flags), nil
+  for _, id in ipairs(worn) do
+    if id == R.HERMES_SANDALS and status.haste then status.haste, heldHaste = nil, true end
+    if id == R.PIXIE_SHOES then status.float = nil end
+  end
+  return {ids = ids, actorId = actor, self = unit.address, party = R.party(classes, helpers), casterStatus = status,
+          casterHeldHaste = heldHaste, casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100,
+          casterHp = unit.currentHp, casterMp = unit.currentMp, casterMaxMp = unit.maxMp, selfMaxHp = unit.maxHp,
+          targetStatus = {}, now = clock(),
+          roll = function(percent) return helpers.getRandomNumber(100) < percent end,
+          canLand = function(address, id)
+            if not address then return true end
+            local keep = classes.getBattleUnitKeep(address)
+            return R.mayAdd(keep, id, keep.temporaryStatusEffects, helpers)
+          end}
+end
+
+local function accessoryReport(ev, s, a)
+  local keys = {}
+  for k in pairs(a) do if k ~= 'fired' then keys[#keys + 1] = k end end
+  table.sort(keys)
+  local fired = {}
+  for _, id in ipairs(a.fired or {}) do fired[#fired + 1] = tostring(id) end
+  log(string.format('accessory %s actor=%s item=%s %s', ev, tostring(s.actorId), table.concat(fired, '/'),
+    table.concat(keys, ',')))
+end
+local function decideAccessory(ev, s, formula, member, classes, helpers, target)
+  local a = Accessory.decide(ev, s)
+  if a then R.apply(a, formula, member, classes, helpers, target); accessoryReport(ev, s, a) end
+end
+
+-- The element of a weapon hit, as Forge 99 picks it: the ammunition's row for bows, crossbows, guns and hand-bombs.
+function R.weaponElement(unit)
+  local ok, mask = pcall(function()
+    local function row(id)
+      if type(id) ~= 'number' or id < 0x1000 or id - 0x1000 >= bpack.section13.count then return nil end
+      return bpack.section13[id - 0x1000]
+    end
+    local r = row(unit.weapon)
+    if r and r.offhandCategory >= 23 and r.offhandCategory <= 26 then r = row(unit.offhand) end
+    if not r then return 0 end
+    local m = 0
+    for i, name in ipairs(ELEMENTS) do if r.elements[name] == 1 then m = m | (1 << (i - 1)) end end
+    return m
+  end)
+  return ok and type(mask) == 'number' and mask or 0
+end
+
+-- 165: a party member's hit on a foe ('hit'); a foe's physical hit that drops a party member to critical HP ('struck'
+-- for that member, 'ally' for the others).
+function R.accessory165(formula, caster, target, classes, helpers)
+  if not Accessory or not R.inCampaign() then return end
+  local now = clock()
+  if caster.type == 0 and target.type == 1 then
+    if formula.target.removedHp == -1 then return end
+    Accessory.touch(now)
+    local status = statusSet(formula.target.statusEffects)
+    Accessory.noteStatus(target.address, status)
+    -- Spotter reads a combo follow-up or a critical hit; the memory lives in the accessory module (every party hit counts)
+    local follow = Accessory.noteHit(caster.address, target.address, now, R.COMBO_WINDOW)
+    local s = R.accessoryBase(caster, formula.caster.statusEffects, classes, helpers)
+    if s then
+      s.foe, s.target, s.targetId, s.targetStatus = true, target.address, formula.target.identifier, status
+      s.damage = formula.target.removedHp
+      s.hitCombo, s.hitCritical = follow, formula.criticalState == 1
+      s.allyBroken, s.allyStaggered = R.alliedHold(caster, target, now, formula.target.battleUnitWork)
+      decideAccessory('hit', s, formula, caster, classes, helpers, target)
+    end
+    if formula.target.removedHp > 0 then Accessory.noteElement(target.address, caster.address, R.weaponElement(caster), now) end
+  elseif caster.type == 1 and target.type == 0 and target.maxHp > 0 then
+    local removed = formula.target.removedHp
+    if type(removed) ~= 'number' or removed <= 0 then return end
+    Accessory.touch(now)
+    local quarter = target.maxHp // 4
+    -- dropped to critical HP and still standing: a killing blow is not a rescue moment and spends no Vanish
+    if not (target.currentHp > quarter and target.currentHp - removed <= quarter and target.currentHp - removed > 0) then return end
+    local attackerStatus = statusSet(caster.temporaryStatusEffects)
+    local mine = R.accessoryBase(target, formula.target.statusEffects, classes, helpers)
+    if mine then
+      mine.attacker, mine.attackerStatus, mine.dropCritical, mine.damage = caster.address, attackerStatus, true, removed
+      decideAccessory('struck', mine, nil, target, classes, helpers)
+    end
+    for _, p in ipairs(R.party(classes, helpers)) do
+      if p.address ~= target.address then
+        local k = classes.getBattleUnitKeep(p.address)
+        local s = R.accessoryBase(k, k.temporaryStatusEffects, classes, helpers)
+        if s then
+          s.ally, s.attacker, s.attackerStatus = target.address, caster.address, attackerStatus
+          decideAccessory('ally', s, nil, k, classes, helpers)
+        end
+      end
+    end
+  end
+end
+
+-- 170: a party member's damage spell on a foe ('magick'): Burst and Spellcatcher's payoff; its element is remembered.
+function R.accessory170(formula, caster, target, classes, helpers)
+  if not Accessory or caster.type ~= 0 or target.type ~= 1 or not R.inCampaign() then return end
+  local damage = formula.target.removedHp
+  if damage == -1 then return end
+  local now = clock()
+  Accessory.touch(now)
+  local okE, mask = pcall(R.element, formula.action)
+  mask = okE and type(mask) == 'number' and mask or 0
+  local s = R.accessoryBase(caster, formula.caster.statusEffects, classes, helpers)
+  if s then
+    s.foe, s.target, s.targetId, s.element, s.now = true, target.address, formula.target.identifier, mask, now
+    s.castId, s.action, s.damage = R.castId(caster, formula.action), formula.action, damage
+    s.targetStatus = statusSet(formula.target.statusEffects)
+    decideAccessory('magick', s, formula, caster, classes, helpers, target)
+  end
+  if type(damage) == 'number' and damage > 0 then Accessory.noteElement(target.address, caster.address, mask, now) end
+end
+
+-- 110 / 127: healing that overflows a Mistflow Ring wearer's max HP spills to the most hurt other ally.
+function R.accessory110(formula, caster, target, classes, helpers)
+  if not Accessory or target.type ~= 0 or not R.inCampaign() then return end
+  local healed = formula.target.addedHp
+  if type(healed) ~= 'number' or healed <= 0 then return end
+  local overflow = math.floor(healed) - (target.maxHp - target.currentHp)
+  if overflow <= 0 then return end
+  local s = R.accessoryBase(target, target.temporaryStatusEffects, classes, helpers)
+  if not s or not Accessory.wears(s, Accessory.ID.mistflow) then return end
+  local spill = Accessory.spill(s, overflow)
+  if not spill then return end
+  local a = {others = {{op = 'hp', unit = spill.unit, amount = spill.amount}}, fired = {Accessory.ID.mistflow}}
+  R.apply(a, nil, target, classes, helpers)
+  accessoryReport('spill', s, a)
+end
+R.accessory127 = R.accessory110
+
+-- The ailments a party member's status spell or on-hit status newly landed on a foe (`before` = flags before Forge).
+local function newlyLanded(formula, before)
+  local out = {}
+  for _, name in ipairs(P.LANDED) do
+    local id = P.STATUS[name] or (name == 'disease' and P.DISEASE or nil)
+    if id and formula.target.addedStatusEffects[id] == 1 and not before[id] then out[#out + 1] = id end
+  end
+  return out
+end
+
+-- 181: status spells (and reversed status items). The lander of each ailment is remembered. An Indigo Pendant wearer's
+-- Vitality-checked spells (formulas 3 and 72, the ones Saboteur lifts) land ailments that last half as long; a status the
+-- foe already holds for longer, or a longer one a Proficiency stage queued, keeps its time. Every other formula that ends
+-- here (reversed items among them) keeps Forge's duration.
+R.INDIGO_FORMULAS = {[3] = true, [72] = true}
+function R.accessory181(formula, caster, target, classes, helpers, before)
+  if not Accessory or caster.type ~= 0 or target.type ~= 1 or not R.inCampaign() then return end
+  local now = clock()
+  local ids = newlyLanded(formula, before or {})
+  for _, id in ipairs(ids) do Accessory.noteAilment(target.address, id, caster.address, now) end
+  if #ids == 0 or not R.INDIGO_FORMULAS[formula.identifier] or not R.wears(caster, Accessory.ID.indigo, classes) then return end
+  for _, id in ipairs(ids) do
+    local half = math.max(1, math.floor(helpers.getStatusEffectDuration(caster.address, id) * Accessory.INDIGO_SCALE))
+    local running = target.temporaryStatusEffects[id] == 1 and target.statusEffectDurations[id] or 0
+    local queued = formula.target.statusEffectDurations[id]   -- -1 = Forge's full duration; else a stage's grant
+    queued = type(queued) == 'number' and queued ~= -1 and queued or 0
+    formula.target.statusEffectDurations[id] = math.max(half, type(running) == 'number' and running or 0, queued)
+  end
+  log(string.format('accessory indigo actor=%s statuses=%d half duration', tostring(R.partyActor(caster)), #ids))
+end
+
+-- 181, before Proficiency hears it: a reversed cure (formula 34, Nihopalaoa's Medicine Reverse) lands its statuses with
+-- no Vitality check. On a boss, mark, rare game or King it now rolls like a Vitality-checked spell: the item's accuracy
+-- + the caster's Magick - the target's Vitality (100 with Saboteur), hit when the 0-99 roll is below it (Forge 40). A
+-- miss takes back every status the cure would have added (any bit, Petrify, Doom and Berserk included) and shows as
+-- a miss, as Forge 181's own. Ordinary foes keep the native sure hit.
+R.REVERSED_CURE, R.KING_FIRST, R.KING_LAST, R.HP_CRITICAL = 34, 293, 372, 29
+function R.reversedCure181(formula, caster, target, classes, helpers, before)
+  if formula.identifier ~= R.REVERSED_CURE or caster.type ~= 0 or target.type ~= 1 or not R.inCampaign() then return end
+  local ids, seen = {}, before or {}
+  for id = 0, 31 do
+    if id ~= R.HP_CRITICAL and formula.target.addedStatusEffects[id] == 1 and not seen[id] then ids[#ids + 1] = id end
+  end
+  if #ids == 0 then return end
+  local tough = R.isTough(target.address, classes, helpers)
+  if not tough then
+    local ok, entry = pcall(function()
+      local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(target.address))
+      return w.address ~= 0 and w.ardClass.bestiaryIdentifier or nil
+    end)
+    tough = ok and type(entry) == 'number' and entry >= R.KING_FIRST and entry <= R.KING_LAST
+  end
+  if not tough then return end
+  local accuracy = 100
+  if formula.caster.augments.saboteur ~= 1 then
+    accuracy = bpack.section14[formula.action].accuracyRate + caster.magickPower - target.vitality
+  end
+  if helpers.getRandomNumber(100) < accuracy then return end
+  for _, id in ipairs(ids) do formula.target.addedStatusEffects[id] = 0 end
+  formula.skipState, formula.outcomeType = 1, 6
+  log(string.format('reversed cure resisted: actor=%s accuracy=%d statuses=%d', tostring(R.partyActor(caster)), accuracy, #ids))
+end
+
+-- 182: on-hit statuses. The lander of each ailment is remembered.
+function R.accessory182(formula, caster, target, classes, helpers, before)
+  if not Accessory or caster.type ~= 0 or target.type ~= 1 or not R.inCampaign() then return end
+  local now = clock()
+  for _, id in ipairs(newlyLanded(formula, before or {})) do Accessory.noteAilment(target.address, id, caster.address, now) end
+end
+
+-- Forge 34 (Cameo Belt, Spotter): true when another party member marked this foe and this attack rolls a dodge; the
+-- mark is spent. Formula 26 crossbows, guns and measures (27) and anything else that never reads the dodge leave the
+-- mark alone (the few crossbows on formula 25 do roll a dodge, so they spend it).
+R.DODGE_FORMULAS = {[20] = true, [21] = true, [22] = true, [23] = true, [24] = true, [25] = true, [28] = true,
+                    [29] = true, [64] = true, [65] = true, [66] = true, [103] = true, [104] = true}
+function R.spotter34(formula, caster, target, classes, helpers)
+  if not Accessory or caster.type ~= 0 or target.type ~= 1 or not R.inCampaign() then return false end
+  if type(target.address) ~= 'number' or target.address == 0 or not R.DODGE_FORMULAS[formula.identifier] then return false end
+  return Accessory.spotted(target.address, caster.address, clock())
+end
+
+-- Forge 231 (Rubicante Ring, Spellcatcher): a FOE's spell bounced off a party wearer (Forge 231 has no caster check, so
+-- an ally's heal bouncing off the wearer also sets outcome 8; it arms nothing).
+function R.reflect231(formula, caster, target, classes, helpers)
+  if not Accessory or formula.outcomeType ~= 8 or caster.type ~= 1 or target.type ~= 0 or not R.inCampaign() then return end
+  local s = R.accessoryBase(target, target.temporaryStatusEffects, classes, helpers)
+  if not s or not Accessory.wears(s, Accessory.ID.rubicante) then return end
+  s.attacker = caster.address
+  local a = Accessory.reflected(s)
+  if a then accessoryReport('reflected', s, a) end
+end
+
+-- Forge 94 (Barbariccia Ring, Stormcaller): the wearer's magick keeps the weather and terrain bonuses.
+local WEATHER, WIND = 0x02099DA8, 0x02099DAC
+function R.weather94(formula, caster, target, classes, helpers)
+  if not Accessory or caster.type ~= 0 or not R.inCampaign() then return end
+  if not isMagick(formula.action) or formula.caster.augments.weatherproof ~= 1 or formula.target.augments.weatherproof == 1
+      or not R.wears(caster, Accessory.ID.barbariccia, classes) then return end
+  local action = bpack.section14[formula.action]
+  local terrain = helpers.getTerrainType(formula.target.battleUnitWork.address)
+  local factor = Accessory.weatherBonus(function(name) return action.elements[name] == 1 end, memory.s32[WEATHER],
+    memory.s32[WIND], terrain)
+  if factor > 1 then formula.power = formula.power * factor end
+end
+
 -- Wrap one Forge function: the original always runs first; the hook can never stop Forge.
 function R.wrap(n, original)
   local hook = R['hook' .. n]
@@ -1526,7 +2129,14 @@ function R.wrap(n, original)
       for i = 0, 31 do if formula.target.addedStatusEffects[i] == 1 then before[i] = true end end
     end
     original(formula, caster, target, functions, classes, helpers)
+    -- a reversed cure's Vitality roll on bosses comes before Proficiency hears what landed
+    if n == 181 then
+      R.run('reversedCure181', function() R.reversedCure181(formula, caster, target, classes, helpers, before) end)
+    end
     R.run('hook' .. n, function() hook(formula, caster, target, classes, helpers, before) end)
+    -- the wearer's accessories, after the Proficiency hook of the same call
+    local worn = R['accessory' .. n]
+    if worn then R.run('accessory' .. n, function() worn(formula, caster, target, classes, helpers, before) end) end
   end
 end
 

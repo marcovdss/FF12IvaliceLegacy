@@ -1,4 +1,4 @@
-"""Recovery rules (Marco 2026-11-10, audit points A-E): per-hit MP cap, shared Green Mage drain, no MP from items
+"""Recovery rules (2026-11-10 play feedback, audit points A-E): per-hit MP cap, shared Green Mage drain, no MP from items
 outside item stages, no returns on combo follow-ups, and the per-foe charge push-back budget."""
 from pathlib import Path
 import unittest

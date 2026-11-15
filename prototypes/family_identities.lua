@@ -1,5 +1,5 @@
 -- Family identities: every weapon family's own style of play, always on for any wielder.
--- Design: reports/LEGACY-WEAPON-FAMILIARITY-2026-11-09.md (the approved Stage 1 1b table, finished).
+-- Design: the approved Stage 1 1b table, finished.
 -- Proficiency stays separate: it follows the character's job; a family identity follows the weapon.
 --
 -- One decision per family, each at the smallest Forge stage that expresses it. The original Forge
@@ -21,12 +21,16 @@
 --
 -- One shared defence rule lives here too, because it needs the same gate and deps:
 --   Guard fatigue  any party member: each attack it blocks, parries or dodges in a row leaves it 25% less
---                  evasion against the next; a hit that lands resets it (evade rolls 41, 42, 43)
--- and three family costs that live on the same evade rolls (every family cuts both ways, Marco 2026-11-10):
+--                  evasion against the next; a hit that lands resets it (evade rolls 41, 42, 43). Against a
+--                  Blinded attacker an avoid adds no step (0.1.43). Foes tire too (0.1.44): a foe a party member
+--                  attacks wears down the same way; a Regen holder's guard is fresh after 5 s, not 10
+-- and the shared states other pillars read (0.1.44): Broken (an Armour or Magick Resist cut: Sunder,
+-- Expose, Shear, a Brave spear hit, a Faithful staff spell) and Staggered (a foe's push budget is spent; the runtime owns it)
+-- and three family costs that live on the same evade rolls (every family cuts both ways, play feedback 2026-11-10):
 --   Braced    Sword        each parry or block pushes the wielder's own next charge back 10%
 --   Open      Katana       after a katana combo, the next attack on the Samurai meets no evasion
 --   Long haft Spear        a spear never parries (its weapon evade, the parry roll, is 0), except to counter (needs the Counter augment)
---   Reckless  Axe          each axe Attack lowers the wielder's own Defense 5% (floor -25%) against foes' hits, back to
+--   Reckless  Axe          each axe Attack makes foes' physical hits on the wielder deal 5% more (up to +20%), back to
 --                          normal 10 s after the last swing; tracked here, applied in damage_formula (axe Attack: 68)
 -- and the rod's cost: a heal that overflows draws Lure to the caster (heal amount 110).
 --
@@ -43,7 +47,7 @@
 -- never a crash (each decision is pcall-guarded). 0.2.0 is the first version that fires in game: 0.1.x
 -- adapters never passed the shared deps, and four decisions read the wrong object.
 local M = {}
-M.version = '0.5.0'
+M.version = '0.5.7'
 
 M.ATTACK = 150
 M.SUMMON_MIN = 27  -- identifiers 27-39 are the Espers; guests and party wield, summons do not
@@ -63,7 +67,7 @@ M.SPELLBREAK_SHARE = 0.1     -- Mace: burn 10% of the hit's damage as MP
 M.SPELLBREAK_MIN = 3
 M.SPELLBREAK_CAP = 0.1       -- never more than 10% of the target's max MP in one hit
 M.SUNDER_STEP = 0.05         -- Axe: -5% of the fight's starting Defence per hit
-M.SUNDER_FLOOR = 0.5         -- never below half of it, however long the fight runs
+M.SUNDER_FLOOR = 0.5         -- never below half of it, however long the fight runs; a hit there still Breaks (0.1.46)
 M.CADENCE_STEP = 0.06        -- Fists: +6% damage per consecutive Attack on the same target
 M.CADENCE_HASTE = 0.05       -- and the next action charges 5% faster per step
 M.CADENCE_CAP = 5            -- at most five steps (+30% damage, next charge 25% faster)
@@ -72,10 +76,15 @@ M.COMBO_WINDOW = 350000      -- hits closer than this are one Attack's combo (Pr
 M.FATIGUE_CUT = 0.25         -- Guard fatigue: each avoid in a row cuts shield, weapon and parry evasion by 25%
 M.FATIGUE_MAX = 4            -- four in a row and the next attack meets no evasion at all
 M.FATIGUE_WINDOW = 10000000  -- 10 s without being attacked and the guard is fresh again
+M.BROKEN_WINDOW = 10000000   -- Broken: a party member cut a foe's Defence or Magick Resist in the last 10 s
+M.REGEN_WINDOW = 5000000     -- Guard fatigue: a Regen holder's guard is fresh after 5 s without being attacked (0.1.44)
+M.TIRED_STEPS = 2            -- Unseen: a foe with this many fatigue steps loses its dodge to a ninja sword (0.1.44)
+M.SUNDER_STAGGER = 2         -- Sunder: on a Staggered foe each hit dents twice as deep; the floor is unchanged (0.1.44)
+M.INTERRUPT_PUSH = 0.10      -- True aim: a gun hit on a foe about to act pushes its charge back 10% (0.1.44)
 M.BRACED_PUSH = 0.10         -- Sword: a parry or block costs 10% of the wielder's own charge
 M.OPEN_WINDOW = 10000000     -- Katana: the opening a combo leaves lasts until the next Attack, 10 s at most
-M.RECKLESS_STEP = 0.05       -- Axe: the wielder's Defense counts 5% lower per fresh axe Attack
-M.RECKLESS_FLOOR = 0.75      -- never below 75% (-25%)
+M.RECKLESS_STEP = 0.05       -- Axe: foes' physical hits on the wielder deal 5% more per fresh axe Attack
+M.RECKLESS_CAP = 0.20        -- at most +20% (four steps)
 M.RECKLESS_WINDOW = 10000000 -- forgotten after 10 s without an axe Attack
 M.LURE = 17                  -- Forge status bit (helpers/statusEffectBits)
 M.LURE_SCALE = 0.25          -- Rod: the Lure an overflowing heal draws lasts a quarter of its full duration
@@ -97,8 +106,81 @@ local pendingCharge = {}
 -- Reckless: party axe wielder's swings taken so far, keep address -> {steps, at}. Lua state only: nothing is written to
 -- the unit, nothing is saved; the damage formula reads it when a foe hits the wielder.
 local reckless = {}
+-- Broken (0.1.43): foe keep address -> {at, hp, level, by, byAt, renew}: the clock of the last Defence or Magick Resist cut a party member
+-- landed on it (a fresh Sunder dent, Expose, Shear; 0.1.44 also a Brave spear hit and a Faithful staff spell; 0.1.46 also an
+-- axe hit on a foe already at the Sunder floor, which renews it), the foe's
+-- maxHp and level, and who did it (by) and when (byAt; 0.1.48), plus the axe user whose renewal kept an ally's credit
+-- (renew). The fingerprint makes a recycled address in a later fight a new foe. Lua state only;
+-- Grounding II, Pursuit I, the hybrid 'ailing' stages and Hyper Wrist read it through isBroken.
+local broken = {}
 function M.reset()
-  dents = {} cadence = {} flows = {} fatigue = {} pendingCharge = {} open = {} reckless = {}
+  dents = {} cadence = {} flows = {} fatigue = {} pendingCharge = {} open = {} reckless = {} broken = {}
+end
+
+-- A party member just cut this foe's Defence or Magick Resist (or, 0.1.44, a Brave spear hit or a Faithful staff spell Broke
+-- it). `target` is the foe's keep; `by` is the party member's keep address (nil when unknown). Without a clock (0) nothing
+-- is kept, so a missing clock can never make a foe Broken for the rest of the fight.
+-- 0.1.47: `keepLive` (the axe) restarts the 10 s but keeps the breaker of a live entry (the same foe, Broken under
+-- BROKEN_WINDOW ago, someone recorded), so an ally's Expose stays the ally's Break for Hyper Wrist; with no live entry,
+-- or one that names nobody, `by` is recorded.
+-- 0.1.48: the kept breaker's credit runs from its OWN Break (byAt), not from the last renewal: an ally stays the breaker
+-- only while now - byAt <= BROKEN_WINDOW. After that the axe user's hits still renew Broken, credited to the axe user
+-- (by = wielder, byAt = now). `renew` remembers the axe user who renewed a kept ally, for brokenBy.
+function M.noteBroken(target, now, by, keepLive)
+  if type(target) ~= 'table' or type(now) ~= 'number' or now <= 0 then return false end
+  local address = target.address
+  if type(address) ~= 'number' or address <= 0 then return false end
+  local who = type(by) == 'number' and by or nil
+  local old = keepLive and broken[address]
+  if old and type(old.by) == 'number' and old.by ~= who and type(old.byAt) == 'number'
+     and old.hp == target.maxHp and old.level == target.level
+     and now >= old.at and now - old.at <= M.BROKEN_WINDOW
+     and now >= old.byAt and now - old.byAt <= M.BROKEN_WINDOW then
+    broken[address] = {at = now, hp = target.maxHp, level = target.level, by = old.by, byAt = old.byAt, renew = who}
+    return true
+  end
+  broken[address] = {at = now, hp = target.maxHp, level = target.level, by = who, byAt = now}
+  return true
+end
+
+-- The live entry for this foe: at most BROKEN_WINDOW old and the same foe (maxHp and level match). Anything else is dropped.
+local function brokenEntry(target, now)
+  if type(target) ~= 'table' or type(now) ~= 'number' or now <= 0 then return nil end
+  local address = target.address
+  local entry = broken[address]
+  if not entry then return nil end
+  if entry.hp ~= target.maxHp or entry.level ~= target.level or now - entry.at > M.BROKEN_WINDOW then
+    broken[address] = nil
+    return nil
+  end
+  return entry
+end
+function M.isBroken(target, now) return brokenEntry(target, now) ~= nil end
+-- Who Broke the foe (a party member's keep address); nil when nobody is recorded or the foe is not Broken.
+-- Who Broke the foe. 0.1.48: an ally kept by an axe renewal is the breaker only within BROKEN_WINDOW of the ally's own
+-- Break; past that the entry (still live through the renewal) names the axe user who renewed it.
+function M.brokenBy(target, now)
+  local entry = brokenEntry(target, now)
+  if not entry then return nil end
+  if type(entry.byAt) == 'number' and now - entry.byAt > M.BROKEN_WINDOW then return entry.renew end
+  return entry.by
+end
+
+-- Staggered (0.1.44): the Proficiency runtime owns the charge push budget. A foe whose budget for its current turn is spent
+-- is Staggered until it acts. False when the runtime is not loaded or the foe cannot be read.
+function M.isStaggered(target, classes, helpers)
+  local R = rawget(_G, 'IvaliceLegacyProficiency')
+  if type(R) ~= 'table' or type(R.foeStaggered) ~= 'function' then return false end
+  local ok, staggered = pcall(R.foeStaggered, target.address, classes, helpers)
+  return ok and staggered == true
+end
+
+-- Regen held by a unit (temporary, or an Auto-Regen accessory's permanent one).
+function M.holdsRegen(unit)
+  local ok, held = pcall(function() return unit.temporaryStatusEffects.regen == 1 end)
+  if ok and held then return true end
+  local okAuto, auto = pcall(function() return unit.permanentStatusEffects.regen == 1 end)
+  return okAuto and auto == true
 end
 
 -- Log at most REPORT_LIMIT lines per identity per load, so a frequent one (guns) cannot hide the rest.
@@ -147,11 +229,13 @@ end
 
 -- ---------- Sunder: the axe grind ----------
 
--- Dent one target's Defence toward half of what it started the fight with. Returns what changed or
--- nil. `target` is the foe's keep (its live Defence); `result` is formula.target, whose defense slot the
+-- Dent one target's Defence toward half of what it started the fight with (`steps` = 2 on a Staggered foe: twice the
+-- step, the same floor). Returns before, after when it dented; nil, nil, true when the foe already sits at the floor
+-- (nothing more is dented; 0.1.46: the axe still renews Broken); nil otherwise.
+-- `target` is the foe's keep (its live Defence); `result` is formula.target, whose defense slot the
 -- engine applies after the hit, exactly as Expose (function 138) lowers Defence. Called after the damage
 -- function ran, so this hit still meets full Defence; the next one reads the dented keep.
-function M.dent(target, result)
+function M.dent(target, result, steps)
   if target.type ~= 1 then return nil end
   local before = target.defense
   if type(before) ~= 'number' or before <= 0 then return nil end
@@ -165,8 +249,8 @@ function M.dent(target, result)
     dents[address] = entry
   end
   local floor = math.ceil(entry.baseline * M.SUNDER_FLOOR)
-  if before <= floor then return nil end
-  local after = math.max(math.floor(before - math.max(1, entry.baseline * M.SUNDER_STEP)), floor)
+  if before <= floor then return nil, nil, true end   -- at the floor: no deeper dent (0.1.46: the caller renews Broken)
+  local after = math.max(math.floor(before - math.max(1, entry.baseline * M.SUNDER_STEP * (steps or 1))), floor)
   -- Another stage of this hit may already have queued a lower Defence (an Expose rider): keep the lower.
   local queued = result.defense
   if type(queued) == 'number' and queued >= 0 and queued <= after then return nil end
@@ -177,9 +261,12 @@ end
 -- ---------- wraps (each Forge adapter composes one of these around its original) ----------
 
 -- Reckless: the axe's own cost, a mirror of Sunder on the wielder. Each fresh axe Attack on a foe (a combo's
--- follow-up hits within COMBO_WINDOW share their Attack) adds a step; each step makes the wielder's Defense count 5% lower
--- against foes' hits, up to -25%, and the steps are forgotten after 10 s without an axe Attack, on load, new game and map
--- jump. The dent is applied by damage_formula (M.recklessDefense) on a foe's hit on the wielder, never by writing a stat:
+-- follow-up hits within COMBO_WINDOW share their Attack) adds a step; each step makes foes' physical hits on the
+-- wielder deal 5% more damage, up to +20%, and the steps are forgotten after 10 s without an axe Attack, on load, new
+-- game and map jump. 0.5.1: the cost acts on damage taken, after the foe-hit floor, because a Defense dent did nothing
+-- once the floor (attack/2) decided the hit. 0.5.2: physical hits only, never a foe's magick or a hit the wielder
+-- absorbs. It is applied by damage_formula (M.recklessTaken) on a foe's physical hit on the wielder, never by writing
+-- a stat:
 -- Forge 323 ignores caster stat slots for party members, and a keep write would need refreshStats outside the hit.
 -- Returns the new dent in percent when it grew, else nil.
 local function recklessSteps(address, now)
@@ -191,14 +278,16 @@ local function recklessSteps(address, now)
   return entry
 end
 
-local function maxSteps() return math.ceil((1 - M.RECKLESS_FLOOR) / M.RECKLESS_STEP - 1e-9) end
+local function maxSteps() return math.ceil(M.RECKLESS_CAP / M.RECKLESS_STEP - 1e-9) end
 
-function M.recklessStep(caster, deps)
+function M.recklessStep(caster, deps, brave)
   local address = caster.address
   if type(address) ~= 'number' or address <= 0 then return nil end
   local now = deps.clock and deps.clock() or 0
   if type(now) ~= 'number' then now = 0 end
   local entry = recklessSteps(address, now)
+  -- 0.1.44: while the wielder is Brave a swing adds no step, and the steps held keep fading from the last unbraced swing
+  if brave then return nil end
   if not entry then
     entry = {steps = 0, at = now, fresh = true}
     reckless[address] = entry
@@ -217,7 +306,8 @@ function M.clearReckless(address)
   return true
 end
 
--- The wielder's dent as a fraction (0 to 0.25), 0 when there is none, it has expired or the wielder no longer holds an axe.
+-- The wielder's extra damage taken as a fraction (0 to 0.20), 0 when there is none, it has expired or the wielder no
+-- longer holds an axe.
 function M.recklessDent(unit, deps)
   deps = deps or registered
   if not M.isWielder(unit) or deps.active() ~= true or deps.category(unit) ~= 'axe' then return 0 end
@@ -225,43 +315,73 @@ function M.recklessDent(unit, deps)
   if type(now) ~= 'number' then now = 0 end
   local entry = recklessSteps(unit.address, now)
   if not entry then return 0 end
-  return math.min(entry.steps * M.RECKLESS_STEP, 1 - M.RECKLESS_FLOOR)
+  return math.min(entry.steps * M.RECKLESS_STEP, M.RECKLESS_CAP)
 end
 
--- The Defense a foe's hit meets on `unit`: `defense` lowered by the unit's Reckless dent. Logs a dented hit.
--- Called by damage_formula (Forge 113 and 126) before its floor rule, only for a foe striking a party member.
-function M.recklessDefense(unit, defense, deps)
+-- The damage multiplier for a foe's hit on `unit`: 1 plus the unit's Reckless steps. Logs a raised hit.
+-- Called by damage_formula (Forge 113 and 126) after its floor rule, only for a foe's damaging physical hit on a party
+-- member.
+function M.recklessTaken(unit, deps)
   deps = deps or registered
-  if type(defense) ~= 'number' or defense <= 0 then return defense end
   local dent = M.recklessDent(unit, deps)
-  if dent <= 0 then return defense end
-  local after = defense * (1 - dent)
+  if dent <= 0 then return 1 end
   if deps.report then
-    pcall(deps.report, 'reckless-hit', unit.identifier, 'def ' .. defense .. '->' .. after, M.who(unit))
+    pcall(deps.report, 'reckless-hit', unit.identifier, string.format('taken x%.2f', 1 + dent), M.who(unit))
   end
-  return after
+  return 1 + dent
+end
+
+-- Forge's evade and Safety outcomes (formula.outcomeType, proc work +0x24; 0.1.48): 1-4 weapon parry or shield block
+-- (with or without a counter) and 5 the body evade, from the evade roll (Forge 41/42); 10 Safety (Forge 0). An
+-- unreadable outcome is not an evade (the swing counts, as before 0.1.48). 0.1.49: Forge's onHitPre middleware 280
+-- already stops the hit stage on every one of these (see wrap68), so M.evaded is a defensive guard.
+M.EVADED = {[1] = true, [2] = true, [3] = true, [4] = true, [5] = true, [10] = true}
+function M.evaded(formula)
+  local ok, outcome = pcall(function() return formula.outcomeType end)
+  return ok and M.EVADED[outcome] == true
 end
 
 -- Axe, fam function 68: original sets this hit's power and Defence term, then the dent lands for
 -- everything that comes after. Hand-bombs share function 68 and are excluded by the category gate.
 -- Reckless runs after Sunder in the same gate.
+-- An evaded, missed or Safety-stopped swing never reaches 68 (0.1.49 note). The cast stage leaves formula.outcomeType at
+-- 1-4 (a weapon parry or shield block, with or without a counter), 5 (the body evade) or 6 (the plain miss) from Forge
+-- 41/42, or 10 from Forge 0 (Safety). In the hit stage Forge's onHitPre middleware 280 (functions/280.lua) sets
+-- skipState = 1 whenever outcomeType is not 0 (it first resets 9 to 0), and the Forge runner then skips the formula's
+-- whole onHit list, 68 included. So the dent and the Broken renewal were already per landed swing before 0.1.48; the
+-- M.evaded test below is a defensive guard, kept in case a later Forge runs 68 after an evade.
+-- A renewal keeps an ally as breaker only within 10 s of the ally's own Break (noteBroken's keepLive).
 function M.wrap68(original, deps)
   assert(type(original) == 'function', 'original function required')
   return function(formula, caster, target, functions, classes, helpers)
     local deps = deps or registered
     local result = table.pack(original(formula, caster, target, functions, classes, helpers))
-    local ok, before, after = pcall(function()
+    local ok, before, after, twice, floored = pcall(function()
       if not M.applies(formula, caster, 'axe', deps) then return nil end
-      return M.dent(target, formula.target)
+      -- defensive guard (0.1.48; 0.1.49 note): Forge 280 already keeps parried, blocked, dodged, missed and
+      -- Safety-stopped swings out of 68; should one reach it, it neither dents nor renews Broken
+      if M.evaded(formula) then return nil end
+      -- 0.1.44: a Staggered foe takes the dent twice as deep (the floor stays at half)
+      local twice = M.isStaggered(target, classes, helpers)
+      local before, after, floored = M.dent(target, formula.target, twice and M.SUNDER_STAGGER or 1)
+      -- a fresh dent Breaks the foe; 0.1.46: so does a hit on a foe already at the floor (it renews Broken, no deeper dent).
+      -- 0.1.47: either way a live Broken keeps its breaker; only its 10 s restart. 0.1.48: an ally stays the breaker only
+      -- within 10 s of the ally's own Break.
+      if before or floored then M.noteBroken(target, deps.clock and deps.clock() or 0, caster.address, true) end
+      return before, after, twice, floored
     end)
     if ok and before and deps.report then
       pcall(deps.report, 'sunder', caster.identifier, target.identifier, before, after, M.who(caster))
+      if twice then pcall(deps.report, 'sunder-staggered', caster.identifier, target.identifier, before, after) end
+    elseif ok and floored and deps.report then
+      pcall(deps.report, 'sunder-floor', caster.identifier, target.identifier, 'broken renewed', M.who(caster))
     elseif not ok then
       M.fail(deps, 'sunder', before)
     end
     local okR, dent = pcall(function()
       if target.type ~= 1 or not M.applies(formula, caster, 'axe', deps) then return nil end
-      return M.recklessStep(caster, deps)
+      local okBrave, brave = pcall(function() return formula.caster.statusEffects.bravery == 1 end)
+      return M.recklessStep(caster, deps, okBrave and brave == true)
     end)
     if okR and dent then
       if deps.report then pcall(deps.report, 'reckless', caster.identifier, 'dent=' .. dent .. '%', M.who(caster)) end
@@ -289,6 +409,16 @@ function M.pierceWrap(inner, deps)
     formula.modifier = before * M.PIERCE_FACTOR
     local result = table.pack(inner(formula, caster, target, functions, classes, helpers))
     formula.modifier = before
+    -- 0.1.44 Brave: while the wielder holds Bravery each landed hit Breaks the foe (the Broken clock, no extra Defence loss)
+    local okB, braveHit = pcall(function()
+      if target.type ~= 1 or formula.caster.statusEffects.bravery ~= 1 then return false end
+      local removed = formula.target.removedHp
+      return type(removed) == 'number' and removed > 0
+    end)
+    if okB and braveHit then
+      M.noteBroken(target, deps.clock and deps.clock() or 0, caster.address)
+      if deps.report then pcall(deps.report, 'pierce-broken', caster.identifier, target.identifier, M.who(caster)) end
+    end   -- an unreadable status table counts as not Brave
     if deps.report then
       local okD, damage = pcall(function() return formula.target.removedHp end)
       pcall(deps.report, 'pierce', caster.identifier, target.identifier, before, 'removed=' .. tostring(okD and damage or '?'),
@@ -302,6 +432,19 @@ end
 -- weapon and shield evasion (the foe can't parry or block it). Runs after the Proficiency adapter in the same file,
 -- which uses the same fields for the Samurai's Haste aim. Logs only when it actually removed something.
 local ZERO = {'evadeWeapon', 'evadeShield'}
+local ZERO_DODGE = {'evadeWeapon', 'evadeShield', 'evadeParry'}
+local HELD = {'slow', 'immobilize', 'stop'}
+-- 0.1.44: why a foe's dodge is gone to a ninja sword, or nil. Held = Slow, Immobilize or Stop; tired = TIRED_STEPS or more
+-- guard-fatigue steps (the foe has avoided that many attacks in a row).
+function M.heldOrTired(target, deps)
+  local okHeld, held = pcall(function()
+    for _, name in ipairs(HELD) do if target.temporaryStatusEffects[name] == 1 then return name end end
+  end)
+  if okHeld and held then return held end
+  local now = deps.clock and deps.clock() or 0
+  if M.fatigueSteps(target, now) >= M.TIRED_STEPS then return 'tired' end
+  return nil
+end
 function M.wrap22(original, deps)
   assert(type(original) == 'function', 'original function required')
   return function(formula, caster, target, functions, classes, helpers)
@@ -310,12 +453,13 @@ function M.wrap22(original, deps)
     local ok, removed = pcall(function()
       if not M.applies(formula, caster, 'ninjaSword', deps) then return nil end
       local gone = {}
-      for _, field in ipairs(ZERO) do
+      local reason = target.type == 1 and M.heldOrTired(target, deps) or nil
+      for _, field in ipairs(reason and ZERO_DODGE or ZERO) do
         local v = formula[field]
         if type(v) == 'number' and v > 0 then gone[#gone + 1] = field .. '=' .. v end
         formula[field] = 0
       end
-      return #gone > 0 and table.concat(gone, ' ') or nil
+      return #gone > 0 and (table.concat(gone, ' ') .. (reason and (' ' .. reason) or '')) or nil
     end)
     if ok and removed and deps.report then
       pcall(deps.report, 'unseen', caster.identifier, target.identifier, removed, M.who(caster))
@@ -436,6 +580,14 @@ function M.wrap165(original, deps)
         return 'spellbreak', math.min(wanted, cap, room)
       elseif category == 'unarmed' then
         return 'cadence', M.cadenceStep(caster, target, deps)
+      elseif category == 'gun' then
+        -- True aim interrupt (0.1.44): the foe is about to act when its charge is at least 3/4 full, the test the hybrid
+        -- 'about' condition uses. The push itself runs in the Proficiency runtime, inside the shared push budget.
+        local w = formula.target.battleUnitWork
+        if type(w) ~= 'table' or w.address == 0 then return nil end
+        local cur, req = w.currentChargeTime, w.requiredChargeTime
+        if type(cur) ~= 'number' or type(req) ~= 'number' or req <= 0 or not (cur < req and cur * 4 >= req * 3) then return nil end
+        return 'interrupt', w
       end
       return nil
     end)
@@ -464,11 +616,39 @@ function M.wrap165(original, deps)
         if not okCb then M.fail(deps, 'cadence-callback', err) end
         if deps.report then pcall(deps.report, 'cadence-full', caster.identifier, target.identifier, okCb and 'ok' or 'failed') end
       end
+    elseif ok and kind == 'interrupt' and value then
+      local Rt = rawget(_G, 'IvaliceLegacyProficiency')
+      local okP, before, after = pcall(function()
+        if type(Rt) ~= 'table' or type(Rt.pushFoe) ~= 'function' then return nil end
+        return Rt.pushFoe(value, target.address, M.INTERRUPT_PUSH, caster.address, target)
+      end)
+      if okP and before and deps.report then
+        pcall(deps.report, 'true-aim-push', caster.identifier, target.identifier, before, after, M.who(caster))
+      elseif not okP then
+        M.fail(deps, 'true-aim-push', before)
+      end
     elseif not ok then
       M.fail(deps, 'wrap165', kind)
     end
     return table.unpack(result, 1, result.n)
   end
+end
+
+-- Channel (0.1.44), staff, damage spells (Forge 170, called by the Proficiency runtime): while the caster holds Faith each
+-- damage spell that lands Breaks the foe's Magick Resist (the Broken clock; there is no extra loss). Faith counts when the
+-- spell's own status table or the unit's temporary table shows it. Returns true when the foe was marked.
+function M.channel(formula, caster, target, deps)
+  deps = deps or registered
+  if not deps or not M.applies(formula, caster, 'staff', deps, false) then return false end
+  if type(target) ~= 'table' or target.type ~= 1 then return false end
+  local damage = formula.target.removedHp
+  if type(damage) ~= 'number' or damage <= 0 then return false end
+  local okF, faith = pcall(function() return formula.caster.statusEffects.faith == 1 end)
+  if not (okF and faith) then
+    local okT, held = pcall(function() return caster.temporaryStatusEffects.faith == 1 end)
+    if not (okT and held) then return false end
+  end
+  return M.noteBroken(target, deps.clock and deps.clock() or 0, caster.address)
 end
 
 -- Rod, heal amount 110: the wielder's healing spells land for more. Items heal through function 127,
@@ -542,7 +722,7 @@ end
 --
 -- The loan (0.3.1): a counter roll alone is not a counter. In 0.2.1-0.3.0 the roll succeeded (counterState 1,
 -- and Proficiency's counter lines fired: Hell Knight's Immobilize landed) but the game never swung, because the
--- engine performs a counter only for a unit that holds the Counter augment (Marco, 2026-11-10: "no Counter text").
+-- engine performs a counter only for a unit that holds the Counter augment (play feedback, 2026-11-10: "no Counter text").
 -- So a pole wielder without the licence is lent the augment's bit in its temporary augments while it holds the
 -- pole, and the bit is taken back the first time it is struck holding anything else (that blow's stale chance is
 -- zeroed before the roll). The licence itself lives in the permanent augments and is never touched.
@@ -629,7 +809,10 @@ function M.lentCounters() local n = 0 for _ in pairs(lent) do n = n + 1 end retu
 -- about 2% of his HP). Fatigue does not lower the first roll: a wall still turns a streak, but every avoid in
 -- a row leaves 25% less of each evasion for the next attack, and four in a row leave none. A hit that lands
 -- resets it, as does 10 s without being attacked. A plain accuracy miss (outcome 6) changes nothing.
--- Party members only: foes evade natively. 1-5 are the evade outcomes Forge 41-43 write (2 and 4 with a counter).
+-- Party members, and (0.1.44) the foes a party member attacks: a foe's evasion wears down the same way, so evasion is a
+-- delay and not a wall. Only the fatigue applies to a foe (no Long haft, Open, counter-parry or Braced). A Regen holder's
+-- guard is fresh after 5 s without being attacked instead of 10 s. 1-5 are the evade outcomes Forge 41-43 write (2 and 4
+-- with a counter).
 local EVADED = {[1] = true, [2] = true, [3] = true, [4] = true, [5] = true}
 
 -- Braced: move the wielder's own charge back by BRACED_PUSH of what it needs, only while it is charging (a full or
@@ -644,17 +827,31 @@ function M.brace(address, classes, helpers)
   return cur, after
 end
 local FIELDS = {'evadeShield', 'evadeWeapon', 'evadeParry'}
+-- Guard-fatigue steps a unit carries now (0 when fresh, expired, or another foe at a recycled address).
+function M.fatigueSteps(target, now)
+  local e = fatigue[target.address]
+  if not e then return 0 end
+  if target.type == 1 and (e.hp ~= target.maxHp or e.level ~= target.level) then return 0 end
+  if type(now) == 'number' and now > 0 and now - e.at > M.FATIGUE_WINDOW then return 0 end
+  return math.min(e.stacks, M.FATIGUE_MAX)
+end
 function M.guardWrap(original, deps)
   assert(type(original) == 'function', 'original function required')
   return function(formula, caster, target, functions, classes, helpers)
     local deps = deps or registered
-    local ok, entry, stacks, shown, category, stance, parried = pcall(function()
-      if not M.isWielder(target) or deps.active() ~= true then return nil end
+    local ok, entry, stacks, shown, category, stance, parried, mine = pcall(function()
+      -- 0.1.45: the cheap eligibility checks come first (a party defender, or a party attacker on a foe); the campaign
+      -- test last, so a foe's attack on a foe never reaches it
+      local mine = M.isWielder(target)
+      -- 0.1.44: a foe a party member attacks tires too; its entry carries the foe's fingerprint
+      if not mine and not (target.type == 1 and M.isWielder(caster)) then return nil end
+      if deps.active() ~= true then return nil end
       local now = deps.clock and deps.clock() or 0
       if type(now) ~= 'number' then now = 0 end
+      local window = (mine and M.holdsRegen(target)) and M.REGEN_WINDOW or M.FATIGUE_WINDOW
       local e = fatigue[target.address]
-      if not e or (now > 0 and now - e.at > M.FATIGUE_WINDOW) then
-        e = {stacks = 0, at = now}
+      if not e or (now > 0 and now - e.at > window) or (not mine and (e.hp ~= target.maxHp or e.level ~= target.level)) then
+        e = {stacks = 0, at = now, hp = (not mine) and target.maxHp or nil, level = (not mine) and target.level or nil}
         fatigue[target.address] = e
       end
       e.at = now
@@ -668,7 +865,7 @@ function M.guardWrap(original, deps)
           parts[#parts + 1] = field .. '=' .. v .. '>' .. formula[field]
         end
       end
-      local category = deps.category(target)
+      local category = mine and deps.category(target) or nil
       -- Long haft: a spear has no parry, except to counter. Forge's weapon roll (evadeWeapon, outcomes 1/2) is the
       -- parry; the body's roll (evadeParry, outcome 5) is a dodge and stays, as do shield blocks. A spear that rolled
       -- a counter (counterState 1 from Forge 8, which only a Counter licence lets it roll) keeps its parry, so it can
@@ -708,7 +905,7 @@ function M.guardWrap(original, deps)
           parts.parried = true
         end
       end
-      return e, n, #parts > 0 and table.concat(parts, ' ') or nil, category, stance, parts.parried
+      return e, n, #parts > 0 and table.concat(parts, ' ') or nil, category, stance, parts.parried, mine
     end)
     if not ok then M.fail(deps, 'guard', entry) end
     local result = table.pack(original(formula, caster, target, functions, classes, helpers))
@@ -716,7 +913,16 @@ function M.guardWrap(original, deps)
       local okOut, outcome, skipped = pcall(function() return formula.outcomeType, formula.skipState end)
       if okOut then
         if skipped == 1 and EVADED[outcome] then
-          entry.stacks = math.min(entry.stacks + 1, M.FATIGUE_MAX)
+          -- 0.1.43: an avoid against a Blinded attacker wears nothing down (and resets nothing). A status that cannot be
+          -- read counts as not Blinded, so the original rule stands.
+          local okBl, blind = pcall(function() return formula.caster.statusEffects.blind == 1 end)
+          if okBl and blind then
+            if deps.report then
+              pcall(deps.report, mine and 'fatigue-blind' or 'foe-fatigue-blind', target.identifier, outcome, M.who(target))
+            end
+          else
+            entry.stacks = math.min(entry.stacks + 1, M.FATIGUE_MAX)
+          end
         elseif outcome ~= 6 then
           entry.stacks = 0
         end
@@ -725,11 +931,11 @@ function M.guardWrap(original, deps)
         pcall(deps.report, 'counter-parry', target.identifier, M.who(target))
       end
       if shown and deps.report then
-        pcall(deps.report, 'fatigue', target.identifier, stacks, shown, okOut and outcome or '?',
+        pcall(deps.report, mine and 'fatigue' or 'foe-fatigue', target.identifier, stacks, shown, okOut and outcome or '?',
               'stance=' .. tostring(stance), M.who(target))
       end
       -- A swing that answers a blow (parry or block with a counter): the outcome the counter lines can't show.
-      if okOut and skipped == 1 and (outcome == 2 or outcome == 4) and deps.report then
+      if okOut and mine and skipped == 1 and (outcome == 2 or outcome == 4) and deps.report then
         pcall(deps.report, 'counter-swing', target.identifier, 'outcome=' .. outcome, category or '?', M.who(target))
       end
       -- Braced: a sword wielder that parries (weapon roll, outcomes 1/2) or blocks (shield, 3/4) loses 10% of its own
@@ -857,17 +1063,17 @@ M.FAMILY_LINES = {
   sword = {'Guard', 'the best weapon evade; a parry or block pushes your next charge back 10%'},
   greatsword = {'Sweep', 'attacking a foe cleaves a half circle around it for half damage'},
   katana = {'Chain', 'combos run one hit longer; after a combo, the next attack on you meets no evasion'},
-  ninjaSword = {'Unseen', 'your hits can\'t be parried or blocked (the dodge still applies); Blind 10%, five also carry a second status at 10%; Glancing against armor'},
-  spear = {'Pierce', 'every hit ignores 30% of Defense; a spear never parries, except to counter, and a counter needs the Counter augment'},
+  ninjaSword = {'Unseen', 'your hits can\'t be parried or blocked, and a foe that is Slowed, Immobilized, Stopped or tired can\'t dodge them; Blind 10%, five also carry a second status at 10%; Glancing against armor'},
+  spear = {'Pierce', 'every hit ignores 30% of Defense, and while you are Brave it Breaks the foe; a spear never parries, except to counter, and a counter needs the Counter augment'},
   pole = {'Counterflow', 'counters even without the Counter augment (the Battle Harness or Magepower Shishak), and blows taken build the next counter; strikes Magick Resist; its evade lets counters swing'},
   bow = {'Volley', 'the keenest critical chance among the ranged weapons'},
   crossbow = {'Afflict', 'the bolt\'s status chance doubled, up to 100%; charge 30'},
-  gun = {'True aim', 'a gunner\'s shots never miss, Blind or not, and ignore Defense; damage depends on the gun alone'},
-  axe = {'Sunder', 'every hit dents the foe\'s Defense 5% of its start for the rest of the fight, down to half; Reckless dents your own Defense 5% a swing, down to a quarter off'},
+  gun = {'True aim', 'a gunner\'s shots never miss, Blind or not, and ignore Defense; a shot at a foe about to act pushes it back 10%; damage depends on the gun alone'},
+  axe = {'Sunder', 'every hit Breaks the foe and dents its Defense 5% of its start for the rest of the fight, twice as deep on a Staggered foe; the dents stop at half, the Breaks do not; Reckless: each swing makes foes\' physical hits on you 5% stronger, up to 20%, and none while you are Brave'},
   hammer = {'Concussion', 'Disable 15% on hit, 30% knockback chance; a slow swing (charge 40)'},
   dagger = {'Swift', 'the fastest charge, frequent combos, a little evade; Glancing against armor'},
   rod = {'Mend', 'healing spells heal +20% while it is held; a heal that overflows draws Lure to the caster'},
-  staff = {'Channel', 'element potency, and the most Magick of the caster weapons'},
+  staff = {'Channel', 'element potency, and the most Magick of the caster weapons; with Faith, each damage spell that lands Breaks the foe'},
   mace = {'Spellbreak', 'hits burn foe MP equal to 10% of the damage, at most 10% of its pool'},
   measure = {'Tempo', 'each measure grants one status to an ally it strikes: Protect, Shell, Bravery, Invisible, Haste or Bubble'},
   handBomb = {'Barrage', 'the bombs you load decide the status, 25% on hit; Chaos Bombs (Confuse) and Stun Bombs (Stop) set up Time Mage Detonate'},

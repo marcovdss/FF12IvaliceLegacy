@@ -148,7 +148,7 @@ class HybridProficiencyTest(unittest.TestCase):
         ''')
 
     def test_seer_keeps_the_green_mage_leech_from_stage_one(self):
-        # Marco 2026-11-10: picking White Mage as second job must not erase Green Mage's sustain.
+        # 2026-11-10 play feedback: picking White Mage as second job must not erase Green Mage's sustain.
         self.lua.execute(r'''
           local a = P.decide('hit', S(14, {damage=400}), 1)
           assert(a and a.drainMp == 2, 'I-1: hits drain MP (5%, capped at 2% of max MP)')
@@ -187,10 +187,14 @@ class HybridProficiencyTest(unittest.TestCase):
 
     def test_memory_conditions(self):
         self.lua.execute(r'''
-          -- Chaplain I: the first hit after a heal pushes charge; the second hit does not
+          -- Chaplain I (0.1.44): the first hit after a heal, on a Staggered foe, heals the most hurt ally; the second does not
           P.decide('heal', S(13, {target=200, healAmount=100, overflow=0}), 1)
-          local a = P.decide('hit', S(13), 1)
-          assert(a and a.chargeTo)
+          local a = P.decide('hit', S(13, {staggered=true}), 1)
+          assert(a and a.others and a.others[1].op == 'hp' and not a.chargeTo)
+          assert(P.decide('hit', S(13, {staggered=true}), 1) == nil)
+          -- control: the heal is remembered, but a foe that is not Staggered pays nothing
+          P.reset()
+          P.decide('heal', S(13, {target=200, healAmount=100, overflow=0}), 1)
           assert(P.decide('hit', S(13), 1) == nil)
           -- Cannoneer I: only the first hit on each foe
           P.reset()
@@ -209,13 +213,24 @@ class HybridProficiencyTest(unittest.TestCase):
           P.CAST_WINDOW = 200000
           -- Runeguard II 4/4 (id 54): while Lured, a damage spell quickens the next action and gives Faith; the cast
           -- reaches three foes
-          local lured = {lure=true}
+          -- (0.1.45: Lure or Faith, and the Faith goes to the most hurt ally)
+          local function allyFaith(a) for _, o in ipairs(a and a.others or {}) do if o.op == 'add' and o.id == 22 then return true end end end
+          local lured = {lure=true, faith=true}
           local first = P.decide('magick', S(54, {casterStatus=lured, element=1, now=500000, targetId=1}), 8)
-          assert(first.casterCharge and first.casterAdd[22], 'quickened, Faith')
+          assert(first.casterCharge and allyFaith(first), 'quickened, Faith to an ally')
           for i = 2, 3 do
             local again = P.decide('magick', S(54, {casterStatus=lured, element=1, now=500000 + i, targetId=i}), 8)
-            assert(again == nil or (again.casterCharge == nil and next(again.casterAdd or {}) == nil), i)
+            assert(again == nil or (again.casterCharge == nil and not allyFaith(again)), i)
           end
+          -- Lure alone fires it too (Faith or the old trigger, not both) ...
+          local alone = P.decide('magick', S(54, {casterStatus={lure=true}, element=1, now=900000000, targetId=9}), 8)
+          assert(alone and alone.casterCharge and allyFaith(alone), 'Lure alone')
+          -- ... and so does Faith alone ...
+          local faith = P.decide('magick', S(54, {casterStatus={faith=true}, element=1, now=1800000000, targetId=10}), 8)
+          assert(faith and faith.casterCharge and allyFaith(faith), 'Faith alone')
+          -- control: neither does nothing (stage I still acts; stage II does not)
+          local plain = P.decide('magick', S(54, {casterStatus={}, element=1, now=2700000000, targetId=11}), 8)
+          assert(plain == nil or (plain.casterCharge == nil and not allyFaith(plain)))
         ''')
 
     def test_a_healing_spell_on_the_party_gives_its_cast_rewards_once(self):

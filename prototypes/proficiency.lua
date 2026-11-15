@@ -3,9 +3,9 @@
 -- The line is chosen by the character's CURRENT job. This module only decides; the Forge adapters apply the result
 -- through Forge's own end-of-hit step (statuses, durations, HP/MP), the charge time, or helpers on other units.
 -- Every level is built from operations already seen working in play; where a designed effect needed an engine detail
--- nobody has proven, the level does the nearest thing those operations allow (reports/LEGACY-PROFICIENCY-040.md).
+-- nobody has proven, the level does the nearest thing those operations allow.
 local M = {}
-M.version = '0.5.4'
+M.version = '0.5.8'
 
 M.NO_JOB = 255
 M.JOB = {whiteMage = 0, lancer = 1, gunner = 2, greenMage = 3, knight = 4, mystic = 5, timeMage = 6, warrior = 7,
@@ -19,6 +19,9 @@ M.BUFFS = {'protect', 'shell', 'haste', 'bravery', 'faith', 'reflect', 'regen', 
 -- Ailments with a running timer, shortest first (status table durations: Disable 20, Immobilize 50, Poison 50, Slow 60).
 -- Blind, Silence, Sap, Oil and Disease have no timer, so renewing them would do nothing.
 M.TIMED = {'disable', 'immobilize', 'poison', 'slow'}
+-- "A foe with an ailment" tests for the base lines (0.1.44, decision 3): the ailments, Stop, and Broken (a pseudo-flag the
+-- runtime puts on a foe snapshot while a party member's cut on it is under 10 s old).
+M.HINDERED_TEST = {'blind', 'poison', 'silence', 'slow', 'sap', 'disease', 'immobilize', 'disable', 'oil', 'stop', 'broken'}
 M.AILMENTS = {'blind', 'poison', 'silence', 'slow', 'sap', 'disease', 'immobilize', 'disable', 'oil'}
 -- "An ailment you land" (hybrid `status` stages): the same set on the weapon route (hook 182) and the spell route
 -- (hook 181). It is the ailments plus Stop, Sleep and Confuse; the base Chemist's Contagion keeps reading the nine ailments.
@@ -29,7 +32,7 @@ M.GREATSWORD = 2
 M.MAX_RANK = 12
 -- Legendary weapons: any job wields them at base power; full power needs Clan mastery in the job that owns the family.
 M.MASTER_DAMAGE = 1.25
--- BaseJobs 0.6.0 (Marco 2026-11-10): hammers moved from Warrior to Time Mage, measures from Time Mage to Chemist.
+-- BaseJobs 0.6.0 (2026-11-10 decision): hammers moved from Warrior to Time Mage, measures from Time Mage to Chemist.
 M.FAMILY_OWNER = {[1] = M.JOB.knight, [2] = M.JOB.warrior, [3] = M.JOB.samurai, [4] = M.JOB.samurai, [5] = M.JOB.lancer,
                   [6] = M.JOB.mystic, [7] = M.JOB.hunter, [8] = M.JOB.chemist, [9] = M.JOB.gunner, [10] = M.JOB.warrior,
                   [11] = M.JOB.timeMage, [12] = M.JOB.hunter, [13] = M.JOB.whiteMage, [14] = M.JOB.blackMage,
@@ -103,7 +106,7 @@ local HELP = {slot = function(actor) return slot(actor) end, add = add, push = p
 rules[M.JOB.hunter] = {hit = function(s, a)
   if not s.foe then return end
   local L = s.L
-  local prey = has(s.targetStatus, M.HINDERED)
+  local prey = has(s.targetStatus, M.HINDERED_TEST)   -- an ailment, or Broken (0.1.44)
   local m = slot(s.actorId)
   if prey and L[1] >= 1 then
     local factor = L[1] >= 4 and 1.25 or 1.15
@@ -177,7 +180,7 @@ rules[M.JOB.lancer] = {hit = function(s, a)
   for i, name in ipairs({'haste', 'faith', 'regen', 'bravery'}) do
     if L[1] >= i and s.targetStatus[name] then strip[#strip + 1] = name end
   end
-  if L[2] >= 1 and has(s.targetStatus, M.HINDERED) then
+  if L[2] >= 1 and (has(s.targetStatus, M.HINDERED_TEST) or s.broken) then   -- an ailment, or Broken (0.1.43)
     if s.targetStatus.protect then strip[#strip + 1] = 'protect' end
     if s.targetStatus.shell and (L[2] >= 2 or not s.targetStatus.protect) then strip[#strip + 1] = 'shell' end
     if L[2] >= 3 and s.targetStatus.reflect then strip[#strip + 1] = 'reflect' end
@@ -217,7 +220,7 @@ rules[M.JOB.samurai] = {
       end
     end
     if L[1] < 1 or not s.foe then return end
-    -- Zanshin I (0.5.1, Marco 2026-11-10): a combo, or from 2/4 a critical hit, gives Haste, once per Attack. It used
+    -- Zanshin I (0.5.1, 2026-11-10): a combo, or from 2/4 a critical hit, gives Haste, once per Attack. It used
     -- to count hits in a row on one foe, which is the fists' Cadence trigger; the blade's own moment is the combo.
     -- A combo's follow-up hits arrive with s.comboFollow; a fresh hit opens a new Attack.
     if not s.comboFollow then m.fired = nil end
@@ -225,7 +228,8 @@ rules[M.JOB.samurai] = {
     m.fired = true
     -- 0.1.35 (study S-1): Zanshin I grants Haste, it does not refresh it. A Samurai who is already Hasted gets neither the
     -- Haste nor the stage-4 bonus, so a long Haste window ends and Zanshin III (a kill while Hasted) is what extends it.
-    if s.casterStatus.haste then return end
+    -- Hermes Sandals' Haste (casterHeldHaste) counts as held here, though it satisfies no Hasted condition.
+    if s.casterStatus.haste or s.casterHeldHaste then return end
     add(a, 'casterAdd', M.STATUS.haste, L[1] >= 3 and 0.75 or 0.5)
     if L[1] >= 4 then a.damage = (a.damage or 1) * 1.15 end
   end,
@@ -325,7 +329,7 @@ local function timeMageAura(s, a)
     M.observeStop(s.targetId, false)
     return
   end
-  if not s.casterStatus.haste then add(a, 'casterAdd', M.STATUS.haste, (best >= 4 and 0.75 or 0.5)) end
+  if not s.casterStatus.haste and not s.casterHeldHaste then add(a, 'casterAdd', M.STATUS.haste, (best >= 4 and 0.75 or 0.5)) end
   if best >= 2 then a.damage = (a.damage or 1) * 1.15 end
   if best >= 3 and s.targetId and M.stopExtend(s) then a.targetExtend = {[M.STATUS.stop] = 0.10} end
 end
@@ -336,10 +340,14 @@ local function manaLeech(s, a, damage)
   local L = s.L
   local drain = math.min(math.max(1, (damage * (L[1] >= 4 and 8 or 5)) // 100), s.targetMp)
   a.drainMp = drain
-  if L[1] >= 2 and drain == s.targetMp and not s.targetStatus.silence then add(a, 'targetAdd', M.STATUS.silence) end
+  -- "A foe drained down to 0 MP is Silenced": decide() grants it once the per-hit MP cap has had its say, because a
+  -- drain the cap cuts short does not empty the foe (the shared drain below is not cut, so it Silences here).
+  if L[1] >= 2 and not s.targetStatus.silence then a.leechSilence = 1 end
   if L[1] >= 3 then a.healHp = drain end
   if L[2] >= 1 and s.casterMp and s.casterMaxMp and s.casterMp >= s.casterMaxMp then
     a.drainMp = nil
+    if a.leechSilence and drain == s.targetMp then add(a, 'targetAdd', M.STATUS.silence) end
+    a.leechSilence = nil
     -- The drain is shared, never multiplied: allies get what the foe lost. Level 4 makes the foe lose 50% more.
     a.targetMpLoss = L[2] >= 4 and math.min(s.targetMp, drain + drain // 2) or drain
     local sorted = {}
@@ -425,7 +433,11 @@ rules[M.JOB.mystic] = {guard = function(s, a)
       end
     end
     if L[3] >= 2 then other(a, {op = 'add', unit = s.self, id = M.STATUS.protect, scale = 0.5}) end
-    if L[3] >= 3 then other(a, {op = 'add', unit = s.self, id = M.STATUS.haste, scale = 0.5}) end
+    -- Haste only when not already Hasted (Hermes Sandals' held Haste counts), like Zanshin I: a counter streak
+    -- no longer keeps renewing it.
+    if L[3] >= 3 and not s.casterStatus.haste and not s.casterHeldHaste then
+      other(a, {op = 'add', unit = s.self, id = M.STATUS.haste, scale = 0.5})
+    end
   end
 end}
 
@@ -476,7 +488,8 @@ rules[M.JOB.blackMage] = {magick = function(s, a)
     end
     m.castAt, m.castId, m.castElement = s.now, s.castId, s.element
     m.full = m.element == s.element and m.chain % 3 == 0
-    if L[1] >= 1 and ((m.element == s.element and m.chain >= 2) or (L[1] >= 3 and ended)) then
+    -- 0.1.44 (decision 10): another member's hit or spell of this element on the foe in the last 5 s counts too
+    if L[1] >= 1 and ((m.element == s.element and m.chain >= 2) or s.partyElement == true or (L[1] >= 3 and ended)) then
       a.casterCharge = L[1] >= 4 and 0.30 or 0.20
     end
   end
@@ -703,10 +716,10 @@ M.GEAR = {
      'Your hits strip Float, Haste and Faith from the foe',
      'Your hits strip Float, Haste, Faith and Regen from the foe',
      'Your hits strip Float, Haste, Faith, Regen and Bravery'},
-    {'Hits on a foe with an ailment strip its Protect\n(or its Shell, if it has no Protect)',
-     'Hits on a foe with an ailment strip Protect and Shell',
-     'Hits on a foe with an ailment strip Protect and Shell\nReflect is stripped too',
-     'Hits on a foe with an ailment strip Protect and Shell\nReflect, Bubble and Berserk are stripped too'},
+    {'Hits on an ailing foe, or one with Defense or Magick\nResist cut in 10 s (Broken), strip Protect, else Shell',
+     'Hits on an ailing or Broken foe strip Protect and Shell\nBroken: Defense or Magick Resist cut in 10 s',
+     'Hits on an ailing or Broken foe strip Protect and Shell\nReflect is stripped too',
+     'Hits on an ailing or Broken foe strip Protect and Shell\nReflect, Bubble and Berserk are stripped too'},
     {'A foe your hit leaves with no buffs is Immobilized\nImmobilize at half its normal duration',
      'A foe your hit leaves with no buffs is Immobilized\nImmobilize at 3/4 of its normal duration',
      'A foe your hit leaves with no buffs is Immobilized (3/4)\nYour hits deal +15% damage to Immobilized foes',
@@ -716,14 +729,14 @@ M.GEAR = {
      "Hits push the foe's charge back 10% x weapon CT/24\n15% if the foe is Slowed (at most double)",
      "Pushes back 10% (Slowed: 15%) x weapon CT/24, max 2\nThe nearest other foe is pushed back 5% as well",
      "Pushes back 15% (Slowed: 20%) x weapon CT/24, max 2\nThe nearest other foe is pushed back 5% as well"},
-    {'A foe that is about to act is pushed back 10% more\nAbout to act: its charge is at least 3/4 full',
-     'A foe about to act is pushed back 10% more\nand has a 15% chance to be Silenced (half duration)',
-     'A foe about to act is pushed back 10% more\nand has a 25% chance to be Silenced (half duration)',
-     'A foe about to act is pushed back 10% more, 25% Silence\nWhen that Silence lands, one ally gains Faith (half)'},
-    {'3 hits in a row on the same foe push it back 5% more',
-     '2 hits in a row on the same foe push it back 5% more',
-     '2 hits in a row on the same foe push it back 5% more\nand Slow it (half duration)',
-     '2 hits in a row on one foe: 5% more push and Slow (half)\nKilling that foe carries the count to your next target'}},
+    {'A foe about to act is pushed back 10% more x weapon CT/24\nAbout to act: its charge is at least 3/4 full',
+     'A foe about to act is pushed back 10% more x weapon CT/24\nand has a 15% chance to be Silenced (half duration)',
+     'A foe about to act is pushed back 10% more x weapon CT/24\nand has a 25% chance to be Silenced (half duration)',
+     'About to act: pushed back 10% more x CT/24, 25% Silence\nWhen that Silence lands, one ally gains Faith (half)'},
+    {'3 hits in a row on the same foe push it back 5% more\nx weapon CT/24, like every push (at most double)',
+     '2 hits in a row on the same foe push it back 5% more\nx weapon CT/24, like every push (at most double)',
+     '2 hits in a row on the same foe push it back 5% more\nx weapon CT/24, and Slow it (half duration)',
+     '2 in a row on one foe: 5% more push x CT/24, Slow (half)\nKilling that foe carries the count to your next target'}},
   [M.JOB.greenMage] = {line = 'Mana Leech',
     {'Hits drain 5% of damage as MP (max 2% of your MP)',
      'Hits drain 5% of damage as MP (max 2% of your MP)\nA foe drained down to 0 MP is Silenced',
@@ -746,10 +759,10 @@ M.GEAR = {
      'A parry or block gives the most hurt ally Protect and Shell\nBoth at half their normal duration',
      'A parry or block gives the 2 most hurt allies\nProtect and Shell (half duration)',
      'A parry or block gives the 2 most hurt allies Protect\nand Shell (half), and frees them from Immobilize'},
-    {'When an ally drops to critical HP, you gain Lure\nFoes turn on you (Lure at half duration)',
-     'When an ally drops to critical HP, you gain Lure\nFoes turn on you (Lure at 3/4 duration)',
-     'When an ally drops to critical HP, you gain Lure (3/4)\nand Bravery (half duration)',
-     'Ally at critical HP: you gain Lure (3/4) and Bravery (half)\nThat ally gains Protect (half duration)'}},
+    {'When a physical hit drops an ally to critical HP\nyou gain Lure: foes turn on you (half duration)',
+     'When a physical hit drops an ally to critical HP\nyou gain Lure: foes turn on you (3/4 duration)',
+     'When a physical hit drops an ally to critical HP\nyou gain Lure (3/4) and Bravery (half duration)',
+     'Ally hit to critical HP: you get Lure (3/4), Bravery (half)\nThat ally gains Protect (half duration)'}},
   [M.JOB.mystic] = {line = 'Ki Flow',
     {'Each counterattack heals you for 5% of your max HP',
      'Each counter heals you for 5% of your max HP\nOne hurt ally is healed for half that',
@@ -761,8 +774,8 @@ M.GEAR = {
      'Each counter restores 8 MP and cures your Blind and Sap'},
     {'Each counterattack cures you of one ailment',
      'Each counter cures you of one ailment\nand gives you Protect (half duration)',
-     'Each counter cures you of one ailment\nand gives you Protect and Haste (half duration)',
-     'Each counter cures you of two ailments\nand gives you Protect and Haste (half duration)'}},
+     'Each counter cures you of one ailment, gives you\nProtect (half) and Haste (half) if not Hasted',
+     'Each counter cures you of two ailments, gives you\nProtect (half) and Haste (half) if not Hasted'}},
   [M.JOB.timeMage] = {line = 'Detonate',
     {'Hits on a Slowed or Disabled foe: 15% chance to Stop it\nStop at half its normal duration',
      'Hits on a Slowed, Disabled or Immobilized foe: 15% Stop\nStop at half its normal duration',
@@ -782,35 +795,35 @@ M.GEAR = {
      'Kills and two-foe greatsword swings give you Bravery\nBravery lasts 50% longer',
      'Kills and two-foe greatsword swings give Bravery (+50%)\nA kill while Brave cures your Slow, Disable, Immobilize'},
     {'While below 50% HP, your hits give you Bravery',
-     'While below 50% HP, your hits give you Bravery\nand clear your Reckless dent (axe Defense)',
-     'While below 75% HP, your hits give you Bravery\nand clear your Reckless dent (axe Defense)',
-     'Below 75% HP, hits give you Bravery, clear your Reckless\ndent and give one ally Bravery (half duration)'},
+     'While below 50% HP, your hits give you Bravery\nand clear Reckless (axe: extra damage taken)',
+     'While below 75% HP, your hits give you Bravery\nand clear Reckless (axe: extra damage taken)',
+     'Below 75% HP, hits give you Bravery, clear your Reckless\nand give one ally Bravery (half duration)'},
     {'While you are at critical HP, your hits inflict Sap',
      'At critical HP, your hits inflict Sap\nYour hits deal +15% damage to Sapped foes',
      'At critical HP your hits Sap, +15% damage to Sapped foes\nKilling a Sapped foe spreads Sap to another foe',
      'At critical HP your hits Sap, +15% damage to Sapped foes\nKilling a Sapped foe spreads Sap to 2 other foes'}},
   [M.JOB.hunter] = {line = 'Pursuit',
-    {'Your hits deal +15% damage to a foe with an ailment\nAilments: Poison, Slow, Blind, Silence, Sap, Oil...',
-     'Your hits deal +15% damage to a foe with an ailment\nEach further hit in a row on that foe adds +5% more',
-     'Hits on a foe with an ailment: +15% (+5% more in a row)\nKilling that foe heals you for 10% of the damage dealt',
-     'Hits on a foe with an ailment: +25% (+5% more in a row)\nKilling that foe heals you for 10% of the damage dealt'},
+    {'Your hits deal +15% damage to an ailing or Broken foe\nBroken: its Defense or Magick Resist was cut in 10 s',
+     'Your hits deal +15% damage to an ailing or Broken foe\nHits in a row on that foe add a flat +5% more',
+     'Hits on an ailing or Broken foe: +15% (+5% more in a row)\nKilling that foe heals you for 10% of the damage dealt',
+     'Hits on an ailing or Broken foe: +25% (+5% more in a row)\nKilling that foe heals you for 10% of the damage dealt'},
     {'Hits on a foe with an ailment restart one ailment timer\nTimed ailments: Disable, Immobilize, Poison, Slow',
      'Hits on a foe with an ailment restart two ailment timers\nTimed ailments: Disable, Immobilize, Poison, Slow',
      'Hits on a foe with an ailment restart two ailment timers\nand stretch them 10% longer than a normal timer',
      'Hits on a foe with an ailment restart all its timers\nand stretch them 10% longer than a normal timer'},
-    {'Killing a foe with an ailment gives you Haste\nHaste at half its normal duration',
-     'Killing a foe with an ailment gives you Haste (half)\nThe next foe you hit is Slowed (half duration)',
-     'Killing a foe with an ailment gives you Haste (half)\nYour next target and one other foe are Slowed (half)',
-     'Killing a foe with an ailment gives you Haste (3/4)\nYour next target and one other foe are Slowed (half)'}},
+    {'Killing an ailing or Broken foe gives you Haste\nHaste at half its normal duration',
+     'Killing an ailing or Broken foe gives you Haste (half)\nThe next foe you hit is Slowed (half duration)',
+     'Killing an ailing or Broken foe gives you Haste (half)\nYour next target and one other foe are Slowed (half)',
+     'Killing an ailing or Broken foe gives you Haste (3/4)\nYour next target and one other foe are Slowed (half)'}},
   [M.JOB.blackMage] = {line = 'Resonance',
-    {'Casting the same element twice in a row makes\nyour next action charge 20% faster',
-     'Same element twice: next action charges 20% faster\nOne spell of another element does not break the chain',
-     'Same element twice: next action charges 20% faster\neven as a chain ends. One off-element spell is forgiven',
-     'Same element twice: next action charges 30% faster\neven as a chain ends. One off-element spell is forgiven'},
+    {"Same element twice in a row, or after an ally's hit\non that foe: your next action charges 20% faster",
+     "Same element twice, or after an ally's hit on the foe:\nnext action charges 20% faster, one stray spell forgiven",
+     "Same element twice or after an ally's hit: 20% faster\neven as a chain ends. One off-element spell is forgiven",
+     "Same element twice or after an ally's hit: 30% faster\neven as a chain ends. One off-element spell is forgiven"},
     {'Every 3rd cast of the same element in a row\nrefunds 30% of its MP cost',
      'Every 3rd same-element cast refunds 30% of its MP\nand deals +15% damage',
      'Every 3rd same-element cast refunds 40% of its MP\nand deals +15% damage',
-     'Every 3rd same-element cast refunds 60% of its MP\nand deals +15% damage'},
+     'Every 3rd same-element cast refunds up to 60% of its MP\n(within the MP cap) and deals +15% damage'},
     {'Every 3rd same-element cast Oils the target\nOil at half its normal duration',
      'Every 3rd same-element cast Oils the target\nand one other foe (half duration)',
      'Every 3rd cast Oils the target and one other foe\nThat other foe also takes 25% of the damage',
@@ -858,43 +871,165 @@ function M.gearLines(job, effectiveRank)
   return out
 end
 
--- Montblanc's lines for newly rewarded ranks (from+1 .. to). Returns a list of dialogue boxes.
+-- Montblanc's lines. Every box fits the native dialogue window: at most 3 lines of 48 characters ({color:...} markup
+-- does not count). Numbers are plain digits.
 local WRIT = {"Apprentice's Writ", "Journeyman's Writ", "Master's Writ"}
 local function gold(text) return '{color:gold}' .. text .. '{color:none}' end
+
 -- Montblanc's Proficiency topic (asked for in the Clan hall; the runtime shows these through the dialog plugin).
 M.TOPIC_PAGES = {
-  'Your current job has three ' .. gold('Proficiencies') .. ',\nkupo! Each grows through four levels as\nyou earn higher Clan ranks.',
-  'Proficiency I appears on your weapon,\nII on your armor, and III on your helmet.\nThe passives follow your job, not the item.',
-  gold("Apprentice's Writ") .. ' - ranks 1 to 4.\n' .. gold("Journeyman's Writ") .. ' - ranks 5 to 8.\n' .. gold("Master's Writ") .. ' - ranks 9 to 12, kupo!',
-  'When your Clan rank rises, come and ask\nme if you have earned anything new.\nI hand out nothing unasked, kupo!',
+  'Clan Centurio trains every member in their\njob, kupo. That training is ' .. gold('Proficiency') .. '.',
+  'Each job has its own line of three stages,\nand each stage grows through four levels.\nEvery new Clan rank brings a new level.',
+  "Learned two jobs? Then you fight with that\npair's own line, not either job's alone.\nEvery pairing has one, kupo!",
+  'The line follows your job, not your gear.\nChange jobs freely: what the clan taught\nyou stays taught, whatever you wield.',
+  'To see a stage at work, open Equipment.\nWeapons show stage I, body armour stage II\nand helmets stage III for that character.',
+  "Master all three stages at rank 12, and a\nlegendary weapon of your job's own kind\nstrikes a quarter harder, kupo!",
 }
 M.REMINDER = 'Kupo! Before you go: your Clan rank has\nrisen. Ask me about ' .. gold('Proficiency') .. '!'
+-- "Have I earned anything new?" when the claim could not be handled now (a Writ could not be granted, or the Clan rank
+-- could not be read): a neutral line, never "nothing new".
+M.CLAIM_WAIT = 'Give me a moment to find your papers, kupo.\nAsk me again shortly.'
+-- "About Proficiency." with no Legacy campaign loaded: one short line, and nothing is claimed. A campaign is known only
+-- once its save is loaded, so a new game asks for both until then, saved or not (0.1.50); another save gets it too.
+M.NO_CAMPAIGN = 'Save your journey and load it, kupo, then I\'ll\nopen your papers.'
+-- The topic menu, most used first; the last choice is also Cancel. M.TOPIC names each choice's 0-based index.
+M.TOPIC_CHOICES = {'Have I earned anything new?', 'Where do I stand?', 'Tell me about the Writs.', 'What is Proficiency?',
+                   "That's all."}
+M.TOPIC = {claim = 0, stand = 1, writs = 2, about = 3, bye = 4}
+
+local MASTER = 'You hold everything the clan teaches. A\nmaster hunter, kupo!'
+local AHEAD = "Your rank is ahead of my papers! Ask me\nwhat you've earned, kupo."
+local function u32(v) return int(v, 0, 0xFFFFFFFF) end
+
+-- The topic state the helpers below read (all optional; anything unreadable is left out):
+--   rank     the Clan rank the game computes now (1-12)        claimed  the rank Montblanc has rewarded (0-12)
+--   writs    {[k] = true} for each Writ in the Key Items
+--   have     {points, marks, den} from the save                need     {rank, points, marks, den}: the next rank's row
+local function claimedOf(state) return int(state.claimed, 0, M.MAX_RANK) and state.claimed or 0 end
+local function rankOf(state) return int(state.rank, 1, M.MAX_RANK) and state.rank or nil end
+
+-- The opening line: every rank rewarded, a rank waiting, or nothing waiting.
+function M.greeting(state)
+  state = type(state) == 'table' and state or {}
+  local claimed, rank = claimedOf(state), rankOf(state)
+  if claimed >= M.MAX_RANK then return 'My finest hunter! What can Clan Centurio\ndo for you today?' end
+  if rank and rank > claimed then return "Kupo! Your rank has gone up since we last\nspoke. Shall we see what you've earned?" end
+  return 'Proficiency, kupo? What would you like\nto know?'
+end
+
+-- What the next rank needs (the game's rank table row in state.need, the save's counts in state.have). `short` gives the
+-- answer to "Have I earned anything new?" when nothing is. Returns boxes, or nil when either table is unreadable.
+function M.nextNeeds(state, short)
+  state = type(state) == 'table' and state or {}
+  local need, have = state.need, state.have
+  if type(need) ~= 'table' or not int(need.rank, 2, M.MAX_RANK) or not u32(need.points) or not int(need.marks, 0, 0xFF)
+     or not int(need.den, 0, 30) then return nil end
+  if type(have) ~= 'table' or not u32(have.points) or not int(have.marks, 0, 0xFF) or not int(have.den, 0, 30) then return nil end
+  local boxes
+  if short then
+    boxes = {string.format('Nothing new yet. Rank %d needs %d clan\npoints and %d marks hunted, kupo!',
+                           need.rank, need.points, need.marks)}
+  else
+    boxes = {string.format('Rank %d needs %d clan points and\n%d marks hunted. You have %d and %d.',
+                           need.rank, need.points, need.marks, have.points, have.marks)}
+  end
+  -- only rank 12 asks for Sky Pirate's Den entries in the game's table (30 of 30)
+  if need.den > 0 then
+    boxes[#boxes + 1] = string.format("...and a full Sky Pirate's Den. You have %d\nof %d entries.", have.den, need.den)
+  end
+  return boxes
+end
+
+-- "Where do I stand?": the rank, the rewarded rank, the stage levels, then what comes next.
+function M.standing(state)
+  state = type(state) == 'table' and state or {}
+  local claimed, rank = claimedOf(state), rankOf(state)
+  local first
+  if rank and claimed > 0 then first = string.format("Clan rank %d, and I've rewarded you up to\nrank %d.", rank, claimed)
+  elseif rank then first = string.format("Clan rank %d. I haven't rewarded\nany rank yet. Ask what you've earned!", rank)
+  elseif claimed > 0 then first = string.format("Your Clan rank is a mystery to me! I've\nrewarded you up to rank %d.", claimed)
+  else first = "Your Clan rank is a mystery to me! I\nhaven't rewarded any rank yet." end
+  local L = M.levels(claimed)
+  local boxes = {first, string.format('Stage I is at %d/4, stage II at %d/4\nand stage III at %d/4.', L[1], L[2], L[3])}
+  if claimed >= M.MAX_RANK then
+    boxes[#boxes + 1] = MASTER
+  elseif rank and rank > claimed then
+    -- at rank 0 rewarded, the first box already says to ask
+    if claimed > 0 then boxes[#boxes + 1] = AHEAD end
+  else
+    local needs = M.nextNeeds(state)
+    if needs then
+      for _, b in ipairs(needs) do boxes[#boxes + 1] = b end
+    else
+      boxes[#boxes + 1] = string.format('Reach Clan rank %d and ask me again,\nkupo! There is more to learn.', claimed + 1)
+    end
+  end
+  return boxes
+end
+
+-- "Have I earned anything new?" when nothing is: the next rank's needs, or the master line at rank 12.
+function M.nothingNew(state)
+  state = type(state) == 'table' and state or {}
+  if claimedOf(state) >= M.MAX_RANK then return {MASTER} end
+  return M.nextNeeds(state, true) or {'Nothing new yet, kupo! Raise your Clan\nrank and come see me again.'}
+end
+
+-- "Tell me about the Writs.": the three Writs, where to keep them, and what the party carries now. The stamps on the
+-- highest Writ carried are its stage's level at the rewarded rank.
+function M.writStatus(state)
+  state = type(state) == 'table' and state or {}
+  local claimed = claimedOf(state)
+  local writs = type(state.writs) == 'table' and state.writs or {}
+  local boxes = {
+    gold(WRIT[1]) .. ': stage I, ranks 1-4.\n' .. gold(WRIT[2]) .. ': stage II, ranks 5-8.\n' ..
+      gold(WRIT[3]) .. ': stage III, ranks 9-12.',
+    'Keep them in your Key Items. A stage only\nanswers to a hunter who carries its Writ.',
+  }
+  local top
+  for k = 3, 1, -1 do if writs[k] == true then top = k break end end
+  if top then
+    boxes[#boxes + 1] = string.format('You carry the %s, with\n%d of 4 stamps.', gold(WRIT[top]), M.levels(claimed)[top])
+  elseif claimed == 0 then
+    boxes[#boxes + 1] = "You carry no Writ yet. Ask what you've\nearned and I'll start your papers!"
+  end
+  for _, k in ipairs(M.writsNeeded(claimed)) do
+    if writs[k] ~= true then
+      boxes[#boxes + 1] = "Lost a Writ? Ask what you've earned and\nI'll write you a new one, kupo."
+      break
+    end
+  end
+  return boxes
+end
+
+-- Montblanc's lines for newly rewarded ranks (from+1 .. to). Returns a list of dialogue boxes. One "kupo" per Writ handed
+-- over, none on a plain stamp.
 function M.speech(from, to)
   if not int(from, 0, M.MAX_RANK) or not int(to, 0, M.MAX_RANK) or to <= from then return {} end
   local boxes = {}
   if to - from > 1 then
-    boxes[#boxes + 1] = 'Kupo! I was filing your training papers and\nfound these waiting for you. You\'ve earned\nevery one, kupo!'
+    boxes[#boxes + 1] = 'Kupo! I was filing your training papers and\nfound these waiting for you. You\'ve earned\nevery one!'
   end
   local stage = (to - 1) // 4 + 1
   local level = to - 4 * (stage - 1)
   local roman = ({'I', 'II', 'III'})[stage]
   if from < 1 and to >= 1 then
-    boxes[#boxes + 1] = 'Kupo! You asked at the right time! Clan\nCenturio trains every member in their job.\nTake this ' .. gold(WRIT[1]) .. ', kupo!'
+    boxes[#boxes + 1] = 'Kupo! Perfect timing! Clan Centurio trains\nevery member in their job. Take this\n' .. gold(WRIT[1]) .. '!'
     boxes[#boxes + 1] = 'Whatever job you take up, the Writ unlocks its\n' .. gold('Proficiency') .. ': your weapons and armour fight\nthe way that job does, whatever you wield!'
-    boxes[#boxes + 1] = 'Rise through the ranks and I\'ll stamp it for\nyou each time. A Writ full of stamps is a\nhunter\'s pride, kupo!'
+    boxes[#boxes + 1] = 'Rise through the ranks and I\'ll stamp it for\nyou each time. A Writ full of stamps is a\nhunter\'s pride!'
   end
   if from < 5 and to >= 5 then
     boxes[#boxes + 1] = 'Kupo-po! That apprentice\'s paper can\'t hold\nanother stamp! Here, a ' .. gold(WRIT[2]) .. '.'
-    boxes[#boxes + 1] = 'Every job you know now opens its second\n' .. gold('Proficiency') .. '. Go show those marks what a\nCenturio journeyman can do, kupo!'
+    boxes[#boxes + 1] = 'Every job you know now opens its second\n' .. gold('Proficiency') .. '. Go show those marks what a\nCenturio journeyman can do!'
   end
   if from < 9 and to >= 9 then
     boxes[#boxes + 1] = 'Kupo... You\'ve come so far. I had this made\nfor very few hunters: a ' .. gold(WRIT[3]) .. '.'
-    boxes[#boxes + 1] = 'Your third ' .. gold('Proficiency') .. ' is open, kupo. The\nclan has nothing left to teach you, only\nstamps left to give!'
+    boxes[#boxes + 1] = 'Your third ' .. gold('Proficiency') .. ' is open. The clan has\nnothing left to teach you, only stamps\nleft to give!'
   end
   if to == M.MAX_RANK then
-    boxes[#boxes + 1] = 'And the final stamp on your ' .. gold(WRIT[3]) .. '!\nEvery ' .. gold('Proficiency') .. ' at its peak, kupo. Even\nI\'m a little jealous!'
+    boxes[#boxes + 1] = 'And the last stamp on your ' .. gold(WRIT[3]) .. '!\nEvery ' .. gold('Proficiency') .. ' at its peak. Even I\'m a\nlittle jealous, kupo!'
+    boxes[#boxes + 1] = 'Take up a legendary weapon of your job\'s\nown kind. Now you\'ll feel what mastery is!'
   elseif level > 1 then
-    boxes[#boxes + 1] = 'Kupo! Your ' .. gold(WRIT[stage]) .. ' gets a fresh\nstamp! ' .. gold('Proficiency ' .. roman .. ' ' .. level .. '/4') .. ' grows stronger\nfor every job you take up!'
+    boxes[#boxes + 1] = 'Your ' .. gold(WRIT[stage]) .. ' gets a fresh stamp!\n' .. gold('Proficiency ' .. roman .. ' ' .. level .. '/4') .. ' grows stronger for\nevery job you take up!'
   end
   return boxes
 end
@@ -903,7 +1038,7 @@ end
 function M.writSpeech(stage)
   if not int(stage, 1, 3) then return {} end
   return {'Kupo! Wait, I almost forgot your\n' .. gold(WRIT[stage]) .. '! Your ' .. gold('Proficiency') ..
-          ' only\nanswers to a hunter who carries it, kupo!'}
+          ' only\nanswers to a hunter who carries it!'}
 end
 -- Whether M.speech(from, to) already hands over Writ k.
 function M.speechGives(from, to, stage)

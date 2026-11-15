@@ -96,7 +96,7 @@ function plus(values)
   local unitWork = strict('battleUnitWork', UNIT_WORK,
                           {comboCount = v.combosSoFar or 0, battleFlags = strict('stance', STANCE, {isInBattleStance = 1})})
   local status = strict('statusEffects', STATUS, {reverse = v.reverse or 0, stop = v.stop or 0, sleep = v.sleep or 0,
-                                                  disable = v.disable or 0})
+                                                  disable = v.disable or 0, blind = v.blind or 0})
   return strict('procWorkPlus', PLUS, {
     augments = strict('augments', AUGS, {counter = v.counterAug or 0, counterBoost = 0}),
     keep = procKeep, battleUnitWork = unitWork, statusEffects = status, identifier = v.identifier or 0,
@@ -126,7 +126,8 @@ function hit(caster, target, fields)
              counterChance = f.counterChance or 0, comboChance = 0, onHitRate = 0, evadeParry = 0,
              evadeShield = 0, evadeWeapon = 0, power = 0, multiplier = 0, modifier = f.modifier or 0,
              absorbState = 0, skipState = 0}
-  w.caster = plus{identifier = caster.identifier, storedCombo = f.storedCombo, combosSoFar = f.combosSoFar}
+  w.caster = plus{identifier = caster.identifier, storedCombo = f.storedCombo, combosSoFar = f.combosSoFar,
+                  blind = f.attackerBlind}
   w.target = plus{identifier = target.identifier, reverse = f.reverse, classification = f.classification,
                   mpUpdateState = f.mpUpdateState, maxMp = target.maxMp, stop = f.stop, sleep = f.sleep,
                   disable = f.disable, counterAug = f.counterAug}
@@ -779,6 +780,79 @@ class FamilyIdentityTests(unittest.TestCase):
           active=false; attack(tank); assert(seen[7]==60)                    -- gate closed
           active=true; attack(tank); assert(seen[8]==45)
           module.reset(); attack(tank); assert(seen[9]==60)
+        """)
+
+    def test_guard_fatigue_ignores_a_blinded_attackers_avoided_hits(self):
+        self.lua.execute(r"""
+          seen={}; OUTCOME=3; SKIP=1
+          wrapped=module.guardWrap(function(f) seen[#seen+1]=f.evadeShield; f.outcomeType=OUTCOME; f.skipState=SKIP end,deps)
+          local function attack(defender, blind)
+            local f=hit(foe(),defender,{attackerBlind=blind and 1 or 0}); f.evadeShield=60
+            wrapped(f,foe(),defender,{},{},{})
+          end
+          local tank=wielder()
+          attack(tank); attack(tank); attack(tank)                           -- sighted: 60, 45, 30, three steps
+          assert(seen[1]==60 and seen[2]==45 and seen[3]==30)
+          attack(tank, true); attack(tank, true)                             -- Blinded: no step, no reset
+          assert(seen[4]==15 and seen[5]==15, seen[5])
+          attack(tank); assert(seen[6]==15)                                  -- the sighted avoid steps again: 15, then 0
+          attack(tank); assert(seen[7]==0)
+          local fresh=wielder(1, 99)
+          for i=1,5 do attack(fresh, true) end
+          for i=1,5 do assert(seen[7+i]==60, 'a fresh guard stays fresh against a Blinded attacker') end
+          local logged=0
+          for _, r in ipairs(reports) do if r[1]=='fatigue-blind' then logged=logged+1 end end
+          assert(logged==7, logged)
+          -- a landed hit resets the guard, Blind or not
+          OUTCOME=0; SKIP=0; attack(tank, true)
+          OUTCOME=3; SKIP=1; attack(tank); assert(seen[#seen]==60, seen[#seen])
+        """)
+
+    def test_broken_is_a_ten_second_per_foe_clock_that_reset_clears(self):
+        self.lua.execute(r"""
+          local now=1000000
+          local a=foe(555,100,1000,10)
+          assert(module.isBroken(a, now)==false)
+          assert(module.noteBroken(a, now, 7)==true and module.isBroken(a, now)==true and module.brokenBy(a, now)==7)
+          assert(module.isBroken(a, now+10000000)==true and module.isBroken(a, now+10000001)==false)
+          assert(module.isBroken(a, now)==false, 'an expired entry is dropped')
+          assert(module.noteBroken(a, 0)==false and module.noteBroken(a, nil)==false and module.noteBroken(nil, now)==false)
+          assert(module.noteBroken(555, now)==false, 'a bare address is not a foe')
+          module.noteBroken(foe(556,100,1000,10), now); assert(module.isBroken(foe(557,100,1000,10), now)==false)
+          -- the entry carries the foe's maxHp and level: another foe at a recycled address is not Broken
+          local b=foe(558,100,1000,10)
+          module.noteBroken(b, now)
+          assert(module.isBroken(foe(558,100,1000,10), now)==true, 'control: the same foe at its address')
+          assert(module.isBroken(foe(558,100,2500,10), now)==false, 'another maxHp')
+          module.noteBroken(b, now)
+          assert(module.isBroken(foe(558,100,1000,40), now)==false, 'another level')
+          module.noteBroken(b, now); assert(module.brokenBy(b, now)==nil, 'nobody recorded')
+          module.reset(); assert(module.isBroken(b, now)==false)
+        """)
+
+    def test_a_fresh_sunder_dent_makes_the_foe_broken_and_a_hit_at_the_floor_renews_it(self):
+        self.lua.execute(r"""
+          cat='axe'; NOW=5000000
+          deps.clock=function() return NOW end
+          wrapped=module.wrap68(function(f,c,t) end,deps)
+          local target=foe(555,100,1000,10)
+          local f=run(wrapped,wielder(),target); settle(f,target)
+          assert(target.defense==95 and module.isBroken(target, NOW)==true)
+          -- control: a sword swing makes no dent and no Broken
+          cat='sword'
+          local other=foe(556,100,1000,10)
+          run(wrapped,wielder(),other)
+          assert(module.isBroken(other, NOW)==false)
+          -- a foe already at the Sunder floor takes no new dent, but the hit renews Broken (0.1.46)
+          cat='axe'; module.reset()
+          local floored=foe(557,100,1000,10)
+          for i=1,12 do local g=run(wrapped,wielder(),floored); settle(g,floored) end
+          assert(floored.defense==50)
+          NOW=NOW+11000000
+          assert(module.isBroken(floored, NOW)==false, 'control: the last dent\'s Broken has expired')
+          local g=run(wrapped,wielder(),floored); settle(g,floored)
+          assert(floored.defense==50, 'no deeper dent at the floor')
+          assert(module.isBroken(floored, NOW)==true, 'a hit at the floor renews Broken')
         """)
 
     def test_family_costs_on_the_evade_roll(self):

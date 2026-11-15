@@ -200,9 +200,13 @@ holds.
   rank is a reward.
 - **It follows the job.** A character uses the line of the job they have now, at the levels the Clan has earned.
   Changing jobs never loses progress.
-- **Montblanc speaks.** When the party leaves the Clan hall with a rank he hasn't rewarded yet, he speaks in the
-  game's own dialogue windows. Saves that were already ranked catch up once. His menu explains Proficiency too
-  ("Tell me about Proficiency").
+- **Montblanc speaks.** Ask him in the Clan hall: "About Proficiency." in his menu opens a talk in the game's own
+  dialogue windows with five choices. "Have I earned anything new?" hands over a rank he hasn't rewarded yet, with its
+  Writ or stamp; "Where do I stand?" names your rank, your stages and what the next rank needs; "Tell me about the
+  Writs." and "What is Proficiency?" explain; "That's all." ends the talk. Saves that were already ranked catch up
+  once. Leaving the hall hands nothing out: with a rank waiting, he reminds you once per visit. Until a Legacy save is
+  loaded (a new game too, until you save it and load it), he asks you to save your journey and load it, and hands
+  nothing out.
 - **The Writs are key items.** He hands over an Apprentice's, Journeyman's and Master's Writ at ranks 1, 5 and 9, and
   stamps it at every other rank. A stage only works while its Writ is in Key Items.
 - **A Clan Primer tip.** "Clan Proficiency" joins the Traveler's Tips once the Apprentice's Writ is in Key Items.
@@ -219,14 +223,14 @@ holds.
 | Lancer | Grounding | Hits strip Float and Haste, then Faith, Regen and Bravery |
 | Warrior | Cleave | A kill grants Bravery |
 | Samurai | Zanshin | A combo grants Haste, and a critical hit too from level 2, but only if the Samurai is not already Hasted |
-| Hunter | Pursuit | More damage to targets hindered by an ailment |
+| Hunter | Pursuit | More damage to targets hindered by an ailment or Broken |
 | Gunner | Suppression | Hits push back the target's next action, more for a slow weapon: hits push the charge back 10% x weapon charge time / 24, at most double, so the gun carries it best |
 | Chemist | Contagion | A status your attack lands has a 35% chance to spread to another foe, and a measure buff it lands spreads to a second ally at the same chance |
 | Green Mage | Mana Leech | Hits drain the foe's MP into the wielder |
 | Time Mage | Detonate | Hits on a Slowed or Disabled foe have a 15% chance to Stop it; from level 3 a Confused foe counts too (Chaos Bombs set it up), and stage I-3 and I-4 name Confused in the gear text |
 | Mystic | Ki Flow | Counterattacks heal the Mystic; a complete fists Cadence streak counts as one counter |
 | White Mage | Overflow | Healing past full HP becomes Regen |
-| Black Mage | Resonance | Casting the same element twice makes the next action charge faster |
+| Black Mage | Resonance | Casting the same element twice makes the next action charge faster; another member's hit or spell of that element on the same foe in the last 5 seconds counts as the first cast |
 
 Two 0.1.35 changes to the later stages: Zanshin's first Haste window can only be opened while the Samurai is not
 already Hasted, so a kill while Hasted (stage III) is the way to extend it; and Zanshin stage II now removes the dodge
@@ -257,8 +261,56 @@ its payoff from the other, and no two stages share a trigger and a first effect.
 - A full Cadence streak counts as a counter for every line with a counter stage. A counter parries at 30% on any weapon
   but fists whose own evade is lower (a roll under 30 turns the blow aside; it is not guaranteed).
 
+**Shared states (0.1.43 and 0.1.44).** The pillars (weapon identities, Proficiency, hybrids, armour and accessories)
+talk to each other through a few states the party sets up on a foe: one pillar writes the state and another reads it,
+so a fight is a team effort. Every payoff fires by itself, so gambit allies run it too. No state adds a status or a
+new item.
+
+- **Broken.** A foe is Broken for 10 seconds after a party member cuts its Defense or Magick Resist: any axe Sunder
+  hit (a fresh dent, or, since 0.1.46, a hit on a foe already at the Sunder floor, which renews Broken without a deeper
+  dent), the party's Expose or Shear, a spear hit by a Brave wielder, or a damage spell from a staff caster who has
+  Faith. Lancer Grounding II (rank 5 and up) strips Protect or Shell from a Broken foe exactly as
+  it does from an ailing one. Broken also counts wherever a line asks for "a foe with an ailment": Hunter Pursuit I and
+  its Haste on a kill, every hybrid stage that reads "a foe with an ailment" (its text says "a foe ailing or
+  Broken"; it counts as one ailment, so "2+ ailments" still needs real ones) and Hyper Wrist. It is not a status:
+  Contagion's spread and Pursuit II's timer restarts ignore it, and so does the "Foe: any ailment" gambit, which
+  reads only the game's own statuses. It lives in the script only, is forgotten on load, new game and map change, and
+  belongs to one foe (a later foe at the same memory address does not inherit it).
+- **Staggered.** A foe whose charge push-back budget for its current turn is used up (25%, or 12.5% for bosses, marks
+  and rare game; the budget itself did not change) is Staggered until it acts. Sunder dents twice as deep on a
+  Staggered foe (the floor stays at half), Hyper Wrist fires on a foe an ally Staggered, and four hybrid stages read it
+  and no longer push on their own: Chaplain Last Rites I (heals the most hurt ally and adds damage), Artillerist
+  Barrage I (returns MP), Engineer Field Kit I (heals) and Ki Gunner Hex Round I (a counter on a Staggered foe).
+  Any turn a foe takes ends it, whatever the foe did: an attack that hit, missed or was evaded, a status or buff spell,
+  a damage spell or a heal (0.1.45; before, an evaded attack or a status spell left a spent record to be read
+  stale). The record belongs to one foe (its maxHp and level), so a later foe at the same memory address does not
+  inherit it. An area attack or a multi-hit is one action: every target and every hit of it hears the state the action
+  started with (Hex Round I on each), and the record ends with the action (0.1.46; before, only the first target
+  heard it).
+- **Brave and Faithful.** While the wielder holds Bravery, spear hits Break the foe and an axe swing adds no Reckless
+  step (steps already held still fade 10 seconds after the last swing without Bravery). Hybrid Frenzy I and Havoc I
+  now read "while Brave" instead of "below half HP", and Frenzy I-3 gives the most hurt ally Bravery, not the
+  wielder. Faith is the caster's key: a staff damage spell cast with Faith Breaks the foe, and Spellblade Imbue II and
+  Rune Knight Runeguard II fire on Faith or on their old trigger (an imbued blade; Lure), not both (0.1.45), and give
+  their Faith grant to an ally.
+- **Foes tire too.** The guard rule below applies to every foe a party member attacks with a melee, bow or crossbow
+  roll: each attack it avoids in a row leaves its next evasion 25% lower, four in a row leave none, and a landed hit,
+  ten seconds without being attacked, or an avoid against a Blinded attacker resets or skips it. Evasion is a delay,
+  not a wall.
+- **Unseen reads a held or tired foe.** A ninja sword's hits also ignore the dodge against a foe that is Slowed,
+  Immobilized or Stopped, or has avoided two attacks in a row.
+- **True aim interrupts.** A gun hit on a foe about to act (charge at 75% or more) pushes it back 10%, inside the
+  shared budget.
+- **Regen steadies the guard.** A party member holding Regen has a fresh guard five seconds after the last attack on
+  them, not ten.
+- **Party element rhythm.** Black Mage Resonance I also counts another member's hit or spell of the same element on
+  that foe within the last 5 seconds, so an elemental archer or gunner opens the element and the Black Mage bursts it.
+- **Magebreaker reads low MP.** Unmake I and III now read "a foe with a quarter of its MP or less" instead of "no MP
+  left", which a boss never reaches. Mana Leech's Silence on a foe drained to 0 is unchanged.
+
 *Play state: Stage I played to Clan rank 4, and the first hybrid Stage I lines have fired in play. Stages II and
-III, and most of the 66 hybrid lines, are built but not yet confirmed in play.*
+III, and most of the 66 hybrid lines, are built but not yet confirmed in play. The shared states above are built and
+covered by tests, and not yet played.*
 
 ## Weapons
 
@@ -276,24 +328,26 @@ slower one a little harder.
 
 **Family identities.** Every weapon family has one style of play for any party member who wields it, and most pay a
 price for it. It follows the weapon, while Proficiency follows the job. The Clan Primer's Traveler's Tips carries the
-identities and their costs as four Weapon Families entries (Heavy, Light, Ranged, Magick).
+identities and their costs as four Weapon Families entries (Heavy, Light, Ranged, Magick). The entries also define
+Broken and Staggered, say who loses the dodge to a ninja sword, and explain how foes (and allies) tire (0.1.45).
+Broken counts as an ailment for job and hybrid triggers, not for gambits (0.1.46).
 
 | Family | Identity |
 |---|---|
 | Sword | **Guard**: the best weapon evade (20-40; the Main Gauche matches it at 40); a parry or block pushes your next charge back 10% (**Braced**) |
 | Greatsword | **Sweep**: Attack cleaves a half circle around the target for half damage; knockback 25 |
 | Katana | **Chain**: the highest combo rate (30-45); a rolled combo runs 1 hit longer; the next attack on the wielder then meets no evasion (**Open**) |
-| Ninja sword | **Unseen**: hits can't be parried or blocked (the dodge still applies); every blade carries Blind 10%, and five share that roll with a second status at 10% (Slow, Disable, Doom or Poison); **Glancing** against armour |
-| Spear | **Pierce**: every hit ignores 30% of Defense; long reach. Never parries, except to counter, and a counter needs the Counter augment (**Long haft**); it still blocks and dodges. The menu shows 0 evade (the Vrsabha keeps 40) |
+| Ninja sword | **Unseen**: hits can't be parried or blocked (the dodge still applies, except against a Slowed, Immobilized or Stopped foe, or one that has avoided two attacks in a row); every blade carries Blind 10%, and five share that roll with a second status at 10% (Slow, Disable, Doom or Poison); **Glancing** against armour |
+| Spear | **Pierce**: every hit ignores 30% of Defense, and while the wielder is Brave each hit also Breaks the foe; long reach. Never parries, except to counter, and a counter needs the Counter augment (**Long haft**); it still blocks and dodges. The menu shows 0 evade (the Vrsabha keeps 40) |
 | Pole | **Counterflow**: the wielder counters even without the Counter augment (Speed / 2; the Battle Harness and the Magepower Shishak carry it), twice as often with it; every blow taken without answering adds +10 to the next counter, up to 75 (100 with the augment); strikes Magick Resist. Its evade (25 at the third band, rising to 30 from the sixth) is what lets the counter swing |
 | Bow | **Volley**: critical rate 20-30, the keenest of the ranged weapons |
 | Crossbow | **Afflict**: the bolt's status chance is doubled (up to 100%); charge time 30 |
-| Gun | **True aim**: a party gunner's shots never miss, and Blind does not spoil them; shots ignore Defense; a gun's damage scales with the gun alone; charge time 50 |
-| Axe | **Sunder**: every hit dents the foe's Defense by 5% of its starting value for the rest of the fight (down to half). **Reckless**: the wielder's own Defense dents 5% a swing, down to a quarter off |
+| Gun | **True aim**: a party gunner's shots never miss, and Blind does not spoil them; shots ignore Defense; a gun's damage scales with the gun alone; charge time 50; a hit on a foe about to act pushes its charge back 10% (inside the push budget) |
+| Axe | **Sunder**: every hit dents the foe's Defense by 5% of its starting value for the rest of the fight (down to half; twice as deep on a Staggered foe), and every hit Breaks the foe, at the floor too (0.1.46). **Reckless**: each fresh axe Attack (a combo counts once) makes foes' damaging physical hits on the wielder 5% stronger, up to 20%, gone ten seconds after the last axe Attack made without Bravery (a Brave wielder takes no new step) |
 | Hammer | **Concussion**: Disable 15% on hit, a 30% knockback chance; charge time 40 |
 | Dagger | **Swift**: charge time 15, frequent combos, a little evade (more on the Main Gauche); **Glancing** against armour |
 | Rod | **Mend**: healing spells heal +20% while it is held (potions unchanged); a heal that overflows draws Lure to the caster |
-| Staff | **Channel**: element potency and the most Magick of the caster weapons |
+| Staff | **Channel**: element potency and the most Magick of the caster weapons; a damage spell cast with Faith Breaks the foe |
 | Mace | **Spellbreak**: hits burn foe MP equal to 10% of the damage (at most 10% of its pool) |
 | Measure | **Tempo**: each measure grants one status to the ally it strikes (Protect, Shell, Bravery, Invisible, Haste or Bubble, by tier); the Gilt Measure is now sold from Amal's Weaponry in the third band, and a measure buff a Chemist lands can spread to a second ally (Contagion) |
 | Hand-bomb | **Barrage**: the bombs you load decide the status, 25% on hit (Poison, Stop, Oil, Confuse or Sap; some carry none). Chaos Bombs (Confuse) and Stun Bombs (Stop) set up a Time Mage's Detonate |
@@ -306,11 +360,14 @@ crossbows, guns and hand-bombs.
 **The guard itself tires.** Each attack a party member blocks, parries or dodges in a row leaves them 25% less
 evasion against the next, so a streak of avoids ends in a clean hit; a landed hit, or ten seconds without being
 attacked, restores the guard. The first roll against a fresh guard is always full, and a plain miss changes nothing.
+An avoid against a Blinded attacker wears nothing down and resets nothing, so Blind keeps a tank's guard working
+(0.1.43). A party member holding Regen has a fresh guard after five seconds instead of ten (0.1.44). Foes tire by
+the same rule when a party member attacks them (0.1.44).
 
 **Families pay their own price.** A sword's parry or block pushes the wielder's own next charge back 10%
 (**Braced**); after a katana combo, the next attack on the wielder meets no evasion if it comes within ten seconds
 (**Open**); a spear never parries (**Long haft**), except that a spear which rolled a counter (this needs the Counter augment, now on
-the Battle Harness again) turns the blow aside and strikes back; an axe wears its wielder's Defense down (**Reckless**; it returns ten seconds after the last axe Attack); and a dagger or ninja sword loses its edge
+the Battle Harness again) turns the blow aside and strikes back; an axe makes foes' physical hits on its wielder up to 20% stronger (**Reckless**; it fades ten seconds after the last axe Attack made without Bravery); and a dagger or ninja sword loses its edge
 against armour (**Glancing**). A pole's evade is back to 25-30 (by band) so that Counterflow can swing. Any weapon but fists that rolled a counter parries it at 30% when its own weapon evade is lower (a roll under 30 turns the blow aside and answers it; it is not a guaranteed parry). The crossbow (charge 30)
 and the hammer (charge 40, trimmed to about 1.05 of its band) are slower than before, and the hand-bomb's attack is
 trimmed from the fifth band on.
@@ -351,6 +408,11 @@ sits 38% below native and its helm magick resist 20% above.
 identities draw on established overhauls where that adds a new answer, and never copy a job's signature passive.
 Renamed accessories rename the copies you already own. Prices and locations are unchanged.
 
+**Accessories that read the shared states.** Cameo Belt's Spotter marks a foe on a combo follow-up or a critical hit,
+not on any hit (0.1.43): the next attack on it by another member that rolls a dodge cannot be dodged. Hyper Wrist's
+Opportunist (0.1.44) quickens your next action by 10% when you hit a foe an ally ailed, Broke or Staggered; the
+wearer's own cuts do not count. Nishijin Belt keeps reading the element another member just used.
+
 *Play state: armour text seen in game; the per-piece properties and the accessories are not yet measured in play.
 The armour triangle is installed (0.1.31) and not yet measured.*
 
@@ -372,7 +434,7 @@ balance between spells and weapons is still being calibrated from play.
   than three times it. The game's own discounts (Channeling, Parsimony, Spellspring, Offering) apply first.
 - Everything one cast gives back as MP, to the caster or to allies, is capped at half of what that cast cost. MP
   drained from a foe's own pool and MP from items are not capped.
-- MP gained from taking a hit is limited to 2% of the receiver's max MP. Combo follow-ups on the same foe give no extra
+- MP that a weapon hit hands out from its damage (a drain, or MP shared to an ally) is limited to 2% of the receiver's max MP. Combo follow-ups on the same foe give no extra
   HP or MP, and item heals restore MP only through lines that say "items".
 - Foes' spells and the listed cost in the game's tables stay native.
 
@@ -494,7 +556,11 @@ makes reachable get proper names and descriptions.
   stats and are packed by width, so every description fits on screen even with the Proficiency lines. Notes explain
   hidden mechanics only, never visible stats.
 - **Help boxes** keep their position even with long text.
-- **Gambits.** All 255 gambit names and help texts are reworded with clear element labels. Conditions are untouched.
+- **Gambits.** All 255 gambit names and help texts are reworded with clear element labels. Conditions are untouched,
+  except for one row (0.1.45): the native "Foe: targeting Vaan" row, a gambit in Vaan's starting inventory, is now **Foe: any
+  ailment**, which uses the game's own any-ailment condition on a foe (a status the game tracks, so Broken does not
+  count). A save that already owns that gambit, or has it set, sees the new meaning. "Foe: targeting leader" is
+  unchanged.
 - **Cure items'** battle help lists their new cures.
 - The native **TARGET INFO** window is drawn at 75% size.
 

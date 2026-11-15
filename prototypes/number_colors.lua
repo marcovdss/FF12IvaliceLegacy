@@ -1,11 +1,11 @@
--- Ivalice Legacy: battle number colours, diagnostic step 0.2.0 (Marco, 2026-11-10: "Allied DMG is Blue, Foe is Red.
+-- Ivalice Legacy: battle number colours, diagnostic step 0.2.0 (play feedback, 2026-11-10: "Allied DMG is Blue, Foe is Red.
 -- HP Recovery should be green, and MP recovery some other color. What if Allied DMG is White and MP recovery is blue?").
 --
 -- 0.1.0 lesson (2026-11-10 play): the palette entry's colour dword is neutral grey (7F7F7F) for every entry, so
 -- judging colours from it refused every change ("Legacy numbers: unchanged"). The visible colour is a font-gradient
 -- index stored in the entry's fourth byte, which says nothing about the colour by itself. So 0.2.0 stops guessing
 -- and asks the player: it dumps every palette entry's eight bytes once per load, and makes exactly one deliberate
--- change - MP recovery, on both sides, drawn in the foe-damage style. The colour Marco reports for MP recovery names
+-- change - MP recovery, on both sides, drawn in the foe-damage style. The colour the player reports for MP recovery names
 -- that damage colour, and the dump's fourth bytes point at the white entry for the follow-up.
 --
 -- How the game picks a number's colour (FFXII_TZA.exe 1.0.4.0, read statically; image base 0x120000):

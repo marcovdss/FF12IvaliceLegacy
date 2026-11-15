@@ -1,4 +1,5 @@
--- Clan rank, marks and points from the game's own data, read without side effects.
+-- Clan rank, marks and points from the game's own data, read without side effects. read() also returns the twelve rows of
+-- the rank table, and nextNeeds() names what the next rank asks for (Montblanc's "Where do I stand?").
 -- Static facts (FFXII_TZA.exe, no ASLR):
 -- - 0x253970 stores save image 0x2164280 + 0x8200 as the Clan block pointer (0x20927C0).
 -- - Clan points: u32 at block+0x3868 (save image 0xBA68).
@@ -51,7 +52,18 @@ function M.read(mem)
     local row = rows[r]
     if points >= row[1] and marks >= row[2] and den >= row[3] then rank = r break end
   end
-  return {rank = rank, marks = marks, points = points, den = den}
+  return {rank = rank, marks = marks, points = points, den = den, rows = rows}
+end
+
+-- The next rank's row after `rank` (default: the rank read() found): {rank, points, marks, den} from the rows read()
+-- returned, or nil at rank 12 or without rows. Pure: it reads no memory and writes nothing.
+function M.nextNeeds(clan, rank)
+  if type(clan) ~= 'table' or type(clan.rows) ~= 'table' then return nil end
+  if rank == nil then rank = clan.rank end
+  if not count(rank, M.RANKS - 1) then return nil end
+  local row = clan.rows[rank + 1]
+  if type(row) ~= 'table' then return nil end
+  return {rank = rank + 1, points = row[1], marks = row[2], den = row[3]}
 end
 
 return M

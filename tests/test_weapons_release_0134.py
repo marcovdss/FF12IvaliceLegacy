@@ -400,17 +400,22 @@ class ReleaseBehaviourTests(unittest.TestCase):
             now = now + gap
             return run(wrapped, axeman, target or dummy, {}, {})
           end
-          -- a foe's hit on `unit` through the damage formula: the Defense the native subtraction saw
-          seenDefense = nil
-          function foeHit(unit, defense, attack, action)
+          -- a foe's hit on `unit` through the damage formula (0.1.4x: Reckless raises the damage taken, not a Defense dent).
+          -- formula 20 is physical; absorbState 0 with reverse 0 is a damaging hit; formula 50 is a magick.
+          seenAttack, seenDefense = nil, nil
+          function foeHit(unit, defense, attack, identifier)
             now = now + 1
-            local f = {power = 10, multiplier = attack or 100, modifier = defense, outcomeType = 0, action = action or 150,
-                       target = {removedHp = -1}}
-            local native = function(g) seenDefense = g.modifier; g.target.removedHp = g.power * (g.multiplier - g.modifier) end
+            local f = {power = 10, multiplier = attack or 100, modifier = defense, outcomeType = 0, action = 150,
+                       identifier = identifier or 20, absorbState = 0,
+                       target = {removedHp = -1, statusEffects = {reverse = 0}}}
+            local native = function(g)
+              seenAttack, seenDefense = g.multiplier, g.modifier
+              g.target.removedHp = g.power * (g.multiplier - g.modifier)
+            end
             _G.IvaliceLegacyFamily = module
             damage.wrap(native, deps)(f, {type = 1, identifier = 100, address = 555}, unit)
             _G.IvaliceLegacyFamily = nil
-            return f.target.removedHp, f.modifier
+            return f.target.removedHp, f.multiplier, f.modifier
           end
     """
 
@@ -424,53 +429,56 @@ class ReleaseBehaviourTests(unittest.TestCase):
           swing(1000000); assert(math.abs(module.recklessDent(axeman, deps) - 0.05) < 1e-9, 'it starts over')
         """)
 
-    def test_reckless_grows_per_attack_and_stops_at_a_quarter(self):
+    def test_reckless_grows_per_attack_and_stops_at_a_fifth(self):
         self.lua.execute(self.RECKLESS + """
           assert(module.recklessDent(axeman, deps) == 0, 'no swing yet')
           swing(1000000); assert(math.abs(module.recklessDent(axeman, deps) - 0.05) < 1e-9)
           swing(100000); assert(math.abs(module.recklessDent(axeman, deps) - 0.05) < 1e-9, 'a combo follow-up shares its Attack')
           for i = 1, 12 do swing(1000000) end
-          assert(math.abs(module.recklessDent(axeman, deps) - 0.25) < 1e-9, 'floor: -25%')
+          assert(math.abs(module.recklessDent(axeman, deps) - 0.20) < 1e-9, 'cap: +20%')
           local lines = {}
           for _, r in ipairs(reports) do if r[1] == 'reckless' then lines[#lines + 1] = r[3] end end
-          assert(lines[1] == 'dent=5%' and lines[2] == 'dent=10%' and lines[5] == 'dent=25%' and #lines == 5, table.concat(lines, ','))
+          assert(lines[1] == 'dent=5%' and lines[2] == 'dent=10%' and lines[4] == 'dent=20%' and #lines == 4, table.concat(lines, ','))
           assert(axeman.additiveDefense == 0 and axeman.defense == 40, 'no keep is ever written')
         """)
 
-    def test_reckless_lowers_the_defense_a_foes_hit_meets_and_logs_it(self):
+    def test_reckless_raises_a_foes_physical_hit_and_logs_it(self):
         self.lua.execute(self.RECKLESS + """
-          local damage0 = foeHit(axeman, 40, 100); assert(seenDefense == 40 and damage0 == 600, 'no dent yet')
-          for i = 1, 3 do swing(1000000) end                          -- 15%
-          local hp, modifier = foeHit(axeman, 40, 100)
-          assert(math.abs(seenDefense - 34) < 1e-9, 'defense x 0.85: ' .. tostring(seenDefense))
-          assert(math.abs(hp - 10 * 66) < 1e-6)
-          assert(modifier == 40, 'the field is restored for later observers')
+          local damage0 = foeHit(axeman, 40, 100); assert(seenDefense == 40 and damage0 == 600, 'no dent yet: ' .. tostring(damage0))
+          for i = 1, 3 do swing(1000000) end                          -- +15%
+          local hp, attack, modifier = foeHit(axeman, 40, 100)
+          assert(math.abs(hp - 10 * (115 - 46)) < 1e-6, 'taken x1.15: ' .. tostring(hp))
+          assert(attack == 100 and modifier == 40, 'the fields are restored for later observers')
           local hit_ = nil
           for _, r in ipairs(reports) do if r[1] == 'reckless-hit' then hit_ = r end end
-          local shown = hit_ and hit_[3]:match('^def 40%->(.+)$')
-          assert(hit_[2] == 1 and shown and math.abs(tonumber(shown) - 34) < 1e-6, hit_ and hit_[3])
-          -- the floor rule judges the dented Defense: attack 40, defense 40 -> 34, still above 40/2 nothing; attack 20 -> floor
+          assert(hit_ and hit_[2] == 1 and hit_[3] == 'taken x1.15', hit_ and hit_[3])
+          -- the floor rule decides first, then Reckless scales its attack term: attack 20 vs defense 40 -> attack/2
           local lifted = foeHit(axeman, 40, 20)
-          assert(math.abs(lifted - 10 * 10) < 1e-6, 'foe on party floor attack/2: ' .. tostring(lifted))
+          assert(math.abs(lifted - 10 * 10 * 1.15) < 1e-6, 'floor x1.15: ' .. tostring(lifted))
+          -- a foe's magick never reads Reckless
+          local magick = foeHit(axeman, 40, 100, 50)
+          assert(magick == 600, 'magick unchanged: ' .. tostring(magick))
         """)
 
     def test_reckless_applies_only_to_foe_hits_on_the_axe_wielder(self):
         self.lua.execute(self.RECKLESS + """
           for i = 1, 5 do swing(1000000) end
           local other = wielder(2, 62, {defense = 40}); cats[62] = 'axe'
-          foeHit(other, 40); assert(seenDefense == 40, 'another axe wielder has no dent')
-          cats[61] = 'sword'; foeHit(axeman, 40); assert(seenDefense == 40, 'no axe in hand, no dent')
-          cats[61] = 'axe'; active = false; foeHit(axeman, 40); assert(seenDefense == 40, 'outside Legacy'); active = true
-          foeHit(axeman, 40); assert(math.abs(seenDefense - 30) < 1e-9, 'the wielder itself: -25%')
+          assert(foeHit(other, 40) == 600, 'another axe wielder takes no more')
+          cats[61] = 'sword'; assert(foeHit(axeman, 40) == 600, 'no axe in hand, no Reckless')
+          cats[61] = 'axe'; active = false; assert(foeHit(axeman, 40) == 600, 'outside Legacy'); active = true
+          local hp = foeHit(axeman, 40)
+          assert(math.abs(hp - 600 * 1.20) < 1e-6, 'the wielder itself: x1.20 at the cap: ' .. tostring(hp))
           -- a party hit on a foe, or on an ally, never reads it
           now = now + 1
-          local f = {power = 10, multiplier = 100, modifier = 40, outcomeType = 0, action = 150, target = {removedHp = -1}}
+          local f = {power = 10, multiplier = 100, modifier = 40, outcomeType = 0, action = 150, identifier = 20, absorbState = 0,
+                     target = {removedHp = -1, statusEffects = {reverse = 0}}}
           _G.IvaliceLegacyFamily = module
-          damage.wrap(function(g) seenDefense = g.modifier end, deps)(f, axeman, {type = 1, identifier = 100, address = 555})
-          assert(seenDefense == 40, 'the wielder own hits on foes meet the foe Defense')
-          damage.wrap(function(g) seenDefense = g.modifier end, deps)(f, other, axeman)
+          damage.wrap(function(g) seenAttack = g.multiplier end, deps)(f, axeman, {type = 1, identifier = 100, address = 555})
+          assert(seenAttack == 100, 'the wielder own hits on foes are not raised')
+          damage.wrap(function(g) seenAttack = g.multiplier end, deps)(f, other, axeman)
           _G.IvaliceLegacyFamily = nil
-          assert(seenDefense == 40, 'a party member hitting the wielder is not a foe')
+          assert(seenAttack == 100, 'a party member hitting the wielder is not a foe')
         """)
 
     def test_swings_at_allies_or_without_an_axe_build_no_dent(self):

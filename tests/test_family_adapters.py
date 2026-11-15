@@ -126,7 +126,7 @@ class AdapterLoadTests(unittest.TestCase):
           (function()
             local n = 0
             for _, line in ipairs(prints) do
-              if line:find('Legacy Family: identities 0.5.0 ready', 1, true) then n = n + 1 end
+              if line:find('Legacy Family: identities 0.5.7 ready', 1, true) then n = n + 1 end   -- 0.1.49: 0.5.7
             end
             return n
           end)()

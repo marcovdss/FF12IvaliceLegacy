@@ -476,7 +476,7 @@ class HookTest(unittest.TestCase):
         self.assertEqual(self.rare(location=536, kills=(299,), own=2)[0], 0)
 
     def test_dustia_stays_out_beside_a_living_kaiser_wolf(self):
-        # Marco's session: Dustia (334) defeated, Kaiser Wolf (305) alive, and no asker recognised by its class.
+        # A play session: Dustia (334) defeated, Kaiser Wolf (305) alive, and no asker recognised by its class.
         kills = (334,)
         eax, uc = self.rare(location=346, kills=kills, thread=21, actor=False)                  # Dustia's spawner
         self.assertEqual(eax, 0)

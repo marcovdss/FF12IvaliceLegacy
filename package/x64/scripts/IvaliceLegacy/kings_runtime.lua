@@ -11,7 +11,7 @@
 --               brings the King in (a native roll OR this switch) settles deterministically while the King lives and
 --               keeps its native roll after defeat. Spawners and maps outside the table keep the per-location answer
 --               (K.HOMES presence 2), exactly as 0.7.0 gave them. The pairs are the 2026-11-08 effective-script study
---               of all 230 switch-asking threads in the 103 King maps (reports/LEGACY-KINGS-SPAWN-MAP-2026-11-08.md).
+--               of all 230 switch-asking threads in the 103 King maps.
 --   0x1F28B70   the handler of btlAtelCanselInitialSpawnFlag in the script command table. Presence 3 only (Grey Molter,
 --               whose map has no switch and whose entry is a play-time window): the command does nothing for the
 --               undefeated King in its home, on the inference that a unit enters by default unless this command ran.

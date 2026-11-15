@@ -21,13 +21,12 @@ H.LINES = {
   {line = 'Crusade',
    {'hit', {'buffed'}, 'Hits on a buffed foe', 'p', {{'strip', {'protect', 'shell'}}, {'ally', 'regen', {h, h, h, t}},
      {'ally', 'protect', h, f = 2}, {'strip', {'haste', 'faith'}, f = 3}}},
-   {'hit', {'ailing'}, 'Hits on a foe with an ailment', 'p', {{'giftBuff', {h, h, h, t}}, {'cureAlly', 1, f = 2},
+   {'hit', {'ailing'}, 'Hits on a foe ailing or Broken', 'p', {{'giftBuff', {h, h, h, t}}, {'cureAlly', 1, f = 2},
      {'mp', 3, f = 3}}},
    {'hit', {'kill'}, 'A kill', 's', {{'party', 'bravery', {h, h, h, t}}, {'allyHeal', 10, f = 2}, {'mp', 5, f = 3}}}},
   -- 1 Chaplain (Gunner + White Mage)
   {line = 'Last Rites',
-   {'hit', {'afterHeal'}, 'Your first hit after a heal', 's', {{'push', {10, 10, 10, 15}}, {'dmg', 15, f = 2},
-     {'allyHeal', 10, f = 3}}},
+   {'hit', {'afterHeal', 'staggered'}, 'Your first hit after a heal on a Staggered foe', 's', {{'allyHeal', 10}, {'dmg', 15, f = 2}}},
    {'hit', {'about'}, 'Hits on a foe about to act', 'p', {{'ally', 'regen', {h, h, h, t}}, {'allyHeal', 10, f = 2},
      {'mp', 3, f = 3}}},
    {'heal', {'overflow'}, 'Healing past full HP', 's', {{'pushOther', {10, 10, 10, 15}},
@@ -68,11 +67,11 @@ H.LINES = {
      {'cure', 1, f = 3}}},
    {'hit', {'chain2'}, '2 hits in a row on one foe', 'p', {{'self', 'regen', {h, h, h, t}}, {'cure', 1, f = 2},
      {'ally', 'bravery', h, f = 3}}},
-   {'heal', nil, 'Healing an ally', 's', {{'hp', {5, 5, 5, 8}}, {'self', 'bravery', h, f = 2},
+   {'heal', nil, 'Healing an ally', 's', {{'hp', {5, 5, 5, 8}}, {'self', 'bravery', h, f = 2, fresh = true},
      {'party', 'regen', h, f = 3}}}},
   -- 7 Bard (Hunter + White Mage)
   {line = 'Ballad',
-   {'hit', {'ailing'}, 'Hits on a foe with an ailment', 'p', {{'allyHeal', {10, 10, 10, 15}},
+   {'hit', {'ailing'}, 'Hits on a foe ailing or Broken', 'p', {{'allyHeal', {10, 10, 10, 15}},
      {'ally', 'protect', h, f = 2}, {'push', 10, f = 3}}},
    {'heal', nil, 'Healing an ally', 's', {{'ally', 'faith', {h, h, h, t}}, {'quick', 10, f = 2},
      {'allyMp', 5, f = 3}}},
@@ -112,11 +111,11 @@ H.LINES = {
      {'self', 'haste', h, f = 3}}}},
   -- 12 Magebreaker (Lancer + Green Mage)
   {line = 'Unmake',
-   {'hit', {'emptyMp'}, 'Hits on a foe with no MP left', 'p', {{'strip', {'protect', 'shell'}},
+   {'hit', {'lowMp'}, 'Hits on a foe with a quarter of its MP or less', 'p', {{'strip', {'protect', 'shell'}},
      {'strip', {'haste', 'regen'}, f = 2}, {'dmg', 15, f = 3}, {'strip', {'reflect', 'faith'}, f = 4}}},
    {'status', {'buffless'}, 'An ailment you land on a bare foe', 's', {{'foe', 'silence', {h, h, h, t}},
      {'drain', 5, f = 2}, {'self', 'shell', h, f = 3}}},
-   {'hit', {'emptyMp', 'buffless'}, 'Hits on a bare foe with no MP left', 'p', {{'foe', 'berserk', {h, h, h, t}},
+   {'hit', {'lowMp', 'buffless'}, 'Hits on a bare foe with a quarter of its MP or less', 'p', {{'foe', 'berserk', {h, h, h, t}},
      {'mp', 3, f = 2}, {'party', 'faith', h, f = 3}}}},
   -- 13 Templar (Knight + Lancer)
   {line = 'Phalanx',
@@ -144,7 +143,7 @@ H.LINES = {
      {'extend', 'slow', 10, f = 2}, {'foe', 'disable', h, f = 3}}}},
   -- 16 Ravager (Lancer + Warrior)
   {line = 'Havoc',
-   {'hit', {'low50'}, 'Below half HP, your hits', 'p', {{'strip', {'protect'}}, {'dmg', {15, 15, 15, 25}, f = 2},
+   {'hit', {'brave'}, 'While Brave, your hits', 'p', {{'strip', {'protect'}}, {'dmg', {15, 15, 15, 25}, f = 2},
      {'strip', {'shell', 'regen'}, f = 3}}},
    {'hit', {'buffless', 'kill'}, 'Killing a foe with no buffs', 's', {{'other', 'slow', h},
      {'heal', {10, 10, 10, 15}, f = 2}, {'self', 'bravery', h, f = 3}}},
@@ -178,7 +177,7 @@ H.LINES = {
   {line = 'Corrode',
    {'status', nil, 'An ailment you land', 's', {{'strip', {'shell'}}, {'strip', {'protect'}, f = 2},
      {'cureAlly', 1, f = 3}, {'strip', {'regen', 'haste'}, f = 4}}},
-   {'hit', {'ailing', 'buffless'}, 'Hits on a bare foe with an ailment', 'p', {{'foe', 'disease', {h, h, h, t}},
+   {'hit', {'ailing', 'buffless'}, 'Hits on a bare foe ailing or Broken', 'p', {{'foe', 'disease', {h, h, h, t}},
      {'dmg', 15, f = 2}, {'allyMp', 5, f = 3}}},
    {'hit', {'diseased'}, 'Hits on a Diseased foe', 'p', {{'otherCopy', {h, h, h, t}}, {'foe', 'silence', h, f = 2},
      {'self', 'haste', h, f = 3, fresh = true}, {'push', 10, f = 4}}}},
@@ -197,11 +196,10 @@ H.LINES = {
    {'hit', {'lured', 'far'}, 'While you have Lure, hits from range', 'p', {{'dmg', {15, 15, 15, 25}},
      {'pushOther', 10, f = 2}, {'quick', 10, f = 3}}},
    {'hit', {'lured', 'near'}, 'While you have Lure, hits up close', 'p', {{'foe', 'disable', {h, h, h, t}},
-     {'self', 'bravery', h, f = 2}, {'party', 'shell', h, f = 3}}}},
+     {'self', 'bravery', h, f = 2, fresh = true}, {'party', 'shell', h, f = 3}}}},
   -- 23 Ki Gunner (Gunner + Mystic)
   {line = 'Hex Round',
-   {'struck', nil, 'Being struck by a physical hit', 's', {{'dmgNext', {15, 15, 15, 25}}, {'quick', 10, f = 2},
-     {'push', 10, f = 3}}},
+   {'counter', {'staggered'}, 'Each counter on a Staggered foe', 's', {{'dmgNext', {15, 15, 15, 25}}, {'quick', 10, f = 2}}},
    {'hit', {'about'}, 'Hits on a foe about to act', 'p', {{'hp', {5, 5, 5, 8}}, {'mp', 3, f = 2},
      {'cure', 1, f = 3}}},
    {'counter', nil, 'Each counter', 's', {{'foe', 'immobilize', {h, h, h, t}}, {'hp', 5, f = 2},
@@ -223,15 +221,15 @@ H.LINES = {
      {'pushOther', 15, f = 2}, {'quick', 25, f = 3}}}},
   -- 26 Sniper (Hunter + Gunner)
   {line = 'Scope',
-   {'hit', {'ailing'}, 'Hits on a foe with an ailment', 'p', {{'push', {10, 10, 10, 15}}, {'quick', 10, f = 2},
+   {'hit', {'ailing'}, 'Hits on a foe ailing or Broken', 'p', {{'push', {10, 10, 10, 15}}, {'quick', 10, f = 2},
      {'foe', 'silence', h, f = 3}}},
-   {'hit', {'about', 'ailing'}, 'Hits on a foe with an ailment about to act', 'p', {{'dmg', {20, 20, 20, 30}},
+   {'hit', {'about', 'ailing'}, 'Hits on a foe ailing or Broken about to act', 'p', {{'dmg', {20, 20, 20, 30}},
      {'foe', 'disable', h, f = 2}, {'mp', 3, f = 3}}},
    {'hit', {'chain3'}, 'Every 3rd hit in a row on one foe', 's', {{'dmg', {25, 25, 25, 35}}, {'pushOther', 10, f = 2},
      {'party', 'shell', h, f = 3}}}},
   -- 27 Artillerist (Gunner + Black Mage)
   {line = 'Barrage',
-   {'magick', nil, 'Your damage spells', 'p', {{'push', {5, 5, 10, 10}}, {'mp', {2, 2, 2, 3}, f = 2}}},
+   {'magick', {'staggered'}, 'Your damage spells on a Staggered foe', 'p', {{'mp', {2, 2, 2, 3}}}},
    {'magick', {'about'}, 'Spells on a foe about to act', 'p', {{'dmg', {15, 15, 15, 25}}, {'mp', 3, f = 2},
      {'push', 10, f = 3}}},
    {'hit', {'far'}, 'Your hits from range', 'p', {{'splash', {15, 15, 15, 25}}, {'mp', 2, f = 2},
@@ -246,8 +244,7 @@ H.LINES = {
      {'allyMp', 5, f = 2}, {'party', 'haste', h, f = 3}}}},
   -- 29 Engineer (Gunner + Chemist)
   {line = 'Field Kit',
-   {'status', nil, 'An ailment you land', 's', {{'pushOther', {10, 10, 10, 15}}, {'push', 10, f = 2},
-     {'allyHeal', 10, f = 3}}},
+   {'status', {'staggered'}, 'An ailment you land on a Staggered foe', 's', {{'allyHeal', 10}}},
    {'hit', {'about'}, 'Hits on a foe about to act', 'p', {{'otherCopy', {h, h, t, t}}, {'renew', f = 2},
      {'push', 10, f = 4}}},
    {'hit', {'ailing2'}, 'Hits on a foe with 2+ ailments', 'p', {{'allyHeal', {10, 10, 10, 15}}, {'push', 10, f = 2},
@@ -258,7 +255,7 @@ H.LINES = {
      {'foe', 'oil', h, f = 3}}},
    {'struck', {'lured'}, 'Being struck by a physical hit while you have Lure', 's', {{'foe', 'blind', {h, h, h, t}},
      {'strip', {'bravery'}, f = 2}, {'drainFoe', 5, f = 3}}},
-   {'guard', {'parryBlock', 'ailing'}, 'A parry or block against a foe with an ailment', 's', {{'foe', 'disable', {h, h, h, t}},
+   {'guard', {'parryBlock', 'ailing'}, 'A parry or block against a foe ailing or Broken', 's', {{'foe', 'disable', {h, h, h, t}},
      {'self', 'regen', h, f = 2}, {'self', 'shell', h, f = 3}}}},
   -- 31 Monk (Green Mage + Mystic)
   {line = 'Umbra',
@@ -277,22 +274,22 @@ H.LINES = {
   -- 33 Lanista (Warrior + Green Mage)
   {line = 'Leech',
    {'hit', {'low50'}, 'Below half HP, your hits', 'p', {{'drain', {5, 5, 5, 8}}, {'heal', 10, f = 2},
-     {'self', 'bravery', h, f = 3}}},
+     {'self', 'bravery', h, f = 3, fresh = true}}},
    {'hit', {'oiled'}, 'Hits on an Oiled foe', 'p', {{'dmg', {15, 15, 15, 25}}, {'drain', 5, f = 2},
      {'foe', 'disable', h, f = 3}}},
    {'status', {'critical'}, 'An ailment you land at critical HP', 's', {{'self', 'regen', {h, h, h, t}},
      {'self', 'haste', h, f = 2, fresh = true}, {'party', 'regen', h, f = 3}}}},
   -- 34 Stalker (Hunter + Green Mage)
   {line = 'Quarry',
-   {'hit', {'ailing'}, 'Hits on a foe with an ailment', 'p', {{'drain', {5, 5, 5, 8}}, {'foe', 'blind', h, f = 2},
+   {'hit', {'ailing'}, 'Hits on a foe ailing or Broken', 'p', {{'drain', {5, 5, 5, 8}}, {'foe', 'blind', h, f = 2},
      {'allyMp', 5, f = 3}}},
-   {'magick', {'ailing'}, 'Spells on a foe with an ailment', 'p', {{'dmg', {15, 15, 15, 25}},
+   {'magick', {'ailing'}, 'Spells on a foe ailing or Broken', 'p', {{'dmg', {15, 15, 15, 25}},
      {'self', 'faith', h, f = 2}, {'drain', 5, f = 3}}},
    {'hit', {'blinded'}, 'Hits on a Blinded foe', 'p', {{'push', {10, 10, 10, 15}}, {'heal', 10, f = 2},
      {'party', 'shell', h, f = 3}}}},
   -- 35 Warlock (Green Mage + Black Mage)
   {line = 'Malediction',
-   {'magick', {'ailing'}, 'Spells on a foe with an ailment', 'p', {{'drain', {5, 5, 5, 8}},
+   {'magick', {'ailing'}, 'Spells on a foe ailing or Broken', 'p', {{'drain', {5, 5, 5, 8}},
      {'foe', 'poison', h, f = 2}, {'allyHeal', 10, f = 3}}},
    {'magick', {'oiled'}, 'Spells on an Oiled foe', 'p', {{'dmg', {15, 15, 15, 25}}, {'self', 'faith', h, f = 2},
      {'push', 10, f = 3}}},
@@ -333,7 +330,9 @@ H.LINES = {
   -- 40 Defender (Knight + Warrior)
   {line = 'Last Stand',
    {'struck', {'low50'}, 'Taking a physical hit below half HP', 's', {{'self', 'lure', {h, h, t, t}},
-     {'self', 'bravery', h}, {'push', 10, f = 2}, {'drainFoe', {5, 5, 5, 8}, f = 3}}},
+     {'self', 'bravery', h, fresh = true}, {'push', 10, f = 2}, {'drainFoe', {5, 5, 5, 8}, f = 3}},
+    text = {[3] = 'Taking a physical hit below half HP gives you Lure (3/4), Bravery (half) if not held, pushes the foe back 10%, drains 5% of its max MP',
+            [4] = 'Taking a physical hit below half HP gives you Lure (3/4), Bravery (half) if not held, pushes the foe back 10%, drains 8% of its max MP'}},
    {'hit', {'low50'}, 'Below half HP, your hits', 'p', {{'foe', 'blind', {h, h, h, t}}, {'dmg', 10, f = 2},
      {'ally', 'protect', h, f = 3}}},
    {'struck', {'dropCritical'}, 'Dropping to critical HP from a physical hit', 's', {{'party', 'bravery', {h, h, h, t}},
@@ -342,16 +341,16 @@ H.LINES = {
   {line = 'Watch',
    {'guard', {'ailing'}, 'Avoiding a hit from an ailing foe', 's', {{'renewFoe'},
      {'self', 'lure', {h, h, t, t}}, {'foe', 'blind', h, f = 2}, {'pushOther', 10, f = 3}}},
-   {'hit', {'lured', 'ailing'}, 'While you have Lure, hits on a foe with an ailment', 'p', {{'cureAlly', 1},
+   {'hit', {'lured', 'ailing'}, 'While you have Lure, hits on a foe ailing or Broken', 'p', {{'cureAlly', 1},
      {'dmg', 15, f = 2}, {'steal', f = 3}}},
    {'hit', {'lured', 'wounded'}, 'While you have Lure, hits on a foe below half HP', 'p', {{'dmg', {20, 20, 20, 30}},
-     {'self', 'bravery', h, f = 2}, {'party', 'shell', h, f = 3}}}},
+     {'self', 'bravery', h, f = 2, fresh = true}, {'party', 'shell', h, f = 3}}}},
   -- 42 Rune Knight (Knight + Black Mage)
   {line = 'Runeguard',
    {'magick', nil, 'Your damage spells', 'p', {{'self', 'lure', h}, {'self', 'protect', {h, h, h, t}, f = 2},
      {'foe', 'blind', h, f = 3}}},
-   {'magick', {'lured'}, 'While you have Lure, your spells', 'p', {{'quick', {15, 15, 15, 25}}, {'heal', 10, f = 2},
-     {'self', 'faith', h, f = 3}}},
+   {'magick', {'lureOrFaith'}, 'With Lure or Faith, your spells', 'p', {{'quick', {15, 15, 15, 25}}, {'heal', 10, f = 2},
+     {'ally', 'faith', h, f = 3}}},
    {'magick', {'afterGuard'}, 'Your first damage spell after a parry or block', 's', {{'dmg', {20, 20, 20, 30}},
      {'mp', 3, f = 2}, {'party', 'shell', h, f = 3}}}},
   -- 43 Sword Saint (Knight + Samurai)
@@ -361,7 +360,7 @@ H.LINES = {
    {'hit', {'afterGuard'}, 'Your first hit after a parry or block', 's', {{'dmg', {20, 20, 20, 30}},
      {'heal', 10, f = 2}, {'push', 10, f = 3}}},
    {'guard', {'parryBlock', 'hasted'}, 'A parry or block while Hasted', 's', {{'push', {10, 10, 10, 15}},
-     {'self', 'bravery', h, f = 2}, {'ally', 'haste', h, f = 3}}}},
+     {'self', 'bravery', h, f = 2, fresh = true}, {'ally', 'haste', h, f = 3}}}},
   -- 44 Quartermaster (Knight + Chemist)
   {line = 'Provision',
    {'heal', {'item'}, 'Using a healing item on an ally', 's', {{'self', 'lure', {h, h, t, t}}, {'ally', 'protect', h},
@@ -379,7 +378,7 @@ H.LINES = {
      {'pushOther', 10, f = 2}, {'party', 'faith', h, f = 3}}}},
   -- 46 Fell Knight (Warrior + Mystic)
   {line = 'Blood Price',
-   {'counter', nil, 'Each counter', 's', {{'self', 'bravery', {h, h, h, t}}, {'hp', 5, f = 2},
+   {'counter', nil, 'Each counter', 's', {{'self', 'bravery', {h, h, h, t}, fresh = true}, {'hp', 5, f = 2},
      {'dmgNext', 15, f = 3}}},
    {'magick', {'low50'}, 'Below half HP, your spells', 'p', {{'strip', {'shell'}}, {'heal', {10, 10, 15, 20}, f = 2},
      {'self', 'faith', h, f = 3}}},
@@ -388,7 +387,7 @@ H.LINES = {
   -- 47 Geomancer (Hunter + Mystic)
   {line = 'Earthsense',
    {'counter', nil, 'Each counter', 's', {{'foe', 'poison', {h, h, h, t}}, {'hp', 5, f = 2}, {'mp', 3, f = 3}}},
-   {'hit', {'ailing', 'far'}, 'Hits from range on a foe with an ailment', 'p', {{'foe', 'immobilize', {h, h, h, t}},
+   {'hit', {'ailing', 'far'}, 'Hits from range on a foe ailing or Broken', 'p', {{'foe', 'immobilize', {h, h, h, t}},
      {'self', 'faith', h, f = 2}, {'heal', 10, f = 3}}},
    {'counter', {'ailing'}, 'A counter on an ailing foe', 's', {{'party', 'regen', {h, h, h, t}},
      {'ally', 'faith', h, f = 2}, {'dmgNext', 15, f = 3}}}},
@@ -402,7 +401,7 @@ H.LINES = {
   -- 49 Divine Knight (Samurai + Mystic)
   {line = 'Mind Blade',
    {'counter', nil, 'Each counter', 's', {{'self', 'haste', {h, h, h, t}, fresh = true}, {'mp', 3, f = 2},
-     {'self', 'bravery', h, f = 3}}},
+     {'self', 'bravery', h, f = 3, fresh = true}}},
    {'magick', {'hasted'}, 'While Hasted, your damage spells', 'p', {{'dmg', {15, 15, 15, 25}}, {'drain', 5, f = 2},
      {'foe', 'silence', h, f = 3}}},
    {'counter', {'hasted'}, 'A counter while Hasted', 's', {{'dmgNext', {20, 20, 20, 30}}, {'mp', 3, f = 2},
@@ -419,7 +418,7 @@ H.LINES = {
    {'hit', {'hasted', 'low50'}, 'Hasted hits below half HP', 'p', {{'dmg', {15, 15, 15, 25}}, {'allyHeal', 10, f = 2},
      {'foe', 'slow', h, f = 3}}},
    {'hit', {'slowed', 'low50'}, 'Below half HP, hits on a Slowed foe', 'p', {{'foe', 'sap', {h, h, h, t}},
-     {'self', 'bravery', h, f = 2}, {'extend', 'slow', 10, f = 3}, {'pushOther', 10, f = 4}}},
+     {'self', 'bravery', h, f = 2, fresh = true}, {'extend', 'slow', 10, f = 3}, {'pushOther', 10, f = 4}}},
    {'struck', {'dropCritical'}, 'Physical hit to critical HP', 's', {{'self', 'haste', {h, h, h, t}},
      {'other', 'slow', h}, {'stopChance', 15, f = 2}, {'party', 'shell', h, f = 3}},
     text = {[3] = 'Physical hit to critical HP gives you Haste (half), slows another foe (half), may Stop the foe (15%) and gives the party Shell (half)',
@@ -427,7 +426,7 @@ H.LINES = {
   -- 52 Ranger (Hunter + Time Mage)
   {line = 'Long Hunt',
    {'hit', {'far', 'slowed'}, 'Hits from range on a Slowed foe', 'p', {{'mp', 2}, {'dmg', {10, 10, 15, 20}, f = 2},
-     {'push', 10, f = 3}, {'self', 'bravery', h, f = 4}}},
+     {'push', 10, f = 3}, {'self', 'bravery', h, f = 4, fresh = true}}},
    {'hit', {'held'}, 'Hits on a Slowed or Immobilized foe', 'p', {{'foe', 'poison', {h, h, h, t}},
      {'quick', 10, f = 2}, {'drain', 5, f = 3}}},
    {'hit', {'immobilized'}, 'Hits on an Immobilized foe', 'p', {{'dmg', {20, 20, 20, 30}},
@@ -458,8 +457,8 @@ H.LINES = {
      {'allyHeal', 10, f = 2}, {'party', 'haste', h, f = 3}}}},
   -- 56 Viking (Warrior + Hunter)
   {line = 'Raid',
-   {'hit', {'low50', 'ailing'}, 'Below half HP, hits on a foe with an ailment', 'p', {{'steal'},
-     {'heal', {10, 10, 10, 15}, f = 2}, {'self', 'bravery', h, f = 3}}},
+   {'hit', {'low50', 'ailing'}, 'Below half HP, hits on a foe ailing or Broken', 'p', {{'steal'},
+     {'heal', {10, 10, 10, 15}, f = 2}, {'self', 'bravery', h, f = 3, fresh = true}}},
    {'hit', {'wounded'}, 'Hits on a foe below half HP', 'p', {{'foe', 'sap', {h, h, h, t}}, {'dmg', 10, f = 2},
      {'allyHeal', 10, f = 3}}},
    {'hit', {'wounded', 'kill'}, 'Killing a wounded foe', 's', {{'quick', {20, 20, 20, 30}}, {'otherCopy', h, f = 2},
@@ -467,22 +466,24 @@ H.LINES = {
   -- 57 Battlemage (Warrior + Black Mage)
   {line = 'Alternation',
    {'hit', {'afterMagick'}, 'Your first hit after a spell', 's', {{'dmg', {15, 15, 15, 25}},
-     {'self', 'bravery', h, f = 2}, {'drain', 5, f = 3}}},
+     {'self', 'bravery', h, f = 2, fresh = true}, {'drain', 5, f = 3}}},
    {'magick', {'afterHit'}, 'A spell after a weapon hit', 's', {{'dmg', {15, 15, 15, 25}},
      {'self', 'haste', h, f = 2, fresh = true}, {'allyHeal', 10, f = 3}}},
    {'struck', {'afterMagick'}, 'Being struck by a physical hit right after a spell', 's', {{'foe', 'sap', {h, h, h, t}},
      {'mp', 3, f = 2}, {'party', 'faith', h, f = 3}}}},
   -- 58 Berserker (Warrior + Samurai)
   {line = 'Frenzy',
-   {'hit', {'low50'}, 'Below half HP, your hits', 'p', {{'evade'}, {'drain', 5, f = 2}, {'self', 'bravery', h, f = 3},
-     {'dmg', 10, f = 4}}},
+   {'hit', {'brave'}, 'While Brave, your hits', 'p', {{'evade'}, {'drain', 5, f = 2}, {'ally', 'bravery', h, f = 3, fresh = true},
+     {'dmg', 10, f = 4}},
+    text = {[3] = 'While Brave, your hits cannot be parried, blocked or dodged, drain 5% of damage as MP, give the most hurt ally Bravery (half) if not held',
+            [4] = 'While Brave, your hits cannot be parried, blocked or dodged, drain 5% as MP, deal +10%, give the most hurt ally Bravery (half) if not held'}},
    {'struck', {'hasted'}, 'Being struck by a physical hit while Hasted', 's', {{'dmgNext', {15, 15, 20, 25}},
      {'mp', 2, f = 2}, {'push', 10, f = 3}}},
    {'hit', {'critical'}, 'At critical HP, your hits', 'p', {{'mp', {3, 3, 4, 5}}, {'dmg', 20, f = 2},
      {'ally', 'bravery', h, f = 3}}}},
   -- 59 Gladiator (Warrior + Chemist)
   {line = 'Arena',
-   {'heal', {'selfTarget', 'low50'}, 'Healing yourself below half HP', 's', {{'self', 'bravery', {h, h, h, t}},
+   {'heal', {'selfTarget', 'low50'}, 'Healing yourself below half HP', 's', {{'self', 'bravery', {h, h, h, t}, fresh = true},
      {'dmgNext', 15, f = 2}, {'quick', 15, f = 3}}},
    {'hit', {'low50'}, 'Below half HP, your hits', 'p', {{'cure', {1, 1, 1, 2}}, {'foe', 'disable', h, f = 2},
      {'allyHeal', 10, f = 3}}},
@@ -490,15 +491,15 @@ H.LINES = {
      {'party', 'bravery', h, f = 3}}}},
   -- 60 Spellbow (Hunter + Black Mage)
   {line = 'Seeker',
-   {'magick', {'ailing'}, 'Spells on a foe with an ailment', 'p', {{'mp', 2}, {'foe', 'silence', h, f = 2},
+   {'magick', {'ailing'}, 'Spells on a foe ailing or Broken', 'p', {{'mp', 2}, {'foe', 'silence', h, f = 2},
      {'foe', 'oil', h, f = 3}, {'dmg', 10, f = 4}}},
-   {'hit', {'afterMagick', 'ailing'}, 'Your first hit after a spell on a foe with an ailment', 's', {{'dmg', {20, 20, 20, 30}},
+   {'hit', {'afterMagick', 'ailing'}, 'Your first hit after a spell on a foe ailing or Broken', 's', {{'dmg', {20, 20, 20, 30}},
      {'mp', 3, f = 2}, {'renew', f = 3}}},
    {'hit', {'far', 'oiled'}, 'Hits from range on an Oiled foe', 'p', {{'dmg', {20, 20, 20, 30}},
      {'self', 'faith', h, f = 2}, {'party', 'shell', h, f = 3}}}},
   -- 61 Ninja (Samurai + Hunter)
   {line = 'Kage',
-   {'hit', {'chain2', 'ailing'}, '2 hits in a row on a foe with an ailment', 'p', {{'self', 'haste', {h, h, h, t}, fresh = true},
+   {'hit', {'chain2', 'ailing'}, '2 hits in a row on a foe ailing or Broken', 'p', {{'self', 'haste', {h, h, h, t}, fresh = true},
      {'poisonHasted', f = 2}, {'dmgPoisoned', 15, f = 3}}},
    {'hit', {'kill'}, 'A kill', 's', {{'self', 'invisible', {h, h, h, t}}, {'mp', 5}, {'self', 'regen', h, f = 2},
      {'other', 'slow', h, f = 3}}},
@@ -506,7 +507,7 @@ H.LINES = {
      {'drain', 10, f = 3}}}},
   -- 62 Trapper (Hunter + Chemist)
   {line = 'Snaretrap',
-   {'status', nil, 'An ailment you land', 's', {{'renew'}, {'self', 'bravery', h, f = 2}, {'hp', 5, f = 3}}},
+   {'status', nil, 'An ailment you land', 's', {{'renew'}, {'self', 'bravery', h, f = 2, fresh = true}, {'hp', 5, f = 3}}},
    {'hit', {'ailing3'}, 'Hits on a foe with 3+ ailments', 'p', {{'dmg', {20, 20, 20, 30}}, {'drain', 5, f = 2},
      {'foe', 'disable', h, f = 3}}},
    {'hit', {'ailing2'}, 'Hits on a foe with 2+ ailments', 'p', {{'otherCopy', {h, h, h, t}}, {'push', 10, f = 2},
@@ -516,25 +517,25 @@ H.LINES = {
   {line = 'Imbue',
    {'hit', {'imbued'}, 'Your 3 hits after a spell', 'p', {{'dmg', {10, 10, 15, 20}}, {'mp', 2, f = 2},
      {'foe', 'silence', h, f = 3}}},
-   {'magick', {'imbued'}, 'A damage spell while your blade is imbued', 's', {{'quick', {15, 15, 15, 20}},
-     {'self', 'faith', h, f = 2}, {'ally', 'faith', h, f = 3}}},
+   {'magick', {'imbuedOrFaith'}, 'A damage spell while imbued or with Faith', 's', {{'quick', {15, 15, 15, 20}},
+     {'ally', 'faith', {h, h, t, t}, f = 2}}},
    {'magick', {'sameElement'}, 'The same element twice in a row', 's', {{'dmgNext', {20, 20, 20, 30}},
      {'self', 'faith', h, f = 2}, {'party', 'shell', h, f = 3}}}},
   -- 64 Detonator (Chemist + Black Mage)
   {line = 'Ignite',
    {'status', nil, 'An ailment you land', 's', {{'quick', {15, 15, 15, 25}}, {'foe', 'oil', h, f = 2},
      {'mp', 2, f = 3}}},
-   {'magick', {'ailing'}, 'Spells on a foe with an ailment', 'p', {{'consume', {30, 30, 30, 45}}, {'mp', 3, f = 2},
+   {'magick', {'ailing'}, 'Spells on a foe ailing or Broken', 'p', {{'consume', {30, 30, 30, 45}}, {'mp', 3, f = 2},
      {'foe', 'immobilize', h, f = 3}}},
    {'magick', {'kill'}, 'A spell that kills', 's', {{'otherCopy', {h, h, h, t}}, {'mp', 3, f = 2},
      {'party', 'haste', h, f = 3}}}},
   -- 65 Ronin (Samurai + Chemist)
   {line = 'Wanderer',
    {'heal', {'item'}, 'Using a healing item on an ally', 's', {{'mp', {3, 3, 4, 5}}, {'dmgNext', 15, f = 2},
-     {'self', 'bravery', h, f = 3}}},
+     {'self', 'bravery', h, f = 3, fresh = true}}},
    {'status', nil, 'Landing an ailment', 's', {{'self', 'haste', {h, h, h, t}, fresh = true}, {'quick', 10, f = 2},
      {'allyMp', 5, f = 3}}},
-   {'hit', {'hasted', 'ailing'}, 'While Hasted, hits on a foe with an ailment', 'p', {{'otherCopy', {h, h, h, t}},
+   {'hit', {'hasted', 'ailing'}, 'While Hasted, hits on a foe ailing or Broken', 'p', {{'otherCopy', {h, h, h, t}},
      {'dmg', 15, f = 2}, {'party', 'bravery', h, f = 3}}}},
 }
 
@@ -733,6 +734,7 @@ local COMPACT = {
   {'spread(s?) an ailment to another foe', function(es) return (es == 's' and 'passes' or 'pass') .. ' an ailment on' end}}
 
 -- A stage may carry its own text for a level (stage.text[L]) when its effects cannot be worded short enough.
+-- (0.1.45: the 'ailing' stages that said "a foe with an ailment" now say "a foe ailing or Broken": Broken counts as one ailment.)
 function H.stageText(stage, L, first, stock)
   local own = stage.text and stage.text[L]
   if own then return H.wrap(own, first, #stage[3]) end
@@ -848,6 +850,8 @@ local function cond(name, s, m, ev)
   elseif name == 'ailing' or name == 'ailing2' or name == 'ailing3' then
     local n = 0
     for _, a in ipairs(H.M.HINDERED) do if ts[a] then n = n + 1 end end
+    -- 0.1.44 (decision 3): Broken counts as one ailment for 'a foe with an ailment'; two or three real ones are still two or three
+    if name == 'ailing' and ts.broken then return true end
     return n >= (name == 'ailing' and 1 or (name == 'ailing2' and 2 or 3))
   elseif name == 'slowed' then return ts.slow == true
   elseif name == 'stopped' then return ts.stop == true
@@ -867,6 +871,15 @@ local function cond(name, s, m, ev)
     local maxMp, mp = s.targetMaxMp, s.targetMp
     if reaction then maxMp, mp = s.attackerMaxMp, s.attackerMp end
     return type(maxMp) == 'number' and maxMp > 0 and mp == 0
+  elseif name == 'lowMp' then
+    -- 0.1.44 (decision 12): a quarter of the foe's MP pool or less; no pool at all, or an unknown one, never counts
+    local maxMp, mp = s.targetMaxMp, s.targetMp
+    if reaction then maxMp, mp = s.attackerMaxMp, s.attackerMp end
+    return type(maxMp) == 'number' and maxMp > 0 and type(mp) == 'number' and mp * 4 <= maxMp
+  elseif name == 'staggered' then
+    -- 0.1.44 (decision 2): the foe's push budget for its current turn is spent (the runtime reads the budget)
+    if reaction then return s.attackerStaggered == true end
+    return s.staggered == true
   elseif name == 'foeFaith' then return ts.faith == true
   elseif name == 'wounded' then return type(s.targetHpPct) == 'number' and s.targetHpPct < 50
   elseif name == 'healthy' then return type(s.targetHpPct) == 'number' and s.targetHpPct >= 50
@@ -875,7 +888,12 @@ local function cond(name, s, m, ev)
     return c ~= nil and type(c.current) == 'number' and type(c.required) == 'number' and c.required > 0
       and c.current < c.required and c.current * 4 >= c.required * 3
   elseif name == 'hasted' then return cs.haste == true
+  elseif name == 'brave' then return cs.bravery == true          -- 0.1.44 (decision 4)
+  elseif name == 'faithful' then return cs.faith == true         -- 0.1.44 (decision 5)
   elseif name == 'lured' then return cs.lure == true
+  -- 0.1.45: Faith OR the old trigger (Runeguard II: Lure; Imbue II: the blade imbued), not both
+  elseif name == 'lureOrFaith' then return cs.lure == true or cs.faith == true
+  elseif name == 'imbuedOrFaith' then return (m.imbue or 0) > 0 or cs.faith == true
   elseif name == 'floating' then return cs.float == true
   elseif name == 'invisible' then return cs.invisible == true
   elseif name == 'low50' then return (s.casterHpPct or 100) < 50
@@ -972,7 +990,8 @@ local function apply(fx, ev, s, m, a, L, add, push, other)
   if op == 'dmg' then a.damage = (a.damage or 1) * (1 + v / 100)
   elseif op == 'self' then
     local scale = at(fx[3], L) or 1
-    if not (fx.fresh and (s.casterStatus or {})[fx[2]]) then
+    -- Hermes Sandals' Haste (casterHeldHaste) counts as held for a fresh self-Haste grant.
+    if not (fx.fresh and ((s.casterStatus or {})[fx[2]] or (fx[2] == 'haste' and s.casterHeldHaste))) then
       if reaction then other(a, {op = 'add', unit = s.self, id = S[fx[2]], scale = scale})
       else add(a, 'casterAdd', S[fx[2]], scale) end
     end
@@ -1222,7 +1241,7 @@ local PER_CAST = {self = true, mp = true, hp = true, quick = true, party = true,
 local SPELL_EVENT = {magick = true, cast = true, heal = true, status = true}
 
 -- Conditions an aim (evasion setup) can test: no hit outcome is known yet.
-local AIM_OK = {hasted = true, low50 = true, critical = true, afterMagick = true, afterHit = true, afterHeal = true,
+local AIM_OK = {hasted = true, brave = true, low50 = true, critical = true, afterMagick = true, afterHit = true, afterHeal = true,
   lured = true, floating = true, invisible = true, fullMp = true}
 
 local function makeRule(line, parents)

@@ -264,7 +264,12 @@ class ProficiencyRulesTest(unittest.TestCase):
           local a = P.decide('hit', S({job=3, damage=200, targetStatus={stop=true}, targetMp=17, casterMaxMp=999}), 11)
           assert(a.damage == 1.15 and a.drainMp == 17 and a.healHp == 17,
             'Mana Leech ignored the final damage bonus')
-          assert(a.targetAdd[9], 'the final drain emptied the foe MP and should Silence it')
+          assert(a.leechSilence and a.leechSilence.need == 17 and a.leechSilence.scale == 1 and not a.targetAdd,
+            'the final drain emptied the foe MP and should Silence it (granted by the runtime once the drain is final)')
+          -- the per-hit cap (2% of 100) cuts the drain to 4: the foe keeps MP, so no Silence
+          P.reset()
+          a = P.decide('hit', S({job=3, damage=200, targetStatus={stop=true}, targetMp=17, casterMaxMp=200}), 11)
+          assert(a.drainMp == 4 and a.leechSilence == nil and not (a.targetAdd and a.targetAdd[9]), 'a clipped drain Silenced the foe')
           P.reset()
           local rich = {{address=100, job=3, hpPct=100, mp=100, maxMp=100, status={}},
                         {address=200, job=0, hpPct=40, mp=5, maxMp=999, status={silence=true}},
@@ -300,6 +305,23 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(P.decide('hit', S({job=1}), 9).targetAdd[14] == 0.5)                     -- III pin
           assert(P.decide('hit', S({job=1, targetStatus={float=true}}), 9).targetAdd[14]) -- stripped last buff
           assert(P.decide('hit', S({job=1, targetStatus={immobilize=true}}), 11).damage == 1.15)
+        ''')
+
+    def test_lancer_grounding_two_opens_on_an_ailment_or_a_broken_foe(self):
+        self.run_lua('''
+          local function removes(a, id) for _, x in ipairs(a and a.targetRemove or {}) do if x == id then return true end end return false end
+          local buffs = {protect=true, shell=true}
+          -- control: neither an ailment nor Broken (rank 5 = Grounding II-1): Protect stays
+          assert(not removes(P.decide('hit', S({job=1, targetStatus=buffs}), 5), P.STATUS.protect))
+          -- Broken opens it, and so does an ailment (the old condition)
+          assert(removes(P.decide('hit', S({job=1, targetStatus=buffs, broken=true}), 5), P.STATUS.protect))
+          P.reset()
+          assert(removes(P.decide('hit', S({job=1, targetStatus={protect=true, shell=true, poison=true}}), 5), P.STATUS.protect))
+          -- Broken is a flag on the hit state: a false or missing flag changes nothing
+          P.reset()
+          assert(not removes(P.decide('hit', S({job=1, targetStatus=buffs, broken=false}), 5), P.STATUS.protect))
+          -- the gear text names it
+          assert(P.gearLines(P.JOB.lancer, 5)[3]:find('Broken'))
         ''')
 
     def test_samurai(self):
@@ -407,7 +429,7 @@ class ProficiencyRulesTest(unittest.TestCase):
           b = P.speech(1, 2); assert(#b == 1 and b[1]:find('Proficiency I 2/4', 1, true))
           b = P.speech(4, 5); assert(b[1]:find("Journeyman's Writ", 1, true))
           b = P.speech(8, 9); assert(b[1]:find("Master's Writ", 1, true))
-          b = P.speech(11, 12); assert(b[1]:find('final stamp', 1, true))
+          b = P.speech(11, 12); assert(b[1]:find('last stamp', 1, true))   -- 0.1.47 (D6 wording): was 'final stamp'
           b = P.speech(0, 6); assert(b[1]:find('filing your training papers', 1, true) and b[#b]:find('II 2/4', 1, true))
           assert(#P.speech(3, 3) == 0)
           for _, pair in ipairs({{0,1},{1,2},{4,5},{8,9},{11,12},{0,12}}) do
@@ -706,7 +728,8 @@ class ProficiencyWritTest(unittest.TestCase):
           -- Montblanc's own lines about the topic go to `notes`; `boxes` holds what he hands out.
           notes, asked, ASK, ticks = {}, {}, {}, {}
           dialog = {amese={open=function(t)
-                      if t.body:find('Nothing new yet', 1, true) or t.body:find('Before you go', 1, true) then
+                      if t.body:find('Nothing new yet', 1, true) or t.body:find('Before you go', 1, true)
+                         or t.body:find('find your papers', 1, true) then   -- 0.1.48: the neutral line is a topic line too
                         notes[#notes+1] = t.body
                       else boxes[#boxes+1] = t.body end
                       if t.onClose then t.onClose() end
@@ -737,7 +760,7 @@ class ProficiencyWritTest(unittest.TestCase):
           -- Ask Montblanc "Have I earned anything new?" in the hall, then leave (the name is from when leaving claimed).
           function askMontblanc(answers)
             handlers.onMapJump(302); run(2)
-            ASK = answers or {1}
+            ASK = answers or {0}   -- 0.1.47 (D1): "Have I earned anything new?" is the first choice (was the second)
             memory.u8[TOPIC_FLAG] = 1
             run()
           end
@@ -800,15 +823,15 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(R.claimed() == 0 and #boxes == 0, 'leaving hands nothing out')
           assert(#notes == 1 and notes[1]:find('Before you go', 1, true))      -- one reminder
           notes = {}
-          askMontblanc({0, 2, 1})                                              -- what is it, where do I stand, anything new
+          askMontblanc({3, 1, 0})   -- what is it, where do I stand, anything new (0.1.47, D1: was {0, 2, 1})
           assert(memory.u8[TOPIC_FLAG] == 0, 'the request byte is cleared')
-          assert(#asked >= 3 and asked[1].speaker == 'Montblanc' and #asked[1].choice == 4)
-          assert(said('three') and said('rewarded you up to rank 0'))          -- the explanation and the standing
+          assert(#asked >= 3 and asked[1].speaker == 'Montblanc' and #asked[1].choice == 5)   -- 0.1.47 (D1): five choices
+          assert(said('three') and said("haven't rewarded"))   -- the explanation and the standing (0.1.47, D3: rank-0 wording)
           assert(R.claimed() == 2 and keys[0x81F0], 'asking hands out the rank')
           assert(logged('Montblanc topic opened'))
           boxes, notes = {}, {}
           handlers.onMapJump(100); run(2); assert(#notes == 0)                  -- nothing waiting: no reminder
-          askMontblanc({1})
+          askMontblanc({0})   -- 0.1.47 (D1): the claim is choice 0
           assert(#boxes == 0 and #notes == 1 and notes[1]:find('Nothing new yet', 1, true))
           -- outside the hall the byte is ignored
           handlers.onMapJump(100); run(2); asked = {}
@@ -816,7 +839,7 @@ class ProficiencyWritTest(unittest.TestCase):
         """)
 
     def test_rank_claimed_before_the_writ_existed(self):
-        # Marco's campaign: rank 1 claimed by 0.2.0, no Writ in the inventory.
+        # A campaign: rank 1 claimed by 0.2.0, no Writ in the inventory.
         self.lua.execute('''
           RANK = 1
           loadCampaign(1)
@@ -849,6 +872,20 @@ class ProficiencyWritTest(unittest.TestCase):
           leaveHall()
           assert(R.claimed() == 0 and not R.active() and #boxes == 0)
           assert(logged('could not be granted; nothing claimed'))
+          -- 0.1.48: a failed claim says the neutral line, never "Nothing new yet"
+          local neutral, nothing = false, false
+          for _, n in ipairs(notes) do
+            if n:find('find your papers', 1, true) then neutral = true end
+            if n:find('Nothing new yet', 1, true) then nothing = true end
+          end
+          assert(neutral and not nothing)
+          -- 0.1.48: a failed claim says the neutral line, never "Nothing new yet"
+          local neutral, nothing = false, false
+          for _, n in ipairs(notes) do
+            if n:find('find your papers', 1, true) then neutral = true end
+            if n:find('Nothing new yet', 1, true) then nothing = true end
+          end
+          assert(neutral and not nothing)
           assert(handlers.save().claimedRank == 0)
         ''')
 
@@ -988,7 +1025,7 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(suffix(0):find('Kage I 1/4:', 1, true) and suffix(0, 3):find('Kage III 0/4:', 1, true))
           jobs[0], jobs2[0] = 11, nil; tick()
           local one = R3.gearSuffix(8, 1, 1)
-          assert(one == '\n{scale:82}{rgb:90,90,90}Pursuit I 1/4:{lowspace}{rgb:255,255,255}Your hits deal +15% damage to a foe with an ailment\nAilments: Poison, Slow, Blind, Silence, Sap, Oil...', one)
+          assert(one == '\n{scale:82}{rgb:90,90,90}Pursuit I 1/4:{lowspace}{rgb:255,255,255}Your hits deal +15% damage to an ailing or Broken foe\nBroken: its Defense or Magick Resist was cut in 10 s', one)
           assert(R3.gearSuffix(8, 0, 1):find('Pursuit I 0/4:', 1, true))
           assert(R3.gearSuffix(8, 7, 1):find('Pursuit I 4/4:', 1, true))
           assert(R3.gearSuffix(8, 7, 2):find('Pursuit II 3/4:', 1, true))
@@ -1054,7 +1091,7 @@ class ProficiencyWritTest(unittest.TestCase):
                 os.chdir(here)
 
     def test_side_file_saved_under_another_slot_name_is_used(self):
-        # Marco: LEGCY_000 loaded, then saved into slot 3: LEGCY_003.dir carries campaign "LEGCY_000".
+        # A player: LEGCY_000 loaded, then saved into slot 3: LEGCY_003.dir carries campaign "LEGCY_000".
         self.lua.execute('''
           RANK = 1; keys[0x81F0] = true
           handlers.load('C:/saves/LEGCY_003', {schema=1, campaign='LEGCY_000', claimedRank=1})
