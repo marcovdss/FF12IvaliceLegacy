@@ -7,7 +7,7 @@
 --   missing      ivalice-legacy-coop.dll is not loaded
 --   unsupported  wrong game build, a module of another version, or the module found the game's code changed
 --   blocked      another co-op mod (Ivalice Together) is installed, so Legacy co-op stays off
---   disabled     the Co-op module switch is Off
+--   disabled     the module is off at start (Advanced > Start co-op with the game) or its settings file is not usable
 --   fault        the module is degraded or faulted (see the log), or the bridge cannot talk to it
 -- The boot reason ids are the module's own (the schema's `reason` enum). Known names have a row in M.REASONS; any
 -- other name is matched by keyword, so the view keeps working when a reason is added; an unknown id is shown by number.
@@ -16,15 +16,15 @@ local M = {}
 M.STATE_TEXT = {
   INERT = 'Waiting for the game loader', DISABLED = 'Disabled (setting)',
   BLOCKED = 'Disabled (another co-op mod is installed)', STARTING = 'Starting', ARMED = 'Starting',
-  READY = 'Ready', DEGRADED = 'Degraded: see log', FAULT = 'Fault: see log',
+  READY = 'Ready', DEGRADED = 'Degraded: see hook.log', FAULT = 'Fault: see hook.log',
 }
 
 M.ADVICE = {
   missing = 'The co-op module file was not loaded. Check that Vortex deployed x64/modules/ivalice-legacy-coop.dll, then restart the game.',
   unsupported = 'Co-op supports only the Steam build the mod was made for. It stays off so the game is left untouched.',
   blocked = 'Ivalice Together is installed. Legacy co-op stays off to protect it. Remove or disable Together, then restart the game.',
-  disabled = 'Turn the Co-op module switch On, then restart the game.',
-  fault = 'Co-op stopped itself and the game carries on as normal. The log file has the details.',
+  disabled = "Turn on 'Start co-op with the game' under Advanced, then restart the game.",
+  fault = "Co-op stopped itself and the game carries on as normal. The loader's hook.log has the details.",
   error = 'The co-op module did not answer the way this script expects. Reinstall Legacy so the script and module match.',
 }
 
@@ -44,7 +44,7 @@ M.REASONS = {
   PATCH_CONFLICT = {kind = 'unsupported', text = 'Game code differs (co-op stays off)'},
   PATCH_BUSY = {kind = 'fault', text = 'Co-op could not install (busy)'},
   PATCH_FAILED = {kind = 'fault', text = 'Co-op install failed and was undone'},
-  DRY_ARMED = {kind = 'ok', text = 'Ready (dry-armed)'},
+  DRY_ARMED = {kind = 'ok', text = 'Ready (developer override: parts off)'},
   LIVE = {kind = 'ok', text = 'Ready'},
   THREAD_FAILED = {kind = 'fault', text = 'Co-op could not start (thread)'},
   SHUT_DOWN = {kind = 'ok', text = 'Shut down'},
@@ -59,7 +59,7 @@ M.REASON_ADVICE = {
 
 -- The kill switch (status coop_switch): shown on the Status row while the module is otherwise fine.
 M.SWITCH_TEXT = {RELEASING = 'Co-op switching off', OFF = 'Co-op off (kill switch)'}
-M.SWITCH_ADVICE = 'Co-op is off for everyone: the game plays as normal. Press the kill switch key (F8 by default) or use Co-op on to resume.'
+M.SWITCH_ADVICE = 'Co-op is off for everyone: the game plays as normal. Press the on/off key (F8 by default) or turn Co-op back On on this page to resume.'
 
 -- SETTINGS_INVALID with reason_detail 3: the file is from a newer version. It is left alone on purpose (read-only).
 M.NEWER_SCHEMA_TEXT = 'Off (settings file is from a newer version)'

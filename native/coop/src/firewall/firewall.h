@@ -107,7 +107,11 @@ struct menu_report {
                               // included) is refused with the battle menu. Clear: id 3 passes to stock
     uint8_t quickening_command_seat;  // with quickening: the seat (1..) whose QUICKENING press pulses COMMAND
     uint8_t quickening_confirm_seat;  // ... and CONFIRM (the button follows the native party slot, 1 and 2)
-    uint8_t reserved[2];
+    uint8_t p1_battle;        // Player 1's own battle menu, leader select or command tree is up (with or without
+                              // frontend::p1_native: while the co-op menus own P1 the gate refuses them, so one that
+                              // is up is P1's own): a native screen for P1 (passthrough), never for the guests' edges
+                              // (no guest pulse drives P1's battle menu)
+    uint8_t reserved;
 };
 static_assert(sizeof(menu_report) == 16, "menu_report layout");
 
@@ -122,8 +126,21 @@ void post_menus(const menu_report& m);
 void step(uint64_t now_ms);                           // after isolation::publish: compose and publish the record
 void stop();                                          // withdraws the record: every hook is stock
 // For the menu layer: at the last step P1's world prompt was highlighted (a live foe excluded) while P1's
-// replacement was on, so P1's A becomes a native CONFIRM (the interaction) and must not also open P1's co-op menu.
+// replacement was on and P1's co-op menu closed, or was so within PROMPT_GRACE_MS (the game's can_use byte blips to 0
+// for a frame; a prompt flickers at the edge of its range). Then P1's real CONFIRM is left unmasked (policy.h
+// p1_prompt_mask): A reaches the game as the keyboard's Enter does, and must not also open P1's co-op menu.
+constexpr uint64_t PROMPT_GRACE_MS = 250;
 bool p1_prompt_ready();
+// Why the last step's prompt was not ready (0 = ready): prompt_block bits, for the Developer 30 s report.
+enum prompt_block : uint32_t {
+    PB_INACTIVE = 0x01,       // the firewall did not run (co-op off, FIREWALL_MENUS not live, no world)
+    PB_DRIVER = 0x02,         // a guest drives a native menu
+    PB_NO_REPLACEMENT = 0x04, // P1's buttons were not withheld (P1 on the vanilla menu): A is native anyway
+    PB_MENU_OPEN = 0x08,      // P1's co-op menu open, in a transition or inside its release guard
+    PB_NO_PROMPT = 0x10,      // no prompt (state 0 or unreadable)
+    PB_FOE = 0x20,            // the prompt named a live foe
+};
+uint32_t p1_prompt_why();
 // Any thread: the published record arms the frontend gate (the co-op menus own P1's battle frontends and the stock
 // battle menu is refused) and FIREWALL_MENUS is live. False: P1 may drive the stock battle menu, so its target list
 // keeps the native TARGET INFO (hud/target_info.cpp, TI-01). No epoch check: a stalled co-op thread leaves the last

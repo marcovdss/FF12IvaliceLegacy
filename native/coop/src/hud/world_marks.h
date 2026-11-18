@@ -8,21 +8,30 @@
 // node, +0x810 = the source actor's handle) recolours the strip and its glow. The native target arrow (the ribbon
 // between the leader and its target, owner +0x2d0) binds with CLUT = [+0x330] + 2 * [+0x32c] at 0x3f71a0; TG-05 sits
 // on the two moves before it (rsi = the arrow node) and changes that sum. Both rows are the site table's own (TG-06,
-// TG-05: TARGETS_CARDS PATCH rows, installed from the first build, stock until a handler is set). The rule:
-//   * the source is a character a seat holds -> that seat's colour (the co-op colour setting, by seat or by
-//     character, resolved as the party list does) on any party line type (3, 4);
-//   * the source is a party member no seat holds (a gambit ally) -> CLUT 6, the native white/silver;
-//   * anything else (foes, neutrals, unknown handles) -> the native CLUT, untouched;
-//   * the arrow follows the same owner rule, but only in its native "on" colour (gold, 4): its red state carries the
-//     game's own meaning and stays red.
+// TG-05: TARGETS_CARDS PATCH rows, installed from the first build, stock until a handler is set). The rule recolours
+// only the party palettes and keeps every special value (the community manual, ch. 7: "preserve special palette value
+// 4 where that native branch applies; a blanket constant would also recolor exceptional states"):
+//   * a party line (type 3 or 4) still in its native party palette (type 3 -> 0 blue, type 4 -> 3 green) whose source
+//     is a character a seat holds -> that seat's colour (the co-op colour setting, by seat or by character, resolved as
+//     the party list does);
+//   * the same, from a party member no seat holds (a gambit ally) -> CLUT 6, the native white/silver;
+//   * anything else (foes, neutrals, unknown handles, a palette another hook already changed) -> the native CLUT;
+//   * the arrow: the same palette rule, and its two native states are not party palettes (4 gold in range, 1 red out
+//     of range): it always keeps the game's colours (0.1.60 final review; before, gold was recoloured per seat).
 // The line strip's vertex colour is a fixed 0xFE grey, so an exact RGBA would need a code change per draw; the seat
-// colour is therefore one of the seven baked palettes (ilc_colour is that palette index).
+// colour is therefore one of the baked palettes. targetline_p's seven palettes are 0 blue, 1 red, 2 yellow, 3 green,
+// 4 gold, 5 purple, 6 white (HUD-NATIVE-RE 5.1); ilc_colour matches them for sapphire, ruby, emerald, gold and
+// amethyst, but pink has no palette (2 is yellow) and bronze none either (6 is the gambit allies' white). 0.1.58 passed
+// the colour index through: pink seats drew yellow lines and bronze seats white ones, like a gambit ally ("Most lines
+// are white"). Now line_cluts() gives every seat its exact palette, and pink and bronze the nearest palette by colour
+// that no other seat holds (pink: purple, red, gold, yellow; bronze: gold, red, yellow), never white.
 //
 // Seat diamonds. The world-marker dispatcher's overhead pass 0x2c62b0(manager, list A, list B, pool, list D) is
 // called once per frame from 0x28edad; the pool holds 128 objects of 0x100 bytes and is reset every frame, so an
 // object never outlives its frame. WM-01 (a call row there) runs the pass and then appends our objects the way the
 // game's own leader marker does: 0x3f0040(pool) -> anchor -> 0x3f12e0(obj, partytop_4_c, sheet, cell) -> colour,
-// alpha and quad -> 0x3f1290(list B, obj). Per visible seat: a gem (sheet 0x0105; its cell picks the colour) and the
+// alpha and quad -> 0x3f1290(list B, obj). Per visible seat: a gem (sheet 0x0105; its cell picks the colour; a pink or
+// bronze seat, which has no gem of its own, gets the grey gem tinted with its colour through the object's RGB) and the
 // seat numeral over it (sheet 0x0002, cells 0-9). The anchor is the character's overhead record (+0x00, found by
 // handle at +0x10), the one the native status icons use; a character without a record shows no diamond. A full
 // pool (0x3f0040 returns null) stops emission for the frame: native objects keep priority because ours come last.
@@ -64,7 +73,16 @@ constexpr uint32_t LINE_TYPE = 0x840;              // u16 line type (1/2 foe, 3/
 constexpr uint32_t ARROW_SOURCE = 0x2D0;           // arrow node: u32 source actor handle
 constexpr uint8_t TYPE_PARTY = 3;                  // party -> target
 constexpr uint8_t TYPE_PARTY_SUPPORT = 4;          // party, action flag 0x800
-constexpr uint8_t ARROW_ON = 4;                    // the arrow's native "on" colour (gold); 1 = red
+// 0x2713B0 (line type -> palette, the only source of a line's palette): 1 -> 1 red, 2 -> 5 purple, 3 -> 0 blue,
+// 4 -> 3 green, anything else -> 0. The party palettes are the two a seat recolours.
+constexpr uint8_t CLUT_PARTY = 0;                  // type 3 (blue)
+constexpr uint8_t CLUT_PARTY_SUPPORT = 3;          // type 4 (green)
+// The arrow (0x3F787C..0x3F78BF, every frame): +0x330 = 0x30BEF0(src) > 0 ? 4 : 1, +0x32C = 0 (its only writer), bound
+// as [+0x330] + 2 * [+0x32C] at 0x3F71A0. 4 gold = the in-range state, 1 red = out of range [U: the meaning of the
+// predicate, bit 7 of the source actor's +0x04 behind the global [0x2089340] & 0x10; Together's cave calls 1 "native
+// out-of-range red"]. The arrow has its own rule (arrow_clut): red is always kept, gold is the seat's colour.
+constexpr uint8_t ARROW_ON = 4;                    // the arrow's native gold
+constexpr uint8_t ARROW_WARN = 1;                  // the arrow's native red
 constexpr uint8_t CLUT_GAMBIT = 6;                 // white/silver: a party member no seat holds
 constexpr uint8_t CLUT_COUNT = 7;                  // targetline_p carries seven palettes
 constexpr uint8_t CLUT_NONE = 0xFF;
@@ -122,14 +140,28 @@ struct lines_record {
 };
 static_assert(sizeof(lines_record) == 88, "lines_record layout (host tests build it)");
 
-// The CLUT a line node takes: `native` (0x2713b0's result) unless its source is in the record and the type is a
-// party line. The arrow: `native` unless its source is a seat's or a gambit ally's and the native colour is ARROW_ON.
+// The CLUT a line node takes: `native` (0x2713b0's result) unless its source is in the record, the type is a party
+// line and `native` is still that type's party palette (3 -> CLUT_PARTY, 4 -> CLUT_PARTY_SUPPORT): only the party
+// palettes are recoloured, every other value (4 included) is preserved (manual ch. 7).
+uint32_t party_clut_of_type(uint32_t type);   // CLUT_NONE for a type that is not a party line
 uint32_t line_clut(const lines_record& r, uint32_t source, uint32_t type, uint32_t native);
+// The CLUT the arrow takes: ARROW_WARN (1, the game's out-of-range red) is always kept; ARROW_ON (4, gold) and the
+// party palettes 0 and 3 take the source's entry palette when the record has one (a seat's colour; 6 for a gambit
+// ally), so the arrow identifies whoever leads. Parity with the co-op fork's arrow cave (every state but palette 1)
+// and our earlier rule. Any other value, or a source without an entry: native.
 uint32_t arrow_clut(const lines_record& r, uint32_t source, uint32_t native);
-// A seat colour (ilc_colour, the palette index) as a line CLUT; CLUT_NONE if it is not one of the seven.
+// A seat colour (ilc_colour) as its line CLUT on its own: the exact palette, else the nearest by colour (pink purple,
+// bronze gold); never 6 (white: the gambit allies'); CLUT_NONE if it is not one of the seven colours.
 uint8_t clut_of_colour(uint8_t colour);
-// The partytop_4_c gem cell for a seat colour: 1 blue, 2 green, 3 purple, 4 red, 6 gold, 7 grey (yellow -> gold).
+// Every seat's line CLUT at once (COLOUR_NONE = no seat): exact palettes first, then pink and bronze take the nearest
+// palette no other seat holds (the first preference when all are taken). out[s] = CLUT_NONE for a seat without colour.
+void line_cluts(const uint8_t colours[SEATS], uint8_t out[SEATS]);
+// The partytop_4_c gem cell for a seat colour: 1 blue, 2 green, 3 purple, 4 red, 6 gold; pink and bronze the grey
+// gem 7, tinted (gem_tint).
 uint8_t gem_cell(uint8_t colour);
+// The tint a seat's gem takes (R, G, B as the world object's colour words, 0x80 = 1.0): white (0x80) for a seat with a
+// gem of its own; the seat colour, brightened so its strongest channel is 0xFF, for pink and bronze. True when tinted.
+bool gem_tint(uint8_t colour, uint32_t rgb[3]);
 
 // Diamond alpha (0..0x80) at `now` for a diamond shown at `shown_ms` (0 = not shown): fade in, hold, fade out.
 uint32_t diamond_alpha(uint64_t shown_ms, uint64_t now_ms);
@@ -175,12 +207,15 @@ enum trigger_bit : uint32_t {
 // character loses its diamond at once. Showing a diamond that is still visible keeps it at full and restarts its hold.
 uint32_t trigger_step(trigger_state& st, uint32_t epoch, const seat_input in[SEATS], uint32_t identify_mask,
                       uint64_t now_ms);
+// 0.1.57: after trigger_step, every seat that holds a character keeps its diamond up (faded in, then held at full).
+void persist_step(trigger_state& st, const seat_input in[SEATS], uint64_t now_ms);
 
 struct diamond {
     uint32_t handle;           // the character it hangs over (0 = none)
     uint8_t seat;              // 1..4
     uint8_t gem;               // gem cell
-    uint16_t reserved;
+    uint8_t colour;            // ilc_colour of the seat (the gem's tint: gem_tint), 0xFF none
+    uint8_t reserved;
     uint64_t shown_ms;         // 0 = not shown
 };
 static_assert(sizeof(diamond) == 16, "diamond layout (host tests build it)");

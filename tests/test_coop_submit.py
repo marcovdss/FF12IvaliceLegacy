@@ -477,7 +477,8 @@ class SlotStateMachineTest(HostCase):
         self.assertEqual((v.state, v.released, v.late_result), (SLOT_IDLE, 1, gt.LOST & 0xFFFFFFFF))
 
     def test_refusals_before_the_queue(self):
-        self.assertEqual(self.foe_request(seat=3), SUB_NOT_SEAT, 'no fourth seat')
+        self.assertEqual(self.foe_request(seat=4), SUB_NOT_SEAT, 'no fifth seat')
+        self.assertEqual(self.foe_request(seat=3), SUB_NO_ISSUER, 'P4 is a seat (0.1.53), here not in session')
         self.assertEqual(self.foe_request(seat=2), SUB_NO_ISSUER, 'seat 3 is not in session')
         self.assertEqual(self.submit(target=0), SUB_BAD_REQUEST)
         self.assertEqual(self.submit(kind=RK_RESERVE, reserve=0x28), SUB_BAD_REQUEST)

@@ -25,7 +25,7 @@ struct world_sample {
     uint8_t town;            // the area is a town (runtime flag or area metadata)
     uint8_t chocobo;         // the party is mounted
     uint8_t location_read;   // both location words were read
-    uint8_t reserved0;
+    uint8_t p1_battle_menu;  // menu_open, and the open frontend is P1's own battle menu, leader select or command tree
     uint32_t leader;         // the leader word as read: 0xFFFF = none (also when unread)
     uint32_t reserved1;
     uint64_t battle_state;   // the battle state pointer (0 = none)
@@ -33,7 +33,9 @@ struct world_sample {
     uint16_t ui[facts::LAYOUT_ENTRIES];       // HUD party layout
     uint32_t location_current;                // LOCATION_NONE when unread
     uint32_t location_ui;
-    uint8_t reserved2[4];
+    uint8_t p1_native;       // not read from the game: the session's switch (session::p1_native) for this pass; the
+                             // policy keys its P1-menu exemption on p1_battle_menu alone since 0.1.59 (diagnostic)
+    uint8_t reserved2[3];
 };
 static_assert(sizeof(world_sample) == 72, "world_sample layout (host tests read it)");
 

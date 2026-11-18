@@ -69,6 +69,15 @@ enum gate_reason : uint8_t {
     GATE_COUNT
 };
 
+// ---- the co-op layer switch (0.1.57 interim) --------------------------------------------------------------------
+// Off by default: the frame hook draws no co-op layer and stamps no presenter, so Player 1 keeps the game's own command
+// menu and the native battle log stays (nothing replaces it), the native Target Info is never closed, the native party
+// list is left as the game lays it out and the guests' co-op menus do not open (their model and input logic are kept for
+// the own overlay that will draw them). On only for experiments: Developer options and the HUD test draw both on
+// (battle_hud::configure_from_settings). Any thread.
+void set_layer_enabled(bool on);
+bool layer_enabled();
+
 // ---- the frame hook (game thread) --------------------------------------------------------------------------------
 void attach(uintptr_t image_base);
 // May the co-op layer be drawn this frame? Cheap (no snapshot copy); counts the reason when it may not.
@@ -112,6 +121,7 @@ struct counters {
     uint16_t pass_commands[PASS_COUNT];// commands each pass added on the last composed frame
     volatile uint64_t kept_log;        // commands kept back for the log pass on the last composed frame (0 or LOG_FLOOR)
     volatile uint64_t menus_no_view;   // composed frames whose menu pass had no usable menu view (nothing stamped)
+    volatile uint64_t layer_off;       // frames the layer switch refused (set_layer_enabled)
 };
 const counters* stats();
 

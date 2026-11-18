@@ -192,6 +192,11 @@ uint32_t ILCT_WmTriggerStep(wm::trigger_state* st, uint32_t epoch, const wm::sea
     return wm::trigger_step(*st, epoch, in, identify, now_ms);
 }
 
+void ILCT_WmPersistStep(wm::trigger_state* st, const wm::seat_input* in, uint64_t now_ms)
+{
+    wm::persist_step(*st, in, now_ms);
+}
+
 void ILCT_WmReset(void) { wm::test_reset(); }
 void ILCT_WmPublishLines(const wm::lines_record* r) { wm::test_publish_lines(*r); }
 void ILCT_WmPublishDiamonds(const wm::diamonds_record* r) { wm::test_publish_diamonds(*r); }

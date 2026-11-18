@@ -1,0 +1,574 @@
+{
+ "format": "ilc-theme",
+ "version": 1,
+ "id": "legacy-humanist",
+ "name": "Refined Vanilla",
+ "author": "Ivalice Legacy",
+ "description": "A / Refined Vanilla",
+ "license": {
+  "fonts": "Original outlines drawn for Ivalice Legacy; ships under the mod licence",
+  "art": "Original; drawn for Ivalice Legacy"
+ },
+ "authoring": {
+  "width": 1920,
+  "height": 1080
+ },
+ "atlas": {
+  "em": 40,
+  "spread": 5,
+  "width": 512,
+  "supersample": 4
+ },
+ "fonts": {
+  "body": {
+   "file": "fonts/LegacyHumanist.ttf",
+   "charset": "full",
+   "role": "rows, help, log, party names, targets"
+  },
+  "title": {
+   "file": "fonts/LegacyHumanistCaps.ttf",
+   "charset": "title",
+   "role": "page titles, panel headers, tags, labels (caps; lowercase = small caps)"
+  },
+  "numerals": {
+   "file": "fonts/LegacyHumanistNumerals.ttf",
+   "charset": "digits",
+   "role": "big HP figures and damage numbers"
+  }
+ },
+ "charsets": {
+  "full": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00a0\u00b7\u00c0\u00c1\u00c2\u00c4\u00c7\u00c8\u00c9\u00ca\u00cb\u00cc\u00cd\u00ce\u00cf\u00d1\u00d2\u00d3\u00d4\u00d6\u00d7\u00d9\u00da\u00db\u00dc\u00e0\u00e1\u00e2\u00e4\u00e7\u00e8\u00e9\u00ea\u00eb\u00ec\u00ed\u00ee\u00ef\u00f1\u00f2\u00f3\u00f4\u00f6\u00f9\u00fa\u00fb\u00fc\u00ff\u2013\u2018\u2019\u201c\u201d\u2026\u2212\u25ae\u25b8\u25c2\u25c6",
+  "title": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00a0\u00b7\u00d7\u2013\u2018\u2019\u201c\u201d\u2026\u2212\u25ae\u25b8\u25c2\u25c6",
+  "digits": " 0123456789%/+-.,:\u2212\u00b7\u00d7"
+ },
+ "icons": {
+  "file": "icons/icons.json"
+ },
+ "text": {
+  "outline": 1.5,
+  "shadow": [
+   1,
+   2,
+   1.4,
+   0.6
+  ],
+  "soft": 0.6,
+  "ink": [
+   8,
+   14,
+   40
+  ],
+  "small": {
+   "below_px": 19,
+   "tracking_em": 0.02
+  },
+  "min_help_em": 17,
+  "tracking": {
+   "page_face": "body",
+   "title_em": 0.0,
+   "header_em": 0.06
+  }
+ },
+ "motion": {
+  "marquee_speed": 40,
+  "marquee_hold_ms": 1000,
+  "marquee_fade": 12,
+  "marquee_on": true
+ },
+ "sizes": {
+  "row": 22,
+  "value": 21,
+  "header": 18,
+  "tab": 19,
+  "help": 17,
+  "pitch": 30,
+  "glove": 28,
+  "glove_out": 16,
+  "panel_head": 22,
+  "target": 28,
+  "party_name": 28,
+  "hp": 36,
+  "max": 21,
+  "mpv": 26,
+  "act": 19,
+  "log": 22
+ },
+ "colors": {
+  "core": [
+   232,
+   234,
+   240
+  ],
+  "dim": [
+   142,
+   150,
+   172
+  ],
+  "header": [
+   207,
+   224,
+   255
+  ],
+  "help": [
+   196,
+   204,
+   222
+  ],
+  "gold": [
+   242,
+   220,
+   138
+  ],
+  "ink": [
+   8,
+   14,
+   40
+  ],
+  "foe_dot": [
+   214,
+   120,
+   78
+  ],
+  "heal": [
+   109,
+   255,
+   142
+  ],
+  "dmg": [
+   255,
+   106,
+   88
+  ],
+  "low": [
+   255,
+   108,
+   92
+  ],
+  "hp_warn": [
+   255,
+   214,
+   92
+  ],
+  "hp_critical": [
+   255,
+   104,
+   88
+  ],
+  "hp_critical_glow": [
+   255,
+   70,
+   50
+  ],
+  "drop_rare": [
+   236,
+   152,
+   190
+  ],
+  "mpl": [
+   156,
+   198,
+   255
+  ],
+  "chev": [
+   168,
+   200,
+   255
+  ],
+  "rule": [
+   170,
+   206,
+   255,
+   80
+  ],
+  "rule2": [
+   200,
+   220,
+   255,
+   210
+  ]
+ },
+ "seats": [
+  {
+   "n": 1,
+   "rgb": [
+    126,
+    174,
+    217
+   ]
+  },
+  {
+   "n": 2,
+   "rgb": [
+    89,
+    220,
+    160
+   ]
+  },
+  {
+   "n": 3,
+   "rgb": [
+    213,
+    96,
+    243
+   ]
+  },
+  {
+   "n": 4,
+   "rgb": [
+    216,
+    147,
+    78
+   ]
+  }
+ ],
+ "gambit_ally": {
+  "rgb": [
+   200,
+   206,
+   218
+  ],
+  "mark": "G"
+ },
+ "window": {
+  "shape": "round",
+  "radius": 10,
+  "cut": null,
+  "cut_corners": [],
+  "stops": [
+   [
+    0,
+    [
+     86,
+     128,
+     208,
+     214
+    ]
+   ],
+   [
+    0.34,
+    [
+     44,
+     76,
+     160,
+     220
+    ]
+   ],
+   [
+    0.72,
+    [
+     16,
+     32,
+     92,
+     228
+    ]
+   ],
+   [
+    1,
+    [
+     6,
+     14,
+     52,
+     236
+    ]
+   ]
+  ],
+  "rim": [
+   176,
+   208,
+   255,
+   205
+  ],
+  "rim_px": 1.3,
+  "rim_top_bias": 0.25,
+  "inner_line": [
+   8,
+   18,
+   60,
+   160
+  ],
+  "shine": {
+   "kind": "soft",
+   "amount": 0.2,
+   "extent": 0.42
+  },
+  "outer_line": null,
+  "halo": {
+   "sigma_px": 5,
+   "rgb": [
+    110,
+    160,
+    255
+   ],
+   "alpha": 0.3
+  },
+  "size": {
+   "width": 275,
+   "height": 230,
+   "tab_height": 30
+  }
+ },
+ "tab": {
+  "kind": "A",
+  "height": 30,
+  "dx": 4,
+  "shape": "round",
+  "radius": 8,
+  "stops": [
+   [
+    0,
+    [
+     96,
+     138,
+     218,
+     232
+    ]
+   ],
+   [
+    1,
+    [
+     38,
+     66,
+     148,
+     238
+    ]
+   ]
+  ],
+  "seat_marker": "accent line on the top edge + portrait + \"P1 - Name\""
+ },
+ "focus_row": {
+  "bar": false
+ },
+ "gauge": {
+  "kind": "A",
+  "height": 5,
+  "slant": 0,
+  "ticks_every": 0,
+  "cols": {
+   "hp": [
+    [
+     226,
+     242,
+     255,
+     255
+    ],
+    [
+     150,
+     200,
+     255,
+     255
+    ]
+   ],
+   "low": [
+    [
+     255,
+     200,
+     150,
+     255
+    ],
+    [
+     255,
+     96,
+     70,
+     255
+    ]
+   ],
+   "mp": [
+    [
+     176,
+     224,
+     255,
+     255
+    ],
+    [
+     62,
+     142,
+     232,
+     255
+    ]
+   ],
+   "act": [
+    [
+     240,
+     246,
+     255,
+     255
+    ],
+    [
+     240,
+     246,
+     255,
+     255
+    ]
+   ]
+  },
+  "trail": [
+   255,
+   196,
+   190,
+   210
+  ],
+  "trail_hatch": false,
+  "hp_states": {
+   "warn_at": 0.5,
+   "critical_at": 0.25,
+   "critical_glow_px": 5
+  }
+ },
+ "marks": {
+  "glove": "A",
+  "chevron": "A",
+  "diamond": "A",
+  "dot": "A"
+ },
+ "status_icons": {
+  "style": "medallion",
+  "names": [
+   "Poison",
+   "Slow",
+   "Protect",
+   "Haste",
+   "Sleep",
+   "Oil"
+  ],
+  "colors": {
+   "Poison": [
+    132,
+    214,
+    92
+   ],
+   "Slow": [
+    150,
+    170,
+    232
+   ],
+   "Protect": [
+    255,
+    206,
+    96
+   ],
+   "Haste": [
+    255,
+    232,
+    104
+   ],
+   "Sleep": [
+    162,
+    144,
+    240
+   ],
+   "Oil": [
+    230,
+    156,
+    84
+   ]
+  }
+ },
+ "recipes": {
+  "glove": [
+   {
+    "glyph": "glove_body",
+    "core": "seat",
+    "edge": "seat",
+    "edge_px": 2.4,
+    "grow": 1.4
+   },
+   {
+    "glyph": "glove_body",
+    "core_top": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "core_bottom": [
+     206,
+     218,
+     240,
+     255
+    ],
+    "edge": [
+     30,
+     44,
+     90,
+     200
+    ],
+    "edge_px": 0.9
+   },
+   {
+    "glyph": "glove_cuff",
+    "core": "seat",
+    "edge": [
+     255,
+     255,
+     255,
+     200
+    ],
+    "edge_px": 0.9
+   }
+  ],
+  "chevron": [
+   {
+    "glyph": "chevron_{dir}",
+    "core": "chevron",
+    "edge": "ink",
+    "edge_px": 1.0
+   }
+  ],
+  "seat_diamond": [
+   {
+    "glyph": "diamond",
+    "core": "seat",
+    "edge": "seat",
+    "edge_px": 0,
+    "glow_px": 2.2,
+    "glow_alpha": 0.55
+   },
+   {
+    "glyph": "diamond",
+    "core_top": "seat_light",
+    "core_bottom": "seat",
+    "edge": "white",
+    "edge_px": 1.1,
+    "outline": "ink_soft"
+   }
+  ],
+  "dot": [
+   {
+    "glyph": "dot",
+    "core": "dot_colour",
+    "edge": "ink",
+    "edge_px": 1.0,
+    "glow_px": 2.6
+   }
+  ],
+  "status_icon": [
+   {
+    "glyph": "badge",
+    "core_top": "status_mid",
+    "core_bottom": "status_dark",
+    "edge": "white_soft",
+    "edge_px": 1.0
+   },
+   {
+    "glyph": "pic_{name}",
+    "core_top": "status_light",
+    "core_bottom": "status",
+    "edge": [
+     8,
+     10,
+     28,
+     150
+    ],
+    "edge_px": 0.7
+   },
+   {
+    "glyph": "det_{name}",
+    "core": "status_dark"
+   }
+  ]
+ },
+ "party_row": {
+  "action_only": true,
+  "note": "rows show the action, never the target (target lines carry that)"
+ }
+}

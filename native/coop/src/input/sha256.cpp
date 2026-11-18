@@ -90,4 +90,63 @@ void sha256(const void* data, size_t size, uint8_t digest[32])
     }
 }
 
+void sha256_init(sha256_ctx& c)
+{
+    static const uint32_t init[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+                                     0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
+    memcpy(c.h, init, sizeof(init));
+    c.total = 0;
+    c.used = 0;
+}
+
+void sha256_update(sha256_ctx& c, const void* data, size_t size)
+{
+    const uint8_t* p = static_cast<const uint8_t*>(data);
+    c.total += size;
+    if (c.used != 0) {
+        const size_t take = size < 64u - c.used ? size : 64u - c.used;
+        memcpy(c.buf + c.used, p, take);
+        c.used += static_cast<uint32_t>(take);
+        p += take;
+        size -= take;
+        if (c.used < 64) {
+            return;
+        }
+        block(c.h, c.buf);
+        c.used = 0;
+    }
+    while (size >= 64) {
+        block(c.h, p);
+        p += 64;
+        size -= 64;
+    }
+    if (size != 0) {
+        memcpy(c.buf, p, size);
+        c.used = static_cast<uint32_t>(size);
+    }
+}
+
+void sha256_final(sha256_ctx& c, uint8_t digest[32])
+{
+    uint8_t tail[128];
+    memset(tail, 0, sizeof(tail));
+    memcpy(tail, c.buf, c.used);
+    tail[c.used] = 0x80;
+    const size_t tail_len = c.used < 56 ? 64 : 128;
+    const uint64_t bits = c.total * 8u;
+    for (unsigned i = 0; i < 8; ++i) {
+        tail[tail_len - 1 - i] = static_cast<uint8_t>(bits >> (8 * i));
+    }
+    block(c.h, tail);
+    if (tail_len == 128) {
+        block(c.h, tail + 64);
+    }
+    for (unsigned i = 0; i < 8; ++i) {
+        digest[4 * i] = static_cast<uint8_t>(c.h[i] >> 24);
+        digest[4 * i + 1] = static_cast<uint8_t>(c.h[i] >> 16);
+        digest[4 * i + 2] = static_cast<uint8_t>(c.h[i] >> 8);
+        digest[4 * i + 3] = static_cast<uint8_t>(c.h[i]);
+    }
+}
+
 }  // namespace ilc

@@ -86,6 +86,14 @@ policy masks(const contract& c, uint32_t rule)
     return p;
 }
 
+uint32_t p1_prompt_mask(uint32_t p1_mask, const contract& c, bool prompt_ready)
+{
+    if (!prompt_ready || c.p1_replacement == 0 || c.quickening_confirm != 0) {
+        return p1_mask;
+    }
+    return p1_mask & ~M_CONFIRM;
+}
+
 uint32_t p1_pulse(const p1_inputs& in, uint32_t* kind)
 {
     uint32_t k = P1P_NONE;
@@ -101,8 +109,11 @@ uint32_t p1_pulse(const p1_inputs& in, uint32_t* kind)
         } else if (in.cancel_edge != 0) {
             k = P1P_CANCEL;  // B closes native panels (the focus panel opened with LEFT) as the keyboard does
             id = facts::SEM_CANCEL;
-        } else if (in.confirm_edge != 0 && in.prompt_state >= facts::PROMPT_HIGHLIGHTED) {
-            k = P1P_CONFIRM;  // A on a highlighted prompt interacts, as the keyboard's Enter does
+        } else if (in.confirm_edge != 0 && in.prompt_state >= facts::PROMPT_HIGHLIGHTED && in.confirm_native == 0) {
+            // A on a highlighted prompt interacts, as the keyboard's Enter does. Normally the game read A itself (the
+            // prompt was ready last beat, CONFIRM unmasked); the pulse covers only the beat the prompt appeared on,
+            // when the record the game read still withheld CONFIRM.
+            k = P1P_CONFIRM;
             id = facts::SEM_CONFIRM;
         }
     }
@@ -112,12 +123,13 @@ uint32_t p1_pulse(const p1_inputs& in, uint32_t* kind)
     return id;
 }
 
-uint32_t guest_pulse(uint32_t act_pressed, uint32_t act_held, bool native_screen)
+uint32_t guest_pulse(uint32_t act_pressed, uint32_t act_held, bool native_screen, bool may_pause)
 {
     const auto pressed = [&](uint32_t action) { return (act_pressed & (1u << action)) != 0; };
     const auto held = [&](uint32_t action) { return (act_held & (1u << action)) != 0; };
     if (pressed(ILC_ACTION_PAUSE)) {
-        return facts::SEM_PAUSE;
+        // Settings guest_pause 0: a guest's PAUSE does nothing (not even inside a native screen it drives).
+        return may_pause ? facts::SEM_PAUSE : 0u;
     }
     if (!native_screen) {
         return 0;

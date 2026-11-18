@@ -341,52 +341,82 @@ bool greyed(const menu::entry& e)
 
 bool magick_page(uint32_t page) { return page >= menu::PG_WHITE && page <= menu::PG_ARCANE; }
 
+// Our own help lines (the game's own help text is used for actions where it has one). Plain short sentences that fit
+// the 235-unit window footer at every built-in theme's help size (host test: every one, the longest MP suffix
+// included, fits; 0.1.60 shortened "Turn this character's gambits on or off.", "Choose the character to control.",
+// "Cast magicks and use technicks." and "Your character is down. Choose who leads.").
+constexpr const char* HELP_MAGICKS = "Use magicks or technicks.";
+constexpr const char* HELP_MIST = "Quickenings and summons.";
+constexpr const char* HELP_ITEMS = "Use an item.";
+constexpr const char* HELP_TECHNICKS = "Use a technick.";
+constexpr const char* HELP_QUICKENING = "Unleash a Quickening.";
+constexpr const char* HELP_SUMMON = "Summon an Esper.";
+constexpr const char* HELP_GAMBITS = "Switch gambits on or off.";
+constexpr const char* HELP_SEALED = "Cannot be used now.";
+constexpr const char* HELP_MP = "Not enough MP.";
+constexpr const char* HELP_NONE_LEFT = "None left to use.";
+constexpr const char* HELP_CHARGES = "Not enough Mist charges.";
+constexpr const char* HELP_GIL = "Not enough gil.";
+constexpr const char* HELP_SELF = "Target: self";
+constexpr const char* HELP_FOES_PARTY = "Target: foes or party";
+constexpr const char* HELP_PARTY = "Target: party";
+constexpr const char* HELP_FOES = "Target: foes";
+constexpr const char* HELP_LEADER = "Choose the party leader.";
+constexpr const char* HELP_CHARACTER = "Pick a character to play.";
+constexpr const char* HELP_KO = "Choose who leads now.";
+constexpr const char* HELP_TARGET = "Choose a target.";
+constexpr const char* HELP_NO_TARGET = "Nothing in range.";
+constexpr const char* BUILTIN_HELP[] = {
+    HELP_MAGICKS, HELP_MIST, HELP_ITEMS, HELP_TECHNICKS, HELP_QUICKENING, HELP_SUMMON, HELP_GAMBITS, HELP_SEALED,
+    HELP_MP, HELP_NONE_LEFT, HELP_CHARGES, HELP_GIL, HELP_SELF, HELP_FOES_PARTY, HELP_PARTY, HELP_FOES, HELP_LEADER,
+    HELP_CHARACTER, HELP_KO, HELP_TARGET, HELP_NO_TARGET};
+
 void entry_help(const menu::entry& e, uint32_t page, const names& n, char* out, uint32_t cap)
 {
     out[0] = '\0';
     switch (e.kind) {
     case menu::EK_PAGE:
         switch (e.role) {
-        case menu::ROLE_MAGICKS: copy_text(out, cap, "Cast magicks and use technicks."); return;
-        case menu::ROLE_MIST: copy_text(out, cap, "Quickenings and summons."); return;
-        case menu::ROLE_ITEMS: copy_text(out, cap, "Use an item."); return;
+        case menu::ROLE_MAGICKS: copy_text(out, cap, HELP_MAGICKS); return;
+        case menu::ROLE_MIST: copy_text(out, cap, HELP_MIST); return;
+        case menu::ROLE_ITEMS: copy_text(out, cap, HELP_ITEMS); return;
         case menu::ROLE_SCHOOL: copy_text(out, cap, role_label(e)); append_text(out, cap, "."); return;
-        case menu::ROLE_TECHNICKS: copy_text(out, cap, "Use a technick."); return;
-        case menu::ROLE_QUICKENING: copy_text(out, cap, "Unleash a Quickening."); return;
-        case menu::ROLE_SUMMON: copy_text(out, cap, "Summon an Esper."); return;
+        case menu::ROLE_TECHNICKS: copy_text(out, cap, HELP_TECHNICKS); return;
+        case menu::ROLE_QUICKENING: copy_text(out, cap, HELP_QUICKENING); return;
+        case menu::ROLE_SUMMON: copy_text(out, cap, HELP_SUMMON); return;
         default: return;
         }
     case menu::EK_TOGGLE:
-        copy_text(out, cap, "Turn this character's gambits on or off.");
+        copy_text(out, cap, HELP_GAMBITS);
         return;
     case menu::EK_ACTION:
         if ((e.flags & menu::EF_SEALED) != 0) {
-            copy_text(out, cap, "Cannot be used now.");
+            copy_text(out, cap, HELP_SEALED);
         } else if ((e.flags & menu::EF_MP_SHORT) != 0) {
-            copy_text(out, cap, "Not enough MP.");
+            copy_text(out, cap, HELP_MP);
         } else if ((e.flags & menu::EF_HELD_BACK) != 0) {
-            copy_text(out, cap, "None left to use.");
+            copy_text(out, cap, HELP_NONE_LEFT);
         } else if ((e.cost_flags & menu::CF_CHARGES_SHORT) != 0) {
-            copy_text(out, cap, "Not enough Mist charges.");
+            copy_text(out, cap, HELP_CHARGES);
         } else if ((e.cost_flags & menu::CF_GIL_SHORT) != 0) {
-            copy_text(out, cap, "Not enough gil.");
+            copy_text(out, cap, HELP_GIL);
         } else if ((e.flags & menu::EF_ENABLED) == 0) {
-            copy_text(out, cap, "Cannot be used now.");
-        } else if (n.help != nullptr && n.help(n.ctx, e.action, out, cap)) {
-            return;   // the game's own help line
+            copy_text(out, cap, HELP_SEALED);
+        } else if (n.help != nullptr && n.help(n.ctx, e.display, out, cap)) {
+            // The game's own help line, keyed like the row's name: the action the row SHOWS (an item's +8), never the
+            // action it uses (+7). 0.1.60 bug 9: Legacy reorders the motes' +8 against +7 (item rows 46..60), so
+            // Balance Mote showed Reflectga Mote's help. Magicks, technicks and the Mist rows have display == action.
+            return;
         } else if ((e.flags & menu::EF_SELF_ONLY) != 0) {
-            copy_text(out, cap, "Target: self");
+            copy_text(out, cap, HELP_SELF);
         } else {
             const bool foes = (e.groups & (1u << menu::TG_FOES)) != 0;
             const bool party = (e.groups & (1u << menu::TG_PARTY)) != 0;
-            copy_text(out, cap, foes && party ? "Target: foes or party" : (party ? "Target: party" : "Target: foes"));
+            copy_text(out, cap, foes && party ? HELP_FOES_PARTY : (party ? HELP_PARTY : HELP_FOES));
         }
-        if (magick_page(page) && e.cost > 0 && (e.flags & menu::EF_SEALED) == 0) {
-            char n[8];
-            put_uint(n, sizeof(n), static_cast<uint32_t>(e.cost));
-            append_text(out, cap, "  MP ");
-            append_text(out, cap, n);
-        }
+        // No "  MP n" after the target line any more (0.1.60): the row's MP column already shows the cost Legacy charges
+        // (one number, Marco's answer 5), and with it the line did not fit the window footer in the themes.
+        (void)page;
         return;
     default:
         return;
@@ -647,9 +677,9 @@ void build_seat(const seat_source& src, const names& n, seat_view* out)
                                                                    : "Choose a Leader";
         seat_title(seat, title, out);
         copy_text(out->help, HELP_TEXT,
-                  sel->kind == frontend::SEL_LEADER      ? "Choose the party leader."
-                  : sel->kind == frontend::SEL_CHARACTER ? "Choose the character to control."
-                                                         : "Your character is down. Choose who leads.");
+                  sel->kind == frontend::SEL_LEADER      ? HELP_LEADER
+                  : sel->kind == frontend::SEL_CHARACTER ? HELP_CHARACTER
+                                                         : HELP_KO);
         return;
     }
     if (src.model == nullptr) {
@@ -725,7 +755,7 @@ void build_seat(const seat_source& src, const names& n, seat_view* out)
         action[0] = '\0';
         n.action(n.ctx, m.pending.display, action, sizeof(action));
         seat_title(seat, action, out);
-        copy_text(out->help, HELP_TEXT, total != 0 ? "Choose a target." : "Nothing in range.");
+        copy_text(out->help, HELP_TEXT, total != 0 ? HELP_TARGET : HELP_NO_TARGET);
         return;
     }
 }
@@ -823,6 +853,11 @@ bool test_build(uint64_t now_ms, menu_view* out)
 void test_force_reduced(int32_t reduced)
 {
     g_force_reduced = reduced;
+}
+
+const char* builtin_help(uint32_t index)
+{
+    return index < sizeof(BUILTIN_HELP) / sizeof(BUILTIN_HELP[0]) ? BUILTIN_HELP[index] : nullptr;
 }
 
 bool live_name(uint32_t kind, uint32_t id, uint64_t pointer, char* out, uint32_t cap)

@@ -1,8 +1,9 @@
 // Ivalice Legacy co-op module: the Wait-mode participant rule (subsystem WAIT).
 //
 // In the game's Wait battle mode, battle time stands still while Player 1's battle menu is open. With co-op the
-// rule becomes: time stops only while EVERY participating player has their co-op battle menu open, so one player
-// browsing never freezes the others. Active mode never pauses for the co-op menus. A participant is a seat in the
+// rule becomes (settings wait_pause): time stops only while EVERY participating player has their co-op battle menu
+// open (ALL, the default), so one player browsing never freezes the others; or while ANY participating player has
+// it open (ANY). Active mode never pauses for the co-op menus. A participant is a seat in the
 // session, under manual control, with a living character whose battle menu may open; a benched seat (no character
 // free for it), a parked seat and a seat whose character is down never count. No participant, no pause.
 //
@@ -63,8 +64,9 @@ struct seat_view {
 };
 static_assert(sizeof(seat_view) == 2, "seat_view layout (host tests build it)");
 
-// True when at least one seat participates and every participating seat's menu is open.
-bool pause_wanted(const seat_view seats[SEATS]);
+// ALL (ILC_WAIT_PAUSE_ALL): true when at least one seat participates and every participating seat's menu is open.
+// ANY (ILC_WAIT_PAUSE_ANY): true when at least one participating seat's menu is open. Any other rule reads as ALL.
+bool pause_wanted(const seat_view seats[SEATS], uint8_t rule = 0);
 
 // The stock frontend id -> pause reason table (0x255290 restated): -1 = no reason. Ids 1 and 4 depend on the mode.
 int32_t reason_of(uint32_t id, bool active_mode);
@@ -115,6 +117,21 @@ void withdraw();               // no request at all (the engine releases what it
 // ---- any thread -----------------------------------------------------------------------------------------------
 bool owned();                  // the engine holds reason 0 (game thread writes, others read)
 bool enabled();                // attach found the game's functions as pinned
+
+// What the HUD's top-centre Wait line reads: the game thread's last look (step, LIVE mode). frozen = reason 0 is held
+// after this tick's action, the battle setting is Wait and the game is in play (whoever holds it: the engine for the
+// co-op menus, or a stock frontend); p1_stock = the stock frontend up is one whose pause reason is 0 (Player 1's own
+// battle menu in Wait). at_ms = when that look was taken (0 never; step_dry and release_if_owned clear it).
+struct freeze_view {
+    uint8_t frozen;
+    uint8_t p1_stock;
+    uint8_t reserved[6];
+    uint64_t at_ms;
+};
+static_assert(sizeof(freeze_view) == 16, "freeze_view layout");
+freeze_view freeze();
+// Pure: whether the world is frozen after a decision (held = reason 0's bit before the action).
+bool frozen_after(const engine_in& in, const engine_out& out);
 
 // ---- game thread (the UI tick, LIVE mode) ------------------------------------------------------------------------
 // The engine's whole turn: read, decide, call. `epoch` = the liveness epoch the dispatcher sampled.

@@ -6,7 +6,9 @@
 //  * Co-op thread, step() once per beat after the session step:
 //      - publishes the interaction record: per guest that steers its character, the actor manager entry and the
 //        skeleton keep (compared as pointers by the detours) and the stable handle;
-//      - turns a guest's CONFIRM press into one request for the consumer window (press only, no prompt): the
+//      - composes the guests' prompt record (prompt.h): what each manual guest's own scan found, as the native
+//        marker's level, drawn over that guest's character by IX-21;
+//      - turns a guest's CONFIRM press into one request for the consumer window: the
 //        object the guest's own scan found (door, chest, crystal), or else an NPC near the guest (talk, shops);
 //      - after a request ran, holds the guest's interaction while its dialog, menu or shop is up. While held, the
 //        guest's character stands still and, once a dialog or menu has opened, that guest drives the native menus
@@ -34,6 +36,8 @@
 //            consumer runs untouched in every other frame.
 //      LT-01 loot ownership query call (call row): a seat-controlled actor's handle answers "party" (walk-over
 //            loot), everything else asks the game.
+//      IX-21 prompt drawer call (call row, optional; prompt.h): after P1's own prompt, the game's marker once more
+//            over each guest whose private pass found something (the "!", or the usable marker).
 //
 //  * Nothing is written to the game outside those detours, and nothing at all while the subsystem may not act.
 //
@@ -79,7 +83,8 @@ struct ix_record {
     uint32_t reserved;
     ix_entry slot[SLOTS];
 };
-static_assert(sizeof(ix_record) == 24 + 24 * SLOTS && sizeof(ix_record) <= 128, "small: copied at mid-function sites");
+static_assert(sizeof(ix_record) == 24 + 24 * SLOTS && sizeof(ix_record) <= 256,
+              "small: copied at mid-function sites (inline copy limit: movement/planner.h)");
 
 // What a guest's private pass found (the publication slots of its last pass that found anything).
 struct ix_private {
@@ -166,6 +171,7 @@ struct counters {
     volatile uint64_t windows;            // IX-20: requests claimed
     volatile uint64_t guard_hits;         // IX-17..19 armed decisions
     volatile uint64_t loot_owned;         // LT-01 answers for a guest
+    volatile uint64_t menu_opens;         // CONFIRM presses that found nothing and asked for the guest's menu
 };
 
 // ---- boot (before gtq::seal) ----------------------------------------------------------------------------------
@@ -186,6 +192,13 @@ uint32_t menu_driver();
 // presses, never interaction requests. Counts only for `epoch`.
 void set_menu_seats(uint32_t epoch, uint32_t seats);
 uint32_t menu_seats(uint32_t epoch);  // what set_menu_seats left for `epoch` (0 for any other)
+// A guest's CONFIRM that found nothing to use opens that guest's battle menu (Together's order: an interaction first,
+// then NPC talk, then the menu). Bit s = seat s pressed CONFIRM with its menu closed and: the window answered
+// WR_NO_TARGET; or the guest's scan found an object the game does not offer yet; or no object was found and the NPC
+// scan could not run (WR_P1_BUSY, WR_GUARDS_OFF); or guests may not interact (settings guest_interactions 0, or the
+// session's interaction gate is off). The frontend takes it on its next beat (co-op thread) and opens the menu through
+// its usual gates (eligible, reopen delay, not hidden, menu still closed). Counts only for `epoch`; taking clears it.
+uint32_t take_menu_opens(uint32_t epoch);
 // Seats (bit s) whose character an interaction holds still (a request in flight or a hold): movement reads it.
 uint32_t hold_seats(uint32_t epoch);
 // The shop is open now (frontend id 10, active), read through the fault-safe probe.
@@ -245,5 +258,6 @@ bool test_private(uint32_t slot, ix_private* out);
 void test_publish_private(uint32_t slot, const ix_private& p);
 request* test_request();
 void test_fail_attach(bool fail);  // attach() arms its rows, then fails and disarms them all (the boot's fallback)
+void test_note_menu_open(uint32_t epoch, uint32_t seats);  // as a CONFIRM that found nothing (take_menu_opens)
 
 }  // namespace ilc::interaction

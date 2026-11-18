@@ -4,8 +4,9 @@ No game run, nothing deployed; the exe is only read (IVALICE_LEGACY_GAME, a copy
 * the site rows: TG-06 (line CLUT) and TG-05 (arrow CLUT) are the site table's own TARGETS_CARDS detours; WM-01 is an
   OPTIONAL TARGETS_CARDS call row on the overhead pass call, RG-01 one on the stock target list's ring call; their
   signatures measured at one hit; the game bytes WM-01 and the ring operation rely on are pinned at attach;
-* the rules: line and arrow CLUTs (seat -> seat palette, gambit ally -> 6, foe and unknown -> native, arrow red stays
-  red), colour -> palette and gem cell, the diamond's fade-in / hold / fade-out, the show triggers (fight start after a
+* the rules: line and arrow CLUTs (a party palette from a seat -> seat palette, gambit ally -> 6, foe, unknown and
+  any special palette -> native; the arrow: gold and the party palettes -> the seat's, red always kept), colour ->
+  palette and gem cell, the diamond's fade-in / hold / fade-out, the show triggers (fight start after a
   quiet stretch, swap, drop-in, Identify; a new world is a baseline), the ring gate table (magick/technick AoE yes,
   Attack no, the Attack Area Experiment's Attack no, cones and single targets no, Quickenings/items no) and 0x31a990's
   area kinds;
@@ -86,7 +87,7 @@ SeatInput = S('SeatInput', [('held', u8), ('stance_known', u8), ('stance', u8), 
 SeatTrack = S('SeatTrack', [('member', u16), ('held', u8), ('reserved', u8), ('handle', u32), ('shown_ms', u64)])
 TriggerState = S('TriggerState', [('epoch', u32), ('engaged', u8), ('reserved', u8 * 3), ('quiet_since', u64),
                                   ('seats', SeatTrack * 4)])
-Diamond = S('Diamond', [('handle', u32), ('seat', u8), ('gem', u8), ('reserved', u16), ('shown_ms', u64)])
+Diamond = S('Diamond', [('handle', u32), ('seat', u8), ('gem', u8), ('colour', u8), ('reserved', u8), ('shown_ms', u64)])
 DiamondsRecord = S('DiamondsRecord', Head + [('sampled_ms', u64), ('enabled', u8), ('reserved', u8 * 7),
                                              ('seats', Diamond * 4)])
 WmCounters = S('WmCounters', [(n, u64) for n in ('samples', 'lines_recoloured', 'arrows_recoloured', 'lines_unread',
@@ -108,6 +109,7 @@ SIGNATURES = {
     'ILCT_WmLineClut': ([P(LinesRecord), u32, u32, u32], u32), 'ILCT_WmArrowClut': ([P(LinesRecord), u32, u32], u32),
     'ILCT_WmClutOfColour': ([u32], u32), 'ILCT_WmGemCell': ([u32], u32), 'ILCT_WmAlpha': ([u64, u64], u32),
     'ILCT_WmTriggerStep': ([P(TriggerState), u32, P(SeatInput), u32, u64], u32),
+    'ILCT_WmPersistStep': ([P(TriggerState), P(SeatInput), u64], None),
     'ILCT_WmReset': ([], None), 'ILCT_WmPublishLines': ([P(LinesRecord)], None),
     'ILCT_WmPublishDiamonds': ([P(DiamondsRecord)], None), 'ILCT_WmReadLines': ([P(LinesRecord)], i32),
     'ILCT_WmReadDiamonds': ([P(DiamondsRecord)], i32), 'ILCT_WmSetLinesEnabled': ([i32], None),
@@ -317,6 +319,9 @@ class RuleTest(unittest.TestCase):
             (GAMBIT, 4, 3, CLUT_GAMBIT), (STRANGER, 3, 0, 0), (FOE, 1, 1, 1), (FOE, 2, 5, 5),
             (SEAT1, 1, 1, 1),   # a seat character's line of a foe type (never made natively): the native colour
             (0, 3, 0, 0),
+            # manual ch. 7: only the party palettes (type 3 -> 0, type 4 -> 3) are recoloured; a special value is kept
+            (SEAT1, 3, 4, 4), (SEAT1, 4, 4, 4), (GAMBIT, 3, 4, 4), (SEAT1, 3, 3, 3), (SEAT1, 4, 0, 0), (SEAT1, 3, 6, 6),
+            (SEAT1, 0, 0, 0), (SEAT1, 5, 0, 0),   # types 0 and 5 also map to 0 natively, but are not party lines
         ]
         for source, typ, native, want in table:
             with self.subTest(source=hex(source), type=typ):
@@ -326,18 +331,39 @@ class RuleTest(unittest.TestCase):
         bad = lines([(SEAT1, MARK_SEAT, 1, 9)])
         self.assertEqual(d.ILCT_WmLineClut(ctypes.byref(bad), SEAT1, 3, 0), 0, 'a palette outside the seven: native')
 
-    def test_arrow_clut_keeps_red(self):
+    def test_arrow_clut_seat_colours_every_state_but_red(self):
+        """The arrow's native palettes are 4 gold (in range) and 1 red (out of range). Parity with the co-op fork's
+        arrow cave and our earlier rule: gold, and the party palettes 0 and 3 (another hook's), take the source's
+        entry palette (the seat's colour: the arrow identifies whoever leads; 6 for a gambit ally); red is kept. A
+        source without an entry, and any other palette, keep the native value."""
         r = lines(STANDARD)
         d = self.d
         for source, native, want in ((SEAT1, 4, GOLD), (SEAT2, 4, SAPPHIRE), (GAMBIT, 4, CLUT_GAMBIT), (FOE, 4, 4),
-                                     (SEAT1, 1, 1), (SEAT2, 1, 1), (STRANGER, 4, 4)):
+                                     (STRANGER, 4, 4), (SEAT1, 0, GOLD), (SEAT2, 3, SAPPHIRE),
+                                     (GAMBIT, 3, CLUT_GAMBIT), (FOE, 0, 0), (SEAT1, 6, 6), (SEAT1, 2, 2),
+                                     (SEAT1, 5, 5)):
             with self.subTest(source=hex(source), native=native):
                 self.assertEqual(d.ILCT_WmArrowClut(ctypes.byref(r), source, native), want)
+        empty = lines([])
+        self.assertEqual(d.ILCT_WmArrowClut(ctypes.byref(empty), SEAT1, 4), 4, 'no record entries: native gold')
+
+    def test_arrow_clut_red_stays_red(self):
+        """The game's out-of-range red (palette 1) is never recoloured, whoever the source is."""
+        r = lines(STANDARD)
+        d = self.d
+        for source in (SEAT1, SEAT2, GAMBIT, FOE, STRANGER, 0):
+            with self.subTest(source=hex(source)):
+                self.assertEqual(d.ILCT_WmArrowClut(ctypes.byref(r), source, 1), 1)
+        ruby = lines([(SEAT1, MARK_SEAT, 1, 1)])   # even a seat whose own palette is red
+        self.assertEqual(d.ILCT_WmArrowClut(ctypes.byref(ruby), SEAT1, 1), 1)
+        self.assertEqual(d.ILCT_WmArrowClut(ctypes.byref(ruby), SEAT1, 4), 1, 'its gold arrow takes its red')
 
     def test_colours(self):
         d = self.d
-        self.assertEqual([d.ILCT_WmClutOfColour(c) for c in range(8)], [0, 1, 2, 3, 4, 5, 6, 0xFF])
-        self.assertEqual([d.ILCT_WmGemCell(c) for c in range(8)], [1, 4, 6, 2, 6, 3, 7, 0])
+        # 0.1.60: pink (no palette of its own: 2 is yellow) takes purple, bronze (6 is the gambit white) gold; never 6.
+        self.assertEqual([d.ILCT_WmClutOfColour(c) for c in range(8)], [0, 1, 5, 3, 4, 5, 4, 0xFF])
+        # pink and bronze: the grey gem, tinted with the seat colour (world object RGB)
+        self.assertEqual([d.ILCT_WmGemCell(c) for c in range(8)], [1, 4, 7, 2, 6, 3, 7, 0])
 
     def test_diamond_fade(self):
         d = self.d
@@ -384,6 +410,25 @@ class RuleTest(unittest.TestCase):
                          'a new world: baseline again, nothing shown')
         self.assertEqual([st.seats[k].shown_ms for k in range(4)], [0] * 4)
         self.assertEqual(st.epoch, EPOCH + 1)
+
+    def test_a_held_seat_keeps_its_diamond(self):
+        """0.1.57 (Marco): identification stays while a seat plays: after the triggers, persist_step fades a held
+        seat's diamond in and then holds it at full; a seat that leaves loses it at once."""
+        st = TriggerState()
+        p1, p2 = (1, 0, SEAT1, 0), (1, 2, SEAT2, 0)
+        for now in (NOW, NOW + 20):
+            self.step(st, EPOCH, [p1, p2], now=now)
+            self.d.ILCT_WmPersistStep(ctypes.byref(st), seat_inputs(p1, p2), now)
+        self.assertEqual(st.seats[0].shown_ms, NOW, 'fading in from the first beat of the world')
+        for now in range(NOW + 40, NOW + 60_000, 500):
+            self.step(st, EPOCH, [p1, p2], now=now)
+            self.d.ILCT_WmPersistStep(ctypes.byref(st), seat_inputs(p1, p2), now)
+            if now >= NOW + FADE_IN:
+                self.assertEqual(self.d.ILCT_WmAlpha(st.seats[0].shown_ms, now), 128)
+        self.assertEqual(self.d.ILCT_WmAlpha(st.seats[1].shown_ms, NOW + 59_540), 128, 'seat 2 too, a minute on')
+        self.step(st, EPOCH, [p1, None], now=NOW + 60_000)
+        self.d.ILCT_WmPersistStep(ctypes.byref(st), seat_inputs(p1, None), NOW + 60_000)
+        self.assertEqual(st.seats[1].shown_ms, 0, 'a seat that left loses its diamond at once')
 
     def test_a_retrigger_keeps_a_visible_diamond_at_full(self):
         st = TriggerState()
@@ -536,14 +581,22 @@ class LineHandlerTest(unittest.TestCase):
         self.assertEqual(c.rax, 0)
 
     def test_arrow(self):
-        self.assertEqual(self.arrow(SEAT1, 4)[0], GOLD)
         clut, c = self.arrow(SEAT2, 4)
-        self.assertEqual((clut, c.rax, c.r9), (SAPPHIRE, SAPPHIRE, 0), 'eax = clut, r9 = 0: the lea gives the clut')
+        self.assertEqual((clut, c.rax, c.r9), (SAPPHIRE, SAPPHIRE, 0), "a seat's gold arrow takes the seat's palette")
+        self.assertEqual(self.arrow(SEAT1, 4)[0], GOLD)
         self.assertEqual(self.arrow(GAMBIT, 4)[0], CLUT_GAMBIT)
-        self.assertEqual(self.arrow(SEAT1, 1)[0], 1, 'red stays red')
+        clut, c = self.arrow(SEAT2, 1)
+        self.assertEqual((clut, c.rax, c.r9), (1, 1, 0), 'red stays red, registers untouched')
         self.assertEqual(self.arrow(FOE, 4)[0], 4)
         clut, c = self.arrow(STRANGER, 2, 1)
         self.assertEqual((clut, c.rax, c.r9), (4, 2, 1), 'untouched registers when nothing changes')
+        clut, c = self.arrow(SEAT1, 0, 0)   # a party palette (another hook's): the seat's, through eax with r9 = 0
+        self.assertEqual((clut, c.rax, c.r9), (GOLD, GOLD, 0), 'eax = clut, r9 = 0: the lea gives the clut')
+        clut, c = self.arrow(SEAT2, 2, 1)   # gold made as 2 + 2 * 1: the seat's, eax = clut and r9 cleared
+        self.assertEqual((clut, c.rax, c.r9), (SAPPHIRE, SAPPHIRE, 0))
+        c = WmCounters()
+        self.d.ILCT_WmStats(ctypes.byref(c))
+        self.assertEqual(c.arrows_recoloured, 4, 'SEAT2 gold, GAMBIT gold, SEAT1 party palette 0, SEAT2 2 + 2 * 1')
 
 
 @native_test
@@ -941,14 +994,16 @@ class RecordTest(unittest.TestCase):
     def test_diamonds_baseline_then_identify_drop_in_and_fight(self):
         d = self.d
         _, _, m = self.records()
-        self.assertEqual([m.seats[s].shown_ms for s in range(4)], [0] * 4, 'baseline')
+        # 0.1.57: a held seat keeps its diamond (persist_step), from the world's first beat on; the triggers still
+        # restart a faded one, and a fresh drop-in fades in from its own beat.
+        self.assertEqual([m.seats[s].shown_ms for s in range(4)], [NOW, NOW, 0, 0], 'held seats show at once')
         d.ILCT_WmIdentify(1)
         _, _, m = self.records(NOW + 20)
-        self.assertEqual([m.seats[s].shown_ms for s in range(4)], [0, NOW + 20, 0, 0])
+        self.assertEqual([m.seats[s].shown_ms for s in range(4)], [NOW, NOW, 0, 0], 'still fading in: carries on')
         self.assertEqual((m.seats[1].handle, m.seats[1].seat, m.seats[1].gem), (0x100002, 2, 3), 'Fran: amethyst gem')
         self.img.p8(self.actors[0] + 2, 0x80)   # P1 draws the weapon: fight start
         _, _, m = self.records(NOW + 40)
-        self.assertEqual(m.seats[0].shown_ms, NOW + 40)
+        self.assertEqual(m.seats[0].shown_ms, NOW)
         self.assertEqual(m.seats[0].gem, 1, 'Vaan: sapphire gem')
         e = self.rec.seat[2]
         e.flags = SEATF['IN_SESSION'] | SEATF['MANUAL'] | SEATF['ACTOR']
@@ -1163,8 +1218,11 @@ class NativeLineTest(unittest.TestCase):
             self.d.ILCT_WmSetLinesEnabled(1)
 
     def test_the_arrow(self):
+        """Through the game's own arrow code: a seat's gold arrow reaches the bind in the seat's palette (a gambit
+        ally's in 6), red reaches it unchanged for every source, a foe's or a stranger's gold stays gold."""
         for source, base, want in ((SEAT1, 4, GOLD), (SEAT2, 4, SAPPHIRE), (GAMBIT, 4, CLUT_GAMBIT), (SEAT1, 1, 1),
-                                   (FOE, 4, 4), (STRANGER, 4, 4)):
+                                   (SEAT2, 1, 1), (GAMBIT, 1, 1), (FOE, 4, 4), (STRANGER, 4, 4),
+                                   (SEAT1, 0, GOLD), (FOE, 0, 0)):
             with self.subTest(source=hex(source), base=base):
                 self.assertEqual(self.arrow(source, base), want)
         self.assertEqual(self.arrow(SEAT1, 4, hooked=False), 4, 'disarmed: the stock gold')

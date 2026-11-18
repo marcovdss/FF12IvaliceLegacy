@@ -326,8 +326,14 @@ class SettingsSwitchTest(unittest.TestCase):
             ('{"schema":1,"module":{"enabledAtStart":0}}', (SETTINGS_INVALID, INVALID_VALUE, False)),
             ('{"schema":1,"module":{"enabledAtStart":null}}', (SETTINGS_INVALID, INVALID_VALUE, False)),
             ('{"schema":1,"module":true}', (SETTINGS_INVALID, INVALID_VALUE, False)),
-            ('{"schema":2,"module":{"enabledAtStart":true}}', (SETTINGS_INVALID, INVALID_NEWER, False)),
+            # Schema 2 (0.1.53, store.lua M.SCHEMA) keeps module.enabledAtStart where schema 1 had it: both are read.
+            ('{"schema":2,"module":{"enabledAtStart":true}}', (SETTINGS_ON, 0, False)),
+            ('{"schema":2,"module":{"enabledAtStart":false}}', (SETTINGS_OFF, 0, False)),
+            ('{"schema":2}', (SETTINGS_ON, 0, True)),
+            ('{"schema":2.0,"module":{"enabledAtStart":true}}', (SETTINGS_INVALID, INVALID_SCHEMA, False)),
+            ('{"schema":3,"module":{"enabledAtStart":true}}', (SETTINGS_INVALID, INVALID_NEWER, False)),
             ('{"schema":10,"module":{"enabledAtStart":true}}', (SETTINGS_INVALID, INVALID_NEWER, False)),
+            ('{"schema":20,"module":{"enabledAtStart":true}}', (SETTINGS_INVALID, INVALID_NEWER, False)),
             ('{"schema":1.0,"module":{"enabledAtStart":true}}', (SETTINGS_INVALID, INVALID_SCHEMA, False)),
             ('{"schema":"1","module":{"enabledAtStart":true}}', (SETTINGS_INVALID, INVALID_SCHEMA, False)),
             ('{"schema":0}', (SETTINGS_INVALID, INVALID_SCHEMA, False)),
@@ -504,7 +510,7 @@ class BootRefusalTest(Instrument):
     def test_unreadable_or_invalid_settings_disable(self):
         cases = [
             ('garbage', b'\x00not json', 'SETTINGS_INVALID', INVALID_SYNTAX),
-            ('newer schema', b'{"schema":2,"module":{"enabledAtStart":true}}', 'SETTINGS_INVALID', INVALID_NEWER),
+            ('newer schema', b'{"schema":3,"module":{"enabledAtStart":true}}', 'SETTINGS_INVALID', INVALID_NEWER),
             ('wrong type', b'{"schema":1,"module":{"enabledAtStart":1}}', 'SETTINGS_INVALID', INVALID_VALUE),
             ('too large', b' ' * ((1 << 20) + 1), 'SETTINGS_UNREADABLE', 0),
         ]
@@ -629,7 +635,12 @@ class BootLiveTest(Instrument):
     def push(self, d, generation: int, mask: int, park_p2: bool):
         record = bytearray(S.defaults())
         struct.pack_into('<I', record, S.locate('ilc_settings', ['header', 'generation'])[0], generation)
-        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_armed'])[0], mask)
+        # The record carries a developer disarm override (0.1.53): the mask asked for is every subsystem but those
+        # bits, honoured with developer options on.
+        every = sum(S.enums['subsystem'].values())
+        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_disarm'])[0], every & ~mask)
+        if mask != every:
+            record[S.locate('ilc_settings', ['developer'])[0]] = 1
         record[S.locate('ilc_settings', ['seats', 1, 'parked'])[0]] = 1 if park_p2 else 0
         status_code, _ = Bridge(d).call(S.e('op', 'SET_SETTINGS'), bytes(record))
         self.assertGreater(status_code, 0)
@@ -857,11 +868,14 @@ class BootLiveTest(Instrument):
         self.assertEqual(self.twin.image(), reference, 'a refused install wrote to the image')
 
     # ---- the DRY -> LIVE switch, the Status reason, the kill switch after LIVE, the counters and the stall drill ----
-    def push_record(self, d, generation: int, mask: int, developer: int = 0):
+    def push_record(self, d, generation: int, mask: int, developer: int | None = None):
+        """mask: the subsystems the record asks for. developer None: on whenever the mask needs the disarm override;
+        0 or 1: exactly that (with 0 the override is ignored and every subsystem is asked for)."""
         record = bytearray(S.defaults())
         struct.pack_into('<I', record, S.locate('ilc_settings', ['header', 'generation'])[0], generation)
-        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_armed'])[0], mask)
-        record[S.locate('ilc_settings', ['developer'])[0]] = developer
+        every = sum(S.enums['subsystem'].values())
+        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_disarm'])[0], every & ~mask)
+        record[S.locate('ilc_settings', ['developer'])[0]] = (1 if mask != every else 0) if developer is None else developer
         status_code, _ = Bridge(d).call(S.e('op', 'SET_SETTINGS'), bytes(record))
         self.assertGreater(status_code, 0)
 

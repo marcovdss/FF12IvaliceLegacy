@@ -80,7 +80,7 @@ void bump(volatile uint64_t& counter)
 
 bool load_u64(uint64_t address, uint64_t* out)
 {
-    return address != 0 && copy_from_caller(out, reinterpret_cast<const void*>(address), sizeof(*out));
+    return address != 0 && read_game(out, reinterpret_cast<const void*>(address), sizeof(*out));
 }
 
 uint32_t float_bits(float f)
@@ -121,8 +121,8 @@ int32_t mv01_body(ctx* c, const steer_record& r)
         return RUN_ORIGINAL;
     }
     const float pitch_heading[2] = {0.0f, e.heading};
-    if (!copy_to_caller(reinterpret_cast<void*>(e.phys + facts::PHYS_PITCH), pitch_heading, sizeof(pitch_heading)) ||
-        !copy_to_caller(reinterpret_cast<void*>(e.phys + facts::PHYS_MAGNITUDE), &e.magnitude, sizeof(float))) {
+    if (!store_game(reinterpret_cast<void*>(e.phys + facts::PHYS_PITCH), pitch_heading, sizeof(pitch_heading)) ||
+        !store_game(reinterpret_cast<void*>(e.phys + facts::PHYS_MAGNITUDE), &e.magnitude, sizeof(float))) {
         return RUN_ORIGINAL;
     }
     bump(detail::g_counters.vectors_written);
@@ -139,7 +139,7 @@ int32_t mv01_body(ctx* c, const steer_record& r)
         return RUN_ORIGINAL;
     }
     uint32_t vec[3];
-    if (!copy_from_caller(vec, reinterpret_cast<const void*>(c->r9), sizeof(vec))) {
+    if (!read_game(vec, reinterpret_cast<const void*>(c->r9), sizeof(vec))) {
         return RUN_ORIGINAL;
     }
     if (((vec[0] | vec[1] | vec[2]) & 0x7FFFFFFFu) == 0) {
@@ -207,7 +207,7 @@ int32_t mv04_body(ctx* c, const steer_record& r)
         return RUN_ORIGINAL;
     }
     float facing_pitch[2];
-    if (!copy_from_caller(facing_pitch, reinterpret_cast<const void*>(e.phys + facts::PHYS_VISUAL),
+    if (!read_game(facing_pitch, reinterpret_cast<const void*>(e.phys + facts::PHYS_VISUAL),
                           sizeof(facing_pitch))) {
         return RUN_ORIGINAL;
     }

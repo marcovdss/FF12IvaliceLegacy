@@ -36,10 +36,10 @@ def S(name, fields):
 
 
 WorldSample = S('WorldSample', [('roots', u8), ('control_enabled', u8), ('menu_open', u8), ('modal_active', u8),
-                                ('town', u8), ('chocobo', u8), ('location_read', u8), ('reserved0', u8),
+                                ('town', u8), ('chocobo', u8), ('location_read', u8), ('p1_battle_menu', u8),
                                 ('leader', u32), ('reserved1', u32), ('battle_state', u64), ('current', u16 * 9),
                                 ('ui', u16 * 9), ('location_current', u32), ('location_ui', u32),
-                                ('reserved2', u8 * 4)])
+                                ('p1_native', u8), ('reserved2', u8 * 3)])
 PartyActor = S('PartyActor', [('index', u32), ('handle', u32), ('actor', u64), ('phys', u64)])
 PartyActors = S('PartyActors', [('slot', PartyActor * 4), ('found', u32), ('scanned', u32), ('manager_ok', u8),
                                 ('reserved', u8 * 7)])

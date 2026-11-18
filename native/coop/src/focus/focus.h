@@ -12,23 +12,29 @@
 //                                                                  Exclusive fullscreen (and its lose-focus and change
 //                                                                  states) runs stock: the game leaves and re-enters
 //                                                                  exclusive mode through its own path
-//   IN-06  pad focus gate 0x7A2236 (mid-function; tick thread)     unfocused: player 1's XInput state reads neutral (the
-//                                                                  game's own code interprets a zero gamepad under a
-//                                                                  fresh packet number and runs the finalizer, so held
-//                                                                  buttons release); on refocus the real packet is new
-//   FP-03  DirectInput pad update 0x7A1AAA (tick thread)           unfocused: the neutral block and the finalizer
+//   IN-06  pad focus gate 0x7A2236 (mid-function; tick thread)     unfocused: player 1's XInput pad keeps playing. The
+//                                                                  update takes its focused path (0x7A223C: the focus
+//                                                                  flag set, the real packet interpreted) instead of the
+//                                                                  stock unfocused branch, which would leave the last
+//                                                                  pad latched (Marco, 2026-11-16: no frozen pads)
+//   FP-03  DirectInput pad update 0x7A1AAA (tick thread)           unfocused: the neutral block and the finalizer. The
+//                                                                  site is reached only after Poll and Acquire failed
+//                                                                  (a foreground-only device): there is no real state to
+//                                                                  pass, and a neutral block releases held buttons
 //   FP-04  DirectInput mouse update 0x7A17E9 (tick thread)         unfocused: deltas and buttons zero, the finalizer
 //   FP-V1  the only writer of app+0x27 (verify-only GATE)          another mod rewrote it: FP-01 is skipped
 //
-// So while the game runs in the background nothing from another application reaches it: the keyboard is already
-// cleared by the game, the cursor delta is zeroed by the game, and the pads above read neutral. Isolation's host pad
-// (player 1 fed from SDL, or a guest driving the native menus) reads neutral too (running_unfocused). Guests on SDL
-// pads keep playing their own characters (SDL reads them in the background on purpose). Steam Input pads have no game
-// focus gate.
+// So while the game runs in the background the pads keep playing and nothing typed in another application reaches it:
+// the keyboard is cleared by the game, the cursor delta is zeroed by the game and the mouse reads neutral (FP-04).
+// Player 1's XInput pad plays (IN-06); isolation's host pad (player 1 fed from SDL, or a guest driving the native menus)
+// is fed as usual; guests on SDL pads keep playing their own characters (SDL reads them in the background on purpose);
+// Steam Input pads have no game focus gate. Only a DirectInput pad (FP-03) reads neutral: Windows does not hand a
+// foreground-only DirectInput device to a background window.
 //
 // The rows have no subsystem bit (CORE): they act with no guest seated, with the co-op switch off and while the module
 // is dry-armed, and only on this setting. Off = stock: the handlers return at once. FP-01 also refuses to act unless
-// IN-06 is hooked, so the game never runs in the background with a stale stick (fail closed: the stock pause instead).
+// IN-06 is hooked: without it the stock unfocused branch keeps player 1's last pad latched, so the game would run in
+// the background with a stale stick (fail closed: the stock pause instead).
 // The state's active byte is never held at 1 while unfocused, so whenever FP-01 stops acting there (the setting turned
 // off, a stale heartbeat, a closed gate) the next loop passes the game's own 0 and the stock pause starts. Turning it
 // off while focused is clean, because the byte was held at 1 while focused.
@@ -66,7 +72,7 @@ struct counters {
     volatile uint64_t forced;        // FP-01: Window/Borderless held active
     volatile uint64_t passed;        // FP-01: another state (exclusive fullscreen and its transitions): stock
     volatile uint64_t declined;      // FP-01: setting off or IN-06 not hooked: stock
-    volatile uint64_t xinput;        // IN-06: neutral XInput state while unfocused
+    volatile uint64_t xinput;        // IN-06: XInput updates passed through the focused path while unfocused
     volatile uint64_t dinput_pad;    // FP-03: neutral DirectInput pad while unfocused
     volatile uint64_t dinput_mouse;  // FP-04: neutral mouse while unfocused
     volatile uint64_t probe_failed;  // a probe read or write failed: stock

@@ -622,7 +622,7 @@ class IsolationBodyTest(unittest.TestCase):
         r = self.compose()
         self.assertEqual((r.guest_seats, bool(r.flags & ISO_KB)), (0b100, True), 'a guest keyboard alone guards')
         d.ILCT_IsoConfigure(self.settings(seat4=True))
-        self.assertEqual(self.compose().guest_seats, 0, 'the fourth seat never takes part')
+        self.assertEqual(self.compose().guest_seats, 0b1000, 'the fourth seat takes part (0.1.53)')
         # P1 on SDL: substitution with the pad's vendor and product.
         d.ILCT_IsoConfigure(self.settings(p1='sdl'))
         self.iso.mirror(1, SRC_SDL)

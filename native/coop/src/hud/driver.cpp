@@ -24,6 +24,7 @@ using detail::zero_bytes;
 uintptr_t g_base = 0x120000;  // NOTADDR: the pinned image base until attach
 counters g_counters = {};
 volatile uint32_t g_probe = 0;
+volatile uint32_t g_layer = 0;   // off until the applied settings say otherwise (host tests: test_reset turns it on)
 volatile uint32_t g_inject = PASS_COUNT;
 
 // ---- game-thread state (one game thread draws the UI; the hook is not re-entered) ---------------------------------
@@ -193,6 +194,16 @@ const char* pass_name(uint32_t pass)
     return pass < PASS_COUNT ? NAMES[pass] : nullptr;
 }
 
+void set_layer_enabled(bool on)
+{
+    __atomic_store_n(&g_layer, on ? 1u : 0u, __ATOMIC_RELEASE);
+}
+
+bool layer_enabled()
+{
+    return __atomic_load_n(&g_layer, __ATOMIC_ACQUIRE) != 0;
+}
+
 // ---- the frame hook ---------------------------------------------------------------------------------------------------
 void attach(uintptr_t image_base)
 {
@@ -201,6 +212,10 @@ void attach(uintptr_t image_base)
 
 bool frame_gate(uint32_t epoch, uint64_t now_ms)
 {
+    if (!layer_enabled()) {
+        bump(g_counters.layer_off);   // 0.1.57 interim: the game's own command menu and battle log stay
+        return false;
+    }
     uint8_t reason = GATE_OK;
     uint32_t snap_epoch = 0;
     uint64_t sampled = 0;
@@ -209,7 +224,7 @@ bool frame_gate(uint32_t epoch, uint64_t now_ms)
         reason = GATE_NO_SNAPSHOT;
     } else if (control::current_state() != control::STATE_ON) {
         reason = GATE_COOP_OFF;
-    } else if (!load_from_caller(&flags, reinterpret_cast<const void*>(game(sf::RENDER_FLAGS)), sizeof(flags)) ||
+    } else if (!load_game(&flags, reinterpret_cast<const void*>(game(sf::RENDER_FLAGS)), sizeof(flags)) ||
                (flags & sf::RENDER_UI) == 0) {
         reason = GATE_UI_HIDDEN;
     }
@@ -317,6 +332,7 @@ const counters* stats()
 void test_reset()
 {
     zero_bytes(const_cast<counters*>(&g_counters), sizeof(counters));
+    __atomic_store_n(&g_layer, 1u, __ATOMIC_RELEASE);   // the layer's tests run with it on
     __atomic_store_n(&g_probe, 0u, __ATOMIC_RELAXED);
     __atomic_store_n(&g_inject, static_cast<uint32_t>(PASS_COUNT), __ATOMIC_RELAXED);
     g_menus_done = 0;

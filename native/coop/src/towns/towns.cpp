@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "patch/patch_engine.h"
+#include "runtime/options.h"
 #include "runtime/probe.h"
 #include "session/reader.h"
 #include "session/session.h"
@@ -204,7 +205,9 @@ void step(uint64_t now)
     rec.head.epoch = s.head.epoch;
     rec.head.flags = TOWNF_ACTIVE;
     rec.head.generation = s.head.generation;
-    rec.allowed = controlled_members(s);
+    // Settings town_view PARTY: every member may keep a body, so the filter hides nobody and the planner only asks
+    // (once per key and world) for the bodies a players-only town had hidden. PLAYERS: the controlled characters.
+    rec.allowed = options::town_view() == ILC_TOWN_VIEW_PARTY ? ALL_MEMBERS : controlled_members(s);
     g_slot.publish(rec);
     bump(g_counters.published);
     g_last_allowed = rec.allowed;

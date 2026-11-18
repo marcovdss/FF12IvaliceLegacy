@@ -15,11 +15,13 @@
 // the gil this actor already put aside for its queued action (actor +0xE58) are below it. Its first check (0x12, an
 // action whose content the party no longer holds) is not about cost and is left to the catalog's listing rules.
 //
-// Legacy's MP economy (scripts/IvaliceLegacy/mp_economy.lua) charges a party member's Magick (menu kind 1, listed cost
-// > 0) a surcharge after the cast: the game's own charge times Magick / DIVISOR, never below it, at most CAP times it,
-// rounded half up; version 0.1.x scaled the listed cost instead. The game still admits the cast on its own price, so
-// greying follows the game and the shown number is game price + surcharge. The parameters reach the module through
-// the bridge (Lua reads Legacy's file); without them the economy is off and every number is the game's.
+// Legacy's MP economy (scripts/IvaliceLegacy/mp_economy.lua). Versions 0.1.x-0.2.x charged a party member's Magick
+// (menu kind 1, listed cost > 0) a surcharge after the cast: the game's own charge times Magick / DIVISOR, never below
+// it, at most CAP times it, rounded half up (0.1.x scaled the listed cost instead). Since 0.3.0 (the surcharge removed,
+// 2026-11-16) CAP is 1, so the surcharge is always 0 and the shown number is the game's own price; the rule below is
+// kept for the parameters the bridge still carries. The game admits the cast on its own price, so greying follows the
+// game. The parameters reach the module through the bridge (Lua reads Legacy's file); without them the economy is off
+// and every number is the game's.
 #pragma once
 
 #include <stdint.h>

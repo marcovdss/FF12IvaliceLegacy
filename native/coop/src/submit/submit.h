@@ -217,6 +217,10 @@ int32_t handle_event(uint32_t seat, menu::seat_menu* sm, const menu::menu_event&
 uint32_t sound_for(uint8_t event_kind);
 // Queue a menu sound for the seat (dropped when its sounds are off, the id is not allowed, or one is pending).
 void play(uint32_t seat, uint32_t sound_id);
+// A sound that is no seat's menu sound (the chest sound of the treasure log): queued for the game thread like a menu
+// sound (at most one per beat, the UI sound function behind the pinned prologue), whatever the seats' sound settings.
+// False when the slot is taken this beat or the id is not one of SOUND_IDS (the caller may try again next beat).
+bool play_system(uint32_t sound_id);
 
 // The party id that owns the Esper out now (OWNER_NONE): its menu shows Dismiss instead of Mist.
 uint32_t summon_owner();

@@ -56,7 +56,7 @@ SeatView = S('SeatView', [('kind', u8), ('selector', u8), ('row_count', u8), ('c
                           ('total', u16), ('member', u16), ('page', u8), ('group', u8), ('groups', u8), ('depth', u8),
                           ('colour_index', u8), ('reserved', u8), ('colour', u32), ('reserved2', u32),
                           ('opened_ms', u64), ('title', ctypes.c_char * 32), ('name', ctypes.c_char * 24),
-                          ('help', ctypes.c_char * 64), ('rows', ViewRow * 8)])
+                          ('help', ctypes.c_char * 128), ('rows', ViewRow * 8)])
 MenuView = S('MenuView', [('epoch', u32), ('flags', u32), ('generation', u64), ('built_ms', u64), ('open_mask', u32),
                           ('reserved', u32), ('seats', SeatView * 4)])
 Box = S('Box', [('x', i16), ('y', i16), ('w', i16), ('h', i16)])

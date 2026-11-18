@@ -97,14 +97,15 @@ Line = S('Line', [('id', u32), ('cls', u8), ('flags', u8), ('tags', u8), ('dot',
                   ('chain', u16), ('chain_level', u8), ('reward', u8), ('reserved3', u8 * 6)])
 View = S('View', [('epoch', u32), ('flags', u32), ('generation', u64), ('built_ms', u64), ('filter', u8),
                   ('filter_seat', u8), ('line_count', u8), ('reserved', u8), ('seat_colour', u32 * 4),
-                  ('reserved2', u32), ('lines', Line * HISTORY)])
+                  ('compact_lines', u8), ('expanded_lines', u8), ('fade_s', u8), ('reserved2', u8),
+                  ('lines', Line * HISTORY)])
 Counters = S('Counters', [(n, u64) for n in ('pushed', 'declined', 'drained', 'filtered', 'unresolved', 'lines',
                                              'published', 'withdrawn', 'drawn', 'skipped', 'capped', 'toggles',
                                              'native_hidden', 'hits', 'numbers', 'foreign', 'kills', 'chain_off')])
 Status = S('Status', [('attached', u8), ('feed', u8), ('enabled', u8), ('expanded', u8), ('hit_rows', u8),
                       ('chain', u8), ('reserved', u8 * 2)])
 Settings = S('Settings', [('enabled', u8), ('expanded', u8), ('expand_control', u8), ('filter', u8),
-                          ('filter_seat', u8), ('reserved', u8 * 3)])
+                          ('filter_seat', u8), ('compact_lines', u8), ('expanded_lines', u8), ('fade_s', u8)])
 RingView = S('RingView', [('written', u32), ('read', u32), ('lost', u64), ('torn', u64), ('unreadable', u64)])
 Frame = th.Frame
 
@@ -344,12 +345,17 @@ class StaticTest(unittest.TestCase):
                       build)
         self.assertIn("'testsupport/battle_log_tests.cpp'", build)
         replay = (HUD_SRC / 'replay.cpp').read_text(encoding='utf-8')
-        h0 = replay[replay.index('int32_t h0(patch::ctx* c'):]
+        h0 = replay[replay.index('int32_t h0_body(patch::ctx* c, uint32_t epoch)\n{'):]
         h0 = h0[:h0.index('\n}\n')]
         self.assertIn('battle_log::replaces_native(epoch', h0)
         self.assertIn('c->resume = game(facts::LOG_DRAW_RETURN);', h0)
-        self.assertLess(h0.index('if (draw_frame(epoch))'), h0.index('return patch::RESUME;'),
+        layer = h0[h0.index('battle_log::replaces_native(epoch'):]
+        self.assertLess(layer.index('if (draw_frame(epoch))'), layer.index('return patch::RESUME;'),
                         'the native log is skipped only once the layer was drawn in its place')
+        overlay = h0[h0.index('overlay::log_replaces_native('):]
+        self.assertLess(h0.index('overlay::note_hud(c->rcx, c->rdx);'), h0.index('overlay::log_replaces_native('),
+                        'the heartbeat is noted before the overlay\'s log skips the stock text')
+        self.assertIn('c->resume = game(facts::LOG_DRAW_RETURN);', overlay[:overlay.index('return patch::RESUME;')])
 
 
 @unittest.skipUnless(GAME, 'requires IVALICE_LEGACY_GAME (the pinned exe, read only)')
@@ -702,6 +708,25 @@ class ModelTest(unittest.TestCase):
         s.msg(T0 + 400 + REWARD_MS + 1, 36, item_name=b'Fire Stone', count=2)
         self.assertEqual(s.texts()[-1], 'Obtained Fire Stone x2', 'too late for the kill line: its own line')
 
+    def test_every_note_the_blocked_vanilla_log_shows_has_a_line(self):
+        """0.1.60 item 7: the vanilla log is blocked, so the Libra line (59), key items, the reserve restores (30..35),
+        the out-of-reach notes (8..10) and the Magick Pot / Zalera notes (93..96) must reach our log."""
+        s = Scene(self.d)
+        t = T0
+        for msg, kw, want in ((59, dict(a=FRAN, action=FIRA), None),
+                              (36, dict(item=0x8001, count=1), 'a key item'),
+                              (33, {}, 'Reserve HP fully healed'),
+                              (9, dict(a=FRAN), 'cannot reach the target'),
+                              (95, {}, 'Zalera braces itself'),
+                              (93, {}, 'Magick Pot wants elixir'),
+                              (91, {}, 'Magnetic field falls')):
+            t += REWARD_MS + 10
+            with self.subTest(msg=msg):
+                self.assertNotEqual(s.msg(t, msg, **kw), 0, f'message {msg} makes a line')
+                if want is not None:
+                    self.assertTrue(any(want in line for line in s.texts()), (msg, s.texts()))
+        self.assertEqual(s.msg(t + 10, 11), 0, 'an empty template ({c7}) stays out')
+
     def test_a_foes_readies_lingers_and_takes_its_damage(self):
         s = Scene(self.d).unit(FRAN, 1325).unit(QUEEN, 9000, target=FRAN, action=HELL_BLASTER).sample(T0)
         s.msg(T0 + 100, 14, a=QUEEN, action=HELL_BLASTER)
@@ -814,6 +839,33 @@ class PresentationTest(unittest.TestCase):
         self.assertEqual(self.alpha(important, T0 + LIFE_MS + FADE_MS), 0x80, 'important lines linger')
         self.assertEqual(self.alpha(important, T0 + LINGER_MS + FADE_MS // 4), 0x60)
         self.assertEqual(self.alpha(important, T0 + LINGER_MS + FADE_MS), 0)
+
+    def test_the_views_line_counts_and_hold_time(self):
+        """Settings log_lines_compact / log_lines_expanded / log_fade_s (0.1.53) reach the view; 0 = the defaults."""
+        lines = [make_line(k + 1, touched=T0 + 100 * k) for k in range(12)]
+        v = make_view(lines)
+        v.compact_lines = 3
+        idx, _ = self.select(v, T0 + 1200)
+        self.assertEqual(idx, [9, 10, 11])
+        v.compact_lines = 8
+        idx, al = self.select(v, T0 + 1200)
+        self.assertEqual(idx, list(range(4, 12)))
+        self.assertEqual(al[:5], [58, 58, 58, 58, 92], 'older positions keep the deepest dimming')
+        v.compact_lines, v.expanded_lines = 8, 6
+        idx, _ = self.select(v, T0 + 1200)
+        self.assertEqual(idx, list(range(6, 12)), 'compact never shows more than expanded')
+        v.flags |= VIEW_EXPANDED
+        idx, al = self.select(v, T0 + 1200)
+        self.assertEqual((idx, set(al)), (list(range(6, 12)), {0x80}))
+        # Hold time: 3 s for an ordinary line, twice that for an important one, then the usual fade.
+        v = make_view([make_line(1, touched=T0), make_line(2, touched=T0, flags=LF_IMPORTANT)])
+        v.fade_s = 3
+        self.assertEqual(self.select(v, T0 + 3000), ([0, 1], [0x80, 0x80]))
+        self.assertEqual(self.select(v, T0 + 3000 + FADE_MS // 2)[1], [0x40, 0x80])
+        self.assertEqual(self.select(v, T0 + 3000 + FADE_MS), ([1], [0x80]), 'the ordinary line is gone')
+        self.assertEqual(self.select(v, T0 + 6000 + FADE_MS), ([], []))
+        v.fade_s = 0
+        self.assertEqual(self.select(v, T0 + 3000 + FADE_MS)[0], [0, 1], '0 = the built-in 6 s')
 
     def test_compact_shows_the_five_newest_oldest_first_the_oldest_dimmed(self):
         v = make_view([make_line(k + 1, touched=T0 + 100 * k) for k in range(7)])
@@ -985,6 +1037,27 @@ class SettingsTest(unittest.TestCase):
         s = self.current()
         self.assertEqual((s.expand_control, s.filter, s.filter_seat), (5, FILTER_MINE, 3))
 
+    def test_line_counts_and_hold_time_defaults_and_clamps(self):
+        f = self.d.ILCT_BlConfigureLines
+        f.argtypes, f.restype = [u32, u32, u32], None
+        s = self.current()
+        self.assertEqual((s.compact_lines, s.expanded_lines, s.fade_s), (5, 20, 6))
+        for given, want in (((3, 12, 9), (3, 12, 9)), ((0, 0, 0), (5, 20, 6)), ((9, 30, 1), (8, 20, 3)),
+                            ((8, 6, 99), (6, 6, 15)), ((1, 4, 3), (1, 5, 3))):
+            with self.subTest(given=given):
+                f(*given)
+                s = self.current()
+                self.assertEqual((s.compact_lines, s.expanded_lines, s.fade_s), want)
+        self.d.ILCT_BlConfigure(1, 0, 0, FILTER_ALL, 1)
+        s = self.current()
+        self.assertEqual((s.compact_lines, s.expanded_lines, s.fade_s), (5, 20, 6), 'a caller that leaves them out')
+        # The published view carries them.
+        f(4, 10, 8)
+        snap = tdrv.snapshot(epoch=EPOCH, sampled=T0)
+        v = View()
+        self.assertEqual(self.d.ILCT_BlStep(ctypes.byref(snap), T0, ctypes.byref(v)), 1)
+        self.assertEqual((v.compact_lines, v.expanded_lines, v.fade_s), (4, 10, 8))
+
     def test_toggle(self):
         self.d.ILCT_BlToggle()
         self.assertEqual(self.current().expanded, 1)
@@ -1102,6 +1175,7 @@ class NativeLogTest(unittest.TestCase):
         self.bl.ILCT_BlReset()
         a = ctypes.addressof
         struct.pack_into('<Q', self.mgr, 0x38, a(self.ctx))
+        ctypes.memmove(self.ctx, th.IDENTITY, len(th.IDENTITY))   # a usable draw matrix (an all-zero one is refused)
         struct.pack_into('<h', self.ctx, 0x58, 0x80)
         struct.pack_into('<h', self.ctx, 0x5A, 0x80)
         self.arena[0], self.arena[1], self.arena[2] = 0x10_0000, 0x10_0000, 0x10_0000 + th.RING

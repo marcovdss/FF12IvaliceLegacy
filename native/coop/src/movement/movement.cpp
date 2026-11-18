@@ -193,22 +193,22 @@ void drain_follow_effects(uint32_t epoch)
 
 bool probe_u64(uintptr_t address, uint64_t* out)
 {
-    return address != 0 && copy_from_caller(out, reinterpret_cast<const void*>(address), sizeof(*out));
+    return address != 0 && read_game(out, reinterpret_cast<const void*>(address), sizeof(*out));
 }
 
 bool probe_u32(uintptr_t address, uint32_t* out)
 {
-    return address != 0 && copy_from_caller(out, reinterpret_cast<const void*>(address), sizeof(*out));
+    return address != 0 && read_game(out, reinterpret_cast<const void*>(address), sizeof(*out));
 }
 
 bool probe_u16(uintptr_t address, uint16_t* out)
 {
-    return address != 0 && copy_from_caller(out, reinterpret_cast<const void*>(address), sizeof(*out));
+    return address != 0 && read_game(out, reinterpret_cast<const void*>(address), sizeof(*out));
 }
 
 bool probe_u8(uintptr_t address, uint8_t* out)
 {
-    return address != 0 && copy_from_caller(out, reinterpret_cast<const void*>(address), sizeof(*out));
+    return address != 0 && read_game(out, reinterpret_cast<const void*>(address), sizeof(*out));
 }
 
 // The actor the handle names in the actor manager, and its physics object.
@@ -304,8 +304,8 @@ int32_t op_follow(const gtq::job& j)
             } else {
                 // Both stores on the game thread, the live action first, then the setter's shadow.
                 const uint16_t follow = sf::ACTION_FOLLOW;
-                if (copy_to_caller(reinterpret_cast<void*>(actor + sf::ACTOR_ACTION), &follow, sizeof(follow)) &&
-                    copy_to_caller(reinterpret_cast<void*>(actor + facts::ACTOR_ACTION_SHADOW), &follow,
+                if (store_game(reinterpret_cast<void*>(actor + sf::ACTOR_ACTION), &follow, sizeof(follow)) &&
+                    store_game(reinterpret_cast<void*>(actor + facts::ACTOR_ACTION_SHADOW), &follow,
                                    sizeof(follow))) {
                     result = FOLLOW_APPLIED;
                 } else {

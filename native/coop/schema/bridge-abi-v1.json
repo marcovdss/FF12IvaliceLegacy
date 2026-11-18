@@ -20,7 +20,7 @@
     "MAX_RECORD": 65536,
     "OUT_CAP_RECOMMENDED": 4096,
     "SEATS": 4,
-    "ACTIVE_SEATS_MAX": 3,
+    "ACTIVE_SEATS_MAX": 4,
     "XINPUT_SLOTS": 4,
     "ACTIONS": 20,
     "BINDINGS_PER_ACTION": 4,
@@ -34,7 +34,16 @@
     "EVENT_QUEUE": 64,
     "P1_ACTION_MASK": 1019648,
     "STALL_MAX_MS": 5000,
-    "COUNTERS_LAYOUT": 1
+    "COUNTERS_LAYOUT": 4,
+    "LOG_LINES_MAX": 20,
+    "LOG_LINES_COMPACT_MAX": 8,
+    "HUD_FOES": 8,
+    "HUD_WORDS": 4,
+    "HUD_PROCS": 8,
+    "HUD_PROC_AGE_MAX_MS": 5000,
+    "THEME_ID_MAX": 32,
+    "THEME_NAME_MAX": 32,
+    "THEMES_MAX": 16
   },
   "enums": {
     "op": {
@@ -85,6 +94,16 @@
           "name": "GET_COUNTERS",
           "value": 9,
           "doc": "in: nothing; out: ilc_counters, the module's diagnostic counters (read-only, any state; field names in the schema). Read field by field without a lock: each field is untorn, but fields can disagree with each other"
+        },
+        {
+          "name": "PUSH_HUD_STATES",
+          "value": 10,
+          "doc": "in: ilc_hud_states; out: nothing. 0 = kept as the latest (the HUD shows it while fresh); push from a script timer, never from a sync hook"
+        },
+        {
+          "name": "GET_THEMES",
+          "value": 11,
+          "doc": "in: nothing; out: ilc_themes_reply, the HUD themes the Mod Menu offers (built-ins, then valid player themes)"
         },
         {
           "name": "TEST_SAFE_POINT",
@@ -246,6 +265,16 @@
         {
           "name": "COUNTERS",
           "value": 11,
+          "doc": ""
+        },
+        {
+          "name": "HUD_STATES",
+          "value": 12,
+          "doc": ""
+        },
+        {
+          "name": "THEMES",
+          "value": 13,
           "doc": ""
         }
       ]
@@ -1286,6 +1315,16 @@
           "name": "CIRCLES_OFF",
           "value": 1024,
           "doc": "native target circles off"
+        },
+        {
+          "name": "PARTY_TIMERS",
+          "value": 2048,
+          "doc": "status timers on the party list rows"
+        },
+        {
+          "name": "GUEST_CURSORS",
+          "value": 4096,
+          "doc": "the seats' party-target hands on the party list rows"
         }
       ]
     },
@@ -1317,6 +1356,38 @@
           "name": "MINE",
           "value": 4,
           "doc": "one seat (log_filter_seat)"
+        }
+      ]
+    },
+    "town_view": {
+      "type": "ilc_town_view",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "PLAYERS",
+          "value": 0,
+          "doc": "only the characters the players control have a body in towns"
+        },
+        {
+          "name": "PARTY",
+          "value": 1,
+          "doc": "the whole party as the game (or Companions) shows it: nothing is hidden"
+        }
+      ]
+    },
+    "wait_pause": {
+      "type": "ilc_wait_pause",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "ALL",
+          "value": 0,
+          "doc": "only while every playing seat has its battle menu open"
+        },
+        {
+          "name": "ANY",
+          "value": 1,
+          "doc": "while any playing seat has its battle menu open"
         }
       ]
     },
@@ -1455,6 +1526,170 @@
           "name": "NO_INPUT",
           "value": 4,
           "doc": "the seat has no connected pad and does not own the keyboard (never for seat 0)"
+        }
+      ]
+    },
+    "hud_foe_flag": {
+      "type": "ilc_hud_foe_flag",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "BROKEN",
+          "value": 1,
+          "doc": "Broken: broken_s seconds left (family_identities noteBroken)"
+        },
+        {
+          "name": "STAGGERED",
+          "value": 2,
+          "doc": "Staggered: its push budget is spent until it acts"
+        },
+        {
+          "name": "SPOTTED",
+          "value": 4,
+          "doc": "Spotted: the next dodge roll against it cannot be dodged (spotter_seat)"
+        },
+        {
+          "name": "OIL",
+          "value": 8,
+          "doc": "Oil not yet kindled (Gillie Boots)"
+        },
+        {
+          "name": "KINDLED",
+          "value": 16,
+          "doc": "its Oil was kindled (the first hit Slowed it)"
+        },
+        {
+          "name": "KING",
+          "value": 32,
+          "doc": "the king of the zone (kings_runtime)"
+        },
+        {
+          "name": "CROWNED",
+          "value": 64,
+          "doc": "a crowned story boss (crown_element)"
+        },
+        {
+          "name": "MARK",
+          "value": 128,
+          "doc": "a hunt mark"
+        }
+      ]
+    },
+    "hud_word_kind": {
+      "type": "ilc_hud_word_kind",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "NONE",
+          "value": 0,
+          "doc": "no word"
+        },
+        {
+          "name": "GUARD",
+          "value": 1,
+          "doc": "guard fatigue: value = worn steps 0..4 (shown from 2)"
+        },
+        {
+          "name": "CADENCE",
+          "value": 2,
+          "doc": "fist Cadence: value = steps 1..5"
+        },
+        {
+          "name": "FLOW",
+          "value": 3,
+          "doc": "pole Counterflow: value = the bonus, +N"
+        }
+      ]
+    },
+    "hud_tag": {
+      "type": "ilc_hud_tag",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "NONE",
+          "value": 0,
+          "doc": ""
+        },
+        {
+          "name": "SUNDER",
+          "value": 1,
+          "doc": "axe: a Defense dent"
+        },
+        {
+          "name": "BREAK",
+          "value": 2,
+          "doc": "a hit Broke the foe"
+        },
+        {
+          "name": "CADENCE",
+          "value": 3,
+          "doc": "fists: Cadence full"
+        },
+        {
+          "name": "COUNTERFLOW",
+          "value": 4,
+          "doc": "pole: a lent Counter"
+        },
+        {
+          "name": "GUARD",
+          "value": 5,
+          "doc": "a guard held (block, parry, dodge)"
+        },
+        {
+          "name": "UNSEEN",
+          "value": 6,
+          "doc": "ninja sword: a tired foe could not dodge"
+        },
+        {
+          "name": "PIERCE",
+          "value": 7,
+          "doc": "a pierce Broke the foe"
+        },
+        {
+          "name": "MEND",
+          "value": 8,
+          "doc": "rod: an overflowing heal drew foes"
+        },
+        {
+          "name": "PROFICIENCY",
+          "value": 9,
+          "doc": "a Proficiency proc"
+        },
+        {
+          "name": "SPOTTED",
+          "value": 10,
+          "doc": "a Spotter mark"
+        },
+        {
+          "name": "KINDLE",
+          "value": 11,
+          "doc": "Oil kindled: Slow"
+        }
+      ]
+    },
+    "theme_flag": {
+      "type": "ilc_theme_flag",
+      "underlying": "uint8_t",
+      "items": [
+        {
+          "name": "BUILTIN",
+          "value": 1,
+          "doc": "compiled into the module"
+        },
+        {
+          "name": "DEFAULT",
+          "value": 2,
+          "doc": "the built-in default (used when hud_theme is all zero or cannot be used)"
+        },
+        {
+          "name": "ACTIVE",
+          "value": 4,
+          "doc": "the theme the overlay draws with now"
+        },
+        {
+          "name": "SELECTED",
+          "value": 8,
+          "doc": "the theme the applied settings ask for"
         }
       ]
     }
@@ -1960,7 +2195,7 @@
     },
     "ilc_settings": {
       "id": 8,
-      "size": 3532,
+      "size": 3572,
       "align": 4,
       "doc": "SET_SETTINGS in, GET_SETTINGS out",
       "fields": [
@@ -1991,17 +2226,17 @@
           "doc": "module switch as Lua sees it; native reads coop.json at start"
         },
         {
-          "name": "all_characters_at_start",
-          "kind": "VAL",
+          "name": "reserved0",
+          "kind": "PAD",
           "type": "uint8_t",
           "count": 1,
           "offset": 17,
           "size": 1,
           "elemSize": 1,
           "min": 0,
-          "max": 1,
+          "max": 0,
           "fieldId": 2050,
-          "doc": "start with all characters available"
+          "doc": "was all_characters_at_start (nothing read it)"
         },
         {
           "name": "kbm_seat",
@@ -2040,7 +2275,7 @@
           "min": 0,
           "max": 1,
           "fieldId": 2053,
-          "doc": "0 normal, 1 verbose"
+          "doc": "hook.log detail: 0 normal (start-up, faults, refusals), 1 verbose (also each applied record, co-op on/off, seat toggles)"
         },
         {
           "name": "network_mode",
@@ -2173,7 +2408,7 @@
           "doc": ""
         },
         {
-          "name": "subsystems_armed",
+          "name": "subsystems_disarm",
           "kind": "VAL",
           "type": "uint32_t",
           "count": 1,
@@ -2183,7 +2418,7 @@
           "min": 0,
           "max": 255,
           "fieldId": 2064,
-          "doc": "ilc_subsystem_bit mask; 0 bit = disarmed"
+          "doc": "developer override: ilc_subsystem_bit bits kept disarmed, honoured only while developer = 1; 0 = every subsystem follows the module"
         },
         {
           "name": "hud_enabled",
@@ -2233,7 +2468,7 @@
           "size": 1,
           "elemSize": 1,
           "min": 1,
-          "max": 3,
+          "max": 4,
           "fieldId": 2068,
           "doc": "seat the MINE filter shows"
         },
@@ -2246,9 +2481,126 @@
           "size": 4,
           "elemSize": 4,
           "min": 0,
-          "max": 2047,
+          "max": 8191,
           "fieldId": 2069,
           "doc": "ilc_hud_element_bit bits; set = on"
+        },
+        {
+          "name": "shared_camera",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3532,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2070,
+          "doc": "shared group camera; 0 = the game's camera follows P1 (CAMERA stays disarmed)"
+        },
+        {
+          "name": "guest_interactions",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3533,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2071,
+          "doc": "guests use doors, chests, crystals, NPCs and shops; 0 = only P1 does (gateways and loot stay)"
+        },
+        {
+          "name": "town_view",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3534,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2072,
+          "doc": "who has a body in towns, ilc_town_view"
+        },
+        {
+          "name": "wait_pause",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3535,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2073,
+          "doc": "when Wait mode stops time for the co-op menus, ilc_wait_pause"
+        },
+        {
+          "name": "guest_pause",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3536,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 1,
+          "fieldId": 2074,
+          "doc": "guests may pause the game and open the Party menu; 0 = a guest's PAUSE and PARTY do nothing"
+        },
+        {
+          "name": "log_lines_compact",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3537,
+          "size": 1,
+          "elemSize": 1,
+          "min": 1,
+          "max": 8,
+          "fieldId": 2075,
+          "doc": "battle log lines in the compact view; at most log_lines_expanded"
+        },
+        {
+          "name": "log_lines_expanded",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3538,
+          "size": 1,
+          "elemSize": 1,
+          "min": 5,
+          "max": 20,
+          "fieldId": 2076,
+          "doc": "battle log lines in the expanded view"
+        },
+        {
+          "name": "log_fade_s",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3539,
+          "size": 1,
+          "elemSize": 1,
+          "min": 3,
+          "max": 15,
+          "fieldId": 2077,
+          "doc": "seconds an ordinary battle log line holds before it fades (important lines twice as long)"
+        },
+        {
+          "name": "hud_theme",
+          "kind": "BYTES",
+          "type": "uint8_t",
+          "count": 32,
+          "offset": 3540,
+          "size": 32,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 2078,
+          "doc": "HUD theme id: lower-case letters, digits, '-' or '_', zero after it; all zero = the built-in default (legacy-bold). A theme that is missing or broken at run time draws the default"
         }
       ]
     },
@@ -2917,7 +3269,7 @@
           "min": 0,
           "max": 4294967295,
           "fieldId": 3093,
-          "doc": "subsystems_armed of the applied settings"
+          "doc": "the subsystem mask the applied settings ask for: every bit, less the developer disarm and (shared camera off) CAMERA"
         },
         {
           "name": "reason_detail",
@@ -3707,7 +4059,7 @@
     },
     "ilc_counters": {
       "id": 20,
-      "size": 568,
+      "size": 628,
       "align": 4,
       "doc": "GET_COUNTERS out",
       "fields": [
@@ -3930,7 +4282,7 @@
           "min": 0,
           "max": 4294967295,
           "fieldId": 5136,
-          "doc": "subsystems_armed of the applied settings"
+          "doc": "the subsystem mask the applied settings ask for (as status applied_subsystems)"
         },
         {
           "name": "subsystems_gates",
@@ -5517,6 +5869,678 @@
           "max": 4294967295,
           "fieldId": 5258,
           "doc": ""
+        },
+        {
+          "name": "frame_hook_us_last",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 568,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5259,
+          "doc": "the HUD frame hook's last call: our work and the replay's game draw calls, the native log draw excluded (0 until the timer is calibrated)"
+        },
+        {
+          "name": "frame_hook_us_max",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 572,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5260,
+          "doc": "the HUD frame hook's longest call"
+        },
+        {
+          "name": "frame_hook_us_avg",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 576,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5261,
+          "doc": "the HUD frame hook's average call since start"
+        },
+        {
+          "name": "frame_hook_calls",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 580,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5262,
+          "doc": "HUD frame hook calls timed"
+        },
+        {
+          "name": "canvas_atlas_lookups",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 584,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5263,
+          "doc": "atlas texture lookups by name (the atlas cache's misses)"
+        },
+        {
+          "name": "canvas_text_last",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 588,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5264,
+          "doc": "texts replayed on the last frame drawn"
+        },
+        {
+          "name": "canvas_chars_last",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 592,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5265,
+          "doc": "characters of those texts"
+        },
+        {
+          "name": "probe_queries",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 596,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5266,
+          "doc": "VirtualQuery calls of the fault-safe probe, every thread"
+        },
+        {
+          "name": "probe_hot_hits",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 600,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5267,
+          "doc": "hot-path game reads and writes served from a cached region"
+        },
+        {
+          "name": "probe_hot_misses",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 604,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5268,
+          "doc": "hot-path game reads and writes that probed their region"
+        },
+        {
+          "name": "canvas_ring_ours_last",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 608,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5269,
+          "doc": "render-ring bytes the last replay with sprites or bars added"
+        },
+        {
+          "name": "canvas_zero_output",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 612,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5270,
+          "doc": "replays that drew sprites or bars but added nothing to the render ring"
+        },
+        {
+          "name": "canvas_child_space",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 616,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5271,
+          "doc": "frames drawn in the HUD root's child space (its own context has no matrix)"
+        },
+        {
+          "name": "canvas_declined_matrix",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 620,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5272,
+          "doc": "frames not drawn: no usable draw matrix"
+        },
+        {
+          "name": "probe_hot_failed",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 624,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 5273,
+          "doc": "hot-path reads refused because their region is not readable"
+        }
+      ]
+    },
+    "ilc_hud_foe": {
+      "id": 21,
+      "size": 16,
+      "align": 8,
+      "doc": "",
+      "fields": [
+        {
+          "name": "record",
+          "kind": "VAL",
+          "type": "uint64_t",
+          "count": 1,
+          "offset": 0,
+          "size": 8,
+          "elemSize": 8,
+          "min": 0,
+          "max": 18446744073709551615,
+          "fieldId": 5376,
+          "doc": "the foe's battle record address as the script sees it (opaque; 0 = unused entry)"
+        },
+        {
+          "name": "flags",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 8,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 5377,
+          "doc": "ilc_hud_foe_flag bits"
+        },
+        {
+          "name": "broken_s",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 9,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 60,
+          "fieldId": 5378,
+          "doc": "seconds of Broken left"
+        },
+        {
+          "name": "dent_pct",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 10,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 50,
+          "fieldId": 5379,
+          "doc": "Sunder's Defense dent, percent of the starting value"
+        },
+        {
+          "name": "tired",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 11,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 4,
+          "fieldId": 5380,
+          "doc": "guard fatigue steps"
+        },
+        {
+          "name": "spotter_seat",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 12,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 4,
+          "fieldId": 5381,
+          "doc": "the seat whose member set the Spotter mark, 0 unknown"
+        },
+        {
+          "name": "crown_element",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 13,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 5382,
+          "doc": "element 0..7 of a crowned boss, 255 none"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 2,
+          "offset": 14,
+          "size": 2,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 5383,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_hud_word": {
+      "id": 22,
+      "size": 4,
+      "align": 2,
+      "doc": "",
+      "fields": [
+        {
+          "name": "member",
+          "kind": "VAL",
+          "type": "uint16_t",
+          "count": 1,
+          "offset": 0,
+          "size": 2,
+          "elemSize": 2,
+          "min": 0,
+          "max": 65535,
+          "fieldId": 5632,
+          "doc": "party id 0..39; the entry all zero = unused"
+        },
+        {
+          "name": "kind",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 2,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 3,
+          "fieldId": 5633,
+          "doc": "ilc_hud_word_kind"
+        },
+        {
+          "name": "value",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 3,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 255,
+          "fieldId": 5634,
+          "doc": "depends on kind"
+        }
+      ]
+    },
+    "ilc_hud_proc": {
+      "id": 23,
+      "size": 16,
+      "align": 8,
+      "doc": "",
+      "fields": [
+        {
+          "name": "record",
+          "kind": "VAL",
+          "type": "uint64_t",
+          "count": 1,
+          "offset": 0,
+          "size": 8,
+          "elemSize": 8,
+          "min": 0,
+          "max": 18446744073709551615,
+          "fieldId": 5888,
+          "doc": "the battle record of the unit whose hit fired it (0 = unused entry)"
+        },
+        {
+          "name": "tag",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 8,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 11,
+          "fieldId": 5889,
+          "doc": "ilc_hud_tag"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 3,
+          "offset": 9,
+          "size": 3,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 5890,
+          "doc": ""
+        },
+        {
+          "name": "age_ms",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 12,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 5000,
+          "fieldId": 5891,
+          "doc": "how long ago it fired, at the push"
+        }
+      ]
+    },
+    "ilc_hud_states": {
+      "id": 24,
+      "size": 296,
+      "align": 8,
+      "doc": "PUSH_HUD_STATES in",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6144,
+          "doc": "record_type HUD_STATES; generation = the script's push counter"
+        },
+        {
+          "name": "foe_count",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 16,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 8,
+          "fieldId": 6145,
+          "doc": "foes used"
+        },
+        {
+          "name": "word_count",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 17,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 4,
+          "fieldId": 6146,
+          "doc": "words used"
+        },
+        {
+          "name": "proc_count",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 18,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 8,
+          "fieldId": 6147,
+          "doc": "procs used"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 5,
+          "offset": 19,
+          "size": 5,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6148,
+          "doc": ""
+        },
+        {
+          "name": "foes",
+          "kind": "RECS",
+          "type": "ilc_hud_foe",
+          "count": 8,
+          "offset": 24,
+          "size": 128,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6149,
+          "doc": "the first foe_count are used, the rest all zero"
+        },
+        {
+          "name": "words",
+          "kind": "RECS",
+          "type": "ilc_hud_word",
+          "count": 4,
+          "offset": 152,
+          "size": 16,
+          "elemSize": 4,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6150,
+          "doc": "the first word_count are used, the rest all zero"
+        },
+        {
+          "name": "procs",
+          "kind": "RECS",
+          "type": "ilc_hud_proc",
+          "count": 8,
+          "offset": 168,
+          "size": 128,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6151,
+          "doc": "the first proc_count are used, the rest all zero"
+        }
+      ]
+    },
+    "ilc_theme_entry": {
+      "id": 25,
+      "size": 68,
+      "align": 1,
+      "doc": "",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "BYTES",
+          "type": "uint8_t",
+          "count": 32,
+          "offset": 0,
+          "size": 32,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6400,
+          "doc": "theme id (lower-case letters, digits, '-', '_'), zero after it"
+        },
+        {
+          "name": "name",
+          "kind": "BYTES",
+          "type": "uint8_t",
+          "count": 32,
+          "offset": 32,
+          "size": 32,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6401,
+          "doc": "the theme's name, printable ASCII, zero after it"
+        },
+        {
+          "name": "flags",
+          "kind": "VAL",
+          "type": "uint8_t",
+          "count": 1,
+          "offset": 64,
+          "size": 1,
+          "elemSize": 1,
+          "min": 0,
+          "max": 15,
+          "fieldId": 6402,
+          "doc": "ilc_theme_flag bits"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 3,
+          "offset": 65,
+          "size": 3,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6403,
+          "doc": ""
+        }
+      ]
+    },
+    "ilc_themes_reply": {
+      "id": 26,
+      "size": 1120,
+      "align": 4,
+      "doc": "GET_THEMES out",
+      "fields": [
+        {
+          "name": "header",
+          "kind": "REC",
+          "type": "ilc_header",
+          "count": 1,
+          "offset": 0,
+          "size": 16,
+          "elemSize": 16,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6656,
+          "doc": "record_type THEMES; generation = applied settings generation"
+        },
+        {
+          "name": "count",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 16,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 16,
+          "fieldId": 6657,
+          "doc": "entries in use: the built-ins first, then the valid player themes"
+        },
+        {
+          "name": "refused",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 20,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 6658,
+          "doc": "player theme folders refused in the last scan (each named in hook.log)"
+        },
+        {
+          "name": "scans",
+          "kind": "VAL",
+          "type": "uint32_t",
+          "count": 1,
+          "offset": 24,
+          "size": 4,
+          "elemSize": 4,
+          "min": 0,
+          "max": 4294967295,
+          "fieldId": 6659,
+          "doc": "completed scans of the themes folder (0: the first is still running)"
+        },
+        {
+          "name": "reserved",
+          "kind": "PAD",
+          "type": "uint8_t",
+          "count": 4,
+          "offset": 28,
+          "size": 4,
+          "elemSize": 1,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6660,
+          "doc": ""
+        },
+        {
+          "name": "entries",
+          "kind": "RECS",
+          "type": "ilc_theme_entry",
+          "count": 16,
+          "offset": 32,
+          "size": 1088,
+          "elemSize": 68,
+          "min": 0,
+          "max": 0,
+          "fieldId": 6661,
+          "doc": "the first count are used, the rest all zero"
         }
       ]
     }
@@ -5532,7 +6556,7 @@
     },
     "SET_SETTINGS": {
       "in": [
-        3532
+        3572
       ],
       "inRecord": "ilc_settings",
       "out": "ilc_settings_ack"
@@ -5586,6 +6610,6 @@
   },
   "defaults": {
     "record": "ilc_settings",
-    "hex": "494c434201000300cc0d0000000000000101020000000001000205060304000001770000000000000000000000000000fe00010000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030b000000000000030c000000000000030d030500000000030e03060000000000000000000000000000000000000000000000000000000003010000000000000302000000000000030400000000000003080000000000000000000000000000040301000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000175000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460303000000000120010d0201030101430108020203020152030400000000011b0308000000000154030700000000030601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000176000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460301000000000120010d0201030101430108020203020152030400000000011b0308000000000154030700000000fe050100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ff00000001000001ff070000"
+    "hex": "494c434201000300f40d0000000000000100020000000001000205060304000001770000000000000000000000000000fe00010000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030b000000000000030c000000000000030d030500000000030e03060000000000000000000000000000000000000000000000000000000003010000000000000302000000000000030400000000000003080000000000000000000000000000040301000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000175000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460303000000000120010d0201030101430108020203020152030400000000011b0308000000000154030700000000030601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000176000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460301000000000120010d0201030101430108020203020152030400000000011b0308000000000154030700000000fe0501000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000178000000000000015703110000000001530312000000000141031300000000014403140000000001a003090000000001a2031000000000014603030000000001490168030b0000014b0162030c0000014a01640151030d014c01660145030e0131030500000000013303060000000001460303000000000120010d0201030101430108020203020152030400000000011b030800000000015403070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000001ff17000001010000010514060000000000000000000000000000000000000000000000000000000000000000"
   }
 }

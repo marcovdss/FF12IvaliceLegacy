@@ -92,7 +92,7 @@ def S(name, fields):
 Unit = S('Unit', [('handle', u32), ('member', u16), ('flags', u8), ('seat', u8), ('hp', u32), ('hp_max', u32),
                   ('status_timed', u32), ('status_lasting', u32), ('target', u32), ('level', u8), ('weakness', u8),
                   ('unit_type', u8), ('reserved', u8), ('duration', i32 * 32)])
-SeatTarget = S('SeatTarget', [('handle', u32), ('group', u8), ('on_page', u8), ('reserved', u16), ('since_ms', u64)])
+SeatTarget = S('SeatTarget', [('handle', u32), ('group', u8), ('on_page', u8), ('native_aim', u8), ('reserved', u8), ('since_ms', u64)])
 Snapshot = S('Snapshot', [('epoch', u32), ('flags', u32), ('generation', u64), ('sampled_ms', u64), ('layout', u8),
                           ('member_count', u8), ('leader', u16), ('tick_scale', u32), ('members', Unit * 4),
                           ('target_count', u8), ('reserved', u8 * 7), ('targets', Unit * 8),
@@ -101,7 +101,8 @@ DrvCounters = S('DrvCounters', [('frames', u64), ('declined', u64 * 4), ('compos
                                 ('pass_faults', u64), ('stamped', u64), ('not_stamped', u64), ('appended', u64),
                                 ('last_stamp_ms', u64), ('last_passes', u64), ('trace', u8 * 4), ('traced', u8),
                                 ('layout', u8), ('reserved', u8 * 2), ('kept_commands', u64), ('dropped_frames', u64),
-                                ('pass_commands', u16 * 4), ('kept_log', u64), ('menus_no_view', u64)])
+                                ('pass_commands', u16 * 4), ('kept_log', u64), ('menus_no_view', u64),
+                                ('layer_off', u64)])
 SnapCounters = S('SnapCounters', [(n, u64) for n in ('samples', 'withdrawn', 'party_torn', 'record_retries',
                                                      'records_torn', 'targets_dropped')])
 PresenterIn = S('PresenterIn', [(n, u8) for n in ('live', 'suspended', 'source', 'observed_open', 'native_open',
@@ -203,14 +204,20 @@ class StaticTest(unittest.TestCase):
             return sum(1 for ln in code if re.search(r'\bnote_drawn\(', ln) and 'void note_drawn' not in ln)
         writers = {p.relative_to(COOP).as_posix(): stamps(p) for p in (COOP / 'src').rglob('*.[ch]*')}
         writers = {name: n for name, n in writers.items() if n}
-        self.assertEqual(writers, {'src/hud/driver.cpp': 2}, 'the stamp, and its withdrawal on a fault')
+        # The old frame driver and our own overlay (overlay.cpp: the stamp, and its withdrawal on a fault).
+        self.assertEqual(writers, {'src/hud/driver.cpp': 2, 'src/overlay/overlay.cpp': 2},
+                         'the stamp, and its withdrawal on a fault')
 
     def test_only_the_driver_reports_seats_left_out(self):
         def calls(path: Path) -> int:
             code = [ln for ln in path.read_text(encoding='utf-8').splitlines() if not ln.lstrip().startswith('//')]
             return sum(1 for ln in code if re.search(r'\bnote_dropped\(', ln) and 'void note_dropped' not in ln)
         writers = {p.relative_to(COOP).as_posix(): calls(p) for p in (COOP / 'src').rglob('*.[ch]*')}
-        self.assertEqual({n: k for n, k in writers.items() if k}, {'src/hud/driver.cpp': 1})
+        self.assertEqual({n: k for n, k in writers.items() if k}, {'src/hud/driver.cpp': 1, 'src/overlay/overlay.cpp': 1})
+        overlay = (COOP / 'src' / 'overlay' / 'overlay.cpp').read_text(encoding='utf-8')
+        start = overlay.index('int32_t frame_hook(')
+        hook = overlay[start:overlay.index('// ---- co-op thread', start)]
+        self.assertLess(hook.index('note_dropped('), hook.index('note_drawn(stamp)'), 'the overlay: per seat first')
         text = (HUD_SRC / 'driver.cpp').read_text(encoding='utf-8')
         body = text[text.index('void presented(uint64_t now_ms)'):text.index('void faulted()')]
         self.assertLess(body.index('note_dropped('), body.index('note_drawn('), 'per seat first, then the stamp')
@@ -333,6 +340,7 @@ class DriverHookTest(unittest.TestCase):
         d.ILCT_FePresenterReset()
         a = ctypes.addressof
         struct.pack_into('<Q', self.mgr, 0x38, a(self.ctx))
+        ctypes.memmove(self.ctx, th.IDENTITY, len(th.IDENTITY))   # a usable draw matrix (an all-zero one is refused)
         struct.pack_into('<h', self.ctx, 0x58, 0x80)
         struct.pack_into('<h', self.ctx, 0x5A, 0x80)
         self.arena[0], self.arena[1], self.arena[2] = 0x10_0000, 0x10_0000, 0x10_0000 + th.RING
@@ -1079,6 +1087,7 @@ class HookedLayerCase(tfe.LayerCase):
         self.arena = (u64 * 3)(0x10_0000, 0x10_0000, 0x10_0000 + th.RING)
         a = ctypes.addressof
         struct.pack_into('<Q', self.mgr, 0x38, a(self.ctx))
+        ctypes.memmove(self.ctx, th.IDENTITY, len(th.IDENTITY))   # a usable draw matrix (an all-zero one is refused)
         struct.pack_into('<h', self.ctx, 0x58, 0x80)
         self.sw.twin.poke(th.RENDER_ARENA, struct.pack('<Q', a(self.arena)))
         self.sw.twin.poke(th.UI_READY, struct.pack('<I', 1))
@@ -1143,6 +1152,7 @@ class PresenterLayerTest(HookedLayerCase):
         self.assertEqual((self.seat(0).mode, self.seat(1).mode), (tfe.CLOSED, tfe.CLOSED))
 
     def test_a_stall_of_250_ms_gives_p1_the_stock_menus_back(self):
+        self.beat()   # 0.1.59: P1's presses count only once the last posted report gave P1 to the co-op menus
         self.press(1, tfe.A_CONFIRM)
         self.assertEqual(self.seat(0).mode, tfe.LIST)
         last = self.stamps[-1]

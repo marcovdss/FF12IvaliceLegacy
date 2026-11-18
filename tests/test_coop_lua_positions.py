@@ -4,6 +4,8 @@ writing the wrong byte."""
 import unittest
 from pathlib import Path
 
+from coop_menu_double import MENU_DOUBLE
+
 try:
     from lupa import LuaRuntime
 except ImportError:
@@ -14,13 +16,16 @@ COOP = ROOT / 'package/x64/scripts/IvaliceLegacy/coop'
 
 EXPECT = {  # (schema struct, POSITIONS key): name -> (kind, min, max); containers have no range
     ('ilc_settings', 'settings'): {
-        'moduleEnabled': ('VAL', 0, 1), 'fullRoster': ('VAL', 0, 1), 'keyboardSeat': ('VAL', 0, 4),
+        'moduleEnabled': ('VAL', 0, 1), 'keyboardSeat': ('VAL', 0, 4),
         'colourMode': ('VAL', 0, 1), 'logLevel': ('VAL', 0, 1), 'networkMode': ('VAL', 0, 0),
         'aliasCount': ('VAL', 0, 16), 'keepRunning': ('VAL', 0, 1), 'characterColour': ('ARR', 0, 6), 'hudTestDraw': ('VAL', 0, 1), 'developer': ('VAL', 0, 1),
         'killSwitch': ('RECS',),
-        'economy': ('REC',), 'seats': ('RECS',), 'aliases': ('RECS',), 'subsystemsArmed': ('VAL', 0, 255),
-        'hudEnabled': ('VAL', 0, 1), 'logExpand': ('VAL', 0, 24), 'logFilter': ('VAL', 0, 4), 'logFilterSeat': ('VAL', 1, 3),
-        'hudElements': ('VAL', 0, 0x7FF)},
+        'economy': ('REC',), 'seats': ('RECS',), 'aliases': ('RECS',), 'subsystemsDisarm': ('VAL', 0, 255),
+        'hudEnabled': ('VAL', 0, 1), 'logExpand': ('VAL', 0, 24), 'logFilter': ('VAL', 0, 4), 'logFilterSeat': ('VAL', 1, 4),
+        'hudElements': ('VAL', 0, 0x1FFF), 'sharedCamera': ('VAL', 0, 1), 'guestInteractions': ('VAL', 0, 1),
+        'townView': ('VAL', 0, 1), 'waitPause': ('VAL', 0, 1), 'guestPause': ('VAL', 0, 1),
+        'logLinesCompact': ('VAL', 1, 8), 'logLinesExpanded': ('VAL', 5, 20), 'logFadeSeconds': ('VAL', 3, 15),
+        'hudTheme': ('BYTES',)},
     ('ilc_seat_settings', 'seat'): {
         'character': ('VAL', 0, 255), 'colour': ('VAL', 0, 6), 'uiSounds': ('VAL', 0, 1), 'parked': ('VAL', 0, 1),
         'device': ('REC',), 'bindings': ('RECS',)},
@@ -161,13 +166,13 @@ class KillSwitchStatusRow(unittest.TestCase):
 
     def test_live_and_dry_armed_reasons(self):
         """The module reports DRY_ARMED while nothing beyond the CORE rows can act and LIVE once an armed subsystem may
-        act. The page shows "Ready (dry-armed)" and "Ready"; before FF12HinitDone (state ARMED) both read "Starting";
+        act. The page shows "Ready (developer override: parts off)" and "Ready"; before FF12HinitDone (state ARMED) both read "Starting";
         the kill switch's text still wins over either."""
         dry, live = self.C.enums.reason.DRY_ARMED, self.C.enums.reason.LIVE
         self.assertEqual(live, 17)
         ready_dry = self.classify(0, reason=dry)
         ready_live = self.classify(0, reason=live)
-        self.assertEqual((ready_dry.kind, ready_dry.text), ('ok', 'Ready (dry-armed)'))
+        self.assertEqual((ready_dry.kind, ready_dry.text), ('ok', 'Ready (developer override: parts off)'))
         self.assertEqual((ready_live.kind, ready_live.text), ('ok', 'Ready'))
         self.assertEqual(ready_live.detail, 'reason: Live')
         self.assertEqual(self.classify(0, state='ARMED', reason=live).text, 'Starting')
@@ -182,16 +187,10 @@ class GuestInteractionsDiagnostics(unittest.TestCase):
     """Boot flag INTERACTIONS_FAILED: the status view reports it, and the page's Diagnostics row "Guest interactions"
     is shown only while it is set. The page runs with the real modules and a recording Mod Menu."""
 
-    HARNESS = r"""
+    HARNESS = MENU_DOUBLE + r"""
 local load, S, C, V, B, ST, D, F, page = ...
-local calls = {visible = {}, tables = {}}
-local mm = {}
-function mm.addTable(t) calls.tables[#calls.tables + 1] = t; return true end
-function mm.setVisible(mod, changes) calls.visible[#calls.visible + 1] = changes end
-function mm.setStatus() end
-function mm.setActive() end
-function mm.setValue() end
-function mm.getValue() return nil end
+local calls = {}
+local mm = newMenu(calls)
 local P = page.create({modmenu = mm, store = ST, bridge = B, codec = C, views = V, flows = F, dialogs = D,
                        statusview = S})
 assert(P.start())

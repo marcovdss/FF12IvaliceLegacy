@@ -1,7 +1,8 @@
 -- Ivalice Legacy co-op: the MP economy's parameters for the co-op module's battle menus.
 --
--- Legacy's MP economy (scripts/IvaliceLegacy/mp_economy.lua) charges a party Magick a surcharge after the cast. The
--- co-op menus show the MP a cast really takes, so the module needs the rule's version, DIVISOR and CAP. They travel in
+-- Legacy's MP economy (scripts/IvaliceLegacy/mp_economy.lua 0.3.0) charges a spell what the game charges: its CAP is 1, so
+-- there is no Magick surcharge any more (earlier versions charged up to CAP times the price). The co-op menus show the
+-- MP a cast really takes, so the module still reads the rule's version, DIVISOR and CAP. They travel in
 -- the settings record (ilc_economy: DIVISOR and CAP times 100). Without the file, or with values the record cannot
 -- carry, the economy is reported absent and the menus show the game's own costs.
 local M = {}

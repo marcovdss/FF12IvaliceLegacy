@@ -128,12 +128,12 @@ static_assert(ROW_TRIGGER >= 0 && patch::SITES[ROW_TRIGGER].policy == ILC_SITE_P
 template <typename T>
 bool load(uint64_t address, T* out)
 {
-    return load_from_caller(out, reinterpret_cast<const void*>(address), sizeof(T));
+    return load_game(out, reinterpret_cast<const void*>(address), sizeof(T));
 }
 
 bool store_u32(uint64_t address, uint32_t value)
 {
-    return copy_to_caller(reinterpret_cast<void*>(address), &value, sizeof(value));
+    return store_game(reinterpret_cast<void*>(address), &value, sizeof(value));
 }
 
 bool targets_live()

@@ -202,7 +202,8 @@ class CallRowStaticTest(unittest.TestCase):
             self.assertEqual(TWIN_BASE + self.twin.dll.ILCT_IslandCalleeRva(row), target, sid)
         self.assertEqual(set(found), {'UT-01', 'IN-01', 'MV-04', 'MV-07', 'IX-01', 'PT-01', 'CM-02', 'CM-03',
                                       'CM-04', 'CM-05', 'IN-02', 'IN-03', 'IN-05', 'FW-05', 'IX-20', 'LT-01',
-                                      'HD-01', 'TI-01', 'HD-02', 'HD-03', 'WM-01', 'RG-01'})
+                                      'HD-01', 'TI-01', 'HD-02', 'HD-03', 'WM-01', 'RG-01', 'IX-21', 'OV-01',
+                                      'TL-02'})
 
     def test_stub_unwind_data_is_static_pdata(self):
         self.twin.dll.ILCT_IslandCalleeRva.restype = ctypes.c_uint64

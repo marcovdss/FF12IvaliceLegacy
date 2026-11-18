@@ -8,8 +8,8 @@
 //     GHOST_DRAIN_MS (smoothstep, the native gauge ease);
 //   * the timed statuses with the time left, with the native icons (partytop_4_c page 3, cell = status bit);
 //   * the action line extension: "Choosing..." while Player 1 has the battle menu open for the row and no guest window
-//     is open (the label sits where guest windows slide out: layout.h), and the target's name
-//     after the native action gauge when an action aims at another party member ("Cure" [gauge] "- Fran");
+//     is open (the label sits where guest windows slide out: layout.h). Never the action's target: the target lines
+//     show who targets what (Marco, 2026-11-16);
 //   * every seat's party-target cursor on the row its target page points at (the native hand, in seat colour);
 //   * the low-HP glow: the native HP number drawn red and pulsing, through the game's own digit colour argument (two
 //     call rows, HD-02 and HD-03), not an overlay.
@@ -66,7 +66,7 @@ struct anchor {
     uint16_t timer_scale;
     int16_t label_x, label_y;                      // the native ACTION label (G50 E1): "Choosing..."
     uint16_t label_scale;
-    int16_t suffix_x, suffix_y;                    // after the native action gauge (G50 E0): "- Fran"
+    int16_t suffix_x, suffix_y;                    // after the native action gauge (G50 E0): kept, nothing drawn there
     uint16_t suffix_scale;
     int16_t cursor_x, cursor_y;                    // the party-target hand: top-left of the sprite (tip on the right)
     int16_t cursor_w, cursor_h;
@@ -169,6 +169,7 @@ bool attach(uintptr_t image_base);                    // the HP colour call rows
 void configure_from_settings(const ilc_settings& s);  // seat/character colours and the colour mode
 void step(uint64_t now_ms);                           // co-op thread: sample and publish (after the snapshot)
 void stop();                                          // withdraw
+bool read(rows_record* out);                          // any thread, wait-free: the latest record (false: none/torn)
 void set_enabled(bool on);                            // the element switch (every piece)
 bool enabled();
 // The pieces the Battle HUD page switches one by one (battle_hud.h). A piece that is off draws nothing; GLOW off

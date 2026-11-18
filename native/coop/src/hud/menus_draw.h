@@ -1,7 +1,8 @@
 // Ivalice Legacy co-op module: the co-op battle menus drawn in the game's own window style (the HUD menu pass).
 //
 // Player 1's battle menu is a co-op menu (the stock command window is gated), so it is drawn here too, at the native
-// command window's place: the field layout's group 14 (header, list origin) and group 11 (help strip), with the game's
+// command window's place: the field layout's group 14 (header, list origin) and group 11 (a strip near it, used for
+// the help line; the game's own top-left help line is group 7), with the game's
 // own blue glass (bt_win_0_c), cursor hand (cursol_4_p), selection bar (seat colour), scroll arrows, gambit ON/OFF
 // plate and the target footer's shoulder-button icons. A guest's menu is the same window with a thin seat-colour edge
 // on its left side; it slides out of the guest's own row of the party list, to the left of it, and the guests'
@@ -46,7 +47,7 @@ constexpr uint32_t VIEW_ROWS = 8;       // rows carried per window (a window aro
 constexpr uint32_t ROW_TEXT = 24;       // characters per row name, NUL included
 constexpr uint32_t ROW_VALUE = 8;       // MP cost or item count, NUL included
 constexpr uint32_t TITLE_TEXT = 32;
-constexpr uint32_t HELP_TEXT = 64;
+constexpr uint32_t HELP_TEXT = 128;      // the whole help line (the footer carousels it, item 8); 64 cut long lines
 constexpr uint64_t VIEW_STALE_MS = 250; // an older view is not drawn
 constexpr uint64_t SLIDE_MS = 150;      // the native open table's duration (0x915a58: 150, offset -40)
 constexpr int32_t SLIDE_DISTANCE = 40;  // ... and its offset, in authoring units
@@ -113,7 +114,7 @@ struct seat_view {
     char help[HELP_TEXT];
     view_row rows[VIEW_ROWS];
 };
-static_assert(sizeof(seat_view) == 472, "seat_view layout (host tests read it)");
+static_assert(sizeof(seat_view) == 536, "seat_view layout (host tests read it)");
 
 enum view_flag : uint32_t {
     VIEW_REDUCED = 0x01,   // the party list is the reduced layout (the rows' anchors follow it)
@@ -277,6 +278,8 @@ const counters* stats();
 // The live name reader with its cache (co-op thread, after step): kind 1 an action, 2 a character (party id), 3 a foe's
 // name text pointer. A name that cannot be read gives "?" and false. Shared with the battle log.
 bool live_name(uint32_t kind, uint32_t id, uint64_t pointer, char* out, uint32_t cap);
+// Our own built-in help lines, one by index (nullptr past the last): host tests check each fits the window footer.
+const char* builtin_help(uint32_t index);
 
 // ---- host tests -------------------------------------------------------------------------------------------------------
 void test_reset();

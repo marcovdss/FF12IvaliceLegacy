@@ -1,0 +1,553 @@
+{
+ "format": "ilc-theme",
+ "version": 1,
+ "id": "legacy-bold",
+ "name": "Bold Modern",
+ "author": "Ivalice Legacy",
+ "description": "C / Bold Modern",
+ "license": {
+  "fonts": "Original outlines drawn for Ivalice Legacy; ships under the mod licence",
+  "art": "Original; drawn for Ivalice Legacy"
+ },
+ "authoring": {
+  "width": 1920,
+  "height": 1080
+ },
+ "atlas": {
+  "em": 40,
+  "spread": 5,
+  "width": 512,
+  "supersample": 4
+ },
+ "fonts": {
+  "body": {
+   "file": "fonts/LegacyBlock.ttf",
+   "charset": "full",
+   "role": "rows, help, log, party names, targets"
+  },
+  "title": {
+   "file": "fonts/LegacyBlockCaps.ttf",
+   "charset": "title",
+   "role": "page titles, panel headers, tags, labels (caps; lowercase = small caps)"
+  },
+  "numerals": {
+   "file": "fonts/LegacyBlockNumerals.ttf",
+   "charset": "digits",
+   "role": "big HP figures and damage numbers"
+  }
+ },
+ "charsets": {
+  "full": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00a0\u00b7\u00c0\u00c1\u00c2\u00c4\u00c7\u00c8\u00c9\u00ca\u00cb\u00cc\u00cd\u00ce\u00cf\u00d1\u00d2\u00d3\u00d4\u00d6\u00d7\u00d9\u00da\u00db\u00dc\u00e0\u00e1\u00e2\u00e4\u00e7\u00e8\u00e9\u00ea\u00eb\u00ec\u00ed\u00ee\u00ef\u00f1\u00f2\u00f3\u00f4\u00f6\u00f9\u00fa\u00fb\u00fc\u00ff\u2013\u2018\u2019\u201c\u201d\u2026\u2212\u25ae\u25b8\u25c2\u25c6",
+  "title": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00a0\u00b7\u00d7\u2013\u2018\u2019\u201c\u201d\u2026\u2212\u25ae\u25b8\u25c2\u25c6",
+  "digits": " 0123456789%/+-.,:\u2212\u00b7\u00d7"
+ },
+ "icons": {
+  "file": "icons/icons.json"
+ },
+ "text": {
+  "outline": 2.0,
+  "shadow": [
+   2,
+   2,
+   1.0,
+   0.65
+  ],
+  "soft": 0.4,
+  "ink": [
+   5,
+   7,
+   18
+  ],
+  "small": {
+   "below_px": 19,
+   "tracking_em": 0.02
+  },
+  "min_help_em": 17,
+  "tracking": {
+   "page_face": "title",
+   "title_em": 0.05,
+   "header_em": 0.05
+  }
+ },
+ "motion": {
+  "marquee_speed": 36,
+  "marquee_hold_ms": 1100,
+  "marquee_fade": 14,
+  "marquee_on": true
+ },
+ "sizes": {
+  "row": 21,
+  "value": 20,
+  "header": 18,
+  "tab": 20,
+  "help": 17,
+  "pitch": 30,
+  "glove": 28,
+  "glove_out": 16,
+  "panel_head": 22,
+  "target": 28,
+  "party_name": 27,
+  "hp": 36,
+  "max": 21,
+  "mpv": 26,
+  "act": 19,
+  "log": 21
+ },
+ "colors": {
+  "core": [
+   247,
+   247,
+   242
+  ],
+  "dim": [
+   150,
+   156,
+   178
+  ],
+  "header": [
+   224,
+   236,
+   255
+  ],
+  "help": [
+   206,
+   214,
+   232
+  ],
+  "gold": [
+   255,
+   218,
+   112
+  ],
+  "ink": [
+   5,
+   7,
+   18
+  ],
+  "foe_dot": [
+   236,
+   96,
+   70
+  ],
+  "heal": [
+   109,
+   255,
+   142
+  ],
+  "dmg": [
+   255,
+   106,
+   88
+  ],
+  "low": [
+   255,
+   108,
+   92
+  ],
+  "hp_warn": [
+   255,
+   222,
+   64
+  ],
+  "hp_critical": [
+   255,
+   84,
+   64
+  ],
+  "hp_critical_glow": [
+   255,
+   56,
+   40
+  ],
+  "drop_rare": [
+   255,
+   140,
+   190
+  ],
+  "mpl": [
+   156,
+   198,
+   255
+  ],
+  "chev": [
+   208,
+   228,
+   255
+  ],
+  "rule": [
+   224,
+   236,
+   255,
+   110
+  ],
+  "rule2": [
+   224,
+   238,
+   255,
+   235
+  ]
+ },
+ "seats": [
+  {
+   "n": 1,
+   "rgb": [
+    81,
+    171,
+    255
+   ]
+  },
+  {
+   "n": 2,
+   "rgb": [
+    60,
+    233,
+    159
+   ]
+  },
+  {
+   "n": 3,
+   "rgb": [
+    249,
+    46,
+    209
+   ]
+  },
+  {
+   "n": 4,
+   "rgb": [
+    255,
+    134,
+    38
+   ]
+  }
+ ],
+ "gambit_ally": {
+  "rgb": [
+   206,
+   210,
+   222
+  ],
+  "mark": "G"
+ },
+ "window": {
+  "shape": "chamfer",
+  "radius": 2,
+  "cut": 18,
+  "cut_corners": [
+   "top_left",
+   "bottom_right"
+  ],
+  "stops": [
+   [
+    0,
+    [
+     74,
+     104,
+     196,
+     228
+    ]
+   ],
+   [
+    0.25,
+    [
+     36,
+     54,
+     132,
+     234
+    ]
+   ],
+   [
+    1,
+    [
+     10,
+     14,
+     50,
+     244
+    ]
+   ]
+  ],
+  "rim": [
+   238,
+   246,
+   255,
+   255
+  ],
+  "rim_px": 1.8,
+  "rim_top_bias": 0.35,
+  "inner_line": [
+   255,
+   255,
+   255,
+   36
+  ],
+  "shine": {
+   "kind": "diag",
+   "amount": 0.14,
+   "extent": 0.9
+  },
+  "outer_line": {
+   "rgba": [
+    4,
+    6,
+    16,
+    245
+   ],
+   "px": 2.0
+  },
+  "halo": null,
+  "size": {
+   "width": 275,
+   "height": 230,
+   "tab_height": 32
+  }
+ },
+ "tab": {
+  "kind": "C",
+  "height": 32,
+  "dx": 0,
+  "shape": "chamfer",
+  "radius": 2,
+  "stops": [
+   [
+    0,
+    [
+     74,
+     104,
+     196,
+     236
+    ]
+   ],
+   [
+    1,
+    [
+     24,
+     36,
+     100,
+     242
+    ]
+   ]
+  ],
+  "seat_marker": "numbered colour block + name"
+ },
+ "focus_row": {
+  "bar": true,
+  "seat_darken": 0.66,
+  "alpha_top": 200,
+  "alpha_bottom": 110,
+  "edge_line_alpha": 235
+ },
+ "gauge": {
+  "kind": "C",
+  "height": 8,
+  "slant": 0.9,
+  "ticks_every": 0,
+  "cols": {
+   "hp": [
+    [
+     236,
+     248,
+     255,
+     255
+    ],
+    [
+     120,
+     186,
+     255,
+     255
+    ]
+   ],
+   "low": [
+    [
+     255,
+     200,
+     120,
+     255
+    ],
+    [
+     255,
+     70,
+     50,
+     255
+    ]
+   ],
+   "mp": [
+    [
+     176,
+     226,
+     255,
+     255
+    ],
+    [
+     40,
+     130,
+     240,
+     255
+    ]
+   ],
+   "act": [
+    [
+     255,
+     255,
+     255,
+     255
+    ],
+    [
+     255,
+     255,
+     255,
+     255
+    ]
+   ]
+  },
+  "trail": [
+   255,
+   196,
+   80,
+   235
+  ],
+  "trail_hatch": true,
+  "hp_states": {
+   "warn_at": 0.5,
+   "critical_at": 0.25,
+   "critical_glow_px": 5
+  }
+ },
+ "marks": {
+  "glove": "C",
+  "chevron": "C",
+  "diamond": "C",
+  "dot": "C"
+ },
+ "status_icons": {
+  "style": "hex_badge",
+  "names": [
+   "Poison",
+   "Slow",
+   "Protect",
+   "Haste",
+   "Sleep",
+   "Oil"
+  ],
+  "colors": {
+   "Poison": [
+    132,
+    214,
+    92
+   ],
+   "Slow": [
+    150,
+    170,
+    232
+   ],
+   "Protect": [
+    255,
+    206,
+    96
+   ],
+   "Haste": [
+    255,
+    232,
+    104
+   ],
+   "Sleep": [
+    162,
+    144,
+    240
+   ],
+   "Oil": [
+    230,
+    156,
+    84
+   ]
+  }
+ },
+ "recipes": {
+  "glove": [
+   {
+    "glyph": "glove_body",
+    "core": "ink",
+    "edge": "ink",
+    "edge_px": 2.0,
+    "grow": 2.0
+   },
+   {
+    "glyph": "glove_body",
+    "core": "seat",
+    "edge": "seat",
+    "edge_px": 0.6,
+    "grow": 0.6
+   },
+   {
+    "glyph": "glove_body",
+    "core": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "edge": null,
+    "edge_px": 0
+   },
+   {
+    "glyph": "glove_cuff",
+    "core": "seat",
+    "edge": "ink",
+    "edge_px": 1.4
+   }
+  ],
+  "chevron": [
+   {
+    "glyph": "chevron_{dir}",
+    "core": "chevron",
+    "edge": "ink",
+    "edge_px": 1.5
+   }
+  ],
+  "seat_diamond": [
+   {
+    "glyph": "diamond",
+    "core_top": "seat",
+    "core_bottom": "seat_dark",
+    "edge": "white",
+    "edge_px": 1.8,
+    "outline": "ink"
+   }
+  ],
+  "dot": [
+   {
+    "glyph": "dot",
+    "core": "dot_colour",
+    "edge": "ink",
+    "edge_px": 1.0,
+    "glow_px": 0
+   }
+  ],
+  "status_icon": [
+   {
+    "glyph": "badge",
+    "core_top": "status",
+    "core_bottom": "status_dark",
+    "edge": "ink",
+    "edge_px": 1.0
+   },
+   {
+    "glyph": "badge_ring",
+    "core": "white"
+   },
+   {
+    "glyph": "pic_{name}",
+    "core": "white",
+    "edge": "ink",
+    "edge_px": 1.1
+   },
+   {
+    "glyph": "det_{name}",
+    "core": "status_dark"
+   }
+  ]
+ },
+ "party_row": {
+  "action_only": true,
+  "note": "rows show the action, never the target (target lines carry that)"
+ }
+}

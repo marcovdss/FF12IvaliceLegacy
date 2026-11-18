@@ -10,6 +10,7 @@
 #include "isolation/isolation.h"
 #include "wait/wait.h"
 #include "patch/patch_engine.h"
+#include "runtime/options.h"
 #include "session/session.h"
 
 namespace ilc::control {
@@ -85,7 +86,7 @@ uint32_t settings_mask()
     }
     static ilc_settings applied;  // co-op thread only
     bridge_copy_applied(&applied);
-    return applied.subsystems_armed;
+    return options::effective_subsystems(applied);
 }
 
 // Is the co-op on/off key being captured (control.h)? Then key samples only record state.

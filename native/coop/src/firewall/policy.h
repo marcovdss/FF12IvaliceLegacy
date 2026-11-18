@@ -133,6 +133,12 @@ struct policy {
 
 contract derive(const policy_inputs& in);
 
+// Player 1's world prompt (bug 3, 0.1.60): while P1's co-op menu is closed and a non-foe prompt is highlighted
+// (firewall p1_prompt_ready, with its PROMPT_GRACE_MS), P1's real CONFIRM is left unmasked so the game sees A exactly
+// as it sees the keyboard's Enter/Space; the frontend then never opens P1's menu on that press. A Quickening link a
+// guest presses keeps CONFIRM withheld (quickening_confirm).
+uint32_t p1_prompt_mask(uint32_t p1_mask, const contract& c, bool prompt_ready);
+
 // LEADER_ALL_DIRECTIONS rebuilds the leader rule as it was before the player-1 parity change (P1's four directions
 // withheld). It exists for the parity oracle in the host tests only; the module always uses LEADER_VERTICAL.
 enum leader_rule : uint32_t { LEADER_VERTICAL = 0, LEADER_ALL_DIRECTIONS = 1 };
@@ -161,14 +167,17 @@ struct p1_inputs {
     uint8_t prompt_state;     // P1's world prompt (0 none, 1 highlighted, 2 selected); a live foe reads 0
     uint8_t target_info;      // the native TARGET INFO window is open
     uint8_t target_info_due;  // the 0.5 s close limiter allows a close now
+    uint8_t confirm_native;   // the record the game read last beat left P1's CONFIRM unmasked (a prompt was ready):
+                              // P1's A reached the game itself, so no CONFIRM pulse may double it
 };
 enum p1_pulse_kind : uint32_t { P1P_NONE = 0, P1P_CANCEL = 1, P1P_CONFIRM = 2, P1P_TARGET_INFO = 3 };
 uint32_t p1_pulse(const p1_inputs& in, uint32_t* kind);
 
-// A guest's edges this beat (ilc_action bits) as one native semantic, or 0. PAUSE always goes (P1's START is
-// never masked, a guest's START pauses through a pulse). With a native screen open (a menu, a modal, the pause
+// A guest's edges this beat (ilc_action bits) as one native semantic, or 0. PAUSE goes whenever may_pause (settings
+// guest_pause; P1's START is never masked, a guest's START pauses through a pulse) and is dropped otherwise. With a
+// native screen open (a menu, a modal, the pause
 // screen), one edge in priority order: CANCEL > PARTY > CONFIRM > LB > RB > up, down, left, right (an opposite
 // pair held together cancels out).
-uint32_t guest_pulse(uint32_t act_pressed, uint32_t act_held, bool native_screen);
+uint32_t guest_pulse(uint32_t act_pressed, uint32_t act_held, bool native_screen, bool may_pause = true);
 
 }  // namespace ilc::firewall

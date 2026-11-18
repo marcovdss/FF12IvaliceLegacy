@@ -22,7 +22,12 @@
 #include "control/control.h"
 #include "hud/battle_hud.h"
 #include "input/input_service.h"
+#include "overlay/states.h"
+#include "overlay/theme.h"
+#include "patch/patch_engine.h"
 #include "runtime/diag.h"
+#include "runtime/log.h"
+#include "runtime/options.h"
 #include "runtime/probe.h"
 #include "session/session.h"
 
@@ -38,7 +43,8 @@ namespace {
 
 constexpr uint32_t OPS_MASK = (1u << ILC_OP_HELLO) | (1u << ILC_OP_SET_SETTINGS) | (1u << ILC_OP_COMMAND) |
                               (1u << ILC_OP_GET_STATUS) | (1u << ILC_OP_GET_SEATS) | (1u << ILC_OP_GET_DEVICES) |
-                              (1u << ILC_OP_POP_EVENTS) | (1u << ILC_OP_GET_SETTINGS) | (1u << ILC_OP_GET_COUNTERS);
+                              (1u << ILC_OP_POP_EVENTS) | (1u << ILC_OP_GET_SETTINGS) | (1u << ILC_OP_GET_COUNTERS) |
+                              (1u << ILC_OP_PUSH_HUD_STATES) | (1u << ILC_OP_GET_THEMES);
 
 struct bridge_state {
     SRWLOCK lock;
@@ -283,6 +289,9 @@ int32_t op_set_settings(const void* in, uint32_t in_len, void* out, uint32_t out
             const uint32_t seat = seat_of_reject(r);
             push_event(ILC_EV_SETTINGS_REJECTED, static_cast<uint8_t>(seat), r.code == ILC_E_FAULT ? 0 : s.header.generation,
                        r.code, r.field, pack_location(r), 0, 0);
+            log::line l;
+            l.s("settings refused: error ").i(r.code).s(", field ").x(r.field).s(", location ").x(pack_location(r));
+            log::post(log::WARNING, l);  // never blocks (try-lock); the co-op thread writes it to hook.log
             return r.code;
         }
         fill_header(ack.header, ILC_REC_SETTINGS_ACK, sizeof(ack), generation);
@@ -358,6 +367,28 @@ int32_t op_command(const void* in, uint32_t in_len, uint32_t out_cap)
     return r.code;
 }
 
+// PUSH_HUD_STATES: the Legacy script states for the HUD (overlay/states.h). Copied through the probe, validated as
+// untrusted, then kept as the latest push (no lock of the bridge's: the states module has its own seqlock); the co-op
+// thread resolves it next beat. A refused record is counted like any rejection and changes nothing on screen.
+int32_t op_push_hud_states(const void* in, uint32_t in_len)
+{
+    constexpr uint32_t op = ILC_OP_PUSH_HUD_STATES;
+    reject r = {0, 0, 0, 0};
+    ilc_hud_states rec;
+    memset(&rec, 0, sizeof(rec));
+    if (in_len != sizeof(ilc_hud_states)) {
+        r.code = ILC_E_BAD_LENGTH;
+    } else if (!copy_from_caller(&rec, in, sizeof(rec))) {
+        r.code = ILC_E_FAULT;
+    } else if (validate_header(rec.header, in_len, ILC_REC_HUD_STATES, &r) && validate_hud_states(rec, &r)) {
+        overlay::states::ingest(rec, patch::now_ms());
+        return 0;
+    }
+    locked hold;
+    note_reject(op, r);
+    return r.code;
+}
+
 int32_t op_get_status(void* out, uint32_t out_cap)
 {
     if (out_cap < sizeof(ilc_status)) {
@@ -395,7 +426,7 @@ int32_t op_get_status(void* out, uint32_t out_cap)
         st.last_reject_code = g.last_reject_code;
         st.last_reject_field = g.last_reject_field;
         st.last_reject_location = g.last_reject_location;
-        st.applied_subsystems = g.applied.subsystems_armed;
+        st.applied_subsystems = options::effective_subsystems(g.applied);
     }
     return deliver(out, &st, sizeof(st));
 }
@@ -412,7 +443,7 @@ int32_t op_get_counters(void* out, uint32_t out_cap)
         locked hold;
         pull_input_events();
         fill_header(k.header, ILC_REC_COUNTERS, sizeof(k), g.applied.header.generation);
-        k.subsystems_applied = g.applied.subsystems_armed;
+        k.subsystems_applied = options::effective_subsystems(g.applied);
         k.safe_points = g.safe_points;
         k.applies = g.applies;
         k.rejects = g.rejects;
@@ -481,6 +512,24 @@ int32_t op_get_seats(void* out, uint32_t out_cap)
             v.seat_ui_sounds = seat.seat_ui_sounds;
         }
     }
+    return deliver(out, &reply, sizeof(reply));
+}
+
+int32_t op_get_themes(void* out, uint32_t out_cap)
+{
+    if (out_cap < sizeof(ilc_themes_reply)) {
+        return record_failure(ILC_OP_GET_THEMES, ILC_E_OUT_TOO_SMALL);
+    }
+    // The theme module fills the list (built-ins first, then the valid player themes its scan found) under its own lock.
+    ilc_themes_reply reply;
+    memset(&reply, 0, sizeof(reply));
+    overlay::theme::list(&reply);
+    uint32_t generation = 0;
+    {
+        locked hold;
+        generation = g.applied.header.generation;
+    }
+    fill_header(reply.header, ILC_REC_THEMES, sizeof(reply), generation);
     return deliver(out, &reply, sizeof(reply));
 }
 
@@ -586,7 +635,7 @@ uint32_t bridge_safe_point(uint32_t* applied_subsystems, ilc_settings* applied_c
         push_event(ILC_EV_SETTINGS_APPLIED, 0, g.applied.header.generation, 0, 0, 0, g.applied_digest, 0);
         result = ILC_SAFE_POINT_APPLIED;
         if (applied_subsystems != nullptr) {
-            *applied_subsystems = g.applied.subsystems_armed;
+            *applied_subsystems = options::effective_subsystems(g.applied);
         }
         if (applied_copy != nullptr) {
             memcpy(applied_copy, &g.applied, sizeof(ilc_settings));
@@ -635,7 +684,8 @@ int32_t bridge_call(uint64_t op_arg, const void* in, uint64_t in_len_arg, void* 
     if ((in_len != 0 && in == nullptr) || out == nullptr) {
         return record_failure(op, ILC_E_BAD_ARGS);
     }
-    const bool query = op != ILC_OP_HELLO && op != ILC_OP_SET_SETTINGS && op != ILC_OP_COMMAND;
+    const bool query = op != ILC_OP_HELLO && op != ILC_OP_SET_SETTINGS && op != ILC_OP_COMMAND &&
+                       op != ILC_OP_PUSH_HUD_STATES;
     switch (op) {
     case ILC_OP_HELLO:
     case ILC_OP_SET_SETTINGS:
@@ -646,6 +696,8 @@ int32_t bridge_call(uint64_t op_arg, const void* in, uint64_t in_len_arg, void* 
     case ILC_OP_POP_EVENTS:
     case ILC_OP_GET_SETTINGS:
     case ILC_OP_GET_COUNTERS:
+    case ILC_OP_PUSH_HUD_STATES:
+    case ILC_OP_GET_THEMES:
     case ILC_OP_TEST_SAFE_POINT:
         break;
     default:
@@ -662,6 +714,8 @@ int32_t bridge_call(uint64_t op_arg, const void* in, uint64_t in_len_arg, void* 
         return op_set_settings(in, in_len, out, out_cap);  // records its own failures
     case ILC_OP_COMMAND:
         return op_command(in, in_len, out_cap);
+    case ILC_OP_PUSH_HUD_STATES:
+        return op_push_hud_states(in, in_len);   // records its own failures
     case ILC_OP_GET_STATUS:
         status = op_get_status(out, out_cap);
         break;
@@ -679,6 +733,9 @@ int32_t bridge_call(uint64_t op_arg, const void* in, uint64_t in_len_arg, void* 
         break;
     case ILC_OP_GET_COUNTERS:
         status = op_get_counters(out, out_cap);
+        break;
+    case ILC_OP_GET_THEMES:
+        status = op_get_themes(out, out_cap);
         break;
     case ILC_OP_TEST_SAFE_POINT:
         status = op_test_safe_point(out, out_cap);

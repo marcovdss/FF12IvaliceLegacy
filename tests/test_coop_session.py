@@ -60,7 +60,7 @@ class LayoutTest(DllCase):
         text = (SESSION_SRC / 'policy.h').read_text(encoding='utf-8')
         self.assertIn('ACTIVE_SEATS = ILC_ACTIVE_SEATS_MAX', text)
         abi = (ROOT / 'native' / 'coop' / 'include' / 'ilc' / 'bridge_abi.h').read_text(encoding='utf-8')
-        self.assertRegex(abi, r'X\(ACTIVE_SEATS_MAX, 3u,')
+        self.assertRegex(abi, r'X\(ACTIVE_SEATS_MAX, 4u,')
 
 
 # =====================================================================================================
@@ -308,6 +308,31 @@ class WorldEvaluateTest(DllCase):
         self.assertEqual(self.view(id_, sample(), 0).loading, 1)
         self.assertEqual(self.view(id_, sample(), 1).gameplay, 0)
         self.assertEqual(self.view(id_, sample(), 2).gameplay, 1)
+
+    def test_p1s_own_battle_menu_stops_nobody(self):
+        """P1's battle menu, leader select or command tree (p1_battle_menu) keeps the guests' menus eligible and the
+        characters steerable, with or without the P1-native switch (0.1.59: while the co-op menus own P1 the gate refuses
+        those frontends, so one that is up is P1's own: a give-back or the stock KO path); any other native menu stops
+        them. Cutscene detection keeps the raw flag."""
+        id_ = identity(0, 5, 1)
+        rows = [
+            # (menu, p1_battle_menu, p1_native) -> guest menus, movement, P1 menu, reason is WR_MENU
+            ((1, 1, 1), ([0, 1, 1], 1, 1, False)),
+            ((1, 1, 0), ([0, 1, 1], 1, 1, False)),   # the switch off (P1's menu on the overlay): the same
+            ((1, 0, 1), ([0, 0, 0], 0, 0, True)),    # another native menu (map, shop): still stops them
+            ((1, 0, 0), ([0, 0, 0], 0, 0, True)),
+            ((0, 0, 1), ([0, 1, 1], 1, 1, False)),
+        ]
+        for (menu, battle, native), (guests, movement, p1_menu, menu_reason) in rows:
+            with self.subTest(menu=menu, battle=battle, native=native):
+                w = sample(current=(0, 5, 1, NONE), menu=bool(menu))
+                w.p1_battle_menu, w.p1_native = battle, native
+                v = self.view(id_, w)
+                self.assertEqual(list(v.guest_menu)[:3], guests)
+                self.assertEqual((v.movement, v.p1_menu, v.reason == 7), (movement, p1_menu, menu_reason))
+        w = sample(current=(0, 5, 1, NONE), menu=True, control=False)
+        w.p1_battle_menu, w.p1_native = 1, 1
+        self.assertEqual(self.view(id_, w).cutscene, 0, 'a menu up is never a cutscene (the raw flag)')
 
     def test_guest_menu_follows_its_own_seat(self):
         v = self.view(identity(0, 5, 1), sample(current=(0, 5, 1, NONE)))
@@ -1235,14 +1260,16 @@ class SessionLifecycleTest(SessionCase):
 
 @native_test
 class SessionSeatTableTest(SessionCase):
-    def test_the_fourth_seat_never_takes_part(self):
+    def test_the_fourth_seat_takes_part(self):
+        """Four seats (0.1.53): P4 with an input joins the session and steers its own character."""
         self.field(members=(0, 5, 1, 3))
         self.start(characters=(0, 5, 1, 3), has_input=0b1111)
         rec = self.step(2)
-        self.assertEqual(rec.seat[3].flags, 0)
-        self.assertEqual((rec.seat[3].member, rec.seat[3].actor), (NONE, 0))
-        self.assertEqual(self.steering(rec), [1, 2])
-        self.assertEqual(self.debug().configured.in_session & 0b1000, 0)
+        self.assertTrue(rec.seat[3].flags & SEATF['IN_SESSION'])
+        self.assertEqual(rec.seat[3].member, 3)
+        self.assertNotEqual(rec.seat[3].actor, 0)
+        self.assertEqual(self.steering(rec), [1, 2, 3])
+        self.assertEqual(self.debug().configured.in_session & 0b1000, 0b1000)
 
     def test_parked_and_characterless_guests(self):
         self.field()

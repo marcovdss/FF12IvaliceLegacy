@@ -195,9 +195,13 @@ class SchemaTest(BridgeCase):
         self.assertEqual(d['kbm_seat'], 2)
         self.assertEqual(d['kill_switch'][0], {'kind': S.e('binding_kind', 'KEY'), 'code': 0x77})
         toggle = S.e('action', 'TOGGLE_CONTROL') * 4
-        # P4 cannot play in this release (ACTIVE_SEATS_MAX): no join key, no binding at all.
-        self.assertEqual([seat['bindings'][toggle]['code'] for seat in d['seats'][1:]], [0x75, 0x76, 0])
-        self.assertTrue(all(b['kind'] == 0 for b in d['seats'][3]['bindings']))
+        # Four seats play (ACTIVE_SEATS_MAX 4): join keys F6, F7 and F9 (F8 is the co-op on/off key).
+        self.assertEqual([seat['bindings'][toggle]['code'] for seat in d['seats'][1:]], [0x75, 0x76, 0x78])
+        # P4 has the guest layout: the same actions bound as P3's, its own join key aside.
+        same = lambda seat: [(i, b['kind'], b['code']) for i, b in enumerate(d['seats'][seat]['bindings'])
+                             if b['kind'] and i // 4 not in (S.e('action', 'TOGGLE_CONTROL'), S.e('action', 'QUICKENING'))]
+        self.assertEqual(same(3), same(2))
+        self.assertEqual(d['seats'][3]['colour'], S.e('colour', 'AMETHYST'))
 
 
 @native_test
@@ -251,32 +255,64 @@ class GenerationTest(BridgeCase):
         self.reject(settings(0), E['BAD_FIELD'], S.field_id('ilc_header', 'generation'))
 
     def test_subsystem_arm_mask(self):
+        """0.1.53: Co-op On means every subsystem works. The record carries a developer disarm override (0 by
+        default), honoured only while developer = 1; the status reports the mask the applied record asks for."""
         bits = S.enums['subsystem']
         every = 0
         for value in bits.values():
             every |= value
         self.assertEqual(len(bits), 8)
-        self.assertEqual(S.decode('ilc_settings', S.defaults())['subsystems_armed'], every, 'defaults: all armed')
+        self.assertEqual(S.decode('ilc_settings', S.defaults())['subsystems_disarm'], 0, 'defaults: nothing disarmed')
         self.assertEqual(self.status()['applied_subsystems'], every)
+        two = bits['CAMERA'] | bits['RENDER']
         record = settings(1)
-        put(record, ['subsystems_armed'], every & ~bits['CAMERA'] & ~bits['RENDER'])  # bisect: two disarmed
+        put(record, ['subsystems_disarm'], two)
+        self.assertEqual(self.push(record)[1]['disposition'], ACK[0])
+        self.safe_point()
+        self.assertEqual(self.status()['applied_subsystems'], every, 'developer options off: the override is ignored')
+        record = settings(2)
+        put(record, ['subsystems_disarm'], two)
+        put(record, ['developer'], 1)
         self.assertEqual(self.push(record)[1]['disposition'], ACK[0])
         self.assertEqual(self.status()['applied_subsystems'], every, 'applied before the safe point')
         self.safe_point()
-        self.assertEqual(self.status()['applied_subsystems'], every & ~bits['CAMERA'] & ~bits['RENDER'])
+        self.assertEqual(self.status()['applied_subsystems'], every & ~two, 'developer bisect: two disarmed')
         applied = S.decode('ilc_settings', self.ok(OP['GET_SETTINGS']))
-        self.assertEqual(applied['subsystems_armed'], every & ~bits['CAMERA'] & ~bits['RENDER'])
-        record = settings(2)
-        put(record, ['subsystems_armed'], every | 0x100)  # an undefined bit
-        self.reject(record, E['BAD_FIELD'], S.field_id('ilc_settings', 'subsystems_armed'))
+        self.assertEqual(applied['subsystems_disarm'], two)
         record = settings(3)
-        put(record, ['subsystems_armed'], 0)  # everything disarmed is valid
+        put(record, ['subsystems_disarm'], 0x100)  # an undefined bit
+        self.reject(record, E['BAD_FIELD'], S.field_id('ilc_settings', 'subsystems_disarm'))
+        record = settings(4)
+        put(record, ['subsystems_disarm'], every)
+        put(record, ['developer'], 1)
+        self.assertEqual(self.push(record)[1]['disposition'], ACK[0], 'everything disarmed is a valid bisect')
+        self.safe_point()
+        self.assertEqual(self.status()['applied_subsystems'], 0)
+        record = settings(5)
+        put(record, ['subsystems_disarm'], every)   # developer back off: everything armed again
         self.assertEqual(self.push(record)[1]['disposition'], ACK[0])
+        self.safe_point()
+        self.assertEqual(self.status()['applied_subsystems'], every)
+
+    def test_shared_camera_off_keeps_camera_disarmed(self):
+        bits = S.enums['subsystem']
+        every = sum(bits.values())
+        record = settings(1)
+        put(record, ['shared_camera'], 0)
+        self.assertEqual(self.push(record)[1]['disposition'], ACK[0])
+        self.safe_point()
+        self.assertEqual(self.status()['applied_subsystems'], every & ~bits['CAMERA'])
+        counters = S.decode('ilc_counters', self.ok(OP['GET_COUNTERS']))
+        self.assertEqual(counters['subsystems_applied'], every & ~bits['CAMERA'])
+        record = settings(2)
+        self.assertEqual(self.push(record)[1]['disposition'], ACK[0])
+        self.safe_point()
+        self.assertEqual(self.status()['applied_subsystems'], every, 'shared camera back on')
 
     def test_latest_staged_wins(self):
         self.push(settings(6))
         seven = settings(7)
-        put(seven, ['all_characters_at_start'], 0)
+        put(seven, ['keep_running'], 0)
         self.push(seven)
         self.assertEqual(self.status()['accepted_generation'], 7)
         self.safe_point()
@@ -493,7 +529,7 @@ class CrossFieldTest(BridgeCase):
             with self.subTest(kind=kind, code=code):
                 r = self.rec(); put(r, ['kill_switch', 1, 'kind'], kind); put(r, ['kill_switch', 1, 'code'], code)
                 self.reject(r, E['BAD_FIELD'], ks, LOC_KILL, 1)
-        for kind, code in ((key, 0x03), (key, 0x07), (key, 0x78), (mouse, 2)):
+        for kind, code in ((key, 0x03), (key, 0x07), (key, 0x79), (mouse, 2)):  # 0x78 (F9) is P4's join key
             with self.subTest(kind=kind, code=code):
                 r = self.rec(); put(r, ['kill_switch', 1, 'kind'], kind); put(r, ['kill_switch', 1, 'code'], code)
                 put(r, ['kbm_seat'], 0)  # the right button is P2's default CANCEL (the clash rule's own test)
@@ -529,7 +565,7 @@ class CrossFieldTest(BridgeCase):
         toggle = S.e('action', 'TOGGLE_CONTROL') * 4
         confirm = S.e('action', 'CONFIRM') * 4
         key, mouse, pad = (S.e('binding_kind', n) for n in ('KEY', 'MOUSE', 'PAD'))
-        F6, F7, F9, ESC, W = 0x75, 0x76, 0x78, 0x1B, 0x57
+        F6, F7, F10, ESC, W = 0x75, 0x76, 0x79, 0x1B, 0x57  # F9 is P4's default join key
 
         def bind(r, path, kind, code):
             put(r, path + ['kind'], kind)
@@ -548,7 +584,7 @@ class CrossFieldTest(BridgeCase):
         self.reject(r, E['CONFLICT'], ks, LOC_KILL, 1)
         # falsifiers: a free key, and the right button with no join/leave on it (nobody owns the keyboard, so rule 3
         # does not see P2's CANCEL on the right button)
-        r = self.rec(); bind(r, ['kill_switch', 1], key, F9)
+        r = self.rec(); bind(r, ['kill_switch', 1], key, F10)
         self.assertGreaterEqual(self.push(r)[0], 0)
         r = self.rec(); put(r, ['kbm_seat'], 0); bind(r, ['kill_switch', 1], mouse, 2)
         self.assertGreaterEqual(self.push(r)[0], 0)
@@ -560,7 +596,7 @@ class CrossFieldTest(BridgeCase):
         r = self.rec(); bind(r, ['seats', 1, 'bindings', toggle + 1], mouse, 2); bind(r, ['seats', 2, 'bindings', toggle + 1], mouse, 2)
         self.reject(r, E['CONFLICT'], bindings, 2, toggle + 1)
         # falsifiers: another key; the same pad control on two seats' join/leave (two different pads)
-        r = self.rec(); bind(r, ['seats', 3, 'bindings', toggle], key, F9)
+        r = self.rec(); bind(r, ['seats', 3, 'bindings', toggle], key, F10)
         self.assertGreaterEqual(self.push(r)[0], 0)
         r = self.rec()
         bind(r, ['seats', 1, 'bindings', toggle + 1], pad, S.e('pad_control', 'R3'))
@@ -610,7 +646,7 @@ class CrossFieldTest(BridgeCase):
         r = self.rec(); bind(r, ['seats', 1, 'bindings', cancel + 2], 0, 0)
         bind(r, ['seats', 2, 'bindings', toggle + 2], mouse, 2)
         self.assertGreaterEqual(self.push(r)[0], 0)
-        r = self.rec(); put(r, ['kbm_seat'], 1); bind(r, ['seats', 0, 'bindings', confirm + 1], key, F9)
+        r = self.rec(); put(r, ['kbm_seat'], 1); bind(r, ['seats', 0, 'bindings', confirm + 1], key, F10)
         self.assertGreaterEqual(self.push(r)[0], 0)
         r = self.rec(); bind(r, ['seats', 1, 'bindings', toggle + 1], key, Q)
         self.assertGreaterEqual(self.push(r)[0], 0)
@@ -671,7 +707,7 @@ class ProtocolTest(BridgeCase):
         for op in ('GET_STATUS', 'GET_SEATS', 'GET_DEVICES', 'POP_EVENTS', 'GET_SETTINGS', 'GET_COUNTERS',
                    'TEST_SAFE_POINT'):
             self.assertEqual(self.b.call(OP[op], b'\0' * 16)[0], E['BAD_LENGTH'], op)
-        for op in (0, 10, 0x7F00, 0x7F02, 0xFFFFFFFF):
+        for op in (0, 12, 0x7F00, 0x7F02, 0xFFFFFFFF):   # 11 is GET_THEMES (Phase 8)
             self.assertEqual(self.b.call(op)[0], E['UNKNOWN_OP'])
         sizes = {'HELLO': 'ilc_hello_reply', 'GET_STATUS': 'ilc_status', 'GET_SEATS': 'ilc_seats_reply',
                  'GET_SETTINGS': 'ilc_settings', 'TEST_SAFE_POINT': 'ilc_safe_point_result'}
@@ -783,7 +819,8 @@ class ProtocolTest(BridgeCase):
         self.assertEqual(k['ti_pin_row'], -1)
         # Read-only: a second read changes no state (only the bridge's own call counters move).
         k2 = S.decode('ilc_counters', self.b.call(OP['GET_COUNTERS'])[1])
-        moving = {'now_ms', 'bridge_calls', 'bridge_max_us', 'poll_calls', 'poll_max_us'}
+        moving = {'now_ms', 'bridge_calls', 'bridge_max_us', 'poll_calls', 'poll_max_us', 'probe_queries', 'probe_hot_hits',
+                  'probe_hot_misses'}
         self.assertEqual({n: v for n, v in k.items() if n not in moving | {'header'}},
                          {n: v for n, v in k2.items() if n not in moving | {'header'}})
         self.assertGreater(k2['bridge_calls'], k['bridge_calls'])
@@ -992,7 +1029,7 @@ class FaultSafetyTest(BridgeCase):
                 in_len = len(data)
                 if rng.random() < 0.05 and in_len:
                     in_len = rng.randrange(0, in_len)  # claim less than is there: must read only in_len
-                out_cap = rng.choice((0, 16, 31, 32, 64, 95, 96, 111, 112, 3527, 3528, 3531, 3532, 4096, rng.randrange(0, 4097)))
+                out_cap = rng.choice((0, 16, 31, 32, 64, 95, 96, 111, 112, 3535, 3536, 3539, 3540, 4096, rng.randrange(0, 4097)))
                 lead = rng.random() < 0.3
                 inbound = GuardedBuffer(max(in_len, 1), lead=lead)
                 out = GuardedBuffer(max(out_cap, 1), lead=lead)

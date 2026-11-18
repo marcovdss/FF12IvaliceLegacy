@@ -126,7 +126,7 @@ void count(volatile uint64_t& c)
 
 bool read_game(uint64_t address, void* out, size_t n)
 {
-    return copy_from_caller(out, reinterpret_cast<const void*>(address), n);
+    return ilc::read_game(out, reinterpret_cast<const void*>(address), n);
 }
 
 float f32(uint64_t bits)
@@ -168,7 +168,7 @@ int32_t body01(patch::ctx* c, const pose_record& r)
     const float values[4] = {static_cast<float>(r.focus[0] + r.velocity[0] * age),
                              static_cast<float>(r.focus[1] + r.velocity[1] * age),
                              static_cast<float>(r.focus[2] + r.velocity[2] * age), 1.0f};
-    if (!copy_to_caller(reinterpret_cast<void*>(c->rdi + CONTROLLER_FOCUS), values, sizeof(values))) {
+    if (!store_game(reinterpret_cast<void*>(c->rdi + CONTROLLER_FOCUS), values, sizeof(values))) {
         return patch::RUN_ORIGINAL;
     }
     count(g_counters.focus_written);

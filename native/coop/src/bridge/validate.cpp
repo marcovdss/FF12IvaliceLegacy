@@ -599,7 +599,96 @@ bool validate_settings(const ilc_settings& s, reject* out)
     if (s.seats[0].device.kind == ILC_DEVICE_NONE && s.kbm_seat != 1) {
         return fail(out, ILC_E_CONFLICT, FID(T, kbm_seat), 0, 0);
     }
+    // The compact battle log never shows more lines than the expanded one.
+    if (s.log_lines_compact > s.log_lines_expanded) {
+        return fail(out, ILC_E_CONFLICT, FID(T, log_lines_compact), 0, 0);
+    }
+    // The HUD theme id: lower-case letters, digits, '-' or '_', then zeros (all zero: the built-in default). Whether such
+    // a theme exists is a run-time question (a missing or broken one draws the default), never a reason to refuse.
+    {
+        uint32_t len = 0;
+        while (len < ILC_THEME_ID_MAX && s.hud_theme[len] != 0) {
+            const uint8_t c = s.hud_theme[len];
+            if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_')) {
+                return fail(out, ILC_E_BAD_FIELD, FID(T, hud_theme), 0, len);
+            }
+            ++len;
+        }
+        uint32_t at = 0;
+        if (len < ILC_THEME_ID_MAX && !all_zero(s.hud_theme + len, ILC_THEME_ID_MAX - len, &at)) {
+            return fail(out, ILC_E_BAD_FIELD, FID(T, hud_theme), 0, len + at);
+        }
+    }
     return check_hotkey_clashes(s, out);
+}
+
+bool validate_hud_states(const ilc_hud_states& s, reject* out)
+{
+    using H = ilc_hud_states;
+    if (!check_fields(s, 0, out)) {
+        return false;
+    }
+    for (uint32_t k = 0; k < ILC_HUD_FOES; ++k) {
+        const ilc_hud_foe& f = s.foes[k];
+        uint32_t first = 0;
+        if (k >= s.foe_count) {
+            if (!all_zero(reinterpret_cast<const uint8_t*>(&f), sizeof(f), &first)) {
+                return fail(out, ILC_E_BAD_FIELD, FID(H, foes), k, first);
+            }
+            continue;
+        }
+        if (!check_fields(f, k, out)) {
+            return false;
+        }
+        if (f.record == 0) {
+            return fail(out, ILC_E_BAD_FIELD, FID(ilc_hud_foe, record), k, 0);
+        }
+        if (f.crown_element > 7 && f.crown_element != 255) {
+            return fail(out, ILC_E_BAD_FIELD, FID(ilc_hud_foe, crown_element), k, 0);
+        }
+        if ((f.flags & ILC_HUD_FOE_CROWNED) != 0 && f.crown_element > 7) {
+            return fail(out, ILC_E_CONFLICT, FID(ilc_hud_foe, crown_element), k, 0);
+        }
+    }
+    for (uint32_t k = 0; k < ILC_HUD_WORDS; ++k) {
+        const ilc_hud_word& w = s.words[k];
+        uint32_t first = 0;
+        if (k >= s.word_count) {
+            if (!all_zero(reinterpret_cast<const uint8_t*>(&w), sizeof(w), &first)) {
+                return fail(out, ILC_E_BAD_FIELD, FID(H, words), k, first);
+            }
+            continue;
+        }
+        if (!check_fields(w, k, out)) {
+            return false;
+        }
+        if (w.member >= 40) {
+            return fail(out, ILC_E_BAD_FIELD, FID(ilc_hud_word, member), k, 0);
+        }
+        if (w.kind == ILC_HUD_WORD_NONE) {
+            return fail(out, ILC_E_BAD_FIELD, FID(ilc_hud_word, kind), k, 0);
+        }
+    }
+    for (uint32_t k = 0; k < ILC_HUD_PROCS; ++k) {
+        const ilc_hud_proc& p = s.procs[k];
+        uint32_t first = 0;
+        if (k >= s.proc_count) {
+            if (!all_zero(reinterpret_cast<const uint8_t*>(&p), sizeof(p), &first)) {
+                return fail(out, ILC_E_BAD_FIELD, FID(H, procs), k, first);
+            }
+            continue;
+        }
+        if (!check_fields(p, k, out)) {
+            return false;
+        }
+        if (p.record == 0) {
+            return fail(out, ILC_E_BAD_FIELD, FID(ilc_hud_proc, record), k, 0);
+        }
+        if (p.tag == ILC_HUD_TAG_NONE) {
+            return fail(out, ILC_E_BAD_FIELD, FID(ilc_hud_proc, tag), k, 0);
+        }
+    }
+    return true;
 }
 
 bool validate_command(const ilc_command& c, reject* out)

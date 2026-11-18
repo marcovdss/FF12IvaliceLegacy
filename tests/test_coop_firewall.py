@@ -76,7 +76,7 @@ CONTRACT = ('p1_replacement', 'other_command', 'directional_owner', 'p1_lb', 'pa
 Contract = S('Contract', [(n, u8) for n in CONTRACT])
 Policy = S('Policy', [('p1_mask', u32), ('other_mask', u32), ('flags', u32), ('refused', u32)])
 P1_IN = ('replacement', 'menu_open', 'target_page', 'leader_selector', 'driver', 'confirm_edge', 'cancel_edge',
-         'prompt_state', 'target_info', 'target_info_due')
+         'prompt_state', 'target_info', 'target_info_due', 'confirm_native')
 P1Inputs = S('P1Inputs', [(n, u8) for n in P1_IN])
 LAYOUTS = [FwRecord, MenuReport, BeatInputs, Counters, DebugView, PolicyInputs, Contract, Policy, P1Inputs]
 Ctx = iso.Ctx
@@ -133,7 +133,7 @@ SIGNATURES = {
     'ILCT_FwPostMenus': ([P(MenuReport)], None), 'ILCT_FwConfigure': ([ctypes.c_char_p], None),
     'ILCT_FwStart': ([u64, u64], None), 'ILCT_FwStep': ([u64], None), 'ILCT_FwStop': ([], None),
     'ILCT_FwSetImageBase': ([u64], None), 'ILCT_FwDecide': ([], u32), 'ILCT_FwDecideSwapKnob': ([], i32),
-    'ILCT_FwPromptReady': ([], i32), 'ILCT_FwFg07Last': ([], u64), 'ILCT_FwRow': ([ctypes.c_char_p], i32),
+    'ILCT_FwPromptReady': ([], i32), 'ILCT_FwPromptWhy': ([], u32), 'ILCT_FwFg07Last': ([], u64), 'ILCT_FwRow': ([ctypes.c_char_p], i32),
     'ILCT_FwSlotAddress': ([], u64),
     'ILCT_IxSessionPublish': ([P(Record)], None), 'ILCT_IxSessionWithdraw': ([], None),
     'ILCT_EdgeReset': ([u32], None), 'ILCT_EdgeRecord': ([u32, P(u32)], None), 'ILCT_EdgeTestReset': ([], None),
@@ -372,6 +372,10 @@ class PolicyTest(unittest.TestCase):
         self.assertEqual({s: self.p1(confirm_edge=1, prompt_state=s)[0] for s in (0, 1, 2, 3)},
                          {0: 0, 1: CONFIRM, 2: CONFIRM, 3: CONFIRM})
         self.assertEqual(self.p1(cancel_edge=1, confirm_edge=1, prompt_state=2), (CANCEL, P1P_CANCEL))
+        # Bug 3 (0.1.60): the game read P1's A itself (CONFIRM unmasked last beat): never a second, pulsed CONFIRM.
+        self.assertEqual({s: self.p1(confirm_edge=1, prompt_state=s, confirm_native=1)[0] for s in (0, 1, 2)},
+                         {0: 0, 1: 0, 2: 0})
+        self.assertEqual(self.p1(cancel_edge=1, confirm_native=1), (CANCEL, P1P_CANCEL), 'B still pulses')
         for kw in (dict(replacement=0), dict(menu_open=1), dict(driver=1)):
             self.assertEqual(self.p1(cancel_edge=1, confirm_edge=1, prompt_state=2, **kw), (0, P1P_NONE), kw)
         # TARGET INFO: only on P1's target page, outside the leader selector, while the window is up and due.
@@ -494,16 +498,52 @@ class BeatTest(unittest.TestCase):
 
     def test_confirm_on_a_highlighted_prompt_and_the_menu_layers_query(self):
         menus = dict(p1_menus=1)
-        self.beat(menus=menus, prompt_state=1)
+        r = self.beat(menus=menus, prompt_state=0)
+        self.assertTrue(r.p1_mask & M(CONFIRM), 'no prompt: P1 A is withheld (the co-op menu takes it)')
+        r = self.beat(menus=menus, prompt_state=1)
         self.assertEqual(self.d.ILCT_FwPromptReady(), 1)
+        self.assertFalse(r.p1_mask & M(CONFIRM), 'bug 3: a highlighted prompt leaves P1 real CONFIRM to the game')
+        self.assertTrue(r.p1_mask & M(COMMAND) and r.p1_mask & M(CANCEL), 'only CONFIRM is given back')
         r = self.beat(menus=menus, prompt_state=1, act_pressed={1: 1 << A_CONFIRM}, pad_pressed={1: 1})
-        self.assertEqual(r.pulse, CONFIRM)
-        self.beat(dt=200, menus=menus, prompt_state=0)
+        self.assertEqual(r.pulse, 0, 'the game read A itself: no doubled CONFIRM')
+        self.assertEqual(self.d.ILCT_FwPromptWhy(), 0)
+        self.beat(dt=300, menus=menus, prompt_state=0)
         self.assertEqual(self.d.ILCT_FwPromptReady(), 0)
+        self.assertEqual(self.d.ILCT_FwPromptWhy(), 0x10, 'PB_NO_PROMPT')
         r = self.beat(menus=menus, prompt_state=0, act_pressed={1: 1 << A_CONFIRM}, pad_pressed={1: 1})
         self.assertEqual(r.pulse, 0, 'no prompt: A is the co-op menu')
+        self.assertTrue(r.p1_mask & M(CONFIRM))
         self.beat(menus=dict(p1_menus=1, p1_open=1), prompt_state=2)
         self.assertEqual(self.d.ILCT_FwPromptReady(), 0, 'an open menu takes A')
+        self.assertEqual(self.d.ILCT_FwPromptWhy(), 0x08, 'PB_MENU_OPEN')
+
+    def test_a_prompt_that_appears_with_the_press_is_pulsed_once(self):
+        menus = dict(p1_menus=1)
+        self.beat(menus=menus, prompt_state=0)
+        # A pressed while the record the game read still withheld CONFIRM: the pulse delivers it, once.
+        r = self.beat(menus=menus, prompt_state=2, act_pressed={1: 1 << A_CONFIRM}, pad_pressed={1: 1})
+        self.assertEqual((r.pulse, self.debug().last_p1_kind), (CONFIRM, P1P_CONFIRM))
+        self.assertFalse(r.p1_mask & M(CONFIRM))
+
+    def test_the_prompt_grace_covers_a_blip(self):
+        menus = dict(p1_menus=1)
+        self.beat(menus=menus, prompt_state=2)
+        r = self.beat(dt=20, menus=menus, prompt_state=0)      # the game's can_use blips to 0 for a frame
+        self.assertEqual(self.d.ILCT_FwPromptReady(), 1, 'within PROMPT_GRACE_MS')
+        self.assertFalse(r.p1_mask & M(CONFIRM))
+        r = self.beat(dt=240, menus=menus, prompt_state=0)     # 260 ms since the last ready beat
+        self.assertEqual(self.d.ILCT_FwPromptReady(), 0)
+        self.assertTrue(r.p1_mask & M(CONFIRM))
+        # The grace never outlives the menu or replacement terms: P1 opens its menu, the prompt is not ready at once.
+        self.beat(menus=menus, prompt_state=2)
+        self.beat(dt=20, menus=dict(p1_menus=1, p1_open=1), prompt_state=0)
+        self.assertEqual(self.d.ILCT_FwPromptReady(), 0)
+        self.beat(dt=20, menus=menus, prompt_state=0)
+        self.assertEqual(self.d.ILCT_FwPromptReady(), 0, 'the menu reset the grace')
+
+    def test_a_quickening_link_keeps_confirm_withheld(self):
+        r = self.beat(menus=dict(p1_menus=1, quickening=QB_CONFIRM | QB_CHAIN), prompt_state=2)
+        self.assertTrue(r.p1_mask & M(CONFIRM))
 
     def test_target_info_close_composes_with_the_target_card(self):
         """P1 on its co-op target page (where co-op draws its own TARGET INFO card): the native window is closed
@@ -795,7 +835,7 @@ class GatherTest(unittest.TestCase):
     def handle(self, index, gen=5):
         return index | (gen << 20)
 
-    def registry_entry(self, index, unit, gen=5, mimic_asleep=False):
+    def registry_entry(self, index, unit, gen=5, mimic_asleep=False, actor=True, name_key=0):
         reg = self.img.va(REGISTRY)
         table = self.img.alloc(0x100)
         entry = self.img.alloc(0x200)
@@ -807,6 +847,11 @@ class GatherTest(unittest.TestCase):
         self.img.p64(table + 8 + 8 * index, entry)
         self.img.put(entry + 0x16, struct.pack('<H', gen))
         self.img.put(entry + 0x0E, bytes([unit]))
+        self.img.put(entry + 0x102, struct.pack('<h', name_key))
+        if actor and not mimic_asleep:
+            a = self.img.alloc(0x800)
+            self.img.p64(entry + 0x30, a)
+            self.img.p32(a + 0x08, self.handle(index, gen))
         if mimic_asleep:
             actor = self.img.alloc(0x800)
             ext = self.img.alloc(0x10)
@@ -819,26 +864,40 @@ class GatherTest(unittest.TestCase):
     def test_p1s_prompt_and_a_foe(self):
         self.menus(p1_menus=1)
         self.step()
-        cases = [('NPC, highlighted (output)', 3, False, 1, True), ('foe', 1, False, 1, False),
-                 ('foe, selected', 7, False, 2, False), ('mimic asleep as a chest', 4, True, 1, True)]
-        for k, (label, unit, asleep, state, ready) in enumerate(cases):
+        # (label, unit type, mimic asleep, state, ready, entry has its own actor, name key)
+        cases = [('NPC, highlighted (output)', 3, False, 1, True, True, 0), ('foe', 1, False, 1, False, True, 0),
+                 ('foe, selected', 7, False, 2, False, True, 0), ('mimic asleep as a chest', 4, True, 1, True, True, 0),
+                 # Bug 3 (0.1.60): a chest prompt in registry 0 never reads as a foe.
+                 ('chest named as one (434)', 4, False, 2, True, True, 434),
+                 ('chest object without an actor of its own', 4, False, 2, True, False, 0)]
+        for k, (label, unit, asleep, state, ready, actor, key) in enumerate(cases):
             with self.subTest(label):
                 h = self.handle(10 + k)
-                self.registry_entry(10 + k, unit, mimic_asleep=asleep)
+                self.registry_entry(10 + k, unit, mimic_asleep=asleep, actor=actor, name_key=key)
                 self.img.put_global(OUTPUT, bytes(16) + struct.pack('<II', state, h))
-                self.step()
+                r = self.step()
                 self.assertEqual(self.d.ILCT_FwPromptReady(), 1 if ready else 0)
+                self.assertEqual(bool(r.p1_mask & M(CONFIRM)), not ready, 'CONFIRM to the game exactly when ready')
+                if not ready:
+                    self.assertEqual(self.d.ILCT_FwPromptWhy(), 0x20, 'PB_FOE')
                 self.edges()
                 self.edges(pad={1: 1}, act={1: 1 << A_CONFIRM})
                 r = self.step()
-                self.assertEqual(r.pulse, CONFIRM if ready else 0)
+                self.assertEqual(r.pulse, 0, 'ready: the game read A itself; a foe: A is the co-op menu')
+                self.img.put_global(OUTPUT, bytes(24))
                 self.now += 300
+                self.step()
         # The descriptor wins when the scan published a usable target (state >= 2).
         h = self.handle(30)
         self.registry_entry(30, 3)
         self.img.put_global(OUTPUT, bytes(24))
         self.img.put_global(CAN_USE, b'\1')
         self.img.put_global(DESCRIPTOR, bytes(12) + struct.pack('<II', 2, h))
+        self.step()
+        self.assertEqual(self.d.ILCT_FwPromptReady(), 1)
+        # A highlighted descriptor (state 1) counts too: the keyboard's Enter interacts there (bug 3).
+        self.now += 300
+        self.img.put_global(DESCRIPTOR, bytes(12) + struct.pack('<II', 1, h))
         self.step()
         self.assertEqual(self.d.ILCT_FwPromptReady(), 1)
 

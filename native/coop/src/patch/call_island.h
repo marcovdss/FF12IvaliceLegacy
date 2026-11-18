@@ -80,7 +80,7 @@ constexpr uint32_t count_call_rows()
 }
 
 constexpr uint32_t ROWS = count_call_rows();  // keep in step with ILC_CALL_ROWS in call_stubs.cpp
-static_assert(ROWS == 22, "the call-type rows: 18 CALL rows plus four `mov rcx, reg; call` rows");
+static_assert(ROWS == 25, "the call-type rows: 21 CALL rows plus four `mov rcx, reg; call` rows");
 
 // Call index k (0..ROWS-1, in site-table order) <-> row.
 constexpr uint32_t row_of(uint32_t k)

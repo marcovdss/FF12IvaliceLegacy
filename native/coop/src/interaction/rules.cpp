@@ -10,7 +10,8 @@ namespace ilc::interaction {
 bool press_allowed(uint64_t actor_flags, uint32_t actor_state, uint32_t actor_action)
 {
     return (actor_flags & (facts::ACTOR_WEAPON_HANDLING | facts::ACTOR_EXECUTION)) == 0 && actor_state <= 1 &&
-           (actor_action == facts::ACTION_NONE || actor_action == facts::ACTION_IDLE);
+           (actor_action == facts::ACTION_NONE || actor_action == facts::ACTION_IDLE ||
+            actor_action == facts::ACTION_FOLLOW);
 }
 
 bool leader_allows(uint64_t actor_flags)

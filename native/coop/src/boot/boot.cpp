@@ -15,6 +15,8 @@
 #include "patch/patch_engine.h"
 #include "runtime/diag.h"
 #include "runtime/game_thread.h"
+#include "runtime/log.h"
+#include "runtime/options.h"
 #include "runtime/probe.h"
 #include "runtime/tick.h"
 #include "camera/camera.h"
@@ -24,6 +26,7 @@
 #include "hud/battle_hud.h"
 #include "hud/battle_log.h"
 #include "hud/canvas.h"
+#include "hud/driver.h"
 #include "hud/menus_draw.h"
 #include "hud/native.h"
 #include "hud/party_rows.h"
@@ -33,7 +36,13 @@
 #include "hud/world_marks.h"
 #include "frontend/frontend.h"
 #include "interaction/interaction.h"
+#include "interaction/prompt.h"
 #include "isolation/isolation.h"
+#include "overlay/feed.h"
+#include "overlay/hide.h"
+#include "overlay/overlay.h"
+#include "overlay/theme.h"
+#include "overlay/states.h"
 #include "menu/cost.h"
 #include "towns/towns.h"
 #include "party/party.h"
@@ -132,6 +141,284 @@ void step(uint32_t s)
     if (hook != nullptr) {
         hook(s);
     }
+}
+
+void init_steps();   // FF12Hinit's checks (defined after on_init)
+
+// ---- hook.log ----------------------------------------------------------------------------------------------------
+// Names from the schema's own tables, so a line reads "state READY, reason LIVE" without a lookup.
+#define ILC_NAME_CASE(prefix, name, value, doc) \
+    case value:                                 \
+        return #name;
+const char* state_name(uint32_t v)
+{
+    switch (v) {
+        ILC_STATES(ILC_NAME_CASE)
+    default:
+        return "?";
+    }
+}
+const char* reason_name(uint32_t v)
+{
+    switch (v) {
+        ILC_REASONS(ILC_NAME_CASE)
+    default:
+        return "?";
+    }
+}
+const char* switch_name(uint32_t v)
+{
+    switch (v) {
+        ILC_COOP_SWITCHES(ILC_NAME_CASE)
+    default:
+        return "?";
+    }
+}
+#undef ILC_NAME_CASE
+
+void subsystem_names(log::line& l, uint32_t mask)
+{
+#define ILC_SUBSYS_NAME(prefix, name, value, doc) \
+    if ((mask & (value)) != 0) {                  \
+        l.s(" ").s(#name);                        \
+    }
+    ILC_SUBSYSTEMS(ILC_SUBSYS_NAME)
+#undef ILC_SUBSYS_NAME
+}
+
+void log_status(const char* what)
+{
+    AcquireSRWLockShared(&g_status_lock);
+    const status s = g_status;
+    ReleaseSRWLockShared(&g_status_lock);
+    log::line l;
+    l.s(what).s(": state ").s(state_name(s.state)).s(", reason ").s(reason_name(s.reason)).s(" (").u(s.reason)
+        .s("), detail ").x(s.detail).s(", flags ").x(s.flags);
+    const bool trouble = s.state == ILC_STATE_FAULT || s.state == ILC_STATE_BLOCKED ||
+                         (s.state == ILC_STATE_INERT && s.reason != ILC_REASON_NONE && s.reason != ILC_REASON_SHUT_DOWN);
+    log::post(trouble ? log::ERR : log::INFO, l);
+}
+
+// After the boot's attach step: what runs and what does not.
+void log_attach()
+{
+    const uint32_t faulted = patch::faulted_mask();
+    if ((faulted & options::ALL_SUBSYSTEMS) != 0) {
+        log::line l;
+        l.s("could not attach (stays stock):");
+        subsystem_names(l, faulted);
+        log::post(log::ERR, l);
+    }
+    if ((flags_now() & ILC_BOOTF_INTERACTIONS_FAILED) != 0) {
+        log::post(log::ERR, "guest interactions could not attach (game code differs at their rows): guests cannot "
+                            "use doors, chests, crystals, NPCs or loot; everything else runs");
+    }
+}
+
+// Every applied settings record (verbose): its generation, the arm mask it asks for and the player options.
+void log_applied(const ilc_settings& s)
+{
+    const uint32_t mask = options::effective_subsystems(s);
+    log::line l;
+    l.s("settings ").u(s.header.generation).s(" applied: subsystems ").x(mask);
+    if (mask != options::ALL_SUBSYSTEMS) {
+        l.s(" (off:");
+        subsystem_names(l, options::ALL_SUBSYSTEMS & ~mask);
+        l.s(")");
+    }
+    l.s(", camera ").u(s.shared_camera).s(", interactions ").u(s.guest_interactions).s(", towns ").u(s.town_view)
+        .s(", wait ").u(s.wait_pause).s(", guest pause ").u(s.guest_pause).s(", hud ").x(s.hud_enabled ? s.hud_elements : 0);
+    log::post(log::INFO, l, log::VERBOSE);
+}
+
+// Once per beat on the co-op thread: changes worth a line, then the queue goes to hook.log.
+struct log_watch {
+    uint32_t faulted;
+    uint32_t coop_switch;
+    uint32_t hud_report;
+    uint32_t reason;
+    uint64_t toggles;
+    bool seen;
+    bool live_logged;   // the first DRY_ARMED -> LIVE is a normal line; later reason changes are verbose
+    bool prompt_logged; // the guests' prompt state (IX-21) was written once, at the first live beat with co-op on
+    uint64_t zero_output;     // hud zero_output already reported
+    uint64_t zero_warned_ms;  // module clock of the last HUD warning (0 = none yet)
+    uint64_t dump_ms;         // module clock of the last developer HUD dump (0 = none yet)
+    uint64_t declined_matrix; // hud declined_matrix already reported
+    uint64_t matrix_warned_ms;
+};
+
+// diagnostics.developer of the applied settings (co-op thread): the HUD readings below are logged only while it is on.
+bool g_developer = false;
+constexpr uint64_t HUD_LOG_MS = 30000;
+
+int64_t milli(float f)
+{
+    return static_cast<int64_t>(f * 1000.0f);
+}
+
+// The HUD lines of a beat. A warning (normal level, at most one per HUD_LOG_MS) when replays drew sprites or bars but
+// the game's draws added nothing to the render ring; with Developer options on, every HUD_LOG_MS, the frame hook's
+// readings (its cost, why frames were not drawn, what the last frame drew, the draw space and the probe), so a
+// playtest's hook.log answers "is the co-op HUD drawing, where, and at what cost" without a counters dump.
+void hud_lines(log_watch& w, uint64_t now)
+{
+    const hud::counters* cv = hud::stats();
+    const uint64_t zero = __atomic_load_n(&cv->zero_output, __ATOMIC_RELAXED);
+    if (zero > w.zero_output && (w.zero_warned_ms == 0 || now - w.zero_warned_ms >= HUD_LOG_MS)) {
+        log::line l;
+        l.s("HUD warning: ").u(zero - w.zero_output)
+            .s(" frames drew sprites or bars but the game's draws added nothing to the render ring (the co-op HUD may be "
+               "invisible)");
+        log::post(log::WARNING, l);
+        w.zero_output = zero;
+        w.zero_warned_ms = now != 0 ? now : 1;
+    }
+    const uint64_t no_matrix = __atomic_load_n(&cv->declined_matrix, __ATOMIC_RELAXED);
+    if (no_matrix > w.declined_matrix && (w.matrix_warned_ms == 0 || now - w.matrix_warned_ms >= HUD_LOG_MS)) {
+        const hud::budget_view bv = hud::budget();
+        log::line l;
+        l.s("HUD warning: ").u(no_matrix - w.declined_matrix)
+            .s(" frames not drawn: no usable draw matrix (depth ").u(bv.depth).s(", matrix x1000 [")
+            .i(milli(bv.matrix[0])).s(" ").i(milli(bv.matrix[1])).s(" / ").i(milli(bv.matrix[4])).s(" ")
+            .i(milli(bv.matrix[5])).s(" / t ").i(milli(bv.matrix[12])).s(" ").i(milli(bv.matrix[13]))
+            .s("], and no usable child space)");
+        log::post(log::WARNING, l);
+        w.declined_matrix = no_matrix;
+        w.matrix_warned_ms = now != 0 ? now : 1;
+    }
+    if (!g_developer || (w.dump_ms != 0 && now - w.dump_ms < HUD_LOG_MS)) {
+        return;
+    }
+    w.dump_ms = now != 0 ? now : 1;
+    static ilc_counters c;
+    diag::fill(&c);
+    const hud::budget_view bv = hud::budget();
+    log::line z;
+    z.s(hud::driver::layer_enabled() ? "HUD layer: ON (experiment: Developer options + HUD test draw)"
+                                     : "HUD layer: off (0.1.57 interim: the game's own command menu, battle log, Target "
+                                       "Info and party list; seat lines, diamonds and the low-HP glow stay)")
+        .s("; refused frames ").u(hud::driver::stats()->layer_off);
+    log::post(log::INFO, z);
+    log::line a;
+    a.s("HUD frame hook: last ").u(c.frame_hook_us_last).s(" us, avg ").u(c.frame_hook_us_avg).s(" us, max ")
+        .u(c.frame_hook_us_max).s(" us, calls ").u(c.frame_hook_calls).s("; drawn ").u(c.canvas_drawn)
+        .s(", declined off/frame/context/budget ").u(c.canvas_declined_off).s("/").u(c.canvas_declined_frame).s("/")
+        .u(c.canvas_declined_context).s("/").u(c.canvas_declined_budget).s(", faults ").u(c.canvas_faults);
+    log::post(log::INFO, a);
+    log::line t;
+    t.s("HUD last frame: ").u(c.canvas_text_last).s(" texts, ").u(c.canvas_chars_last).s(" chars, ring ")
+        .u(c.canvas_ring_ours_last).s(" bytes, zero-output frames ").u(c.canvas_zero_output).s("; composed ")
+        .u(c.driver_composed).s(", torn ").u(c.driver_torn).s(", dropped ").u(c.driver_dropped_frames)
+        .s(", menus without view ").u(c.driver_menus_no_view).s(", presenter age ").u(c.presenter_age_ms).s(" ms");
+    log::post(log::INFO, t);
+    log::line g;
+    g.s("HUD draw space: depth ").u(bv.depth)
+        .s(bv.source == hud::MATRIX_CHILD_SPACE ? " (root child space)" : bv.source == hud::MATRIX_NONE ? " (none usable)" : " (context)")
+        .s(", matrix x1000 [").i(milli(bv.matrix[0])).s(" ").i(milli(bv.matrix[1]))
+        .s(" / ").i(milli(bv.matrix[4])).s(" ").i(milli(bv.matrix[5])).s(" / t ").i(milli(bv.matrix[12])).s(" ")
+        .i(milli(bv.matrix[13])).s("]; atlas lookups ").u(c.canvas_atlas_lookups).s("; probe queries ")
+        .u(c.probe_queries).s(", hot hits ").u(c.probe_hot_hits).s(", misses ").u(c.probe_hot_misses)
+        .s(", refused ").u(c.probe_hot_failed).s("; child-space frames ").u(c.canvas_child_space)
+        .s(", no-matrix frames ").u(c.canvas_declined_matrix);
+    log::post(log::INFO, g);
+    // The probe's busiest call sites (module offsets: name them with the build's .map, image base 0x180000000).
+    // The guests' prompt (IX-21): its arming, its gate and what the drawer did (the "!" over a guest).
+    {
+        const interaction::prompt::status_view ps = interaction::prompt::status();
+        const interaction::prompt::counters* pc = interaction::prompt::stats();
+        log::line p;
+        p.s("guest prompt: IX-21 ").s(ps.attached != 0 ? "armed" : "not armed").s(", gate ")
+            .s(ps.gate_open != 0 ? "open" : "closed").s(", labels ").s(ps.label_pins != 0 ? "on" : "off")
+            .s(", first pin mismatch ").x(ps.first_mismatch).s("; published ").u(pc->published).s(", wrapped ")
+            .u(pc->passes_wrapped).s(", markers ").u(pc->objects).s(", labels ").u(pc->labels).s(", no anchor ")
+            .u(pc->no_anchor).s(", no texture ").u(pc->no_texture).s(", pool full ").u(pc->pool_full)
+            .s("; guest finds ").u(interaction::stats()->private_finds).s(", menu opens ")
+            .u(interaction::stats()->menu_opens);
+        log::post(log::INFO, p);
+    }
+    probe_site sites[5];
+    const uint32_t n = probe_sites(sites, 5);
+    if (n != 0) {
+        log::line s;
+        s.s("probe sites (queries/misses):");
+        for (uint32_t k = 0; k < n; ++k) {
+            s.s(" +").x(sites[k].rva).s(" ").u(sites[k].queries).s("/").u(sites[k].misses);
+        }
+        log::post(log::INFO, s);
+    }
+}
+
+void log_beat(log_watch& w)
+{
+    const uint32_t faulted = patch::faulted_mask();
+    const uint32_t sw = control::current_state();
+    const uint32_t report = hud::battle_hud::report();
+    const uint64_t toggles = control::stats()->toggles;
+    const uint32_t reason = current().reason;
+    if (w.seen) {
+        if (reason != w.reason) {
+            log::line l;
+            l.s("reason ").s(reason_name(reason)).s(", subsystems ").x(patch::subsystems_mask() & ~faulted);
+            const bool first_live = reason == ILC_REASON_LIVE && !w.live_logged;
+            w.live_logged = w.live_logged || first_live;
+            log::post(log::INFO, l, !first_live);
+        }
+        const uint32_t added = faulted & ~w.faulted;
+        if (added != 0) {
+            log::line l;
+            l.s("subsystem fault latched (now stock):");
+            subsystem_names(l, added);
+            if ((added & 0x40000000u) != 0) {
+                l.s(" CORE");
+            }
+            log::post(log::ERR, l);
+        }
+        if (sw != w.coop_switch) {
+            log::line l;
+            l.s("co-op switch ").s(switch_name(sw));
+            log::post(log::INFO, l, log::VERBOSE);
+        }
+        // The HUD report while co-op is on and live (switching co-op off clears RENDER on purpose: no line for that).
+        if (report != w.hud_report && patch::current_mode() == patch::MODE_LIVE && sw == ILC_COOP_SWITCH_ON) {
+            log::line l;
+            l.s("battle HUD report ").x(report);
+            if ((report & ILC_HUD_REPORT_FRAME_HOOK_OFF) != 0) {
+                l.s(": the HUD frame hook's call is not ours (another mod)");
+            } else if ((report & ILC_HUD_REPORT_RENDER_OFF) != 0) {
+                l.s((patch::subsystems_mask() & ILC_SUBSYS_RENDER) == 0 ? ": not drawn (RENDER disarmed or co-op off)"
+                                                                         : ": not drawn (RENDER faulted or not attached)");
+            }
+            if ((report & ILC_HUD_REPORT_VISION_NO_COMBAT_LOG) != 0) {
+                l.s("; Insurgent's Vision No Combat Log holds the frame hook's call");
+            }
+            log::post(report != 0 ? log::WARNING : log::INFO, l);
+        }
+        if (toggles != w.toggles) {
+            log::line l;
+            l.s("seat toggles: ").u(toggles);
+            log::post(log::INFO, l, log::VERBOSE);
+        }
+    }
+    w.faulted = faulted;
+    w.coop_switch = sw;
+    w.hud_report = report;
+    w.reason = reason;
+    w.toggles = toggles;
+    w.seen = true;
+    // Once, at the first live beat with co-op on: whether the guests' "!" (IX-21) can draw at all, and why not.
+    if (!w.prompt_logged && patch::current_mode() == patch::MODE_LIVE && sw == ILC_COOP_SWITCH_ON) {
+        w.prompt_logged = true;
+        const interaction::prompt::status_view ps = interaction::prompt::status();
+        log::line l;
+        l.s("guest prompt: IX-21 ").s(ps.attached != 0 ? "armed" : "NOT armed (marker pins differ)").s(", gate ")
+            .s(ps.gate_open != 0 ? "open" : "closed").s(", labels ")
+            .s(ps.label_pins != 0 ? "on" : "off (another mod rewrote the label setter)").s(", first pin mismatch ")
+            .x(ps.first_mismatch);
+        log::post(ps.attached != 0 && ps.gate_open != 0 ? log::INFO : log::WARNING, l);
+    }
+    hud_lines(w, patch::now_ms());
+    log::drain();
 }
 
 // ---- host ---------------------------------------------------------------------------------------------------
@@ -400,6 +687,15 @@ bool run_steps()
     if (!hud::attach(g_host.image_base)) {
         patch::fault_subsystem(ILC_SUBSYS_RENDER);
     }
+    // Our own overlay (OV-01): our D3D11 drawing inside the game's frame. If it cannot attach, nothing is drawn and
+    // the guests' menus stay idle (no presenter); its step() logs why. RENDER is not latched for it.
+    // The HUD theme first: the built-in default made active (its atlas is what the overlay's texture is made from) and
+    // the player themes folder under x64/scripts/config/IvaliceLegacy/themes, scanned later on the co-op thread.
+    overlay::theme::attach(g_host.x64_dir[0] != 0 ? g_host.x64_dir : nullptr);
+    overlay::attach(g_host.image_base);
+    // The vanilla HUD pieces the overlay's elements replace (draw-bit hides behind the HH-V rows), the elements' feed
+    // and the Legacy script states (PUSH_HUD_STATES): data only, nothing to arm.
+    overlay::hide::attach(g_host.image_base);
     // The native HUD changes (reduced party list, target circles off): a RENDER game-thread job; without it the
     // stock HUD stays as it is.
     hud::native::attach();
@@ -426,6 +722,9 @@ bool run_steps()
     // The session core owns the epoch from here on: FIRST_EPOCH until a world exists, a new one at every boundary.
     static ilc_settings applied_now;
     bridge_copy_applied(&applied_now);
+    options::configure_from_settings(applied_now);   // first: the subsystems below read the player options
+    log::set_verbose(applied_now.log_level != 0);
+    g_developer = applied_now.developer != 0;
     session::configure_from_settings(applied_now);
     isolation::configure_from_settings(applied_now);
     control::configure_from_settings(applied_now);
@@ -439,6 +738,7 @@ bool run_steps()
     hud::world_marks::configure_from_settings(applied_now);
     hud::rings::configure_from_settings(applied_now);
     hud::battle_hud::configure_from_settings(applied_now);  // after the elements' own: it sets their switches
+    overlay::configure_from_settings(applied_now);
     session::start(g_host.image_base, patch::now_ms());
     movement::start(g_host.image_base, patch::now_ms());
     camera::start(g_host.image_base);
@@ -450,6 +750,8 @@ bool run_steps()
     frontend::start(g_host.image_base, patch::now_ms());
     hud::snapshot::start(g_host.image_base, patch::now_ms());
     hud::menus_draw::start(g_host.image_base, patch::now_ms());
+    overlay::feed::start(g_host.image_base);
+    overlay::states::start(g_host.image_base);
     patch::heartbeat(session::epoch());
     patch::set_armed(true);
     AcquireSRWLockExclusive(&g_status_lock);
@@ -469,9 +771,15 @@ DWORD WINAPI init_main(void*)
     diag::note_coop_thread(GetCurrentThreadId());
     record(EV_INIT_THREAD);
     const bool armed = run_steps();
+    log_status(armed ? "hooks installed" : "start-up stopped");
+    if (armed) {
+        log_attach();
+    }
+    log::drain();
     __atomic_store_n(&g_settled, 1u, __ATOMIC_RELEASE);
     SetEvent(g_settled_event);
     if (armed) {
+        log_watch watch = {};
         // The co-op thread: one session step per beat, then the liveness heartbeat with the session's epoch.
         // Every detour falls back to stock if this stops for more than 2 s.
         uint32_t beat = 0;
@@ -499,6 +807,10 @@ DWORD WINAPI init_main(void*)
                 bridge_copy_applied(&applied);
                 if (applied.header.generation != applied_generation) {
                     applied_generation = applied.header.generation;
+                    options::configure_from_settings(applied);
+                    log::set_verbose(applied.log_level != 0);
+                    g_developer = applied.developer != 0;
+                    log_applied(applied);
                     session::configure_from_settings(applied);
                     isolation::configure_from_settings(applied);
                     control::configure_from_settings(applied);
@@ -512,6 +824,7 @@ DWORD WINAPI init_main(void*)
                     hud::world_marks::configure_from_settings(applied);
                     hud::rings::configure_from_settings(applied);
                     hud::battle_hud::configure_from_settings(applied);
+                    overlay::configure_from_settings(applied);
                 }
             }
             const uint64_t now = patch::now_ms();
@@ -532,9 +845,14 @@ DWORD WINAPI init_main(void*)
             hud::target_info::step(now);  // the Target Info's view (after the snapshot)
             hud::menus_draw::step(now);  // the co-op menus as the menu pass draws them (after the snapshot)
             hud::battle_log::step(now);  // the battle log's view (after the snapshot and the menus' names)
+            overlay::states::step(now);  // the Legacy script states, resolved to handles (after the snapshot)
+            overlay::feed::step(now);    // the overlay's party list, Wait and chain feed (after the log and party rows)
+            overlay::hide::sample(now);  // the HH-V rows compared (first beat, then every 5 s)
+            overlay::hide::watch(now);   // the UI tick stopped with pieces hidden: give them back (interlocked)
             hud::battle_hud::step(now);  // Identify presses (before the diamonds' beat) and the page's report
             hud::world_marks::step(now);  // seat lines and diamonds (after the snapshot)
             hud::rings::step(now);  // the AoE rings the seats' target pages want (after the snapshot and the menus)
+            overlay::step(now);     // the overlay's hook.log lines (what the render thread recorded)
             interaction::step(now);   // guest interactions: record, requests, the hold and its menu driver
             isolation::publish(now);  // after the heartbeat: this epoch; refills the keyboard lease
             firewall::step(now);      // after isolation (P1's device) and interaction (the menu driver)
@@ -549,6 +867,7 @@ DWORD WINAPI init_main(void*)
             if (now > last_tick + REAP_AFTER_MS) {
                 gtq::reap();
             }
+            log_beat(watch);   // state changes worth a line, then the queued lines go to hook.log
             diag::beat_end(beat_started);
         }
         frontend::stop();
@@ -562,6 +881,9 @@ DWORD WINAPI init_main(void*)
         hud::rings::stop();
         hud::battle_hud::stop();
         hud::native::stop();
+        overlay::feed::stop();
+        overlay::states::stop();
+        overlay::stop();
         submit::stop();
         firewall::stop();
         interaction::stop();
@@ -586,6 +908,16 @@ void on_init()
     if (__atomic_exchange_n(&g_init_once, 1u, __ATOMIC_ACQ_REL) != 0) {
         return;  // a second FF12Hinit in this copy changes nothing
     }
+    init_steps();
+    // FF12Hinit runs on the game's main thread with the loader's own lines; the init thread logs the rest.
+    log_status("start-up");
+    log::drain();
+}
+
+namespace {
+
+void init_steps()
+{
     set_flags(ILC_BOOTF_INIT_CALLED);
     diag::calibrate_once();
     diag::note_init_thread(GetCurrentThreadId());
@@ -651,6 +983,8 @@ void on_init()
     set_flags(ILC_BOOTF_THREAD_STARTED);
 }
 
+}  // namespace
+
 void on_init_done()
 {
     record(EV_INIT_DONE);
@@ -697,6 +1031,7 @@ void on_cleanup()
     stop_input();
     // The native HUD changes go back to stock (the UI tick no longer runs our code once disarmed).
     hud::native::restore_at_exit();
+    overlay::hide::restore_at_exit();   // the vanilla party list, help line, Target Info and log window drawn again
     // 4. the hooks stay installed: disarmed, they run stock until the process ends.
     set_status(ILC_STATE_INERT, was_armed ? ILC_REASON_SHUT_DOWN : ILC_REASON_BOOT_ABORTED, 0);
     set_flags(ILC_BOOTF_CLEANUP_DONE);

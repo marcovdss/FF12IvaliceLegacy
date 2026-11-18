@@ -19,6 +19,8 @@ volatile int32_t g_enabled = 0;
 volatile int32_t g_forced = -1;
 const game_fns* g_test_fns = nullptr;
 engine_out g_last = {};               // game thread only
+volatile uint32_t g_freeze = 0;       // bit 0 frozen, bit 1 p1_stock (game thread writes, any thread reads)
+volatile uint64_t g_freeze_ms = 0;
 
 void bump(volatile uint64_t& c) { __atomic_add_fetch(&c, 1, __ATOMIC_RELAXED); }
 
@@ -48,12 +50,18 @@ game_fns live_fns()
 }  // namespace
 
 // ---- the rule ---------------------------------------------------------------------------------------------------
-bool pause_wanted(const seat_view seats[SEATS])
+bool pause_wanted(const seat_view seats[SEATS], uint8_t rule)
 {
-    bool any = false;
+    bool any = false;      // a participant exists (ALL) / a participant's menu is open (ANY)
     for (uint32_t s = 0; s < SEATS; ++s) {
         if (seats[s].role != ROLE_PARTICIPANT) {
             continue;  // absent and benched seats never count
+        }
+        if (rule == ILC_WAIT_PAUSE_ANY) {
+            if (seats[s].open != 0) {
+                return true;
+            }
+            continue;
         }
         if (seats[s].open == 0) {
             return false;
@@ -213,10 +221,37 @@ void step(uint32_t epoch)
         break;
     }
     __atomic_store_n(&g_owned, uint32_t{out.owned}, __ATOMIC_RELEASE);
+    // The HUD's Wait line: frozen after this tick, and whether the stock frontend up pauses with reason 0.
+    const bool p1_stock = in.readable != 0 && in.frontend_on != 0 && in.frontend_reason == 0;
+    __atomic_store_n(&g_freeze, (frozen_after(in, out) ? 1u : 0u) | (p1_stock ? 2u : 0u), __ATOMIC_RELEASE);
+    __atomic_store_n(&g_freeze_ms, patch::now_ms(), __ATOMIC_RELEASE);
+}
+
+bool frozen_after(const engine_in& in, const engine_out& out)
+{
+    if (in.readable == 0 || in.active_mode != 0 || in.in_play == 0) {
+        return false;
+    }
+    switch (out.action) {
+    case ACT_ACQUIRE: return true;
+    case ACT_RELEASE: return false;
+    default: return in.held != 0;
+    }
+}
+
+freeze_view freeze()
+{
+    freeze_view v = {};
+    v.at_ms = __atomic_load_n(&g_freeze_ms, __ATOMIC_ACQUIRE);
+    const uint32_t f = __atomic_load_n(&g_freeze, __ATOMIC_ACQUIRE);
+    v.frozen = (f & 1u) != 0 ? 1 : 0;
+    v.p1_stock = (f & 2u) != 0 ? 1 : 0;
+    return v;
 }
 
 bool release_if_owned()
 {
+    __atomic_store_n(&g_freeze_ms, uint64_t{0}, __ATOMIC_RELEASE);   // no look this tick: the Wait line hides
     if (!owned()) {
         return false;
     }
@@ -259,6 +294,7 @@ bool release_if_owned()
 
 void step_dry()
 {
+    __atomic_store_n(&g_freeze_ms, uint64_t{0}, __ATOMIC_RELEASE);
     if (owned()) {
         bump(g_counters.dry_owned);
     }
@@ -316,6 +352,8 @@ void test_reset()
     __atomic_store_n(&g_image_base, facts::IMAGE_VA, __ATOMIC_RELEASE);
     g_test_fns = nullptr;
     g_last = engine_out{};
+    g_freeze = 0;
+    g_freeze_ms = 0;
     g_slot.withdraw();
 }
 

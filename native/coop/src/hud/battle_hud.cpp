@@ -4,6 +4,7 @@
 #include "hud/battle_log.h"
 #include "hud/canvas.h"
 #include "hud/circles.h"
+#include "hud/driver.h"
 #include "hud/hud_facts.h"
 #include "hud/native.h"
 #include "hud/party_rows.h"
@@ -178,6 +179,12 @@ void configure_from_settings(const ilc_settings& s)
 {
     const uint32_t e = effective_elements(s);
     const bool hud_on = s.hud_enabled != 0;
+    // 0.1.57 interim (driver.h): the co-op layer, and everything that replaces a native HUD piece, only as an
+    // experiment (Developer options and the HUD test draw on).
+    // The old co-op layer (the replay through the game's HUD renderer) stays off: our own overlay draws the guests'
+    // menus, and the Diagnostics test switch (hud_test_draw) now shows the overlay's test card (overlay.h).
+    (void)s.hud_test_draw;
+    driver::set_layer_enabled(false);
     native::set_enabled(hud_on);
     native::set_parts((on(e, ILC_HUD_PARTY_SHRINK) ? native::PART_SHRINK : 0u) |
                       (on(e, ILC_HUD_CIRCLES_OFF) ? native::PART_CIRCLES : 0u));
@@ -186,13 +193,17 @@ void configure_from_settings(const ilc_settings& s)
                           (on(e, ILC_HUD_LOW_HP_GLOW) ? party_rows::PART_GLOW : 0u) |
                           (on(e, ILC_HUD_DAMAGE_GHOST) ? party_rows::PART_GHOST : 0u) |
                           (on(e, ILC_HUD_ACTION_LINE) ? party_rows::PART_ACTION : 0u) |
-                          party_rows::PART_TIMERS | party_rows::PART_CURSORS);
+                          (on(e, ILC_HUD_PARTY_TIMERS) ? party_rows::PART_TIMERS : 0u) |
+                          (on(e, ILC_HUD_GUEST_CURSORS) ? party_rows::PART_CURSORS : 0u));
     target_info::set_enabled(on(e, ILC_HUD_TARGET_INFO));
     battle_log::settings b = battle_log::current();
     b.enabled = on(e, ILC_HUD_BATTLE_LOG) ? 1 : 0;
     b.expand_control = s.log_expand_control;
     b.filter = s.log_filter;
     b.filter_seat = s.log_filter_seat;
+    b.compact_lines = s.log_lines_compact;
+    b.expanded_lines = s.log_lines_expanded;
+    b.fade_s = s.log_fade_s;
     battle_log::configure(b);   // clamps; `expanded` (the button's state) is kept
     world_marks::set_lines_enabled(on(e, ILC_HUD_SEAT_LINES));
     world_marks::set_diamonds_enabled(on(e, ILC_HUD_SEAT_DIAMONDS));

@@ -80,5 +80,9 @@ constexpr uint32_t PROMPT_HIGHLIGHTED = 1;             // in range and shown (th
 constexpr uint32_t PROMPT_SELECTED = 2;
 constexpr uint32_t ENTRY_UNIT_TYPE = 0x0E;             // registry entry: u8, low nibble = unit type
 constexpr uint32_t HANDLE_REGISTRY_SHIFT = 16;         // handle bits 16..19 = registry (0 = actors)
+constexpr uint32_t ENTRY_ACTOR = 0x30;                 // registry entry: pointer to the actor (actor entries)
+constexpr uint32_t ENTRY_NAME_KEY = 0x102;             // registry entry: i16 name key (434 = a treasure chest)
+constexpr int16_t TREASURE_NAME_KEY = 434;
+constexpr uint32_t ACTOR_HANDLE = 0x08;                // actor: u32 handle
 
 }  // namespace ilc::firewall::facts

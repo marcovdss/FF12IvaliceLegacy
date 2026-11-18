@@ -1,0 +1,41 @@
+{
+  "generator": "native/coop/tools/gen_overlay_themes.py",
+  "generatorVersion": 1,
+  "order": [
+    "legacy-bold",
+    "legacy-humanist",
+    "legacy-crisp"
+  ],
+  "themes": {
+    "legacy-bold": {
+      "name": "Bold Modern",
+      "atlasDigest": "4ebb82a4490345255edb1bed365eb82c7b4af5f6c71b4386debb5202ea70f9f0",
+      "sourceThemeAtlasSha256": "339ac756055407980234cd1538845e2a33eb9693bc9ce325f24a34bcd297ddd6",
+      "files": {
+        "theme.json": "5ffa50d3a3dc9a46ab903c8a9d64093ab0d0f902876f8f434db93c376c089c36",
+        "font.inc": "f58cc2dd15f14f2c160debaecba35d40b9ed2448914dc8d9bdede2aca9e7a139",
+        "theme_json.inc": "969f0ad208c0cb1ee924628190afc5c97baabe37c58fd3f9427bed750af6488d"
+      }
+    },
+    "legacy-humanist": {
+      "name": "Refined Vanilla",
+      "atlasDigest": "afa7f0f5b0e647ba02c60e92f8808ee463b4588f8ad41f0cae1bb51f4e734983",
+      "sourceThemeAtlasSha256": "e2ce4ea0ff08ad8677010330cba1e324313940fbe9024966fd3fe9ed1262150f",
+      "files": {
+        "theme.json": "3eaae7687966ccf4d31d13672f0fab98c7507234b6da92de6ce6c3ea914542ac",
+        "font.inc": "cbb9e7149e05cf57fe7f678a9ae23b17e26a84c4d4c583f9944c939d764db56f",
+        "theme_json.inc": "c9d6cabcd50e44bb3063e2ffc61b175c2b72b1a6cce62eeec4a16755a3ffa425"
+      }
+    },
+    "legacy-crisp": {
+      "name": "Crisp Vanilla",
+      "atlasDigest": "e072b348afc079c57f4f799f2012bc6da656388ae1747235ab0157cecab4f9e6",
+      "sourceThemeAtlasSha256": "1cb7e9ea893a9bb199564faf59a9b1f371c9f1eb3c8d16df4421c777399dd971",
+      "files": {
+        "theme.json": "7286647620e48f061f0466c84ff02fc7a20e2f07e89bd910a984c0469475b878",
+        "font.inc": "c07f0293f3b993575a0c71cc836f1482a13130cf00b4445dd49b522159dbb154",
+        "theme_json.inc": "380915715c18b6c32075c0dfb6ecda65d362f6de4f25606738389420786f77da"
+      }
+    }
+  }
+}

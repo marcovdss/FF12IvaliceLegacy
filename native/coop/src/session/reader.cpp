@@ -23,7 +23,7 @@ bool game_reader::checked_region(uintptr_t address, size_t count)
     ++queries_;
     uintptr_t begin = 0;
     uintptr_t end = 0;
-    if (!probe_region(reinterpret_cast<const void*>(address), &begin, &end) || address + count > end) {
+    if (!game_region(reinterpret_cast<const void*>(address), &begin, &end) || address + count > end) {
         return false;
     }
     cache_[cache_next_] = {begin, end};
@@ -68,7 +68,7 @@ bool game_reader::read(uintptr_t address, void* out, size_t count)
         ++queries_;
         uintptr_t begin = 0;
         uintptr_t end = 0;
-        if (probe_region(reinterpret_cast<const void*>(address), &begin, &end)) {
+        if (game_region(reinterpret_cast<const void*>(address), &begin, &end)) {
             if (address + count <= end) {
                 cache_[cache_next_] = {begin, end};
                 cache_next_ = (cache_next_ + 1) % CACHE;

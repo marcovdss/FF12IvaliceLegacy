@@ -68,7 +68,10 @@ constexpr uint16_t MEMBER_NONE = 0xFFFF;
 
 // The UI sounds our menus play (nothing else is ever passed to the sound function): Gambits on and off, the target
 // group change, cursor, open/confirm, close, menu opened.
-constexpr uint32_t SOUND_IDS[] = {0x12, 0x13, 0x0A, 1, 2, 3, 4};
+// Also the chest sound (0x27): a chest taken in log mode (interaction/treasure_log.h) plays it, as Ivalice Together's
+// sound pump did on every chest.
+constexpr uint32_t SOUND_CHEST = 0x27;
+constexpr uint32_t SOUND_IDS[] = {0x12, 0x13, 0x0A, 1, 2, 3, 4, SOUND_CHEST};
 
 // The first bytes of every function above, from the pinned build. attach() compares them before registering any
 // operation: a function that does not start with them is not called at all (the menus' game-thread operations stay

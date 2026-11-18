@@ -59,6 +59,13 @@ int32_t ILCT_TiSelect(const hud::hud_snapshot* snap, int32_t* target_index)
     return ti::select_seat(*snap, target_index);
 }
 
+int32_t ILCT_TiEngaged(const hud::hud_snapshot* snap, uint32_t stance_mask)
+{
+    return ti::engaged(*snap, stance_mask) ? 1 : 0;
+}
+
+void ILCT_TiForceEngaged(int32_t state) { ti::test_force_engaged(state); }
+
 uint32_t ILCT_TiGate(uint32_t party, uint32_t libra_known, uint32_t libra, uint32_t anti, uint32_t anti_stock)
 {
     ti::gate_in in = {};

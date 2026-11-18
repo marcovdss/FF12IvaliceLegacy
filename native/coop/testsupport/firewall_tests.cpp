@@ -185,6 +185,11 @@ int32_t ILCT_FwPromptReady(void)
     return firewall::p1_prompt_ready() ? 1 : 0;
 }
 
+uint32_t ILCT_FwPromptWhy(void)
+{
+    return firewall::p1_prompt_why();
+}
+
 uint64_t ILCT_FwFg07Last(void)
 {
     return firewall::test_fg07_last();

@@ -81,7 +81,7 @@ bool vision_form(const uint8_t w[8])
 
 bool read_window(uint8_t out[8])
 {
-    return load_from_caller(out, reinterpret_cast<const void*>(site_address()), 8);
+    return load_game(out, reinterpret_cast<const void*>(site_address()), 8);
 }
 
 // One locked compare-exchange of the aligned qword under a temporarily writable page. False: nothing changed.

@@ -13,8 +13,12 @@
 #include "menu/live.h"
 #include "menu/menu_facts.h"
 #include "menu/menus.h"
+#include "overlay/overlay.h"
 #include "party/party.h"
 #include "patch/patch_engine.h"
+#include "runtime/log.h"
+#include "runtime/options.h"
+#include "runtime/tick.h"
 #include "session/reader.h"
 #include "session/world.h"
 #include "submit/submit.h"
@@ -78,6 +82,8 @@ struct core {
     uint8_t interaction_mask;
     uint8_t quickening;         // the quickening bits last reported
     firewall::menu_report report;
+    uint32_t report_epoch;      // the epoch `report` was posted in
+    bool vanilla_prev;          // P1's own vanilla battle frontend was up on the last beat that sampled the screen
 };
 
 core g = {};
@@ -90,6 +96,15 @@ menu::shared_state g_shared;
 counters g_counters;
 const sources* g_test_sources = nullptr;
 uintptr_t g_test_image_base = 0;
+// Player 1's menu on the overlay (rules.h p1_arm_step): on in the module, off after test_reset() (the host tests then
+// set the P1-native switch themselves).
+volatile uint32_t g_arming = 1;
+p1_arm g_arm = {};
+uint64_t g_givebacks_seen = 0;
+uint64_t g_failed_seen = 0;     // the presenter's last refused frame already looked at
+volatile int32_t g_test_live = -1;      // host tests: -1 overlay::live_track; 0 / 1 forced; 2 the presenter's frames
+overlay::live_streak g_test_streak = {};
+uint32_t g_arm_logged = 0;      // bit per p1_arm_event already written to hook.log (once each per launch)
 
 void bump(volatile uint64_t& c) { __atomic_add_fetch(&c, 1, __ATOMIC_RELAXED); }
 
@@ -155,6 +170,20 @@ uint32_t live_screen(const session_record& rec)
         callback == r.global(ff::CB_COMMAND_TREE) && r.ptr(r.global(ff::ACTIVE_MENU), &active) &&
         active == ui + ff::UI_TREE_SLOT) {
         out |= SCREEN_TREE;
+    }
+    // Player 1's own battle frontend as the current one (id 0x2092730 masked, open flag 0x2092734): the battle menu,
+    // the leader select or the command-tree variant.
+    uint32_t frontend_id = 0;
+    uint32_t frontend_open = 0;
+    if (r.u32(r.global(session::facts::COMMAND_ACTOR), &frontend_id) &&
+        r.u32(r.global(session::facts::COMMAND_FLAG), &frontend_open) && frontend_open == 1) {
+        const uint32_t id = frontend_id & ff::FRONTEND_ID_MASK;
+        if (id == ff::FRONTEND_BATTLE || id == ff::FRONTEND_LEADER || id == ff::FRONTEND_TREE_ACTIVE) {
+            out |= SCREEN_P1_BATTLE;
+        }
+        if (id == ff::FRONTEND_LEADER) {
+            out |= SCREEN_P1_LEADER;
+        }
     }
     return out;
 }
@@ -397,9 +426,65 @@ void handle(uint32_t s, const menu::menu_event& e, uint64_t now)
     }
 }
 
+// ---- why a guest's battle-menu press did not open the menu (verbose log, PLAYTEST-1 M2) ----------------------------
+// One line per refused press (presses are edges, so this is press-rate, never per beat), naming the gate.
+bool menu_pressed(const seat_edges& e)
+{
+    return (e.pressed & (1u << ILC_ACTION_BATTLE_MENU)) != 0;
+}
+
+void note_refused(uint32_t s, const char* gate)
+{
+    log::line l;
+    l.s("guest battle menu: Player ").u(s + 1).s(" press refused: ").s(gate);
+    log::post(log::INFO, l, log::VERBOSE);
+}
+
+// The gates before the seats run (frontend-wide): every guest that pressed is told the same gate.
+void note_refused_all(const seat_edges* edges, const char* gate)
+{
+    if (!log::verbose()) {
+        return;  // the line would be dropped anyway
+    }
+    for (uint32_t s = 1; s < ACTIVE; ++s) {
+        if (menu_pressed(edges[s])) {
+            note_refused(s, gate);
+        }
+    }
+}
+
+// The first seat gate of run_seat that fails, for a guest whose press found the menu closed.
+const char* seat_gate(const seat_entry& e, bool hidden, bool control_ok)
+{
+    if ((e.flags & session::SEATF_IN_SESSION) == 0) {
+        return "not in session (no controller and not the keyboard seat, or not joined)";
+    }
+    if ((e.flags & session::SEATF_MANUAL) == 0) {
+        return "not under manual control (parked or AI)";
+    }
+    if ((e.flags & session::SEATF_BENCHED) != 0) {
+        return "its character is benched";
+    }
+    if ((e.flags & session::SEATF_ACTOR) == 0 || e.member == targets::MEMBER_NONE || e.handle == 0) {
+        return "no character actor bound (not in the active party, or the actor handle reads 0)";
+    }
+    if (hidden) {
+        return "hidden (menus suspended, party recovery, or its window not in the presented frame)";
+    }
+    if ((e.flags & session::SEATF_MENU) == 0) {
+        return "menus not allowed now (town, native menu, modal, chocobo or no control)";
+    }
+    if (!control_ok) {
+        return "the game does not give control (FACT_CONTROL clear)";
+    }
+    return nullptr;
+}
+
 // One seat's beat. Returns the seat (1..) when it asks for the native Party screen, else 0.
+// confirm_open: a guest's CONFIRM found nothing to use (interaction::take_menu_opens): it opens the menu like the menu
+// button, only while the menu is closed and no selector is up (never a close).
 uint8_t run_seat(uint32_t s, const session_record& rec, const seat_edges& edges, bool hidden, bool control_ok,
-                 uint64_t now)
+                 uint64_t now, bool confirm_open = false)
 {
     seat_rt& st = g_seat[s];
     const seat_entry& e = rec.seat[s];
@@ -415,10 +500,19 @@ uint8_t run_seat(uint32_t s, const session_record& rec, const seat_edges& edges,
     st.handle = e.handle;
     st.eligible = bound && (e.flags & session::SEATF_MENU) != 0 && control_ok ? 1 : 0;
     st.last_commands = 0;
+    const bool fallback = s != 0 && confirm_open && st.sm.model.mode == menu::MODE_CLOSED && st.sel.kind == SEL_NONE;
+    const bool guest_press = s != 0 && (menu_pressed(edges) || fallback) && st.sm.model.mode == menu::MODE_CLOSED;
+    if (guest_press && (!bound || hidden || st.eligible == 0)) {
+        const char* gate = seat_gate(e, hidden, control_ok);
+        note_refused(s, gate != nullptr ? gate : "not bound");
+    }
     if (!bound || hidden) {
         return 0;  // a suspended menu keeps its place and takes no input
     }
     if (st.sel.kind != SEL_NONE) {
+        if (guest_press && st.eligible != 0) {
+            note_refused(s, "its character selector is open");
+        }
         // The selector is a rootless list: up/down, confirm, cancel (not for the KO recovery), the menu button.
         const uint32_t cmds = commands(s == 0, menu::MODE_TARGET, false, edges);
         st.last_commands = cmds;
@@ -429,11 +523,17 @@ uint8_t run_seat(uint32_t s, const session_record& rec, const seat_edges& edges,
     }
     const uint8_t mode = st.sm.model.mode;
     const bool prompt = s == 0 && firewall::p1_prompt_ready();
-    const uint32_t cmds = commands(s == 0, mode, prompt, edges);
+    uint32_t cmds = commands(s == 0, mode, prompt, edges);
+    if (fallback && mode == menu::MODE_CLOSED) {
+        cmds |= CMD_OPEN;
+    }
     st.last_commands = cmds;
     menu::menu_model* m = &st.sm.model;
     if (mode == menu::MODE_CLOSED) {
         const bool may_open = st.eligible != 0 && now >= st.reopen_at && !(s == 0 && g.p1_down);
+        if (guest_press && st.eligible != 0 && now < st.reopen_at) {
+            note_refused(s, "the reopen delay after a close");
+        }
         if ((cmds & CMD_OPEN) != 0 && may_open) {
             refresh_seat(s, rec, now, true);  // the pages of the character as it is now
             const menu::menu_event ev = menu::model_open(m);
@@ -452,7 +552,9 @@ uint8_t run_seat(uint32_t s, const session_record& rec, const seat_edges& edges,
                 selector_close(&st.sel);
             }
         }
-        return (cmds & CMD_PARTY) != 0 ? static_cast<uint8_t>(s + 1) : 0;
+        // A guest's PARTY opens the native Party menu only while guests may (settings guest_pause); P1's always does.
+        const bool party_allowed = s == 0 || options::guest_pause();
+        return (cmds & CMD_PARTY) != 0 && party_allowed ? static_cast<uint8_t>(s + 1) : 0;
     }
     if (st.eligible == 0) {
         return 0;  // a native screen is opening or control is gone: the menu waits as it is
@@ -526,6 +628,7 @@ bool shown_open(uint32_t s, uint64_t now)
 void post(const firewall::menu_report& m)
 {
     g.report = m;
+    g.report_epoch = g.epoch;
     firewall::post_menus(m);
 }
 
@@ -554,6 +657,102 @@ void idle(bool rec_ok, const session_record& rec, uint64_t now, const firewall::
         wait::publish(epoch, rec.head.generation, false, now);
     } else {
         wait::withdraw();
+    }
+}
+
+// Player 1's menu on the overlay, once per beat (rules.h p1_arm_step): armed, P1's battle menu, leader select and KO
+// selector are co-op menus the overlay draws; disarmed, P1 is on the game's own frontends (the session's P1-native
+// switch on). `layer`: the menu layer runs this beat; `native_up`: a stock frontend or the pause screen is up;
+// `vanilla_up`: P1's own vanilla battle frontend is up (while armed only a race opens it: vanilla wins, held).
+overlay::live_streak live_streak_now(uint64_t now)
+{
+    const int32_t forced = __atomic_load_n(&g_test_live, __ATOMIC_ACQUIRE);
+    if (forced < 0) {
+        return overlay::live_track(now);
+    }
+    // Host tests: the same streak rule on a forced value, or on the presenter's frames (mode 2: a presented frame within
+    // overlay::LIVE_MS stands for an overlay frame, as OV-01 stamps both).
+    const presenter::run_view r = presenter::run();
+    // Mode 2: a frame of an unbroken run within LIVE_MS (a frame reached and not presented, as a menu hides the HUD,
+    // breaks the run: overlay_live's field gate is off at once there).
+    const bool on = forced == 1 || (forced == 2 && r.frames != 0 && r.last_ms != 0 && now >= r.last_ms &&
+                                    now - r.last_ms <= overlay::LIVE_MS);
+    if (on) {
+        if (g_test_streak.since == 0 || g_test_streak.last == 0 || now < g_test_streak.last ||
+            now - g_test_streak.last > overlay::LIVE_MS) {
+            g_test_streak.since = now != 0 ? now : 1;
+        }
+        g_test_streak.last = now != 0 ? now : 1;
+    } else if (g_test_streak.last == 0 || now < g_test_streak.last || now - g_test_streak.last > overlay::LIVE_MS) {
+        g_test_streak.since = 0;
+    }
+    return g_test_streak;
+}
+
+// race: P1's own vanilla battle frontend came up this beat although the report the firewall applied last beat had the
+// gate refusing it (rules.h). seat0_busy: seat 0 has a co-op window up (a refused frame then is a give-back).
+void p1_owner(uint64_t now, bool layer, bool native_up, bool race = false, bool seat0_busy = false)
+{
+    if (__atomic_load_n(&g_arming, __ATOMIC_ACQUIRE) == 0) {
+        return;
+    }
+    const presenter::run_view r = presenter::run();
+    p1_arm_in in = {};
+    in.wanted = 1;   // no settings field yet: Player 1's menu is always wanted on the overlay
+    in.live = presenter::live(now) ? 1 : 0;
+    in.layer = layer ? 1 : 0;
+    in.native_up = native_up ? 1 : 0;
+    in.vanilla_race = race ? 1 : 0;
+    const uint64_t givebacks = __atomic_load_n(&g_counters.p1_givebacks, __ATOMIC_RELAXED);
+    in.gave_back = givebacks != g_givebacks_seen ? 1 : 0;
+    g_givebacks_seen = givebacks;
+    // A refused frame while P1's co-op window is up is an overlay failure: a give-back (escalating), never a race.
+    if (r.failed_ms != 0 && r.failed_ms != g_failed_seen) {
+        if (g_arm.armed != 0 && seat0_busy) {
+            in.gave_back = 1;
+        }
+        g_failed_seen = r.failed_ms;
+    }
+    in.drawn_ok = r.gpu_drawn_ms != 0 && r.gpu_drawn_ms > r.failed_ms ? 1 : 0;
+    // overlay_live and its streak (item 7: arming follows the blocker's one switch, with its hysteresis).
+    const overlay::live_streak ls = live_streak_now(now);
+    in.live_since = ls.since;
+    in.live_last = ls.last;
+    in.failed_ms = r.failed_ms;
+    const uint8_t ev = p1_arm_step(&g_arm, in, now);
+    if (ev == PA_DISARMED || ev == PA_HELD || ev == PA_LATCHED) {
+        // A re-arm needs a fresh 250 ms of overlay_live, whatever disarmed P1 (the presenter, the layer, a hold).
+        overlay::live_restart();
+        g_test_streak = overlay::live_streak{};
+    }
+    session::set_p1_native(g_arm.armed == 0);
+    if (ev == PA_NONE || (g_arm_logged & (1u << ev)) != 0) {
+        return;
+    }
+    g_arm_logged |= 1u << ev;
+    log::line l;
+    switch (ev) {
+    case PA_ARMED:
+        l.s("P1 menu: on the overlay after ").u(now - ls.since).s(" ms live (first time this launch)");
+        log::post(log::INFO, l);
+        break;
+    case PA_DISARMED:
+        l.s("P1 menu: back on the vanilla menu (first time this launch): presenter ").s(in.live != 0 ? "live" : "not live")
+            .s(", layer ").s(layer ? "runs" : "idle").s(", overlay live ")
+            .s(ls.last != 0 && now >= ls.last && now - ls.last <= P1_LIVE_HOLD_MS ? "yes" : "no").s(", refused frame ")
+            .s(r.failed_ms != 0 && now >= r.failed_ms && now - r.failed_ms <= P1_FAILED_MS ? "recent" : "none");
+        log::post(log::INFO, l);
+        break;
+    case PA_LATCHED:
+        l.s("P1 menu: Player 1's window was given back ").u(g_arm.holds)
+            .s(" times; Player 1 stays on the vanilla menu for the rest of this launch");
+        log::post(log::WARNING, l);
+        break;
+    default:
+        l.s("P1 menu: Player 1's window was given back (").s(race ? "the vanilla battle menu won a race" : "left out")
+            .s("); vanilla menu for ").u((g_arm.hold_until - now) / 1000).s(" s (first time this launch)");
+        log::post(log::WARNING, l);
+        break;
     }
 }
 
@@ -650,6 +849,11 @@ void start(uintptr_t image_base, uint64_t now_ms)
         targets::cursor_reset(&g_seat[s].cursor);
         memset(&g_cands[s], 0, sizeof(g_cands[s]));
     }
+    g_arm = p1_arm{};
+    g_givebacks_seen = __atomic_load_n(&g_counters.p1_givebacks, __ATOMIC_RELAXED);
+    if (__atomic_load_n(&g_arming, __ATOMIC_ACQUIRE) != 0) {
+        session::set_p1_native(true);   // P1 starts on the vanilla menu; the overlay earns it (p1_owner)
+    }
     g.started = true;
 }
 
@@ -664,6 +868,15 @@ void step(uint64_t now)
     const uint32_t epoch = rec_ok ? rec.head.epoch : 0;
     seat_edges edges[SEATS];
     read_edges(epoch, edges);
+    // Guests' CONFIRM presses that found nothing to use last beat (interaction runs after this layer): taken every beat,
+    // used below only if the layer runs, so a press never opens a menu late.
+    const uint32_t menu_opens = interaction::take_menu_opens(epoch);
+    // The firewall applied LAST beat's report while this beat's edges were pressed. Unless that report already gave
+    // P1 to the co-op menus (p1_menus), P1's presses reached the game too (CONFIRM may be opening the vanilla battle
+    // menu right now), so seat 0 takes none of them this beat: on the beat P1 arms, and on any beat after the layer
+    // gave P1 back, P1's buttons are the game's alone. The PARTY path below reads last beat's owns_p1 the same way.
+    const bool p1_owned_last = epoch != 0 && g.report_epoch == epoch && g.report.p1_menus != 0 &&
+                               g.report.presenter_live != 0;
     if (epoch != g.epoch) {
         // A new world (or the stretch between worlds): nothing prepared before it carries over.
         close_all();
@@ -677,15 +890,32 @@ void step(uint64_t now)
     const bool live = rec_ok && epoch != 0 && patch::subsystem_live(ILC_SUBSYS_FIREWALL_MENUS) &&
                       control::current_state() == control::STATE_ON && submit::enabled();
     if (!live || (rec.head.flags & session::GATE_WORLD) == 0) {
+        note_refused_all(edges, !rec_ok || epoch == 0 ? "no session record"
+                                : !live ? "the co-op menus are not live (FIREWALL_MENUS, co-op off, or submit off)"
+                                        : "no world");
+        p1_owner(now, false, false);
         idle(rec_ok, rec, now);
         return;
     }
     const sources src = live_sources();
     const uint32_t screen = src.screen(rec);
-    const firewall::menu_report qk = quickening_report(rec, (screen & SCREEN_QUICKENING) != 0);
+    firewall::menu_report qk = quickening_report(rec, (screen & SCREEN_QUICKENING) != 0);
+    // P1's battle menu, leader select or command tree up is P1's native screen, never one the guests' edges drive (the
+    // firewall's guest pulses), in every report this beat posts. Whether P1 is on the game's own frontends (p1_native)
+    // or not: while the co-op menus own P1 the gate refuses those frontends, so one that is up is P1's own (P1 native,
+    // a give-back, or the stock KO path with nobody free to offer).
+    qk.p1_battle = (screen & SCREEN_P1_BATTLE) != 0 ? 1 : 0;
+    // A race (rules.h): P1's own battle frontend came up on this beat while the report the firewall applied last beat
+    // had the gate refusing it (the co-op menus owned P1; for the leader select, the leader gate too). A stock frontend
+    // that opened while the layer did not own P1 (the KO path with nobody free, a promotion) is not one.
+    const bool vanilla_now = qk.p1_battle != 0;
+    const bool vanilla_race = vanilla_now && !g.vanilla_prev && p1_owned_last &&
+                              ((screen & SCREEN_P1_LEADER) == 0 || g.report.leader_gate != 0);
+    g.vanilla_prev = vanilla_now;
     const bool paused = (screen & SCREEN_PAUSED) != 0;
     const bool tree = (screen & SCREEN_TREE) != 0;
-    const bool frontend_up = (rec.facts & session::FACT_MENU) != 0;
+    // ... nor an external screen for the guests' menus (it would suspend them every time P1 picks an action).
+    const bool frontend_up = (rec.facts & session::FACT_MENU) != 0 && qk.p1_battle == 0;
     const bool native_open = frontend_up || paused;
     const bool modal = (rec.facts & session::FACT_MODAL) != 0;
     const bool control_ok = (rec.facts & session::FACT_CONTROL) != 0;
@@ -707,6 +937,8 @@ void step(uint64_t now)
         pin.settling = settling ? 1 : 0;
         pin.down = down || g.recovering ? 1 : 0;
         pin.party_busy = g.party.state != PR_IDLE ? 1 : 0;
+        note_refused_all(edges, "the co-op HUD layer was not presented in the last 250 ms (presenter not live)");
+        p1_owner(now, false, native_open);
         if (presenter_mode_of(pin) == PM_HOLD) {
             screen_in si = {};
             si.native_open = native_open ? 1 : 0;
@@ -732,8 +964,18 @@ void step(uint64_t now)
         }
     }
     if (!g.tables_ready) {
+        note_refused_all(edges, "the menu tables could not be read");
+        p1_owner(now, false, native_open);
         idle(rec_ok, rec, now, qk);  // no catalog can be built: the stock menus stay P1's
         return;
+    }
+    // Player 1's menu on the overlay: armed after a run of presented frames, never under an open stock frontend
+    // (FACT_MENU, P1's own battle menu included) or the pause screen; disarmed, P1's co-op menu closes at once and
+    // P1's buttons are the game's from this beat.
+    // P1's own vanilla battle frontend up while armed is a give-back: vanilla wins for seat 0 (the guests keep theirs).
+    p1_owner(now, true, (rec.facts & session::FACT_MENU) != 0 || paused, vanilla_race, busy(0));
+    if (p1_native() && busy(0)) {
+        hard_close(0);
     }
     if (!g.shared_ok || now >= g.next_shared) {
         g.next_shared = now + SHARED_EVERY_MS;
@@ -823,7 +1065,7 @@ void step(uint64_t now)
     if (g.p1_out_ms != 0 && presenter::seat_shown(0) && now >= g.p1_out_ms && now - g.p1_out_ms >= P1_GIVEBACK_MS) {
         g.p1_out_ms = 0;
     }
-    const bool p1_out = g.p1_out_ms != 0;
+    const bool p1_out = g.p1_out_ms != 0 || p1_native();   // P1 on the game's own frontends: never a co-op menu
     if (g.p1_down && is_open(0)) {
         menu::model_close(&p1s.sm.model);  // no battle menu for a fallen character
         bump(g_counters.hard_closes);
@@ -850,8 +1092,10 @@ void step(uint64_t now)
             hard_close(s);
         }
         const bool unseen = busy(s) && !presenter::seat_shown(s);
-        const bool given_back = s == 0 && p1_out;   // P1's buttons are the stock frontends' meanwhile
-        const uint8_t asked = run_seat(s, rec, edges[s], hidden || unseen || given_back, control_ok, now);
+        // P1's buttons are the stock frontends' meanwhile, or were last beat (see p1_owned_last).
+        const bool given_back = s == 0 && (p1_out || !p1_owned_last);
+        const uint8_t asked = run_seat(s, rec, edges[s], hidden || unseen || given_back, control_ok, now,
+                                       s != 0 && (menu_opens & (1u << s)) != 0);
         if (asked != 0 && party_seat == 0) {
             party_seat = asked;
         }
@@ -912,6 +1156,9 @@ void step(uint64_t now)
     // The Wait rule.
     wait::seat_view views[wait::SEATS] = {};
     for (uint32_t s = 0; s < ACTIVE && s < wait::SEATS; ++s) {
+        if (s == 0 && p1_native()) {
+            continue;   // P1's own (stock) battle menu pauses as the game does: the rule counts the guests
+        }
         const seat_entry& e = rec.seat[s];
         const bool in = s == 0 || ((e.flags & session::SEATF_IN_SESSION) != 0 && (e.flags & session::SEATF_MANUAL) != 0);
         if (!in) {
@@ -924,8 +1171,8 @@ void step(uint64_t now)
         }
         views[s].open = busy(s) && presenter::seat_shown(s) ? 1 : 0;   // a menu nobody sees holds no Wait
     }
-    g.wait_requested = g.owns_p1 && !hidden_now && g.party.state == PR_IDLE && rec.phase == session::PHASE_FIELD &&
-                       control_ok && wait::pause_wanted(views);
+    g.wait_requested = (g.owns_p1 || p1_native()) && !hidden_now && g.party.state == PR_IDLE && rec.phase == session::PHASE_FIELD &&
+                       control_ok && wait::pause_wanted(views, options::wait_pause());
     wait::publish(epoch, rec.head.generation, g.wait_requested, now);
 }
 
@@ -940,6 +1187,10 @@ void stop()
     post(firewall::menu_report{});
     interaction::set_menu_seats(0, 0);
     wait::withdraw();
+    if (__atomic_load_n(&g_arming, __ATOMIC_ACQUIRE) != 0) {
+        g_arm = p1_arm{};
+        session::set_p1_native(true);
+    }
     g.started = false;
 }
 
@@ -1009,6 +1260,33 @@ const menu::seat_menu* seat_menu_of(uint32_t seat)
     return seat < SEATS ? &g_seat[seat].sm : nullptr;
 }
 
+void set_p1_native(bool on)
+{
+    session::set_p1_native(on);   // one switch, owned by the session (it gates the guests' menus there too)
+}
+
+bool p1_native()
+{
+    return session::p1_native();
+}
+
+void set_p1_arming(bool on)
+{
+    __atomic_store_n(&g_arming, on ? 1u : 0u, __ATOMIC_RELEASE);
+    g_arm = p1_arm{};
+    g_givebacks_seen = __atomic_load_n(&g_counters.p1_givebacks, __ATOMIC_RELAXED);
+}
+
+bool p1_arming()
+{
+    return __atomic_load_n(&g_arming, __ATOMIC_ACQUIRE) != 0;
+}
+
+void read_p1_arm(p1_arm* out)
+{
+    *out = g_arm;
+}
+
 const counters* stats()
 {
     return &g_counters;
@@ -1041,6 +1319,21 @@ void test_reset()
     memset(const_cast<counters*>(&g_counters), 0, sizeof(g_counters));
     g_test_sources = nullptr;
     g_test_image_base = 0;
+    __atomic_store_n(&g_arming, 0u, __ATOMIC_RELEASE);   // host tests: the switch is the test's unless it arms
+    g_arm = p1_arm{};
+    g_givebacks_seen = 0;
+    g_failed_seen = 0;
+    g_test_streak = overlay::live_streak{};
+    __atomic_store_n(&g_test_live, -1, __ATOMIC_RELEASE);
+    g_arm_logged = 0;
+    session::set_p1_native(false);   // host tests: P1's co-op menu unless a test sets it
 }
 
+}  // namespace ilc::frontend
+
+namespace ilc::frontend {
+void test_set_overlay_live(int32_t state)
+{
+    __atomic_store_n(&g_test_live, state, __ATOMIC_RELEASE);
+}
 }  // namespace ilc::frontend

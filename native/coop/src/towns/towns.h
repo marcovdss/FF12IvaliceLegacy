@@ -1,6 +1,8 @@
 // Ivalice Legacy co-op module: town visibility (part of the PARTY subsystem).
 //
-// In a town only player-controlled characters have a body (filter.h has the rule). Three parts, on three threads:
+// In a town only player-controlled characters have a body (filter.h has the rule), unless the settings' town_view
+// is PARTY: then every member is allowed and the town looks as the game (or Companions) builds it. Three parts, on
+// three threads:
 //
 //  * Co-op thread, step() once per heartbeat after the session step: turns the session record into the set of
 //    controlled party ids and publishes the town record (record_slot, wait-free for the detour). It then reads the
@@ -42,6 +44,8 @@ constexpr uint32_t REBUILD_TTL_MS = 200;
 enum record_flag : uint32_t {
     TOWNF_ACTIVE = 0x1,  // a session runs: the filter applies in town mode
 };
+
+constexpr uint64_t ALL_MEMBERS = ~0ull;  // town_view PARTY: every party id is allowed (keeps() never hides one)
 
 struct town_record {
     patch::record_head head;  // epoch = session epoch, flags = record_flag, generation = session generation

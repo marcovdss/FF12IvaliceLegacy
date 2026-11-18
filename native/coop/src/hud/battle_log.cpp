@@ -225,19 +225,7 @@ uint32_t length(const char* s, uint32_t cap)
     return n;
 }
 
-// ---- runs: one line as coloured pieces of text -------------------------------------------------------------------------
-constexpr uint32_t RUN_TEXT = 160;
-constexpr uint32_t RUNS = 10;
-
-struct runs {
-    char text[RUN_TEXT];
-    uint8_t start[RUNS];
-    uint8_t len[RUNS];
-    uint8_t tone[RUNS];
-    uint32_t n;
-    uint32_t used;
-    uint32_t tags;   // the first run of the tags (n when none): icons are drawn before them
-};
+// ---- runs: one line as coloured pieces of text (struct runs: battle_log.h) ----------------------------------------------
 
 void put(runs& r, const char* s, uint8_t tone)
 {
@@ -784,9 +772,10 @@ int32_t kr01(patch::ctx* c, uint32_t epoch)
 }
 
 // ---- presentation ----------------------------------------------------------------------------------------------------------
-uint8_t time_alpha(const line& l, uint64_t now)
+uint8_t time_alpha(const line& l, uint64_t now, uint64_t life)
 {
-    const uint64_t hold = (l.flags & LF_IMPORTANT) != 0 ? LINGER_MS : LIFE_MS;
+    static_assert(LINGER_MS == 2 * LIFE_MS, "an important line holds twice as long as an ordinary one");
+    const uint64_t hold = (l.flags & LF_IMPORTANT) != 0 ? 2 * life : life;
     const uint64_t age = now > l.touched_ms ? now - l.touched_ms : 0;
     if (age <= hold) {
         return 0x80;
@@ -809,17 +798,36 @@ bool passes(const line& l, uint8_t filter, uint8_t filter_seat)
     }
 }
 
+uint32_t expanded_lines(const view& v)
+{
+    return v.expanded_lines == 0 || v.expanded_lines > EXPANDED_LINES ? EXPANDED_LINES : v.expanded_lines;
+}
+
+uint32_t compact_lines(const view& v)
+{
+    const uint32_t most = expanded_lines(v);
+    const uint32_t n = v.compact_lines == 0 ? COMPACT_LINES
+                       : (v.compact_lines > ILC_LOG_LINES_COMPACT_MAX ? ILC_LOG_LINES_COMPACT_MAX : v.compact_lines);
+    return n < most ? n : most;
+}
+
+uint64_t life_ms(const view& v)
+{
+    return v.fade_s == 0 ? LIFE_MS : static_cast<uint64_t>(v.fade_s) * 1000u;
+}
+
 uint32_t select(const view& v, uint64_t now, uint8_t* index, uint8_t* alpha, uint32_t cap)
 {
     const uint32_t count = v.line_count < HISTORY ? v.line_count : HISTORY;
     const bool expanded = (v.head.flags & VIEW_EXPANDED) != 0;
-    const uint32_t want = expanded ? EXPANDED_LINES : COMPACT_LINES;
+    const uint32_t want = expanded ? expanded_lines(v) : compact_lines(v);
+    const uint64_t life = life_ms(v);
     uint8_t picked[EXPANDED_LINES];
     uint32_t n = 0;
     // Newest first: lines that pass the filter (and, compact, have not faded out).
     for (uint32_t k = count; k-- > 0 && n < want;) {
         const line& l = v.lines[k];
-        if (l.id == 0 || !passes(l, v.filter, v.filter_seat) || (!expanded && time_alpha(l, now) == 0)) {
+        if (l.id == 0 || !passes(l, v.filter, v.filter_seat) || (!expanded && time_alpha(l, now, life) == 0)) {
             continue;
         }
         picked[n++] = static_cast<uint8_t>(k);
@@ -830,7 +838,7 @@ uint32_t select(const view& v, uint64_t now, uint8_t* index, uint8_t* alpha, uin
         for (uint32_t k = scan; k-- > 0;) {
             const line& l = v.lines[k];
             if (l.id == 0 || (l.flags & LF_IMPORTANT) == 0 || !passes(l, v.filter, v.filter_seat) ||
-                time_alpha(l, now) == 0) {
+                time_alpha(l, now, life) == 0) {
                 continue;
             }
             int32_t replace = -1;
@@ -860,7 +868,7 @@ uint32_t select(const view& v, uint64_t now, uint8_t* index, uint8_t* alpha, uin
     uint32_t out = 0;
     for (uint32_t k = 0; k < n && out < cap; ++k) {
         const line& l = v.lines[picked[k]];
-        uint8_t a = expanded ? 0x80 : time_alpha(l, now);
+        uint8_t a = expanded ? 0x80 : time_alpha(l, now, life);
         if (!expanded && (l.flags & LF_IMPORTANT) == 0) {
             const uint32_t from_newest = n - 1 - k;
             if (from_newest == 3) {
@@ -890,6 +898,21 @@ bool header_shown(const view& v, uint64_t now)
         }
     }
     return false;
+}
+
+void build_runs(const line& l, runs& r, bool status_words)
+{
+    build(l, r, status_words);
+}
+
+uint8_t line_tone(const line& l)
+{
+    return main_tone(l);
+}
+
+const char* status_name(uint32_t status_id)
+{
+    return status_id < 32 ? STATUS_NAMES[status_id] : "";
 }
 
 uint32_t line_text(const line& l, char* out, uint32_t cap)

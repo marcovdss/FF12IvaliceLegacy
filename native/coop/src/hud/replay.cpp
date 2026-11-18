@@ -5,9 +5,12 @@
 #include "hud/driver.h"
 #include "hud/hud_internal.h"
 #include "hud/snapshot.h"
+#include "overlay/overlay.h"
 #include "patch/site_table.h"
 #include "runtime/guard.h"
 #include "runtime/probe.h"
+
+#include <x86intrin.h>
 
 namespace ilc::hud {
 
@@ -55,7 +58,8 @@ struct pin {
 constexpr pin PINS[] = {{"HD-V1", facts::FN_LOG_DRAW},     {"HD-V2", facts::FN_TEXT_DRAW},
                         {"HD-V3", facts::FN_TEXT_PARAMS},  {"HD-V4", facts::FN_BATCH_BEGIN},
                         {"HD-V5", facts::FN_BATCH_SPRITE}, {"HD-V6", facts::FN_BATCH_END},
-                        {"HD-V7", facts::FN_SELECTION_BAR}, {"HD-V8", facts::FN_TEXTURE_BY_NAME}};
+                        {"HD-V7", facts::FN_SELECTION_BAR}, {"HD-V8", facts::FN_TEXTURE_BY_NAME},
+                        {"HD-V12", facts::FN_SCISSOR}};
 constexpr bool pins_match_rows()
 {
     for (const pin& p : PINS) {
@@ -77,6 +81,7 @@ using batch_sprite_fn = void (*)(void* batch, void* context, uint64_t texture, c
 using batch_end_fn = void (*)(void* batch, void* context);
 using bar_fn = void (*)(void* context, int32_t x, int32_t y, int32_t w, int32_t h, const uint32_t* rgba);
 using texture_fn = uint64_t (*)(const char* name);
+using scissor_fn = void (*)(void* context);
 
 uintptr_t g_base = 0x120000;  // NOTADDR: the pinned image base until attach
 volatile uint32_t g_pins_ok = 0;
@@ -88,10 +93,12 @@ uint64_t game(uint64_t va)
     return g_base + (va - facts::PINNED_BASE);
 }
 
+// Every read of game memory in the frame hook goes through the probe's hot-path cache (probe.h: load_game,
+// read_game): one VirtualQuery per read on the game's large regions cost milliseconds per frame (0.1.53, F1/F2).
 template <typename T>
 bool load(uint64_t address, T* out)
 {
-    return load_from_caller(out, reinterpret_cast<const void*>(address), sizeof(T));
+    return load_game(out, reinterpret_cast<const void*>(address), sizeof(T));
 }
 
 void bump(volatile uint64_t& c)
@@ -115,6 +122,8 @@ alignas(16) uint8_t g_batch[0x40];
 alignas(16) uint32_t g_colours[4];
 alignas(16) int16_t g_uvwh[4];
 alignas(16) uint32_t g_bar_rgba[1];
+alignas(16) uint8_t g_noclip[facts::CONTEXT_SIZE];   // all zero: CONTEXT_CLIP clear, so the scissor setter lifts the clip
+uint64_t g_clip_context = 0;   // the context whose clip the replay sets back (the log manager's, live during HD-01)
 
 struct ring_state {
     uint64_t start, end, cursor;
@@ -125,7 +134,9 @@ struct ring_state {
 ring_state g_ring = {};
 budget_view g_budget = {};
 
-// A resolved atlas for this frame: registry entry and the eXt block's readable extent.
+// A resolved atlas for this replay: registry entry and the eXt block's readable extent. Looked up afresh on every
+// replay, as in 0.1.53 (0.1.55: the 0.1.54 cache across frames could keep a registry entry the game had replaced while
+// the old one still looked valid). The lookups are cheap now that the reads around them skip VirtualQuery.
 struct atlas_cache {
     uint64_t entry;
     uint64_t ext;        // address of the 'eXt' block
@@ -136,6 +147,45 @@ struct atlas_cache {
 };
 atlas_cache g_atlas[ATLAS_COUNT];
 
+// The game functions the replay calls (host tests may substitute stand-ins: test_set_natives).
+struct natives {
+    text_draw_fn text_draw;
+    text_params_fn text_params;
+    batch_begin_fn batch_begin;
+    batch_sprite_fn batch_sprite;
+    batch_end_fn batch_end;
+    bar_fn bar;
+    texture_fn texture_by_name;
+    scissor_fn scissor;
+};
+const test_natives* volatile g_test_natives = nullptr;
+
+natives current_natives()
+{
+    const test_natives* t = g_test_natives;
+    if (t != nullptr) {
+        return {reinterpret_cast<text_draw_fn>(t->text_draw),     reinterpret_cast<text_params_fn>(t->text_params),
+                reinterpret_cast<batch_begin_fn>(t->batch_begin), reinterpret_cast<batch_sprite_fn>(t->batch_sprite),
+                reinterpret_cast<batch_end_fn>(t->batch_end),     reinterpret_cast<bar_fn>(t->bar),
+                reinterpret_cast<texture_fn>(t->texture_by_name), reinterpret_cast<scissor_fn>(t->scissor)};
+    }
+    return {reinterpret_cast<text_draw_fn>(game(facts::FN_TEXT_DRAW)),
+            reinterpret_cast<text_params_fn>(game(facts::FN_TEXT_PARAMS)),
+            reinterpret_cast<batch_begin_fn>(game(facts::FN_BATCH_BEGIN)),
+            reinterpret_cast<batch_sprite_fn>(game(facts::FN_BATCH_SPRITE)),
+            reinterpret_cast<batch_end_fn>(game(facts::FN_BATCH_END)),
+            reinterpret_cast<bar_fn>(game(facts::FN_SELECTION_BAR)),
+            reinterpret_cast<texture_fn>(game(facts::FN_TEXTURE_BY_NAME)),
+            reinterpret_cast<scissor_fn>(game(facts::FN_SCISSOR))};
+}
+
+void atlas_forget_all()
+{
+    for (uint32_t k = 0; k < ATLAS_COUNT; ++k) {
+        g_atlas[k].state = 0;
+    }
+}
+
 // ---- sprite tables in the TIM2 eXt block: (atlas, page, sheet, cell) -> registry entry, UV, size and CLUT -------
 bool ext_read(const atlas_cache& a, uint32_t offset, void* out, uint32_t n)
 {
@@ -145,14 +195,14 @@ bool ext_read(const atlas_cache& a, uint32_t offset, void* out, uint32_t n)
     return copy_from_checked(out, reinterpret_cast<const void*>(a.ext + offset), n);
 }
 
-bool resolve_atlas(uint32_t id)
+bool resolve_atlas(uint32_t id, texture_fn by_name)
 {
     atlas_cache& a = g_atlas[id];
     if (a.state != 0) {
         return a.state == 1;
     }
     a.state = 2;
-    const auto by_name = reinterpret_cast<texture_fn>(game(facts::FN_TEXTURE_BY_NAME));
+    bump(detail::g_counters.atlas_lookups);
     const uint64_t entry = by_name(atlas_name(id));
     uint64_t picture = 0;
     if (entry == 0 || !load(entry + facts::TEXTURE_PICTURE, &picture) || picture == 0) {
@@ -162,7 +212,7 @@ bool resolve_atlas(uint32_t id)
     uintptr_t begin = 0;
     uintptr_t end = 0;
     uint32_t head[6] = {};
-    if (!probe_region(reinterpret_cast<const void*>(ext), &begin, &end) || ext + sizeof(head) > end ||
+    if (!game_region(reinterpret_cast<const void*>(ext), &begin, &end) || ext + sizeof(head) > end ||
         !copy_from_checked(head, reinterpret_cast<const void*>(ext), sizeof(head)) || head[0] != facts::EXT_MAGIC) {
         return false;
     }
@@ -182,9 +232,9 @@ struct sprite_frame {
     uint8_t clut;
 };
 
-bool resolve_sprite(const cmd& c, sprite_frame* out)
+bool resolve_sprite(const cmd& c, sprite_frame* out, texture_fn by_name)
 {
-    if (c.atlas >= ATLAS_COUNT || !resolve_atlas(c.atlas)) {
+    if (c.atlas >= ATLAS_COUNT || !resolve_atlas(c.atlas, by_name)) {
         return false;
     }
     const atlas_cache& a = g_atlas[c.atlas];
@@ -222,6 +272,8 @@ struct replay_job {
     const frame* f;
     uint64_t drawn;
     uint64_t texts, sprites, bars, skipped;
+    uint64_t chars;     // characters of the texts drawn
+    uint64_t clips;     // scissor calls (the lift and the restore)
     uint32_t finished;  // the replay reached its end (stored after the last game call)
 };
 
@@ -236,14 +288,20 @@ void replay(void* arg)
     if (__atomic_load_n(&g_inject_fault, __ATOMIC_RELAXED) != 0) {
         asm volatile("movq 8, %%rax" : : : "rax", "memory");  // a load from address 8: the fault drill
     }
-    const auto text_draw = reinterpret_cast<text_draw_fn>(game(facts::FN_TEXT_DRAW));
-    const auto text_params = reinterpret_cast<text_params_fn>(game(facts::FN_TEXT_PARAMS));
-    const auto batch_begin = reinterpret_cast<batch_begin_fn>(game(facts::FN_BATCH_BEGIN));
-    const auto batch_sprite = reinterpret_cast<batch_sprite_fn>(game(facts::FN_BATCH_SPRITE));
-    const auto batch_end = reinterpret_cast<batch_end_fn>(game(facts::FN_BATCH_END));
-    const auto bar = reinterpret_cast<bar_fn>(game(facts::FN_SELECTION_BAR));
-    for (uint32_t k = 0; k < ATLAS_COUNT; ++k) {
-        g_atlas[k].state = 0;
+    const natives n = current_natives();
+    const auto text_draw = n.text_draw;
+    const auto text_params = n.text_params;
+    const auto batch_begin = n.batch_begin;
+    const auto batch_sprite = n.batch_sprite;
+    const auto batch_end = n.batch_end;
+    const auto bar = n.bar;
+    atlas_forget_all();  // every atlas is looked up again in each replay (see atlas_cache)
+    // The clip: the log manager's rect is the render scissor while HD-01 runs (hud_facts.h, HD-V12). Lifted for the
+    // canvas, which covers the whole HUD, and set back from the log manager's own context afterwards.
+    const uint64_t clip_back = g_clip_context;
+    if (clip_back != 0 && n.scissor != nullptr) {
+        n.scissor(g_noclip);
+        ++job.clips;
     }
     const frame& f = *job.f;
     uint32_t in_batch = 0;  // sprites in the open batch (0 = none open)
@@ -270,9 +328,12 @@ void replay(void* arg)
             }
             text_draw(g_work, c.x, c.y, g_params);
             ++job.texts;
+            for (uint32_t at = c.text; at < f.text_used && f.text[at] != '\0'; ++at) {
+                ++job.chars;
+            }
         } else if (c.kind == CMD_SPRITE) {
             sprite_frame s;
-            if (!resolve_sprite(c, &s)) {
+            if (!resolve_sprite(c, &s, n.texture_by_name)) {
                 ++job.skipped;
                 continue;
             }
@@ -309,6 +370,10 @@ void replay(void* arg)
         ++job.drawn;
     }
     close_batch();
+    if (clip_back != 0 && n.scissor != nullptr) {
+        n.scissor(reinterpret_cast<void*>(clip_back));
+        ++job.clips;
+    }
     job.finished = 1;
 }
 
@@ -379,6 +444,44 @@ bool ring_allows(uint64_t ours)
     return ours <= RING_OURS_MAX && g_budget.peak + ours <= safe;
 }
 
+// What the game's batch and bar draws put into the render ring for this replay: the cursor now against the sample
+// taken just before it (sample_once). Sprites and bars allocate there as they are drawn, so a replay that drew some
+// and moved the cursor by nothing reached the game's functions without output (counted; the boot logs a warning). A
+// diagnostic reading only: nothing is decided on it. Text uses the font batch and is not seen here.
+void note_output(uint64_t ring_draws)
+{
+    if (ring_draws == 0 || g_ring.valid == 0) {
+        return;
+    }
+    uint64_t arena = 0;
+    uint64_t cursor = 0;
+    if (!load(game(facts::RENDER_ARENA), &arena) || arena == 0 || !load(arena + facts::ARENA_CURSOR, &cursor) ||
+        cursor < g_ring.start || cursor > g_ring.end) {
+        return;
+    }
+    const uint64_t before = g_ring.cursor;
+    const uint64_t used = cursor >= before ? cursor - before : (g_ring.end - before) + (cursor - g_ring.start);
+    __atomic_store_n(&detail::g_counters.ring_ours_last, used, __ATOMIC_RELAXED);
+    if (used == 0) {
+        bump(detail::g_counters.zero_output);
+    }
+}
+
+// A draw matrix that maps the layout somewhere: every element finite, and a 2D part that is not singular (an all-zero
+// matrix draws everything at one point).
+bool matrix_usable(const float m[16])
+{
+    for (uint32_t k = 0; k < 16; ++k) {
+        uint32_t bits;
+        copy_bytes(&bits, &m[k], sizeof(bits));
+        if ((bits & 0x7F800000u) == 0x7F800000u) {   // NOTADDR: an infinity or a NaN
+            return false;
+        }
+    }
+    const float det = m[0] * m[5] - m[1] * m[4];
+    return det > 1e-6f || det < -1e-6f;
+}
+
 // The frame drawn on this hook call, or the reason it is not. True when the co-op layer was presented (replayed to
 // its end, or empty).
 bool draw_frame(uint32_t epoch)
@@ -405,21 +508,49 @@ bool draw_frame(uint32_t epoch)
     uint64_t window = g_pending.manager;
     uint64_t context = g_pending.context;
     uint32_t depth = 0;
+    bool root = false;   // the walk ended on a window with no parent (a root of the HUD tree)
     for (; depth < facts::ANCESTORS_MAX; ++depth) {
         uint64_t parent = 0;
         uint64_t parent_context = 0;
-        if (!load(window + facts::WINDOW_PARENT, &parent) || parent == 0 ||
-            !load(parent + facts::WINDOW_CONTEXT, &parent_context) || parent_context == 0) {
+        if (!load(window + facts::WINDOW_PARENT, &parent)) {
+            break;
+        }
+        if (parent == 0) {
+            root = true;
+            break;
+        }
+        if (!load(parent + facts::WINDOW_CONTEXT, &parent_context) || parent_context == 0) {
             break;
         }
         window = parent;
         context = parent_context;
     }
     g_budget.depth = depth;
-    if (!copy_from_caller(g_pristine, reinterpret_cast<const void*>(context), sizeof(g_pristine)) ||
+    if (!read_game(g_pristine, reinterpret_cast<const void*>(context), sizeof(g_pristine)) ||
         !load(game(facts::UI_READY), &ready) || ready == 0) {
         bump(detail::g_counters.declined_context);
         return false;
+    }
+    // The draw matrix. A context's own matrix is used when it is usable; a root's context has none (hud_facts.h:
+    // CONTEXT_CHILD_SPACE), so the root space is the matrix the root hands its children. A frame with no usable matrix
+    // is not drawn at all (everything at scale 0 would be invisible while the menus still took input).
+    float m[16];
+    copy_bytes(m, g_pristine, sizeof(m));
+    g_budget.source = MATRIX_CONTEXT;
+    if (!matrix_usable(m)) {
+        float world[16];
+        if (root && read_game(world, reinterpret_cast<const void*>(context + facts::CONTEXT_CHILD_SPACE), sizeof(world)) &&
+            matrix_usable(world)) {
+            copy_bytes(g_pristine, world, sizeof(world));
+            g_budget.source = MATRIX_CHILD_SPACE;
+            bump(detail::g_counters.child_space);
+        } else {
+            copy_bytes(g_budget.matrix, m, sizeof(g_budget.matrix));
+            g_budget.source = MATRIX_NONE;
+            bump(detail::g_counters.declined_matrix);
+            bump(detail::g_counters.declined_context);
+            return false;
+        }
     }
     copy_bytes(&alpha, g_pristine + facts::CONTEXT_ALPHA, sizeof(alpha));
     copy_bytes(g_budget.matrix, g_pristine, sizeof(g_budget.matrix));
@@ -458,12 +589,15 @@ bool draw_frame(uint32_t epoch)
         bump(detail::g_counters.declined_budget);  // nothing drawn, so the menu layer was not presented either
         return false;
     }
-    replay_job job = {f, 0, 0, 0, 0, 0, 0};
+    g_clip_context = g_pending.context;   // the context handed to the log draw: the clip in force now
+    replay_job job = {f, 0, 0, 0, 0, 0, 0, 0, 0};
     const int32_t r = guard::call(replay, &job);
+    g_clip_context = 0;
     if (r == guard::FAULTED) {
         bump(detail::g_counters.faults);
         patch::fault_subsystem(ILC_SUBSYS_RENDER);  // stock from the next frame
         driver::faulted();                          // and the co-op menus idle from the next beat
+        atlas_forget_all();                         // nothing cached survives a fault
         return false;
     }
     if (r != guard::RETURNED || job.finished == 0) {
@@ -475,6 +609,10 @@ bool draw_frame(uint32_t epoch)
     __atomic_add_fetch(&detail::g_counters.sprites, job.sprites, __ATOMIC_RELAXED);
     __atomic_add_fetch(&detail::g_counters.bars, job.bars, __ATOMIC_RELAXED);
     __atomic_add_fetch(&detail::g_counters.skipped_commands, job.skipped, __ATOMIC_RELAXED);
+    __atomic_store_n(&detail::g_counters.text_last, job.texts, __ATOMIC_RELAXED);
+    __atomic_store_n(&detail::g_counters.chars_last, job.chars, __ATOMIC_RELAXED);
+    __atomic_add_fetch(&detail::g_counters.clips, job.clips, __ATOMIC_RELAXED);
+    note_output(job.sprites + job.bars);
     bump(detail::g_counters.drawn);
     if (layer) {
         driver::presented(now);
@@ -490,16 +628,72 @@ bool armed()
 
 }  // namespace
 
+namespace {
+
+// ---- the frame hook's own cost ------------------------------------------------------------------------------------
+// The time spent in h0 and h0_after (our work and the game's draw calls the replay makes; the native log draw in
+// between excluded), summed per hook call and published when the next call starts: last, max, and a total for the
+// average. Time-stamp counter ticks; the counters record turns them into microseconds.
+uint64_t g_hook_ticks = 0;   // this call so far
+uint32_t g_hook_open = 0;    // a call is being summed
+
+void hook_call_starts()
+{
+    if (g_hook_open != 0) {
+        const uint64_t spent = g_hook_ticks;
+        __atomic_store_n(&detail::g_counters.hook_ticks_last, spent, __ATOMIC_RELAXED);
+        if (spent > __atomic_load_n(&detail::g_counters.hook_ticks_max, __ATOMIC_RELAXED)) {
+            __atomic_store_n(&detail::g_counters.hook_ticks_max, spent, __ATOMIC_RELAXED);  // one writer: the game thread
+        }
+        __atomic_add_fetch(&detail::g_counters.hook_ticks_total, spent, __ATOMIC_RELAXED);
+        __atomic_add_fetch(&detail::g_counters.hook_calls, 1, __ATOMIC_RELAXED);
+    }
+    g_hook_ticks = 0;
+    g_hook_open = 1;
+}
+
+int32_t h0_body(patch::ctx* c, uint32_t epoch);
+void h0_after_body(patch::ctx* c, uint32_t epoch);
+
+}  // namespace
+
 // ---- the hook -------------------------------------------------------------------------------------------------------
+int32_t h0(patch::ctx* c, uint32_t epoch)
+{
+    const uint64_t started = __rdtsc();
+    hook_call_starts();
+    const int32_t r = h0_body(c, epoch);
+    g_hook_ticks += __rdtsc() - started;
+    return r;
+}
+
+void h0_after(patch::ctx* c, uint32_t epoch)
+{
+    const uint64_t started = __rdtsc();
+    h0_after_body(c, epoch);
+    g_hook_ticks += __rdtsc() - started;
+}
+
+namespace {
+
 // HD-01, call row: registers at the log draw's entry (rcx = log manager, rdx = its draw context). The log draw always
 // runs; only when a canvas may be drawn (the co-op layer this frame, or the Diagnostics test draw) is it called
 // around, so the after-handler draws on top of the native log.
-int32_t h0(patch::ctx* c, uint32_t epoch)
+int32_t h0_body(patch::ctx* c, uint32_t epoch)
 {
     bump(detail::g_counters.reached);
+    overlay::note_hud(c->rcx, c->rdx);   // the overlay's HUD heartbeat: the HUD tree draws this frame
     g_sampled = 0;  // the ring is sampled once per call, whatever the call then does (sample_once)
     const bool ok = armed() && c->rcx != 0 && c->rdx != 0;
     const bool layer = ok && driver::frame_gate(epoch, patch::now_ms());
+    // Our overlay's battle log was presented within the last frames: the stock log text draw is skipped at this call
+    // (the heartbeat above is already noted, and the log windows keep their draw bit, so HD-01 keeps running).
+    if (ok && !layer && !test_draw_on() && overlay::log_replaces_native(patch::now_ms())) {
+        sample_once();
+        battle_log::note_native_hidden();
+        c->resume = game(facts::LOG_DRAW_RETURN);
+        return patch::RESUME;
+    }
     if (!ok || (!layer && !test_draw_on())) {
         sample_once();
         bump(detail::g_counters.declined_off);
@@ -522,7 +716,7 @@ int32_t h0(patch::ctx* c, uint32_t epoch)
     return patch::CALL_AROUND;
 }
 
-void h0_after(patch::ctx* c, uint32_t epoch)
+void h0_after_body(patch::ctx* c, uint32_t epoch)
 {
     (void)c;
     if (!armed() || (g_pending.layer == 0 && !test_draw_on())) {
@@ -532,6 +726,8 @@ void h0_after(patch::ctx* c, uint32_t epoch)
     }
     draw_frame(epoch);
 }
+
+}  // namespace
 
 // ---- attach and views -----------------------------------------------------------------------------------------------
 bool attach(uintptr_t image_base)
@@ -589,6 +785,10 @@ void test_reset()
     g_ring = ring_state{};
     g_sampled = 0;
     g_pending = pending{};
+    g_hook_ticks = 0;
+    g_hook_open = 0;
+    g_test_natives = nullptr;
+    atlas_forget_all();
     __atomic_store_n(&g_inject_fault, 0u, __ATOMIC_RELAXED);
     withdraw();
     test_set_test_draw(false);
@@ -613,6 +813,17 @@ void test_inject_fault(bool on)
     __atomic_store_n(&g_inject_fault, on ? 1u : 0u, __ATOMIC_RELAXED);
 }
 
+void test_set_natives(const test_natives* n)
+{
+    g_test_natives = n;
+    atlas_forget_all();
+}
+
+void test_forget_atlases()
+{
+    atlas_forget_all();
+}
+
 void test_set_ring(uint64_t start, uint64_t end, uint64_t cursor)
 {
     g_ring = {start, end, cursor, patch::now_ms(), 0, 1};
@@ -623,11 +834,13 @@ int32_t test_replay(const frame& f, uint64_t context)
     if (!copy_from_caller(g_pristine, reinterpret_cast<const void*>(context), sizeof(g_pristine))) {
         return -1;
     }
-    replay_job job = {&f, 0, 0, 0, 0, 0, 0};
+    g_clip_context = 0;   // no hook call around it: nothing to lift or set back
+    replay_job job = {&f, 0, 0, 0, 0, 0, 0, 0, 0};
     const int32_t r = guard::call(replay, &job);
     if (r == guard::FAULTED) {
         bump(detail::g_counters.faults);
         patch::fault_subsystem(ILC_SUBSYS_RENDER);
+        atlas_forget_all();
     }
     return r;
 }

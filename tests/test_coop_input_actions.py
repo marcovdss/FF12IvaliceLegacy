@@ -247,8 +247,7 @@ class BindingTableTest(RigCase):
         p1_actions = {a for a, _, _ in defaults_bindings(1)}
         self.assertEqual(p1_actions, {ACT[n] for n in ('MENU_UP', 'MENU_DOWN', 'MENU_LEFT', 'MENU_RIGHT', 'CONFIRM',
                                                        'CANCEL', 'PARTY', 'PAUSE')})
-        self.assertEqual(defaults_bindings(4), [], 'P4 cannot play in this release: no default bindings')
-        for seat in (2, 3):
+        for seat in (2, 3, 4):  # four seats (0.1.53): P4 has the guest layout too
             with self.subTest(seat=seat):
                 self.assertEqual({a for a, _, _ in defaults_bindings(seat)}, set(range(S.const['ACTIONS'])))
                 kinds = {(a, k) for a, k, _ in defaults_bindings(seat)}
@@ -258,7 +257,7 @@ class BindingTableTest(RigCase):
                     self.assertIn((action, BK['PAD']), kinds, f'P{seat} action {action} has a pad binding')
 
     def test_toggle_keys_leave_f3_free(self):
-        toggles = {2: VK_F6, 3: VK_F7}  # P4 has no join key in this release
+        toggles = {2: VK_F6, 3: VK_F7, 4: VK_F9}  # F8 is the co-op on/off key
         for seat in (1, 2, 3, 4):
             with self.subTest(seat=seat):
                 rows = defaults_bindings(seat)
@@ -270,11 +269,12 @@ class BindingTableTest(RigCase):
         rows = {seat: defaults_bindings(seat) for seat in (1, 2, 3, 4)}
         self.assertIn((ACT['PAUSE'], BK['PAD'], PADC['START']), rows[1])
         self.assertIn((ACT['PARTY'], BK['PAD'], PADC['Y']), rows[1])
-        for seat in (2, 3):
+        for seat in (2, 3, 4):
             self.assertIn((ACT['PARTY'], BK['KEY'], ord('R')), rows[seat])
             self.assertIn((ACT['PARTY'], BK['PAD'], PADC['Y']), rows[seat])
         self.assertIn((ACT['QUICKENING'], BK['PAD'], PADC['X']), rows[2])
         self.assertIn((ACT['QUICKENING'], BK['PAD'], PADC['A']), rows[3])
+        self.assertIn((ACT['QUICKENING'], BK['PAD'], PADC['X']), rows[4], 'the link follows the party slot anyway')
 
     def test_all_four_bindings_of_an_action_count(self):
         # Guest menu-left keeps the full PC layout: J, numpad 4, Q and the D-pad (four bindings, no fifth).
@@ -341,7 +341,7 @@ class BindingTableTest(RigCase):
         self.tick()
         reads, focus_queries, asked = self.s.key_reads()
         wanted = {c for _, k, c in defaults_bindings(2) if k in (BK['KEY'], BK['MOUSE'])}
-        wanted.add(VK_F7)  # P3's drop-in/out key: read for P3 although P3 does not own the keyboard
+        wanted |= {VK_F7, VK_F9}  # P3's and P4's drop-in/out keys: read although they do not own the keyboard
         self.assertEqual(asked, wanted)
         self.assertEqual(focus_queries, 1)
         self.s.focus(False)
@@ -363,8 +363,8 @@ class BindingTableTest(RigCase):
         self.s.key('W')
         self.tick(3)
         reads, _, asked = self.s.key_reads()
-        self.assertEqual(asked, {VK_F6, VK_F7}, 'the guests read their own drop-in/out keys, nothing else')
-        self.assertEqual(reads, 6)
+        self.assertEqual(asked, {VK_F6, VK_F7, VK_F9}, 'the guests read their own drop-in/out keys, nothing else')
+        self.assertEqual(reads, 9)
         self.assertEqual(self.s.act(2)['held'], 0)
 
     def test_decide_swap_swaps_pad_a_and_b_only(self):
@@ -1262,7 +1262,7 @@ class CaptureTest(RigCase):
         self.assertEqual(self.captures(), [(2, CO['CAPTURED'], ACT['PAUSE'], 0, BK['KEY'], ord('P'))])
 
     def test_no_input_timeout_and_supersede(self):
-        status, _ = self.s.command('CAPTURE_START', 4, ACT['FLEE'], 0)   # P4 cannot play in this release
+        status, _ = self.s.command('CAPTURE_START', 5, ACT['FLEE'], 0)   # no fifth seat
         self.assertEqual(status, E['BAD_FIELD'])
         r = self.s.settings()                      # P3 without a pad and without the keyboard
         seat_xinput(r, 2, 1)

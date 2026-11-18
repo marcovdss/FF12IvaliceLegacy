@@ -264,4 +264,77 @@ static_assert(sizeof(recovery) == 24, "recovery layout");
 // True while the recovery owns the battle UI.
 bool recovery_step(recovery* r, bool party_down, bool native_open, uint64_t now);
 
+// ---- Player 1's menu on the overlay: arming and give-back -------------------------------------------------------------
+// Player 1's battle menu, leader select and KO selector are co-op menus drawn by our overlay only while P1 is "armed";
+// disarmed, P1 is on the game's own frontends (frontend::set_p1_native on). The frontend runs this every beat.
+//  * Arming follows overlay_live (overlay.h; 0.1.60 item 7) with P1_LIVE_HOLD_MS of hysteresis both ways. Arm once the
+//    overlay has been live for at least P1_ARM_MS without a gap longer than the hysteresis (overlay::live_track) and
+//    was live within P1_LIVE_FRESH_MS, while the layer runs (record, world, tables), the presenter is live, no stock
+//    frontend or pause screen is up (P1's open vanilla menu is never pulled away), no refused frame is recent, a frame
+//    was really drawn since the last refusal and no give-back hold runs.
+//  * Disarm when overlay_live has been false for more than P1_LIVE_HOLD_MS (any screen that hides the HUD, a menu, the
+//    pause screen, co-op off, RENDER faulted or disarmed, nothing presented), or the presenter is not live, a refused
+//    frame is within P1_FAILED_MS, a fault (presenter::note_drawn(0)), the layer idle, or Player 1's menu not wanted.
+//    The 0.1.59 run-continuity disarms (two missed frames, a stale run) are gone: a native focus panel or Target Info
+//    request that silenced HD-01 for a moment disarmed P1 and brought the vanilla HUD back (0.1.60 bug 2). The player
+//    is never left without a menu: disarmed, P1's buttons are the game's.
+//  * A give-back (an overlay failure) holds P1 on the vanilla menu: P1's window left out of a presented frame
+//    (frontend P1_GIVEBACK_MS), or a refused frame while P1's co-op menu was open (frontend). Holds escalate:
+//    P1_HOLD_MS, then twice that, then four times; the P1_HOLDS_MAX-th give-back latches P1 on the vanilla menu for
+//    the rest of the launch (the module's lifetime), so a window that keeps being left out can never flip P1 between
+//    the two menus. The count decays by one after every P1_DECAY_MS armed without a give-back (the latch stays).
+//  * A race (frontend: P1's own vanilla battle frontend came up on this beat although the report the firewall applied
+//    last beat had the gate refusing it) disarms with one short fixed hold (P1_RACE_HOLD_MS) and never escalates:
+//    vanilla wins for seat 0, the guests keep theirs. A stock P1 frontend that opened legitimately (the layer did not
+//    own P1: the KO path with nobody free, a promotion) is no race: P1 stays armed and seat 0 simply takes no input.
+constexpr uint64_t P1_ARM_MS = 250;       // overlay_live this long (one streak) before P1 arms
+constexpr uint64_t P1_LIVE_HOLD_MS = 250; // overlay_live false this long disarms (overlay::LIVE_MS)
+constexpr uint64_t P1_LIVE_FRESH_MS = 100;// arming needs overlay_live this recent
+constexpr uint64_t P1_HOLD_MS = 5000;     // the first hold; each further one doubles it
+constexpr uint32_t P1_HOLDS_MAX = 4;      // this many give-backs latch P1 on the vanilla menu
+constexpr uint64_t P1_FAILED_MS = 250;    // a refused frame this recent keeps P1 disarmed (presenter::LIVE_MS)
+constexpr uint64_t P1_RACE_HOLD_MS = 2000;// a race's one fixed hold
+constexpr uint64_t P1_DECAY_MS = 600000;  // ten minutes armed without a give-back: one give-back forgotten
+
+struct p1_arm_in {
+    uint8_t wanted;           // Player 1's menu on the overlay is wanted
+    uint8_t live;             // presenter::live(now)
+    uint8_t layer;            // the menu layer runs this beat (it would own P1)
+    uint8_t native_up;        // a stock frontend (FACT_MENU) or the pause screen is up
+    uint8_t gave_back;        // an overlay give-back since the last beat (window left out, refused frame while open)
+    uint8_t vanilla_race;     // P1's vanilla battle frontend came up this beat although the gate refused it (a race)
+    uint8_t drawn_ok;         // a frame the GPU side really drew since the last refused frame
+    uint8_t reserved0;
+    uint64_t live_since;      // overlay::live_track: the live streak's start (0 = not live)
+    uint64_t live_last;       // the last beat overlay_live held (0 never)
+    uint64_t failed_ms;       // presenter::run().failed_ms: the last refused frame
+    uint64_t reserved1;
+};
+static_assert(sizeof(p1_arm_in) == 40, "p1_arm_in layout");
+
+struct p1_arm {
+    uint8_t armed;
+    uint8_t last_event;       // p1_arm_event
+    uint8_t latched;          // P1 stays on the vanilla menu for the rest of the launch
+    uint8_t reserved[5];
+    uint64_t armed_ms;        // when it armed (0 = disarmed)
+    uint64_t hold_until;      // no arming before this (a give-back)
+    uint32_t arms;
+    uint32_t disarms;
+    uint32_t holds;           // give-backs so far (decays: P1_DECAY_MS)
+    uint32_t decay_base_s;    // module seconds of the last give-back or decay step
+};
+static_assert(sizeof(p1_arm) == 40, "p1_arm layout (host tests read it)");
+
+enum p1_arm_event : uint8_t {
+    PA_NONE = 0,
+    PA_ARMED = 1,
+    PA_DISARMED = 2,
+    PA_HELD = 3,              // disarmed by a give-back (P1_HOLD_MS, doubling) or a race (P1_RACE_HOLD_MS): held on vanilla
+    PA_LATCHED = 4,           // the P1_HOLDS_MAX-th give-back: vanilla for the rest of the launch
+};
+
+// One beat; returns the event (PA_NONE when nothing changed). s->armed: P1's menu is on the overlay.
+uint8_t p1_arm_step(p1_arm* s, const p1_arm_in& in, uint64_t now);
+
 }  // namespace ilc::frontend

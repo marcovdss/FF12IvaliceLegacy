@@ -1,0 +1,552 @@
+{
+ "format": "ilc-theme",
+ "version": 1,
+ "id": "legacy-crisp",
+ "name": "Crisp Vanilla",
+ "author": "Ivalice Legacy",
+ "description": "B / Crisp Vanilla",
+ "license": {
+  "fonts": "Original outlines drawn for Ivalice Legacy; ships under the mod licence",
+  "art": "Original; drawn for Ivalice Legacy"
+ },
+ "authoring": {
+  "width": 1920,
+  "height": 1080
+ },
+ "atlas": {
+  "em": 40,
+  "spread": 5,
+  "width": 512,
+  "supersample": 4
+ },
+ "fonts": {
+  "body": {
+   "file": "fonts/LegacySans.ttf",
+   "charset": "full",
+   "role": "rows, help, log, party names, targets"
+  },
+  "title": {
+   "file": "fonts/LegacySansCaps.ttf",
+   "charset": "title",
+   "role": "page titles, panel headers, tags, labels (caps; lowercase = small caps)"
+  },
+  "numerals": {
+   "file": "fonts/LegacySansNumerals.ttf",
+   "charset": "digits",
+   "role": "big HP figures and damage numbers"
+  }
+ },
+ "charsets": {
+  "full": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00a0\u00b7\u00c0\u00c1\u00c2\u00c4\u00c7\u00c8\u00c9\u00ca\u00cb\u00cc\u00cd\u00ce\u00cf\u00d1\u00d2\u00d3\u00d4\u00d6\u00d7\u00d9\u00da\u00db\u00dc\u00e0\u00e1\u00e2\u00e4\u00e7\u00e8\u00e9\u00ea\u00eb\u00ec\u00ed\u00ee\u00ef\u00f1\u00f2\u00f3\u00f4\u00f6\u00f9\u00fa\u00fb\u00fc\u00ff\u2013\u2018\u2019\u201c\u201d\u2026\u2212\u25ae\u25b8\u25c2\u25c6",
+  "title": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00a0\u00b7\u00d7\u2013\u2018\u2019\u201c\u201d\u2026\u2212\u25ae\u25b8\u25c2\u25c6",
+  "digits": " 0123456789%/+-.,:\u2212\u00b7\u00d7"
+ },
+ "icons": {
+  "file": "icons/icons.json"
+ },
+ "text": {
+  "outline": 1.2,
+  "shadow": [
+   0,
+   1,
+   0.8,
+   0.55
+  ],
+  "soft": 0.25,
+  "ink": [
+   3,
+   7,
+   20
+  ],
+  "small": {
+   "below_px": 19,
+   "tracking_em": 0.02
+  },
+  "min_help_em": 17,
+  "tracking": {
+   "page_face": "title",
+   "title_em": 0.07,
+   "header_em": 0.09
+  }
+ },
+ "motion": {
+  "marquee_speed": 40,
+  "marquee_hold_ms": 1000,
+  "marquee_fade": 12,
+  "marquee_on": true
+ },
+ "sizes": {
+  "row": 22,
+  "value": 21,
+  "header": 18,
+  "tab": 19,
+  "help": 17,
+  "pitch": 30,
+  "glove": 28,
+  "glove_out": 16,
+  "panel_head": 22,
+  "target": 28,
+  "party_name": 28,
+  "hp": 36,
+  "max": 21,
+  "mpv": 26,
+  "act": 19,
+  "log": 22
+ },
+ "colors": {
+  "core": [
+   241,
+   244,
+   250
+  ],
+  "dim": [
+   138,
+   148,
+   172
+  ],
+  "header": [
+   214,
+   230,
+   255
+  ],
+  "help": [
+   200,
+   210,
+   230
+  ],
+  "gold": [
+   246,
+   224,
+   132
+  ],
+  "ink": [
+   3,
+   7,
+   20
+  ],
+  "foe_dot": [
+   214,
+   120,
+   78
+  ],
+  "heal": [
+   109,
+   255,
+   142
+  ],
+  "dmg": [
+   255,
+   106,
+   88
+  ],
+  "low": [
+   255,
+   108,
+   92
+  ],
+  "hp_warn": [
+   255,
+   218,
+   96
+  ],
+  "hp_critical": [
+   255,
+   98,
+   82
+  ],
+  "hp_critical_glow": [
+   255,
+   64,
+   48
+  ],
+  "drop_rare": [
+   240,
+   150,
+   196
+  ],
+  "mpl": [
+   156,
+   198,
+   255
+  ],
+  "chev": [
+   176,
+   208,
+   255
+  ],
+  "rule": [
+   200,
+   224,
+   255,
+   90
+  ],
+  "rule2": [
+   214,
+   232,
+   255,
+   230
+  ]
+ },
+ "seats": [
+  {
+   "n": 1,
+   "rgb": [
+    113,
+    177,
+    253
+   ]
+  },
+  {
+   "n": 2,
+   "rgb": [
+    80,
+    239,
+    161
+   ]
+  },
+  {
+   "n": 3,
+   "rgb": [
+    243,
+    56,
+    198
+   ]
+  },
+  {
+   "n": 4,
+   "rgb": [
+    213,
+    133,
+    44
+   ]
+  }
+ ],
+ "gambit_ally": {
+  "rgb": [
+   200,
+   206,
+   218
+  ],
+  "mark": "G"
+ },
+ "window": {
+  "shape": "crisp",
+  "radius": 4,
+  "cut": null,
+  "cut_corners": [],
+  "stops": [
+   [
+    0,
+    [
+     58,
+     92,
+     160,
+     222
+    ]
+   ],
+   [
+    0.5,
+    [
+     26,
+     46,
+     104,
+     228
+    ]
+   ],
+   [
+    1,
+    [
+     8,
+     16,
+     48,
+     238
+    ]
+   ]
+  ],
+  "rim": [
+   214,
+   230,
+   255,
+   240
+  ],
+  "rim_px": 1.0,
+  "rim_top_bias": 0.3,
+  "inner_line": [
+   0,
+   0,
+   0,
+   110
+  ],
+  "shine": {
+   "kind": "line",
+   "amount": 0.55,
+   "extent": 0.3
+  },
+  "outer_line": {
+   "rgba": [
+    3,
+    7,
+    20,
+    235
+   ],
+   "px": 1.0
+  },
+  "halo": null,
+  "size": {
+   "width": 275,
+   "height": 230,
+   "tab_height": 28
+  }
+ },
+ "tab": {
+  "kind": "B",
+  "height": 28,
+  "dx": 3,
+  "shape": "crisp",
+  "radius": 3,
+  "stops": [
+   [
+    0,
+    [
+     62,
+     98,
+     166,
+     232
+    ]
+   ],
+   [
+    1,
+    [
+     22,
+     40,
+     94,
+     238
+    ]
+   ]
+  ],
+  "seat_marker": "seat diamond with number + name + underline"
+ },
+ "focus_row": {
+  "bar": true,
+  "seat_darken": 0.66,
+  "alpha_top": 150,
+  "alpha_bottom": 70,
+  "edge_line_alpha": 190
+ },
+ "gauge": {
+  "kind": "B",
+  "height": 4,
+  "slant": 0,
+  "ticks_every": 0.1,
+  "cols": {
+   "hp": [
+    [
+     240,
+     248,
+     255,
+     255
+    ],
+    [
+     150,
+     204,
+     255,
+     255
+    ]
+   ],
+   "low": [
+    [
+     255,
+     190,
+     150,
+     255
+    ],
+    [
+     255,
+     84,
+     64,
+     255
+    ]
+   ],
+   "mp": [
+    [
+     190,
+     230,
+     255,
+     255
+    ],
+    [
+     60,
+     150,
+     240,
+     255
+    ]
+   ],
+   "act": [
+    [
+     255,
+     255,
+     255,
+     255
+    ],
+    [
+     255,
+     255,
+     255,
+     255
+    ]
+   ]
+  },
+  "trail": [
+   255,
+   255,
+   255,
+   170
+  ],
+  "trail_hatch": false,
+  "hp_states": {
+   "warn_at": 0.5,
+   "critical_at": 0.25,
+   "critical_glow_px": 5
+  }
+ },
+ "marks": {
+  "glove": "B",
+  "chevron": "B",
+  "diamond": "B",
+  "dot": "B"
+ },
+ "status_icons": {
+  "style": "chip",
+  "names": [
+   "Poison",
+   "Slow",
+   "Protect",
+   "Haste",
+   "Sleep",
+   "Oil"
+  ],
+  "colors": {
+   "Poison": [
+    132,
+    214,
+    92
+   ],
+   "Slow": [
+    150,
+    170,
+    232
+   ],
+   "Protect": [
+    255,
+    206,
+    96
+   ],
+   "Haste": [
+    255,
+    232,
+    104
+   ],
+   "Sleep": [
+    162,
+    144,
+    240
+   ],
+   "Oil": [
+    230,
+    156,
+    84
+   ]
+  }
+ },
+ "recipes": {
+  "glove": [
+   {
+    "glyph": "glove_body",
+    "core": "ink",
+    "edge": "ink",
+    "edge_px": 1.6,
+    "grow": 0.9
+   },
+   {
+    "glyph": "glove_body",
+    "core_top": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "core_bottom": [
+     222,
+     230,
+     246,
+     255
+    ],
+    "edge": "seat",
+    "edge_px": 1.5
+   },
+   {
+    "glyph": "glove_cuff",
+    "core": "seat",
+    "edge": "ink",
+    "edge_px": 1.0
+   }
+  ],
+  "chevron": [
+   {
+    "glyph": "chevron_{dir}",
+    "core": "chevron",
+    "edge": "ink",
+    "edge_px": 0.9
+   }
+  ],
+  "seat_diamond": [
+   {
+    "glyph": "diamond",
+    "core": "seat",
+    "edge": "white",
+    "edge_px": 1.2,
+    "outline": "ink"
+   }
+  ],
+  "dot": [
+   {
+    "glyph": "dot",
+    "core": "dot_colour",
+    "edge": "ink",
+    "edge_px": 1.0,
+    "glow_px": 0
+   }
+  ],
+  "status_icon": [
+   {
+    "glyph": "badge",
+    "core": [
+     8,
+     14,
+     34,
+     225
+    ],
+    "edge": "status",
+    "edge_px": 1.3
+   },
+   {
+    "glyph": "pic_{name}",
+    "core": [
+     246,
+     249,
+     255,
+     255
+    ]
+   },
+   {
+    "glyph": "det_{name}",
+    "core": "status"
+   }
+  ],
+  "status_icon_note": "B also draws a 1.4 unit status-colour tab along the bottom edge of the chip (one solid quad)"
+ },
+ "party_row": {
+  "action_only": true,
+  "note": "rows show the action, never the target (target lines carry that)"
+ }
+}

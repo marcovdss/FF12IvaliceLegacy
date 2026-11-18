@@ -9,7 +9,8 @@
 //   missing file            -> the native default (On), flag "defaults"
 //   unreadable / too large  -> Off (SETTINGS_UNREADABLE, detail = Win32 error, or 0 for too large)
 //   not JSON, not an object -> Off (SETTINGS_INVALID, detail INVALID_SYNTAX)
-//   schema missing or not 1 -> Off (SETTINGS_INVALID, detail INVALID_SCHEMA; a newer schema is INVALID_NEWER_SCHEMA)
+//   schema missing or not 1..SETTINGS_SCHEMA_MAX -> Off (SETTINGS_INVALID, detail INVALID_SCHEMA; a newer schema is
+//                           INVALID_NEWER_SCHEMA). Schema 2 (0.1.53) keeps module.enabledAtStart where schema 1 had it.
 //   module or enabledAtStart of the wrong type -> Off (SETTINGS_INVALID, detail INVALID_VALUE)
 //   module or enabledAtStart missing -> the native default
 //   enabledAtStart false    -> Off (MODULE_OFF)
@@ -41,6 +42,7 @@ struct settings_switch {
 };
 
 constexpr size_t SETTINGS_MAX_BYTES = 1u << 20;
+constexpr uint32_t SETTINGS_SCHEMA_MAX = 2;   // the newest coop.json schema this module reads (store.lua M.SCHEMA)
 
 // x64_dir: the game's x64 folder. default_on: the native default (ilc_settings.module_enabled_at_start).
 settings_switch read_module_switch(const wchar_t* x64_dir, bool default_on);

@@ -727,9 +727,39 @@ const char* field_note(uint16_t msg)
     if (msg >= 79 && msg <= 90) {   // NOTADDR: message ids
         return (msg - 79) % 2 == 0 ? "A magick field falls" : "The magick field lifts";
     }
+    // Every note fits a line's body (ACTION_NAME, 23 characters): 0.1.59's magnetic-field notes were cut there.
     switch (msg) {
-    case 91: return "A magnetic field envelops the party";   // NOTADDR: message id
-    case 92: return "The magnetic field dissipates";          // NOTADDR: message id
+    case 91: return "Magnetic field falls";    // NOTADDR: message id
+    case 92: return "Magnetic field lifts";    // NOTADDR: message id
+    // 0.1.60 item 7: the vanilla log is blocked, so every note it shows needs a home in ours.
+    case 93: return "Magick Pot wants elixir"; // NOTADDR: message id
+    case 94: return "Magick Pot rejoices";     // NOTADDR: message id
+    case 95: return "Zalera braces itself";    // NOTADDR: message id
+    case 96: return "Magick Pot is dismayed";  // NOTADDR: message id
+    default: return "";
+    }
+}
+
+// Messages 30..35: the reserve members' party-wide restores (no actor); 8..10: an actor's target out of reach.
+const char* reserve_note(uint16_t msg)
+{
+    switch (msg) {
+    case 30:
+    case 31: return "Reserve HP restored";      // NOTADDR: message ids
+    case 32: return "Reserve status cleared";   // NOTADDR: message id
+    case 33: return "Reserve HP fully healed";  // NOTADDR: message id
+    case 34: return "Reserve status cured";     // NOTADDR: message id
+    case 35: return "Reserve HP/MP restored";   // NOTADDR: message id
+    default: return "";
+    }
+}
+
+const char* reach_note(uint16_t msg)
+{
+    switch (msg) {
+    case 8:                                                       // NOTADDR: message id
+    case 10: return "target too far";                             // NOTADDR: message id
+    case 9: return "cannot reach the target";                     // NOTADDR: message id
     default: return "";
     }
 }
@@ -738,7 +768,8 @@ bool is_action_message(uint16_t msg)
 {
     return msg == f::MSG_BEGINS_CASTING || msg == f::MSG_READIES || msg == f::MSG_USES ||
            (msg >= f::MSG_USES_EFFECT_FIRST && msg <= f::MSG_USES_EFFECT_LAST) || msg == 53 || msg == 54 ||
-           msg == 57 || msg == 58 || msg == 60 || (msg >= 68 && msg <= 73);   // NOTADDR: message ids ("uses X, ...")
+           msg == 57 || msg == 58 || msg == f::MSG_LIBRA_INFO || msg == 60 ||
+           (msg >= 68 && msg <= 73);   // NOTADDR: message ids ("uses X, ..."; 59 the Libra line, item 7)
 }
 
 }  // namespace
@@ -870,7 +901,10 @@ uint32_t model_message(model* m, const message& msg)
         if ((id >= f::MSG_OBTAIN_FIRST && id <= f::MSG_OBTAIN_LAST) ||
             (id >= f::MSG_ADDED_FIRST && id <= f::MSG_ADDED_LAST)) {
             char text[NAME] = "";
-            copy_text(text, NAME, msg.item_name[0] != '\0' ? msg.item_name : "?");
+            // A key item (ids from 0x8000; our name tables hold consumables, equipment and loot only) still gets
+            // its line, so blocking the vanilla log loses no reward (item 7); its own name is a seam.
+            const char* unnamed = msg.item >= 0x8000 ? "a key item" : "?";
+            copy_text(text, NAME, msg.item_name[0] != '\0' ? msg.item_name : unnamed);
             if (msg.count > 1) {
                 append(text, NAME, " x");
                 append_number(text, NAME, static_cast<uint32_t>(msg.count));
@@ -899,6 +933,10 @@ uint32_t model_message(model* m, const message& msg)
             l = simple(m, LK_SYSTEM, nullptr, field_note(id), "", now, false);
         } else if (id <= f::MSG_TRAP_LAST) {
             l = simple(m, LK_SYSTEM, &msg.b, "triggered", msg.action_name, now, true);
+        } else if (reserve_note(id)[0] != '\0') {
+            l = simple(m, LK_REWARD, nullptr, reserve_note(id), "", now, false);
+        } else if (reach_note(id)[0] != '\0') {
+            l = simple(m, LK_SYSTEM, &msg.a, reach_note(id), "", now, false);
         }
         break;
     }

@@ -332,6 +332,12 @@ int32_t select_seat(const hud_snapshot& snap, int32_t* target_index)
         if (index < 0) {
             continue;
         }
+        if (k == 0 && s.native_aim != 0) {
+            // P1 aims with the native target mode: its aim wins while it lasts (the old TI-01 p1_owned rule, review 11).
+            best = 0;
+            best_target = index;
+            break;
+        }
         if (best < 0 || s.since_ms > best_since) {
             best = static_cast<int32_t>(k);
             best_target = index;
@@ -342,6 +348,50 @@ int32_t select_seat(const hud_snapshot& snap, int32_t* target_index)
         *target_index = best_target;
     }
     return best;
+}
+
+bool engaged(const hud_snapshot& snap, uint32_t stance_mask)
+{
+    const auto foe_at = [&snap](uint32_t handle) {
+        if (handle == 0) {
+            return false;
+        }
+        for (uint32_t t = 0; t < snap.target_count && t < SNAP_TARGETS; ++t) {
+            const hud_unit& u = snap.targets[t];
+            if (u.handle == handle && (u.flags & UNIT_PRESENT) != 0 && (u.flags & UNIT_PARTY) == 0) {
+                const uint8_t type = u.unit_type & 0x0F;
+                return type == 1 || type == 4 || type == 7;
+            }
+        }
+        return false;
+    };
+    for (uint32_t k = 0; k < SNAP_SEATS; ++k) {
+        const seat_target& s = snap.seats[k];
+        if ((s.on_page != 0 || (k == 0 && s.native_aim != 0)) && foe_at(s.handle)) {
+            return true;   // a seat aims at a foe
+        }
+    }
+    for (uint32_t m = 0; m < snap.member_count && m < SNAP_MEMBERS; ++m) {
+        const hud_unit& u = snap.members[m];
+        if (u.handle == 0 || (u.flags & UNIT_PRESENT) == 0) {
+            continue;
+        }
+        if ((m < 32 && (stance_mask & (1u << m)) != 0) || foe_at(u.target)) {
+            return true;   // in fighting stance, or targeting a foe
+        }
+    }
+    for (uint32_t t = 0; t < snap.target_count && t < SNAP_TARGETS; ++t) {
+        const hud_unit& f = snap.targets[t];
+        if (f.target == 0 || !foe_at(f.handle)) {
+            continue;
+        }
+        for (uint32_t m = 0; m < snap.member_count && m < SNAP_MEMBERS; ++m) {
+            if (snap.members[m].handle != 0 && snap.members[m].handle == f.target) {
+                return true;   // a foe targets the party
+            }
+        }
+    }
+    return false;
 }
 
 uint32_t gate(const gate_in& in)
@@ -490,8 +540,11 @@ uint32_t build_drops(const uint8_t* loot, const uint8_t* known, uint16_t steal_l
             if (p.kind == STEAL && (steal_left >> slot & 1u) == 0) {
                 d.flags |= DROP_TAKEN;
             }
-            if (p.kind == DROP && slot >= 3) {
-                d.flags |= DROP_RARE;   // the later drop slots are the rarer ones [U: slot order = chance order]
+            // The five drop slots follow the chain drop table's tiers (bpack section06 dropRate +0x00..+0x04: common,
+            // uncommon, rare, veryRare, guaranteed; review 14): rare and very rare are slots 2 and 3, never the
+            // guaranteed slot 4. [U: slot n of the loot record is tier n; the tier order is the table's.]
+            if (p.kind == DROP && (slot == RARE_SLOT || slot == VERY_RARE_SLOT)) {
+                d.flags |= DROP_RARE;
             }
             if (item >= tf::GIL_FIRST && item <= tf::GIL_LAST) {
                 d.flags |= DROP_GIL;

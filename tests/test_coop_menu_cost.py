@@ -492,7 +492,9 @@ class EconomyTest(CostCase):
 
     def test_the_file_is_the_one_the_menus_follow(self):
         M = self.lua.eval('M')
-        self.assertEqual((M.version, M.DIVISOR, M.CAP, M.MAGICK_CATEGORY), ('0.2.0', 30, 3, 1))
+        # 0.3.0 (Marco removed the MP surcharge, 2026-11-16): CAP 1, the factor is always 1 (the game's own price);
+        # DIVISOR and CAP stay exported for the co-op menu's settings record.
+        self.assertEqual((M.version, M.DIVISOR, M.CAP, M.MAGICK_CATEGORY), ('0.3.0', 30, 1, 1))
         self.assertEqual(dict(M.AUGMENTS), {'offering': 32, 'parsimony': 36, 'spellspring': 51, 'channeling3': 91,
                                             'channeling2': 92, 'channeling1': 93})
 
@@ -738,6 +740,31 @@ class HelpTest(CostCase):
             self.d.ILCT_MenuSeatOp(SEAT, tm.OP_NAV, 1, 1, ctypes.byref(e))
         self.assertTrue(line(1).startswith('Not enough MP.'), 'a grey says why, whatever the help says')
 
+    def test_an_items_help_is_the_help_of_the_action_it_shows(self):
+        """0.1.60 bug 9: Balance Mote showed Reflectga Mote's help. An item row uses one action (+7) and shows another's
+        name (+8, the entry's display); Legacy's motes differ there. The help follows the name: row -> description for
+        every row of the page. Fixture: item k uses 0x52 + k and shows 0x52 + k, except item 5, which shows 0x200."""
+        self.load((5, 10, 15))
+        SEAT = 3
+        self.d.ILCT_MenuSeatReset(SEAT)
+        sh, st = tm.shared(menu_flags=0, items={4: 1, 5: 3, 6: 2}), tm.seat(summary=(6, 7), mp=10)
+        self.assertEqual(self.d.ILCT_MenuSeatRefresh(SEAT, ctypes.byref(sh), ctypes.byref(st), None), 1)
+        e = tm.Event()
+        for op, a, b in ((tm.OP_OPEN, 0, 0), (tm.OP_NAV, 1, 1), (tm.OP_NAV, 1, 1), (tm.OP_CONFIRM, 0, 0)):
+            self.d.ILCT_MenuSeatOp(SEAT, op, a, b, ctypes.byref(e))
+        out = ctypes.create_string_buffer(64)
+
+        def line():
+            self.d.ILCT_HelpSeatLine(SEAT, 1, out, 64)
+            return out.value.decode()
+
+        seen = []
+        for _ in range(3):
+            seen.append(line())
+            self.d.ILCT_MenuSeatOp(SEAT, tm.OP_NAV, 1, 1, ctypes.byref(e))
+        self.assertEqual(seen, ['help %d' % 0x56, 'help %d' % 0x200, 'help %d' % 0x58],
+                         'item 4, item 5 (shows 0x200, uses 0x57), item 6: each row its own displayed action')
+
 
 @native_test
 @unittest.skipUnless(HELP_ACTION and BATTLE_PACK, "set ILC_HELP_ACTION (Legacy's help_action.bin) and ILC_BATTLE_PACK")
@@ -760,11 +787,12 @@ class LegacyHelpTest(CostCase):
             usable, unused = [], []
             for k, row in enumerate(items):
                 action = row[7]
+                shown = struct.unpack_from('<H', row, 8)[0]   # the action whose name and help the row shows (bug 9)
                 kind = actions[action][0x1E]
                 (usable if kind == 3 else unused).append((k, action))
                 if kind == 3:
-                    text = line(action)
-                    self.assertTrue(text, f'item {k} (action {action:#x}) has no help line')
+                    text = line(shown)
+                    self.assertTrue(text, f'item {k} (shows action {shown:#x}) has no help line')
                 else:
                     # Unused rows (menu kind 255): the game's own help id is 4000, the empty text, as in Steam's data.
                     self.assertEqual(struct.unpack_from('<H', actions[action], 0)[0], 4000)
@@ -796,7 +824,8 @@ class EconomyLuaTest(unittest.TestCase):
 
     def test_legacys_file_gives_the_record_values(self):
         got = self.provider({self.E.PATH: ECONOMY_LUA.read_text(encoding='utf-8')})()
-        self.assertEqual(dict(got), {'major': 0, 'minor': 2, 'patch': 0, 'divisor': 3000, 'cap': 300})
+        self.assertEqual(dict(got), {'major': 0, 'minor': 3, 'patch': 0, 'divisor': 3000, 'cap': 100},
+                         '0.3.0: CAP 1 (no surcharge), DIVISOR 30')
 
     def test_nothing_for_a_missing_or_unusable_file(self):
         self.assertIsNone(self.provider({})())

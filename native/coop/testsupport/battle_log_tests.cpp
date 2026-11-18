@@ -165,6 +165,15 @@ void ILCT_BlConfigure(uint32_t enabled, uint32_t expanded, uint32_t control, uin
     s.filter_seat = static_cast<uint8_t>(seat);
     bl::configure(s);
 }
+// The line counts and the hold time (settings log_lines_compact / log_lines_expanded / log_fade_s), the rest kept.
+void ILCT_BlConfigureLines(uint32_t compact, uint32_t expanded, uint32_t fade_s)
+{
+    bl::settings s = bl::current();
+    s.compact_lines = static_cast<uint8_t>(compact);
+    s.expanded_lines = static_cast<uint8_t>(expanded);
+    s.fade_s = static_cast<uint8_t>(fade_s);
+    bl::configure(s);
+}
 void ILCT_BlCurrent(bl::settings* out) { *out = bl::current(); }
 void ILCT_BlDefaults(bl::settings* out) { *out = bl::defaults(); }
 void ILCT_BlToggle(void) { bl::toggle_expanded(); }

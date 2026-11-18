@@ -33,7 +33,7 @@ struct remap_record {
     movement::steer_entry slot[movement::SLOTS];
 };
 static_assert(sizeof(remap_record) == 32 + 48 * movement::SLOTS, "remap_record layout (host tests read it)");
-static_assert(sizeof(remap_record) <= 128, "copied at mid-function detour sites");
+static_assert(sizeof(remap_record) <= 256, "copied at mid-function detour sites (inline copy limit: movement/planner.h)");
 
 // ---- game thread ----------------------------------------------------------------------------------------------
 // Publishes a remap for the given slots (entries with ENTRY_ACTIVE steer; without it the slot steers nothing).

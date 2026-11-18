@@ -104,7 +104,10 @@
       "OpenMutexW",
       "GetFileAttributesW",
       "GetModuleFileNameW",
-      "SetLastError"
+      "SetLastError",
+      "FindFirstFileExW",
+      "FindNextFileW",
+      "FindClose"
     ],
     "api-ms-win-crt-private-l1-1-0.dll": [
       "memcmp",
@@ -280,8 +283,8 @@
     "KERNEL32.dll!GetSystemDirectoryW, LoadLibraryExW, GetProcAddress, FreeLibrary": "input service: System32 xinput1_4.dll by full path (XInputGetState), and hid.dll/cfgmgr32.dll preloaded from System32 so SDL's base-name loads resolve to System32 modules",
     "KERNEL32.dll!CreateSemaphoreW, ReleaseSemaphore, WaitForSingleObjectEx, *CriticalSection*, Tls*, SetThreadPriority, GetCurrentThread, ResetEvent": "SDL2 threads and synchronisation (thread/windows); SDL TLS is TlsAlloc-based, no TLS directory",
     "KERNEL32.dll!RaiseException, IsDebuggerPresent": "SDL2 names its threads for an attached debugger (exception 0x406D1388 only when a debugger is present)",
-    "KERNEL32.dll!CreateFileA, CreateFileW, ReadFile, WriteFile, DeviceIoControl, GetOverlappedResult, CancelIo": "SDL2 HIDAPI opens and reads HID game controllers (\\\\?\\hid# device paths); RWops file code is linked whole-object but not reached by the input path",
-    "KERNEL32.dll!GetFileSizeEx, GetFileTime, SetFilePointer, SetFilePointerEx": "SDL2 RWops/HIDAPI file helpers, linked whole-object (x64 mingw keeps .pdata, so --gc-sections cannot drop unused functions); not reached by the input path",
+    "KERNEL32.dll!CreateFileA, CreateFileW, ReadFile, WriteFile, DeviceIoControl, GetOverlappedResult, CancelIo": "SDL2 HIDAPI opens and reads HID game controllers (\\\\?\\hid# device paths); RWops file code is linked whole-object but not reached by the input path. Our own code: CreateFileW (GENERIC_READ, OPEN_EXISTING) and ReadFile read the co-op settings file at boot (src/boot/settings_file.cpp) and the HUD theme files (theme.json, atlas/theme.atlas, icons.json) on the co-op thread (src/overlay/theme_read.cpp); neither writes a file",
+    "KERNEL32.dll!GetFileSizeEx, GetFileTime, SetFilePointer, SetFilePointerEx": "SDL2 RWops/HIDAPI file helpers, linked whole-object (x64 mingw keeps .pdata, so --gc-sections cannot drop unused functions); not reached by the input path. Our own code: GetFileSizeEx sizes the settings file (src/boot/settings_file.cpp) and each HUD theme file before it is read (src/overlay/theme_read.cpp: refused above its cap)",
     "KERNEL32.dll!LoadLibraryA, LoadLibraryW, GetModuleHandleW, SetErrorMode": "SDL2 loadso and HIDAPI/XInput loaders (hid.dll, cfgmgr32.dll, XInput1_4.dll by base name: already loaded from System32 by the input service before SDL_Init)",
     "KERNEL32.dll!FormatMessageW, LocalFree, OutputDebugStringW": "SDL2 error strings and SDL_Log output to an attached debugger",
     "KERNEL32.dll!GetEnvironmentVariableA, SetEnvironmentVariableA": "SDL2 SDL_getenv (hint fallback; every hint the service uses is set at override priority, so the environment cannot change it) and SDL_setenv (linked, never called)",
@@ -300,7 +303,7 @@
     "api-ms-win-crt-runtime!_errno, signal, strerror": "SDL2 errno text, and SIGINT/SIGTERM handlers in SDL_QuitInit, which the service turns off (SDL_NO_SIGNAL_HANDLERS=1 at override priority) so the game's signal handling is never touched",
     "api-ms-win-crt-private!memmove, strchr, strrchr, strstr": "memory and string routines (UCRT) used by SDL2",
     "KERNEL32.dll!CreateToolhelp32Snapshot, Thread32First, Thread32Next, OpenThread, SuspendThread, ResumeThread, GetThreadContext, SetThreadContext": "MinHook 1.3.4 (patch layer, src/patch/): MH_ApplyQueued lists this process's threads, suspends every other thread while the 5-byte jumps are written or restored, and moves an instruction pointer that sits in the overwritten bytes into (or back out of) the trampoline (CONTEXT_CONTROL only). Linked; nothing calls the patch layer until the module boot wires it",
-    "KERNEL32.dll!VirtualAlloc, VirtualFree, VirtualQuery, GetSystemInfo": "MinHook: one 4 KiB executable buffer per hooked region, searched within 1 GiB of the site (VirtualQuery over the address space, allocation granularity from GetSystemInfo); freed only for hooks that were never enabled",
+    "KERNEL32.dll!VirtualAlloc, VirtualFree, VirtualQuery, GetSystemInfo": "MinHook: one 4 KiB executable buffer per hooked region, searched within 1 GiB of the site (VirtualQuery over the address space, allocation granularity from GetSystemInfo); freed only for hooks that were never enabled. Our own code: the HUD theme reader's buffers, decoded atlases and theme slots (src/overlay/theme_read.cpp: PAGE_READWRITE, at most 64 MiB per allocation, freed by the co-op thread), the settings file buffer (src/boot/settings_file.cpp: PAGE_READWRITE) and the call islands near the image (src/patch/call_island.cpp: allocated PAGE_READWRITE, switched to PAGE_EXECUTE_READ once written)",
     "KERNEL32.dll!VirtualProtect, FlushInstructionCache, GetCurrentProcess": "MinHook: makes the 5 bytes at a site writable for the jump (or its restore), restores the protection and flushes the instruction cache",
     "KERNEL32.dll!HeapCreate, HeapDestroy, HeapAlloc, HeapReAlloc, HeapFree": "MinHook: its private heap for the hook records and the thread list. The list is allocated before any thread is suspended and freed after they resume, and it is not the process heap, so a suspended thread holding the process heap lock cannot deadlock the install",
     "KERNEL32.dll!GetCurrentProcessId, GetCurrentThreadId, CloseHandle, GetLastError, Sleep, GetModuleHandleW, GetProcAddress": "MinHook: thread enumeration filters on this process and skips the calling thread; Sleep(0/1) backs off its spin lock; GetModuleHandleW/GetProcAddress belong to MH_CreateHookApi, which the patch layer never calls (hook.c is one object)",
@@ -310,7 +313,9 @@
     "KERNEL32.dll!CreateMutexW": "boot instance guard (src/boot/boot.cpp): one named per-process mutex (Local\\IvaliceLegacyCoop_<pid>), held for the life of the process, so a second copy of the module stays inert",
     "KERNEL32.dll!OpenMutexW, SetLastError": "Ivalice Together detection (src/boot/together_detect.cpp): opens the other mod's per-process mutexes for SYNCHRONIZE only to learn whether they exist, closes them at once; only ERROR_FILE_NOT_FOUND counts as absent",
     "KERNEL32.dll!GetFileAttributesW": "Ivalice Together detection (src/boot/together_detect.cpp): whether the other mod's files exist in the game's x64 folder; nothing is opened",
-    "KERNEL32.dll!GetModuleFileNameW": "boot (src/boot/boot.cpp): the game executable's folder, for the Together file markers and the read-only settings file"
+    "KERNEL32.dll!GetModuleFileNameW": "boot (src/boot/boot.cpp): the game executable's folder, for the Together file markers and the read-only settings file",
+    "KERNEL32.dll!GetProcAddress, GetModuleHandleW": "diagnostic lines (src/runtime/log.cpp): simpleLog.dll, the FF12 module loader's logger, is looked up among the modules already loaded (never loaded, never imported) and its _log export taken by name, so the co-op thread can write the module's lines into hook.log",
+    "KERNEL32.dll!FindFirstFileExW, FindNextFileW, FindClose": "HUD themes (Phase 8): the co-op thread lists the folder names under x64/scripts/config/IvaliceLegacy/themes (directories only, FindExSearchLimitToDirectories) to offer player themes in the Mod Menu; nothing else is enumerated"
   },
   "deniedDlls": [
     "ws2_32.dll",

@@ -21,6 +21,7 @@
 #include "party/party.h"
 #include "patch/call_island.h"
 #include "runtime/game_thread.h"
+#include "runtime/probe.h"
 #include "runtime/tick.h"
 #include "session/session.h"
 #include "towns/towns.h"
@@ -443,6 +444,23 @@ void fill(ilc_counters* o)
     const focus::counters* fo = focus::stats();
     o->focus_forced = low(fo->forced);
     o->focus_probe_failed = low(fo->probe_failed);
+    o->frame_hook_us_last = tsc_us(cv->hook_ticks_last);
+    o->frame_hook_us_max = tsc_us(cv->hook_ticks_max);
+    const uint64_t hook_calls = cv->hook_calls;
+    o->frame_hook_us_avg = hook_calls != 0 ? tsc_us(cv->hook_ticks_total / hook_calls) : 0;
+    o->frame_hook_calls = low(hook_calls);
+    o->canvas_atlas_lookups = low(cv->atlas_lookups);
+    o->canvas_text_last = low(cv->text_last);
+    o->canvas_chars_last = low(cv->chars_last);
+    const probe_counters pc = probe_stats();
+    o->probe_queries = low(pc.queries);
+    o->probe_hot_hits = low(pc.hot_hits);
+    o->probe_hot_misses = low(pc.hot_misses);
+    o->canvas_ring_ours_last = clamp32(cv->ring_ours_last);
+    o->canvas_zero_output = low(cv->zero_output);
+    o->canvas_child_space = low(cv->child_space);
+    o->canvas_declined_matrix = low(cv->declined_matrix);
+    o->probe_hot_failed = low(pc.hot_failed);
 }
 
 void test_reset()

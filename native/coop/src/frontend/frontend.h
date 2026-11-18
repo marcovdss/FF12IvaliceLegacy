@@ -46,6 +46,10 @@
 //     part of the report (no p1_menus, no leader_gate), so P1's buttons, the battle menu and the stock leader select
 //     are the game's and P1 is never gated on a fallen character.
 //  9. A native Quickening chain is reported (passthrough, and each guest's link by its party slot) even when idle.
+// 10. Player 1's menu on the overlay (rules.h p1_arm_step, set_p1_native below): P1 is on the game's own frontends
+//     until the overlay has presented the layer for a run of frames; then P1's battle menu, leader select and KO
+//     selector are seat 0's co-op menus, drawn by the overlay like the guests'. Any break (presenter not live, a
+//     refused frame, the layer idle, a give-back) puts P1 back on the vanilla menu in the same beat.
 //
 // Nothing here calls a game function or writes game memory; reads go through the fault-safe reader.
 #pragma once
@@ -158,9 +162,31 @@ struct counters {
 };
 const counters* stats();
 
+// Player 1 on the game's own battle frontends. While on: the layer never owns P1 (no p1_menus, no leader gate; no
+// co-op menu, selector or KO recovery for seat 0, so P1's buttons and the stock battle menu, leader select and KO path
+// are the game's), and the Wait rule counts only the guests (P1's stock menu pauses as the game does). P1's own battle
+// frontend (SCREEN_P1_BATTLE) up is never an external screen for the guests' menus and never driven by the guests'
+// pulses, on or off: while the layer owns P1 the gate refuses it, so one that is up is P1's own. Any thread.
+//
+// Since 0.1.59 (Marco, 2026-11-16: "Both: P1 menu + party list", one uniform window per seat) the switch follows the
+// arming rule (rules.h p1_arm_step) every beat: off (P1's menu drawn by our overlay) only after a run of presented
+// frames, back on at once whenever the overlay stops presenting. The module starts with it on. test_reset() turns the
+// arming off and the switch off (the host tests of P1's co-op menu); set_p1_arming(true) brings the rule back.
+void set_p1_native(bool on);
+bool p1_native();
+void set_p1_arming(bool on);
+bool p1_arming();
+void read_p1_arm(p1_arm* out);   // the arming state (host tests, diagnostics)
+
 // ---- host tests ------------------------------------------------------------------------------------------------
 // The layer's inputs from the game, replaceable by doubles (nullptr: the live readers).
-enum screen_bit : uint32_t { SCREEN_PAUSED = 0x1, SCREEN_TREE = 0x2, SCREEN_QUICKENING = 0x4 };
+enum screen_bit : uint32_t {
+    SCREEN_PAUSED = 0x1,
+    SCREEN_TREE = 0x2,
+    SCREEN_QUICKENING = 0x4,
+    SCREEN_P1_BATTLE = 0x8,   // P1's own battle frontend is up: the battle menu (1), leader select (3), tree (4)
+    SCREEN_P1_LEADER = 0x10,  // ... and it is the leader select (3): a race needs the leader gate too
+};
 struct sources {
     int32_t (*tables)(menu::catalog_tables* out);                          // menu::read_tables
     int32_t (*shared)(menu::shared_state* out);                            // menu::read_shared
@@ -171,6 +197,9 @@ struct sources {
 void test_set_sources(const sources* s);
 void test_set_image_base(uintptr_t image_base);
 void test_reset();
+// The overlay_live the arming rule reads: -1 overlay::live_track; 0 / 1 forced; 2 live while the presenter's last frame is
+// within overlay::LIVE_MS (the host tests' frame clock stands for OV-01's stamps).
+void test_set_overlay_live(int32_t state);
 uint32_t roles_of(const session::session_record& rec);   // the role signature (exposed for tests)
 
 }  // namespace ilc::frontend

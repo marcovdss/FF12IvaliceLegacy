@@ -165,3 +165,6 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The co-op overlay's fonts and art (the HUD themes compiled in: src/overlay/themes/) are Ivalice Legacy's own,
+drawn for this mod; they ship under the mod's licence and need no notice here.

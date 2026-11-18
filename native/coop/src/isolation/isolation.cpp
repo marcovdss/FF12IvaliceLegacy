@@ -128,12 +128,12 @@ void count(volatile uint64_t& c)
 template <typename T>
 bool read_game(uint64_t address, T* out)
 {
-    return copy_from_caller(out, reinterpret_cast<const void*>(address), sizeof(T));
+    return ilc::read_game(out, reinterpret_cast<const void*>(address), sizeof(T));
 }
 
 bool write_game(uint64_t address, const void* data, size_t n)
 {
-    return copy_to_caller(reinterpret_cast<void*>(address), data, n);
+    return store_game(reinterpret_cast<void*>(address), data, n);
 }
 
 bool class_is(uint64_t dev, uint64_t vtable_va)
@@ -318,21 +318,13 @@ bool write_substitute(uint64_t dev, const iso_record& r, bool xinput, uint32_t s
     return ok;
 }
 
-// The host's write for this visit. While the game keeps running in the background (focus.h) the host shows a neutral
-// pad, like player 1's own pads there: neither P1 fed from SDL nor a guest driving the native menus reaches the game
-// from another application's foreground. The presses made meanwhile are consumed, so none is replayed on refocus.
+// The host's write for this visit. While the game keeps running in the background (focus.h) the host keeps its pad,
+// like player 1's own XInput pad there (Marco, 2026-11-16: no frozen controllers on alt-tab): P1 fed from SDL, or a
+// guest driving the native menus, keeps playing. Pads only: the keyboard and the mouse stay foreground-only.
 void feed_host(uint64_t dev, const iso_record& r, uint32_t cls, uint32_t seat)
 {
     if (focus::running_unfocused()) {
-        cursor_epoch(r);
-        edges::edge_delta skipped;
-        (void)edges::since(g_cursor, seat, &skipped);
-        if (write_neutral(dev, cls)) {
-            count(g_counters.background);
-        } else {
-            count(g_counters.probe_failed);
-        }
-        return;
+        count(g_counters.background);   // a visit made while unfocused (the pad is fed as usual)
     }
     if (write_substitute(dev, r, cls == PAD_XINPUT, seat)) {
         count(g_counters.substituted);

@@ -34,6 +34,11 @@ bool validate_settings(const ilc_settings& settings, reject* out);
 // A command record body (header already passed): ranges, request id, and the per-command seat/arg rules.
 bool validate_command(const ilc_command& command, reject* out);
 
+// A HUD states record body (header already passed): every field's range and reserved byte, entries beyond each count
+// all zero (BAD_FIELD), and per used entry: a foe or proc names a record (non-zero), a word names a party member
+// (0..39) and a kind, a proc a tag; a foe's crown element is 0..7 or 255, and CROWNED needs one of 0..7 (CONFLICT).
+bool validate_hud_states(const ilc_hud_states& states, reject* out);
+
 // Field id of ilc_header.generation (generation 0 is refused where a generation is required).
 uint32_t header_generation_field();
 

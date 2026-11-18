@@ -29,6 +29,11 @@ constexpr uint32_t CONTROL_ENABLED = 0x14;          // u8
 // Native battle command menu.
 constexpr uintptr_t COMMAND_ACTOR = 0x2092730;      // VA: u32, non-zero while a command menu has an actor
 constexpr uintptr_t COMMAND_FLAG = 0x2092734;       // VA: u32, 1 while that menu is open
+// The frontend id at COMMAND_ACTOR, masked (the same ids as firewall_facts.h): Player 1's own battle frontends.
+constexpr uint32_t FRONTEND_ID_MASK = 0x7FFF;
+constexpr uint32_t FRONTEND_BATTLE = 1;             // P1's battle command menu
+constexpr uint32_t FRONTEND_LEADER = 3;             // the leader select (the automatic KO path included)
+constexpr uint32_t FRONTEND_TREE_ACTIVE = 4;        // the command-tree variant
 
 // Location: current and UI area ids agree once a load has finished.
 constexpr uintptr_t LOCATION_PTR = 0x2092758;       // VA: pointer to the location block

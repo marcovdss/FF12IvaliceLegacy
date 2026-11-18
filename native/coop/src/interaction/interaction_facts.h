@@ -81,9 +81,10 @@ constexpr uint64_t ACTOR_WEAPON_HANDLING = 1ull << 24; // NOTADDR: drawing or sh
 constexpr uint64_t ACTOR_EXECUTION = 1ull << 46;       // NOTADDR: an execution motion plays
 constexpr uint32_t ACTOR_HANDLE = 0x08;                // u32
 constexpr uint32_t ACTOR_STATE = 0x6B4;                // u32 (0/1 = idle or moving)
-constexpr uint32_t ACTOR_ACTION = 0x714;               // u32 (0xFFFF none, 0x4021 idle)
+constexpr uint32_t ACTOR_ACTION = 0x714;               // u16 (0xFFFF none, 0x4021 idle, 0x4124 follow the leader)
 constexpr uint32_t ACTION_NONE = 0xFFFF;
 constexpr uint32_t ACTION_IDLE = 0x4021;
+constexpr uint32_t ACTION_FOLLOW = 0x4124;             // a party member walking with the party (session/game_facts.h)
 
 // ---- world state the window and the hold read --------------------------------------------------------------------
 constexpr uintptr_t CONTROLLED_HANDLE = 0x22C7FE0;     // VA: u32 handle of the actor the game controls

@@ -85,7 +85,8 @@ struct seat_target {
     uint32_t handle;           // the seat's menu target (current, or the last one it pointed at), 0 none
     uint8_t group;             // its menu target group
     uint8_t on_page;           // 1 while the seat's menu is on a target page pointing at it
-    uint16_t reserved;
+    uint8_t native_aim;        // seat 0 only: 1 while the handle is P1's field target mode aim (the native Target button)
+    uint8_t reserved;
     uint64_t since_ms;         // when the seat moved onto it
 };
 static_assert(sizeof(seat_target) == 16, "seat_target layout");

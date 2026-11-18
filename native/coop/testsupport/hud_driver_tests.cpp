@@ -62,6 +62,9 @@ uint64_t ILCT_HudDrvCountersAddress(void) { return reinterpret_cast<uint64_t>(hu
 
 void ILCT_HudDrvSetProbe(uint32_t mask) { hud::driver::test_set_probe(mask); }
 
+int32_t ILCT_HudDrvLayer(void) { return hud::driver::layer_enabled() ? 1 : 0; }
+void ILCT_HudDrvSetLayer(int32_t on) { hud::driver::set_layer_enabled(on != 0); }
+
 void ILCT_HudDrvInjectFault(uint32_t pass) { hud::driver::test_inject_fault(pass); }
 
 int32_t ILCT_HudDrvGate(uint32_t epoch, uint64_t now_ms) { return hud::driver::frame_gate(epoch, now_ms) ? 1 : 0; }

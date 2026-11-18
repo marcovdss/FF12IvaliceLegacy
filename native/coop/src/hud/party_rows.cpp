@@ -41,9 +41,6 @@ constexpr uint16_t REGULARS = 6;                 // party ids 0..5: the six regu
 constexpr uint16_t ESPER_FIRST = 27;
 constexpr uint16_t ESPER_LAST = 39;
 
-// The six regulars' names (party ids 0..5), for the action line's target.
-const char* const REGULAR_NAMES[REGULARS] = {"Vaan", "Ashe", "Fran", "Balthier", "Basch", "Penelo"};
-
 // ---- the anchor table ------------------------------------------------------------------------------------------------
 // Layout units (the field MRP's authoring units) map to canvas units with one scale, 15/13: the stock row pitch on
 // screen (60) over the stock gap (52) [U: the root space is assumed to be the 1920x1080 authoring space]. y: the stock bottom row's top (G40.y = 228) sits at canvas 970
@@ -201,12 +198,12 @@ static_assert(ROW_DIGITS >= 0 && patch::SITES[ROW_DIGITS].policy == ILC_SITE_POL
 template <typename T>
 bool load(uint64_t address, T* out)
 {
-    return load_from_caller(out, reinterpret_cast<const void*>(address), sizeof(T));
+    return load_game(out, reinterpret_cast<const void*>(address), sizeof(T));
 }
 
 bool store_u32(uint64_t address, uint32_t value)
 {
-    return copy_to_caller(reinterpret_cast<void*>(address), &value, sizeof(value));
+    return store_game(reinterpret_cast<void*>(address), &value, sizeof(value));
 }
 
 int32_t coloured_index(uint64_t row)
@@ -479,8 +476,9 @@ void draw_row(emitter& em, const anchor& a, const hud_unit& u, const row_extra* 
             em.text(x + a.timer_dx, a.status_y + a.timer_dy, t, tint, a.timer_scale);
         }
     }
-    // Action line: "Choosing..." in the ACTION label's place while the seat's menu is open and nothing is performed;
-    // the target's name after the native action gauge while an action aims at another party member.
+    // Action line: "Choosing..." in the ACTION label's place while the seat's menu is open and nothing is performed.
+    // Never the action's target (Marco, 2026-11-16: "Having the name of the target only brings visual polution.
+    // There are target lines for that just as in vanilla.").
     if (ex == nullptr || (pieces & PART_ACTION) == 0) {
         return;
     }
@@ -489,20 +487,6 @@ void draw_row(emitter& em, const anchor& a, const hud_unit& u, const row_extra* 
         em.text(a.label_x, a.label_y,
                 (ex->flags & EXTRA_CHOOSING_TARGET) != 0 ? "Choosing target..." : "Choosing...", TEXT_WHITE,
                 a.label_scale);
-    } else if (acting && (u.flags & UNIT_ACTOR) != 0 && u.target != 0 && u.target != u.handle) {
-        for (uint32_t k = 0; k < s.member_count && k < SNAP_MEMBERS; ++k) {
-            const hud_unit& t = s.members[k];
-            if ((t.flags & UNIT_ACTOR) != 0 && t.handle == u.target && t.member < REGULARS) {
-                char line[24] = {'-', ' '};
-                uint32_t len = 2;
-                for (const char* p = REGULAR_NAMES[t.member]; *p != '\0' && len + 1 < sizeof(line); ++p) {
-                    line[len++] = *p;
-                }
-                line[len] = '\0';
-                em.text(a.suffix_x, a.suffix_y, line, TEXT_WHITE, a.suffix_scale);
-                break;
-            }
-        }
     }
 }
 
@@ -781,6 +765,11 @@ void stop()
 {
     g_slot.withdraw();
     g_published = 0;
+}
+
+bool read(rows_record* out)
+{
+    return g_slot.read(*out);
 }
 
 void set_enabled(bool on)

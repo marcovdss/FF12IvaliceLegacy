@@ -55,7 +55,7 @@ ChangePlan = S('ChangePlan', [('kind', u8), ('seat', u8), ('other', u8), ('targe
                               ('released', u16), ('new_leader', u16), ('reserved', u16), ('mask', u32),
                               ('after', u16 * 4)])
 RemapRecord = S('RemapRecord', [('head', RecordHead), ('seq', u32), ('mask', u32), ('published_ms', u64),
-                                ('slot', mv.SteerEntry * 2)])
+                                ('slot', mv.SteerEntry * 3)])
 COUNTER_NAMES = ('steps', 'requests', 'pushed', 'push_refused', 'applied', 'already', 'refused', 'requests_refused',
                  'requests_timed_out', 'leader_writes', 'remaps', 'remaps_retired', 'remaps_expired',
                  'watcher_changes', 'external_swaps', 'external_left', 'ko_promotions', 'watcher_after',
@@ -231,7 +231,7 @@ class RuleTest(unittest.TestCase):
         for p1 in range(6):
             for seat in range(4):
                 for member in range(16):
-                    want = seat < 3 and member < 6 and (seat == 0 or member != p1)
+                    want = seat < 4 and member < 6 and (seat == 0 or member != p1)  # four seats (0.1.53)
                     with self.subTest(p1=p1, seat=seat, member=member):
                         self.assertEqual(self.d.ILCT_PartyPicker(seat, member, p1), int(want))
         self.assertEqual(self.d.ILCT_PartyPicker(1, 0, 3), 1, 'Vaan is allowed for a guest while P1 is not Vaan')
@@ -469,7 +469,7 @@ class RemapTest(unittest.TestCase):
         self.d.ILCT_PartyReset()
 
     def entries(self, actor):
-        e = (mv.SteerEntry * 2)()
+        e = (mv.SteerEntry * 3)()
         e[0].actor, e[0].phys, e[0].root, e[0].flags, e[0].heading = actor, actor + 0x100, actor + 0x200, 1, 0.5
         return e
 
@@ -493,7 +493,7 @@ class RemapTest(unittest.TestCase):
     def test_an_inactive_entry_steers_nothing(self):
         rec = mv.record_for(dict(actor=0xB000, phys=0xB100, root=0xB200), epoch=4)
         rec.active = 0b01
-        e = (mv.SteerEntry * 2)()
+        e = (mv.SteerEntry * 3)()
         self.d.ILCT_PartyRemapPublish(2, 4, 9, 0b01, e, 0)
         self.assertEqual(self.d.ILCT_PartyRemapApply(rec), 1)
         self.assertEqual(rec.active, 0)

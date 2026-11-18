@@ -123,6 +123,7 @@ struct chain_read {
     uint16_t shown;
 };
 chain_read g_chain;
+volatile uint32_t g_chain_word = 0;        // known << 24 | level << 16 | shown (chain_now; any thread reads)
 uint32_t g_chain_epoch = 0;                // the epoch whose verify rows were compared
 uint8_t g_chain_rows = 0;                  // 1 = CH-V1 and CH-V2 hold their pinned bytes
 
@@ -134,7 +135,9 @@ uint64_t pack_settings(const settings& s)
 {
     return static_cast<uint64_t>(s.enabled) | static_cast<uint64_t>(s.expanded) << 8 |
            static_cast<uint64_t>(s.expand_control) << 16 | static_cast<uint64_t>(s.filter) << 24 |
-           static_cast<uint64_t>(s.filter_seat) << 32 | uint64_t{1} << 63;
+           static_cast<uint64_t>(s.filter_seat) << 32 | static_cast<uint64_t>(s.compact_lines) << 40 |
+           static_cast<uint64_t>(s.expanded_lines) << 48 | static_cast<uint64_t>(s.fade_s & 0x7Fu) << 56 |
+           uint64_t{1} << 63;
 }
 
 settings unpack_settings(uint64_t v)
@@ -148,6 +151,9 @@ settings unpack_settings(uint64_t v)
     s.expand_control = static_cast<uint8_t>(v >> 16);
     s.filter = static_cast<uint8_t>(v >> 24);
     s.filter_seat = static_cast<uint8_t>(v >> 32);
+    s.compact_lines = static_cast<uint8_t>(v >> 40);
+    s.expanded_lines = static_cast<uint8_t>(v >> 48);
+    s.fade_s = static_cast<uint8_t>((v >> 56) & 0x7Fu);
     return s;
 }
 
@@ -635,6 +641,10 @@ void feed(game_reader& r, const hud_snapshot& snap, uint64_t now)
     const uint32_t n = ring_drain(g_events, RING, &lost);
     // After the drain: the chain update runs before the kill pop-up, so every kill drained is already counted.
     g_chain = chain_sample(r, snap.head.epoch);
+    __atomic_store_n(&g_chain_word,
+                     static_cast<uint32_t>(g_chain.known != 0 ? 1u : 0u) << 24 |
+                         static_cast<uint32_t>(g_chain.level) << 16 | g_chain.shown,
+                     __ATOMIC_RELEASE);
     for (uint32_t k = 0; k < n; ++k) {
         const event& e = g_events[k];
         bump(detail::g_counters.drained);
@@ -838,6 +848,7 @@ void reset_state()
     zero_bytes(&g_build, sizeof(g_build));
     zero_bytes(&g_solo, sizeof(g_solo));
     zero_bytes(&g_chain, sizeof(g_chain));
+    __atomic_store_n(&g_chain_word, 0u, __ATOMIC_RELEASE);
     g_chain_epoch = 0;
     g_chain_rows = 0;
     zero_bytes(g_resolved, sizeof(g_resolved));
@@ -894,6 +905,9 @@ bool beat(const hud_snapshot& snap, uint64_t now, bool have_snapshot, view* out)
     g_next.built_ms = now;
     g_next.filter = now_s.filter < FILTER_COUNT ? now_s.filter : static_cast<uint8_t>(FILTER_ALL);
     g_next.filter_seat = now_s.filter_seat;
+    g_next.compact_lines = now_s.compact_lines;
+    g_next.expanded_lines = now_s.expanded_lines;
+    g_next.fade_s = now_s.fade_s;
     for (uint32_t k = 0; k < 4; ++k) {
         g_next.seat_colour[k] = pack(SEAT_RGB[g_seat_colour[k]]);
     }
@@ -917,6 +931,9 @@ settings defaults()
     s.expand_control = 0;   // none until the Battle HUD page binds one
     s.filter = FILTER_ALL;
     s.filter_seat = 1;
+    s.compact_lines = COMPACT_LINES;
+    s.expanded_lines = EXPANDED_LINES;
+    s.fade_s = static_cast<uint8_t>(LIFE_MS / 1000u);
     return s;
 }
 
@@ -933,6 +950,27 @@ void configure(const settings& s)
     }
     if (c.filter_seat < 1 || c.filter_seat > 4) {
         c.filter_seat = 1;
+    }
+    // The line counts and the hold time: 0 (a caller that leaves them out) is the built-in default.
+    if (c.expanded_lines == 0 || c.expanded_lines > EXPANDED_LINES) {
+        c.expanded_lines = EXPANDED_LINES;
+    } else if (c.expanded_lines < 5) {
+        c.expanded_lines = 5;
+    }
+    if (c.compact_lines == 0) {
+        c.compact_lines = COMPACT_LINES;
+    } else if (c.compact_lines > ILC_LOG_LINES_COMPACT_MAX) {
+        c.compact_lines = ILC_LOG_LINES_COMPACT_MAX;
+    }
+    if (c.compact_lines > c.expanded_lines) {
+        c.compact_lines = c.expanded_lines;
+    }
+    if (c.fade_s == 0) {
+        c.fade_s = static_cast<uint8_t>(LIFE_MS / 1000u);
+    } else if (c.fade_s < 3) {
+        c.fade_s = 3;
+    } else if (c.fade_s > 15) {
+        c.fade_s = 15;
     }
     __atomic_store_n(&g_settings, pack_settings(c), __ATOMIC_RELEASE);
     __atomic_store_n(&detail::g_enabled, static_cast<uint32_t>(c.enabled), __ATOMIC_RELEASE);
@@ -1068,6 +1106,14 @@ bool test_resolve(uint64_t record, who* out)
 void test_set_names_only(bool on) { g_names_only = on ? 1u : 0u; }
 
 void test_set_hit_rows(uint8_t rows) { set_hit_rows(rows); }
+
+bool chain_now(uint16_t* shown, uint8_t* level)
+{
+    const uint32_t w = __atomic_load_n(&g_chain_word, __ATOMIC_ACQUIRE);
+    *shown = static_cast<uint16_t>(w & 0xFFFF);
+    *level = static_cast<uint8_t>((w >> 16) & 0xFF);
+    return (w >> 24) != 0;
+}
 
 bool test_chain(uint16_t* shown, uint8_t* level)
 {

@@ -10,7 +10,9 @@
 
 #include "interaction/interaction.h"
 #include "interaction/interaction_facts.h"
+#include "interaction/prompt.h"
 #include "interaction/rules.h"
+#include "interaction/treasure_log.h"
 #include "patch/call_island.h"
 #include "patch/detour.h"
 #include "runtime/probe.h"
@@ -109,23 +111,23 @@ void bump(volatile uint64_t& counter)
 template <typename T>
 bool load(uint64_t address, T* out)
 {
-    return address != 0 && copy_from_caller(out, reinterpret_cast<const void*>(address), sizeof(T));
+    return address != 0 && read_game(out, reinterpret_cast<const void*>(address), sizeof(T));
 }
 
 template <typename T>
 bool store(uint64_t address, const T& value)
 {
-    return address != 0 && copy_to_caller(reinterpret_cast<void*>(address), &value, sizeof(T));
+    return address != 0 && store_game(reinterpret_cast<void*>(address), &value, sizeof(T));
 }
 
 bool load_bytes(uint64_t address, void* out, size_t n)
 {
-    return address != 0 && copy_from_caller(out, reinterpret_cast<const void*>(address), n);
+    return address != 0 && read_game(out, reinterpret_cast<const void*>(address), n);
 }
 
 bool store_bytes(uint64_t address, const void* data, size_t n)
 {
-    return address != 0 && copy_to_caller(reinterpret_cast<void*>(address), data, n);
+    return address != 0 && store_game(reinterpret_cast<void*>(address), data, n);
 }
 
 // ---- the game's functions (replaceable by host tests) ------------------------------------------------------------
@@ -497,8 +499,11 @@ bool target_view_of(uint64_t entry, target_view* out)
 bool actor_facts(uint64_t entry, uint64_t* flags, uint32_t* state, uint32_t* action)
 {
     uint64_t actor = 0;
-    return load(entry + facts::E_ACTOR, &actor) && actor != 0 && load(actor + facts::ACTOR_FLAGS, flags) &&
-           load(actor + facts::ACTOR_STATE, state) && load(actor + facts::ACTOR_ACTION, action);
+    uint16_t word = 0;  // the action is a u16: the bytes after it are not part of it
+    const bool ok = load(entry + facts::E_ACTOR, &actor) && actor != 0 && load(actor + facts::ACTOR_FLAGS, flags) &&
+                    load(actor + facts::ACTOR_STATE, state) && load(actor + facts::ACTOR_ACTION, &word);
+    *action = word;
+    return ok;
 }
 
 bool guards_open()
@@ -883,8 +888,13 @@ bool attach()
         for (const binding& b : rows) {
             patch::set_site_armed(static_cast<uint32_t>(b.row), false);
         }
+        return false;
     }
-    return ok;
+    // The guests' prompt (IX-21) stands alone: cosmetic and optional, it never decides whether interactions attach.
+    prompt::attach(static_cast<uintptr_t>(patch::IMAGE_BASE));
+    // Chests to the combat log without a pause (TL-01/TL-02): optional too, both rows or neither.
+    treasure_log::attach();
+    return true;
 }
 
 namespace hooks_detail {

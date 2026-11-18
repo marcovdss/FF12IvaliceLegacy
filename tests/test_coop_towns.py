@@ -212,7 +212,7 @@ class RuleTest(unittest.TestCase):
         self.assertEqual(d.ILCT_TownControlled(players(0, 8)), bits(0, 8), 'a story ally a guest drives')
         parked = session_record({0: (0, SEATF['IN_SESSION']), 1: (2, SEATF['IN_SESSION'])})
         self.assertEqual(d.ILCT_TownControlled(parked), bits(0), 'a parked guest controls nothing')
-        self.assertEqual(d.ILCT_TownControlled(players(0, 2, 3, p4=4)), bits(0, 2, 3), 'no fourth seat')
+        self.assertEqual(d.ILCT_TownControlled(players(0, 2, 3, p4=4)), bits(0, 2, 3, 4), 'four seats (0.1.53)')
         self.assertEqual(d.ILCT_TownControlled(players(0, 70)), bits(0), 'ids >= 64 never count')
         self.assertEqual(d.ILCT_TownControlled(session_record({1: (2, REGULAR_IN_SESSION)})), bits(2),
                          'P1 out of session (no record seat): only the guest')
@@ -701,6 +701,36 @@ class StepTest(unittest.TestCase):
         self.d.ILCT_TownSessionWithdraw()
         self.d.ILCT_TownStep(gt.NOW + 20)
         self.assertEqual(self.d.ILCT_TownRecord(r), 0)
+
+    def options(self, town_view):
+        """The player options word (runtime/options.h): only town_view changes here."""
+        f = self.d.ILCT_OptSet
+        f.argtypes = [ctypes.c_char_p]
+        f(bytes([1, 1, town_view, 0, 1, 5, 20, 6]))
+
+    def test_town_view_party_allows_everyone_and_only_shows(self):
+        """Settings town_view PARTY (0.1.53): the record allows every member (the filter hides nobody) and the planner
+        asks once for the bodies a players-only town had hidden; PLAYERS again hides them once more."""
+        reset = self.d.ILCT_OptReset
+        try:
+            self.options(1)
+            self.party.layouts((0, 1, 2, 3), (0, NONE, 2, NONE))  # what a players-only town left
+            pushed = self.run_beats(gt.NOW, 10, players(0, 2))
+            r = TownRecord()
+            self.assertEqual(self.d.ILCT_TownRecord(r), 1)
+            self.assertEqual(r.allowed, 0xFFFFFFFFFFFFFFFF)
+            self.assertEqual(len(pushed), 1, 'one rebuild brings the hidden members back')
+            self.assertLessEqual(pushed[0] - gt.NOW, 60, 'a show is fast')
+            self.img.put_global(TASK_PTR, struct.pack('<Q', 0))  # the stub's task is done
+            self.party.layouts((0, 1, 2, 3), (0, 1, 2, 3))
+            self.assertEqual(self.run_beats(gt.NOW + 400, 20, players(0, 2)), [], 'nothing hidden: nothing to do')
+            self.options(0)
+            pushed = self.run_beats(gt.NOW + 1000, 30, players(0, 2))
+            self.assertEqual(len(pushed), 1, 'players only again: one hide')
+            self.assertEqual(self.d.ILCT_TownRecord(r), 1)
+            self.assertEqual(r.allowed, bits(0, 2))
+        finally:
+            reset()
 
     def test_guest_seated_in_town_hides_the_rest_once(self):
         pushed = self.run_beats(gt.NOW, 30, players(0, 2))

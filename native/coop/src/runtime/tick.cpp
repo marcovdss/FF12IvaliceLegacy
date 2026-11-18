@@ -11,6 +11,8 @@
 #include "hud/rings.h"
 #include "hud/target_info_native.h"
 #include "input/input_service.h"
+#include "overlay/hide.h"
+#include "overlay/overlay.h"
 #include "party/party.h"
 #include "runtime/game_thread.h"
 #include "wait/wait.h"
@@ -172,6 +174,13 @@ int32_t ut01(patch::ctx* c, uint32_t epoch)
     // The native TARGET INFO: given back for the field target mode once ours has stopped, closed under ours once it
     // runs again (data writes into the window owner; any mode: it only hands back what TI-01 held).
     hud::target_info::giveback::tick(patch::now_ms(), epoch);
+    // The overlay's HUD heartbeat while Target Info has faded the combat log out (HD-01 is silent then).
+    if (patch::current_mode() == patch::MODE_LIVE) {
+        overlay::note_ui_tick();
+    }
+    // The vanilla HUD pieces our overlay replaces: hidden by their draw bit while ours are presented, given back the
+    // tick they are not (overlay/hide.h).
+    overlay::hide::tick(patch::current_mode() == patch::MODE_LIVE);
     const int32_t decision = party::after_wanted() ? patch::CALL_AROUND : patch::RUN_ORIGINAL;
     note_cost(started);
     __atomic_store_n(&g_in_tick, 0u, __ATOMIC_RELEASE);
@@ -197,6 +206,7 @@ int32_t ut01_stale(patch::ctx* c, uint32_t epoch)
         bump(g_counters.stale_releases);
     }
     hud::native::tick(false);
+    overlay::hide::stale();   // the vanilla HUD pieces back: nothing of ours is fed without a beat
     // Ours stops drawing without a beat: the native TARGET INFO comes back for a target mode in progress.
     hud::target_info::giveback::tick(patch::now_ms(), epoch);
     __atomic_store_n(&g_in_tick, 0u, __ATOMIC_RELEASE);

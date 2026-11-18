@@ -726,6 +726,19 @@ void play(uint32_t seat, uint32_t sound_id)
     g_sound.pending = sound_id;
 }
 
+bool play_system(uint32_t sound_id)
+{
+    bool allowed = false;
+    for (uint32_t id : facts::SOUND_IDS) {
+        allowed = allowed || id == sound_id;
+    }
+    if (!allowed || g_sound.pending != 0) {
+        return false;
+    }
+    g_sound.pending = sound_id;
+    return true;
+}
+
 uint32_t summon_owner()
 {
     return __atomic_load_n(&g_owner, __ATOMIC_ACQUIRE);

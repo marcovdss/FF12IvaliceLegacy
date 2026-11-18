@@ -266,7 +266,8 @@ uint64_t ring_estimate(const frame& f)
 void configure_from_settings(const ilc_settings& s)
 {
     // Generation 0 is the native defaults record: the test draw stays off until the player's settings say otherwise.
-    const bool on = s.header.generation != 0 && s.hud_test_draw != 0;
+    // The old canvas test draw stays off: hud_test_draw now shows our own overlay's test card (overlay.h).
+    const bool on = false;
     for (uint32_t k = 0; k < ILC_SEATS; ++k) {
         const uint8_t c = s.seats[k].colour;
         g_seat_colour[k] = c < ILC_ENUM_COUNT(ILC_COLOURS) ? c : static_cast<uint8_t>(ILC_COLOUR_GOLD);

@@ -24,8 +24,8 @@ Policy per site (what the patch engine does with it):
            be installed; an OPTIONAL row (OPTIONAL_BY_DECISION, flag 0x08) that does not match is skipped instead
   REQUIRE  verify-only and retired sites that must be stock: a mismatch refuses the whole install
   GATE     verify-only site whose mismatch skips the one site it gates (IN-06a -> IN-06, FP-V1 -> FP-01,
-           HD-V1..HD-V8 -> HD-01, HD-V9/HD-V11 -> HD-02, HD-V10 -> HD-03, HR-V1/HR-V2 -> HR-02, HR-V3/HR-V6 -> HR-01,
-           HR-V4 -> HR-03, HR-V5 -> HR-05, KR-V1 -> KR-01)
+           HD-V1..HD-V8 and HD-V12 -> HD-01, HD-V9/HD-V11 -> HD-02, HD-V10 -> HD-03, HR-V1/HR-V2 -> HR-02, HR-V3/HR-V6 -> HR-01,
+           HR-V4 -> HR-03, HR-V5 -> HR-05, KR-V1 -> KR-01, OV-V1..OV-V3 -> OV-01)
   INFO     everything else (spec-gap, do-not-port, dropped, proposed, read-only discovery sites, and port sites dropped by a
            design decision): read and reported, never written, never a refusal
 """
@@ -70,6 +70,8 @@ GROUP_SUBSYSTEM = {
     'focus': 'CORE',
     # The HUD frame hook (H0) and the native draw functions the co-op canvas calls: the render subsystem.
     'hud': 'RENDER',
+    # The overlay frame hook (OV-01) and what it relies on: the render subsystem (the D3D11 overlay).
+    'overlay': 'RENDER',
     'retired': 'NONE',
 }
 # Sites whose subsystem a design decision changes, with the reason.
@@ -77,6 +79,9 @@ SUBSYSTEM_BY_DECISION = {
     'IN-06': ('CORE', 'the pad focus gate gives player 1 a neutral XInput state while the window is unfocused and '
                       'the game keeps running (the background setting); it must act wherever that setting does'),
     'IN-06a': ('CORE', 'the guard of IN-06 belongs with the row it gates'),
+    'TL-01': ('MOVEMENT', 'chests belong with interactions (guests open them through IX-20): a fault of the overlay '
+                          '(RENDER) must not bring the pause back'),
+    'TL-02': ('MOVEMENT', 'chests belong with interactions, as TL-01'),
 }
 KIND = {'detour': 'DETOUR', 'call-redirect': 'CALL', 'imm-patch': 'IMM', 'byte-patch': 'BYTES',
         'verify-only': 'VERIFY', 'discovery-only': 'VERIFY', 'retired-must-be-stock': 'VERIFY'}
@@ -102,25 +107,36 @@ PORTED_BY_DECISION = {
     'IX-19': 'guest NPC talk: the exact-NPC scan runs inside the consumer window with this guard armed per call',
     'IX-20': 'guest interactions (objects, NPC talk, shops) run in one window at the consumer call',
     'LT-01': 'walk-over loot: the ownership query answers party for a seat-controlled actor at this call only',
+    'TL-01': 'chests without a pause (Marco, 2026-11-16, as Together): the treasure notice takes the combat-log '
+             'presentation (mode 1) instead of the modal one (0x10000)',
+    'TL-02': 'chests without a pause: the treasure record is written with pending 0 and the begin call (the open '
+             'animation on the controlled actor) skipped',
 }
 GATES = {'IN-06a': 'IN-06',           # a mismatch here (another mod rewrote the approach) skips the gated site
          'FP-V1': 'FP-01',
          # the HUD frame hook needs its callee and every native draw function the canvas calls to be stock
-         **{f'HD-V{k}': 'HD-01' for k in range(1, 9)},
+         **{f'HD-V{k}': 'HD-01' for k in range(1, 9)}, 'HD-V12': 'HD-01',
          # the party row HP colour rows need the HP digits function, its call's arguments and the digit setter stock
          'HD-V9': 'HD-02', 'HD-V11': 'HD-02', 'HD-V10': 'HD-03',
          # the battle log's per-hit feed and kill reward need the code around each copy point stock
          'HR-V1': 'HR-02', 'HR-V2': 'HR-02', 'HR-V3': 'HR-01', 'HR-V6': 'HR-01', 'HR-V4': 'HR-03',
          'HR-V5': 'HR-05',
-         'KR-V1': 'KR-01'}
+         'KR-V1': 'KR-01',
+         # the overlay frame hook needs the present wrapper, its Present call and the renderer's device fields stock
+         'OV-V1': 'OV-01', 'OV-V2': 'OV-01', 'OV-V3': 'OV-01'}
 # Read-only discovery: a mismatch is information. CH-V1/CH-V2 gate a read, not a patch: the battle log compares
 # them itself and reads the chain globals only while they are stock. TI-V1..TI-V9 gate the native Target Info
 # give-back (data writes into the TARGET INFO owner): the Target Info compares them itself and gives the native
 # window back only while every one is stock; a mismatch leaves TI-01 and everything else as they are.
-VERIFY_INFO = {'CD-01', 'CD-02', 'CH-V1', 'CH-V2', *{f'TI-V{k}' for k in range(1, 10)}}
+# HH-V1..HH-V7 gate the overlay's vanilla HUD hides (window draw bit writes: party list, help line, Target Info, the
+# second log window) and PH-V1..PH-V4 its party-HUD reads (MP max, the action gauge): each module compares them itself.
+VERIFY_INFO = {'CD-01', 'CD-02', 'CH-V1', 'CH-V2', *{f'TI-V{k}' for k in range(1, 10)},
+               *{f'HH-V{k}' for k in range(1, 8)}, *{f'PH-V{k}' for k in range(1, 5)}}
 # PATCH rows another mod may legitimately rewrite: a mismatch skips the row (as a failed gate would) instead of
 # refusing the install. With the reason.
 OPTIONAL_BY_DECISION = {
+    'OV-01': 'another mod may own the present call: the overlay is then skipped (nothing is drawn and the co-op menus '
+             'stay idle without a presenter) instead of refusing every co-op hook',
     'HD-01': "Vision's No Combat Log NOPs this call: the frame hook is then skipped (nothing is drawn and the co-op "
              'menus stay idle without a presenter) instead of refusing every co-op hook',
     'HD-02': 'the low-HP glow is cosmetic: if another mod rewrote the HP digits call, the native colour stays and '
@@ -131,6 +147,8 @@ OPTIONAL_BY_DECISION = {
              'keeps opening under the co-op Target Info, instead of refusing every co-op hook',
     'WM-01': 'the seat diamonds are cosmetic: if another mod rewrote the overhead pass call, no diamond is drawn and '
              'nothing else is refused',
+    'IX-21': "the guests' interaction prompt is cosmetic: if another mod rewrote the prompt drawer call, guests get "
+             'no marker (P1 keeps the native one) and nothing else is refused',
     'RG-01': 'the cleave gate only touches the stock target list: if another mod rewrote its ring call, the stock rings '
              'stay (Attack included) and nothing else is refused',
     'LG-01': "the battle log feed is a copy of the message emitter's arguments: if another mod hooked its entry, the row "
@@ -146,6 +164,10 @@ OPTIONAL_BY_DECISION = {
              'of refusing every co-op hook',
     'KR-01': 'the kill reward only copies: if another mod hooked the EXP and LP pop-up, the kill line has no EXP or LP, '
              'instead of refusing every co-op hook',
+    'TL-01': 'chests to the log: if another mod rewrote the notice presentation store, chests stay stock (TL-02 is '
+             'then not armed either) instead of refusing every co-op hook',
+    'TL-02': 'chests to the log: if another mod rewrote the treasure begin call, chests stay stock (TL-01 is then not '
+             'armed either) instead of refusing every co-op hook',
 }
 # Interior references reviewed and found harmless, with the reason. Empty: nothing has been waived.
 INTERIOR_WAIVED: dict[str, str] = {}

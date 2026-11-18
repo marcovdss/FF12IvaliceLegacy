@@ -44,7 +44,7 @@ def S(name, fields):
 SteerEntry = S('SteerEntry', [('actor', u64), ('phys', u64), ('root', u64), ('heading', f32), ('visual', f32),
                               ('magnitude', f32), ('member', u16), ('seat', u8), ('flags', u8), ('handle', u32),
                               ('actor_generation', u32)])
-SteerRecord = S('SteerRecord', [('head', RecordHead), ('active', u32), ('reserved', u32), ('slot', SteerEntry * 2)])
+SteerRecord = S('SteerRecord', [('head', RecordHead), ('active', u32), ('reserved', u32), ('slot', SteerEntry * 3)])  # guest seats P2..P4
 SeatInput = S('SeatInput', [('present', u8), ('walk_toggle', u8), ('flee', u8), ('hold', u8), ('up', u16),
                             ('down', u16), ('left', u16), ('right', u16)])
 ActorFacts = S('ActorFacts', [('ok', u8), ('armed', u8), ('execution', u8), ('has_target', u8), ('headings_ok', u8),
@@ -57,7 +57,7 @@ CameraFilter = S('CameraFilter', [('pending_heading', f64), ('pending_count', u3
 SlotState = S('SlotState', [('actor', u64), ('phys', u64), ('actor_generation', u32), ('world_epoch', u32),
                             ('last_heading', f64), ('visual', f64), ('walk', u8), ('reserved', u8 * 7)])
 PlannerState = S('PlannerState', [('last_ms', u64), ('camera', Basis), ('filter', CameraFilter),
-                                  ('slot', SlotState * 2)])
+                                  ('slot', SlotState * 3)])
 PlanOutputs = S('PlanOutputs', [('record', SteerRecord), ('flee_seats', u32), ('started', u32), ('waiting', u32),
                                 ('camera_accepted', u32)])
 SteerResult = S('SteerResult', [('moving', u8), ('reserved', u8 * 7), ('heading', f64), ('magnitude', f64)])
@@ -208,7 +208,7 @@ class LayoutTest(unittest.TestCase):
         for k, cls in enumerate(LAYOUTS):
             self.assertEqual(out[k], ctypes.sizeof(cls), cls.__name__)
         self.assertEqual(ctypes.sizeof(Ctx), 0x100)
-        self.assertLessEqual(ctypes.sizeof(SteerRecord), 128, 'record copied at mid-function sites stays small')
+        self.assertLessEqual(ctypes.sizeof(SteerRecord), 256, 'record copied at mid-function sites stays small')
 
 
 @native_test
@@ -464,10 +464,11 @@ class PlannerTest(unittest.TestCase):
         self.assertEqual(out.record.active, 0b01)
         self.assertEqual(out.record.slot[1].flags, 0)
 
-    def test_fourth_seat_never_steers(self):
+    def test_fourth_seat_steers(self):
+        """Four seats (0.1.53): P4 steers through steering slot 2 and its flee reaches the flee word."""
         rec = steering_record(seats={3: steering_seat(ACTOR3, PHYS3)})
         out = self.plan(rec, actor={3: facts(ROOT3)}, inputs={3: stick(1.0, flee=1)})
-        self.assertEqual((out.record.active, out.flee_seats), (0, 0))
+        self.assertEqual((out.record.active, out.flee_seats), (0b100, 1 << 3))
 
     def test_missing_facts_or_headings_wait(self):
         out = self.plan(self.two_guests(), actor={1: facts(ROOT2, ok=0), 2: facts(ROOT3, headings_ok=0)})

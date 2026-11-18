@@ -8,16 +8,16 @@ deployed; the exe is only read (IVALICE_LEGACY_GAME, a copy) for the image twin 
   clear (the co-op switch off) and with no guest; a rewritten app writer (FP-V1) skips FP-01; IN-06 unhooked (another
   mod rewrote its approach) makes FP-01 refuse to act (the game never runs in the background with a stale stick);
 * the handlers, called directly: FP-01 over every screen state x setting x readiness x active byte x focus (dl forced
-  to 1, the state's own byte held at 1 only while focused); IN-06 unfocused gives a neutral gamepad under a flipped
-  packet number and the focus flag 0; FP-03/FP-04 give the neutral pad block and mouse state only while another
-  window has the foreground;
+  to 1, the state's own byte held at 1 only while focused); IN-06 unfocused takes the game's focused path (the real
+  pad is interpreted: no frozen pads on alt-tab); FP-03/FP-04 give the neutral pad block and mouse state only while
+  another window has the foreground (a foreground-only DirectInput device has nothing real to pass);
 * unicorn on the hooked twin: the ApplyActive detour (the application's active byte stays 1 for Window/Borderless,
   every other state equals the original bytes), the screen states' own updates with another window in the foreground
   (windowed and borderless keep running, exclusive fullscreen and its lose-focus state pause as stock; borderless
   pauses on the first loop FP-01 stops acting on: setting off or a stale heartbeat), and the game's own XInput poll
-  through IN-06 (a held stick reads neutral while unfocused and live again on refocus, without a new packet);
-* isolation's substitution host (P1 on SDL, a guest driving the native menus) reads neutral while the game runs
-  unfocused, and presses made meanwhile are not replayed on refocus;
+  through IN-06 (a pad released while unfocused reads released, not latched; stock keeps the last state);
+* isolation's substitution host (P1 on SDL, a guest driving the native menus) keeps playing while the game runs
+  unfocused, and a tap made meanwhile reaches the game then (never replayed later);
 * the setting: off until a settings record from Lua is applied (a saved "Off" holds from boot), the schema default is
   on, the Lua store reads, writes and repairs it, the Mod Menu row and its help text exist.
 """
@@ -54,7 +54,7 @@ KEPT = {VT_WINDOW, VT_BORDERLESS}
 UPDATE = {VT_WINDOW: (0x7A40B0, 0), VT_BORDERLESS: (0x7A3E00, 2), VT_FULLSCREEN: (0x7A3EE0, 1),
           VT_LOSE_FOCUS: (0x7A3F80, 1)}
 APP_POINTER, APP, APP_VTABLE, APP_ACTIVE = 0x2EA5368, 0x1F7E350, 0x8C5760, 0x1F7E377
-FOCUS_FLAG, XI_INTERPRET = 0x2EA5213, 0x7A2243
+FOCUS_FLAG, XI_FOCUSED_PATH = 0x2EA5213, 0x7A223C
 DI_PAD_FINALIZE, DI_MOUSE_FINALIZE = 0x7A1C9F, 0x7A1A1E
 BLOCK, BLOCK_SIZE = 0x414, 0x3B
 MOUSE, MOUSE_SIZE = 0x1E8, 15
@@ -237,8 +237,10 @@ class HandlerTest(unittest.TestCase):
         frame.put(0x38, b'\xEE' * 8)
         return frame
 
-    def test_in06_neutral_xinput_while_unfocused(self):
-        self.f.twin.poke(FOCUS_FLAG, b'\1')
+    def test_in06_takes_the_focused_path_while_unfocused(self):
+        """Marco, 2026-11-16 (no frozen pads on alt-tab): unfocused with the setting on, the update takes the game's
+        own focused path (the branch not taken), so the real state XInput returned is interpreted; nothing is written."""
+        self.f.twin.poke(FOCUS_FLAG, b'\0')
         for zf, keep, acts in ((0x40, 1, False), (0, 0, False), (0, 1, True)):
             with self.subTest(focused=bool(zf), keep=keep):
                 self.d.ILCT_FocusSetKeep(keep)
@@ -246,16 +248,14 @@ class HandlerTest(unittest.TestCase):
                 c = iso.Ctx()
                 c.rsp, c.rflags = frame.addr, 0x202 | zf
                 result = self.f.call(6, c)
+                self.assertEqual(frame.get(0x28, 16), struct.pack('<I', 0x1234) + bytes(range(1, 13)),
+                                 'the real packet and gamepad, untouched')
+                self.assertEqual(frame.get(0x38, 8), b'\xEE' * 8)
+                self.assertEqual(ctypes.string_at(FOCUS_FLAG, 1), b'\0', 'the handler writes no game memory')
                 if not acts:
                     self.assertEqual((result, c.resume), (RUN_ORIGINAL, 0))
-                    self.assertEqual(frame.get(0x28, 16), struct.pack('<I', 0x1234) + bytes(range(1, 13)))
                     continue
-                self.assertEqual((result, c.resume), (RESUME, XI_INTERPRET))
-                self.assertEqual(frame.get(0x2C, 12), bytes(12), 'a zero gamepad')
-                self.assertEqual(struct.unpack('<I', frame.get(0x28, 4))[0], 0x1234 ^ 0x80000000,
-                                 'a packet number the stored one never equals')
-                self.assertEqual(frame.get(0x38, 8), b'\xEE' * 8, 'nothing past the gamepad')
-                self.assertEqual(ctypes.string_at(FOCUS_FLAG, 1), b'\0', 'the focus flag says unfocused')
+                self.assertEqual((result, c.resume), (RESUME, XI_FOCUSED_PATH))
         self.assertEqual(self.f.stats().xinput, 1)
 
     def device_case(self, which, area, size, finalize):
@@ -568,35 +568,35 @@ class FocusEmulationTest(unittest.TestCase):
         """The device as the game reads it, without the one-poll press edges (byte 1 of each button node)."""
         return dict(snap, buttons=[b[0] for b in snap['buttons']])
 
-    def test_a_held_stick_reads_neutral_unfocused_and_live_again_on_refocus(self):
+    def test_the_pad_keeps_playing_unfocused(self):
         held = (0x1000, 0, 255, 20000, -20000, 0, 0)  # A, RT, the left stick pushed
         for keep, gate_open in ((0, True), (1, False), (1, True)):
             with self.subTest(keep=keep, gate_open=gate_open):
                 self.maxDiff = None
                 self.arm(keep, rows_open=('IN-06',) if gate_open else ())
                 dev = self.make_pad()
-                neutral = self.level(self.poll(self.make_pad(), 1, (0,) * 7, True))
+                released = self.level(self.poll(self.make_pad(), 1, (0,) * 7, True))
                 live = self.poll(dev, 50, held, True)
-                self.assertNotEqual(self.level(live)['fields'], neutral['fields'], 'instrument: the stick is held')
-                away = self.level(self.poll(dev, 50, held, False))
+                self.assertNotEqual(self.level(live)['fields'], released['fields'], 'instrument: the stick is held')
+                # The player lets go while another window has the foreground (a new packet).
+                away = self.level(self.poll(dev, 51, (0,) * 7, False))
                 acts = keep and gate_open
-                self.assertEqual(away, neutral if acts else self.level(live),
-                                 'unfocused: neutral' if acts else 'stock: the last state stays (the game is paused)')
+                self.assertEqual(away, released if acts else self.level(live),
+                                 'unfocused: the real pad (released)' if acts
+                                 else 'stock: the last state stays latched (the game is paused)')
                 if acts:
-                    self.assertEqual(self.emu.bytes_at(FOCUS_FLAG, 1), bytes(1), 'the focus flag says unfocused')
-                back = self.poll(dev, 50, held, True)
-                self.assertEqual(self.level(back), self.level(live), 'refocus with the same packet: live again')
-                if acts:
-                    pressed = [b[1] for b in back['buttons'] if b[0]]
-                    self.assertTrue(pressed and all(pressed), 'released while away: the press is a new edge')
+                    self.assertEqual(self.emu.bytes_at(FOCUS_FLAG, 1), b'', 'the focused path ran')
+                    held_away = self.level(self.poll(dev, 52, held, False))
+                    self.assertEqual(held_away, self.level(live), 'pressed again unfocused: it reaches the game')
         self.assertEqual(self.emu.exe_unknown, set())
 
 
 # ---- isolation's substitution host while the game runs unfocused ------------------------------------------------------
 @unittest.skipUnless(NATIVE and GAME, 'requires the pinned MSYS2 g++ and IVALICE_LEGACY_GAME (exe read-only)')
 class BackgroundHostTest(unittest.TestCase):
-    """The substitution host (P1 on SDL, or a guest driving the native menus) is written neutral while the setting is on
-    and another window has the foreground; presses made meanwhile are consumed, never replayed on refocus."""
+    """The substitution host (P1 on SDL, or a guest driving the native menus) keeps playing while the setting is on and
+    another window has the foreground (Marco, 2026-11-16: no frozen pads on alt-tab); a tap made meanwhile reaches the
+    game then and is never replayed later."""
     A = 1  # ilc_pad_bit(ILC_PAD_A): edge bit 0
     ISO_DRIVER = 0x80
 
@@ -643,7 +643,7 @@ class BackgroundHostTest(unittest.TestCase):
                          'the finalizer always runs')
         return self.xi0.peek(iso.BLOCK, iso.BLOCK_SIZE)
 
-    def test_p1_on_sdl_reads_neutral_unfocused_and_live_on_refocus(self):
+    def test_p1_on_sdl_keeps_playing_unfocused(self):
         held = (0x1000, 0, 200, 20000, -20000, 0, 0)
         self.iso.mirror(1, iso.SRC_SDL, pad=held)
         sub = iso.ISO_GUARD | iso.ISO_SUBST | iso.ISO_BG
@@ -651,14 +651,13 @@ class BackgroundHostTest(unittest.TestCase):
         self.assertEqual(self.visit(sub), live, 'instrument: focused, the host carries P1')
         before = self.iso.stats()['background']
         away = self.visit(sub, focused=0)
-        self.assertEqual(away, bytes(iso.BLOCK_SIZE), 'unfocused: neutral')
-        self.assertEqual(self.xi0.peek(0x45C, 4), bytes(4), 'the next real packet is interpreted again')
-        self.assertTrue(self.iso.stats()['background'] > before)
+        self.assertEqual(away, live, 'unfocused: the host still carries P1')
+        self.assertTrue(self.iso.stats()['background'] > before, 'a visit made while unfocused (counted)')
         self.assertEqual(self.visit(sub, keep=0, focused=0), live, 'setting off: stock substitution (the game pauses)')
         self.assertEqual(self.visit(sub), live, 'refocus: live again')
         self.assertEqual(self.xi1.peek(iso.BLOCK, iso.BLOCK_SIZE), bytes(iso.BLOCK_SIZE), 'the other pad is masked')
 
-    def test_a_tap_made_unfocused_is_not_replayed_on_refocus(self):
+    def test_a_tap_made_unfocused_reaches_the_game_then_not_later(self):
         idle = (0, 0, 0, 0, 0, 0, 0)
         self.iso.mirror(1, iso.SRC_SDL, pad=idle)
         sub = iso.ISO_GUARD | iso.ISO_SUBST | iso.ISO_BG
@@ -669,16 +668,16 @@ class BackgroundHostTest(unittest.TestCase):
         self.assertEqual(self.visit(sub), neutral)
         self.tick(1, self.A)  # P1 taps A while another window has the foreground
         self.tick()
-        self.assertEqual(self.visit(sub, focused=0), bytes(iso.BLOCK_SIZE))
-        self.assertEqual(self.visit(sub), neutral, 'the tap made unfocused was replayed on refocus')
+        self.assertNotEqual(self.visit(sub, focused=0), neutral, 'the tap reaches the game while unfocused')
+        self.assertEqual(self.visit(sub), neutral, 'and is not replayed on refocus')
 
-    def test_a_guest_driving_the_native_menus_reads_neutral_unfocused(self):
+    def test_a_guest_driving_the_native_menus_keeps_driving_unfocused(self):
         guest = (0x1000 | 0x0001, 0, 0, 0, 20000, 0, 0)
         self.iso.mirror(1, iso.SRC_XINPUT, slot=0)
         self.iso.mirror(2, iso.SRC_SDL, pad=guest)
         drive = self.ISO_DRIVER | iso.ISO_GUARD | iso.ISO_NATIVE | iso.ISO_BG
         self.assertEqual(self.visit(drive, driver=1), iso.reference_block(guest), "instrument: the guest's pad")
-        self.assertEqual(self.visit(drive, driver=1, focused=0), bytes(iso.BLOCK_SIZE), 'unfocused: neutral')
+        self.assertEqual(self.visit(drive, driver=1, focused=0), iso.reference_block(guest), 'unfocused: still the guest')
         self.assertEqual(self.visit(drive, driver=1), iso.reference_block(guest), 'refocus: the guest drives again')
 
 
@@ -722,9 +721,10 @@ class LuaSettingTest(unittest.TestCase):
     def test_the_mod_menu_row(self):
         page = (iso.pe.ROOT / 'package' / 'x64' / 'scripts' / 'IvaliceLegacy' / 'coop' / 'page.lua').read_text(
             encoding='utf-8')
-        self.assertIn("toggle(main, 'keepRunning', 'Keep running in background', {'Off', 'On'},", page)
+        self.assertIn("toggle(advanced, 'keepRunning', 'Keep running in background', {'Off', 'On'},", page)
         help_text = page.split("'keepRunning', 'Keep running in background'", 1)[1].split('cancelRow', 1)[0]
-        for phrase in ('controller and mouse are ignored', 'with co-op off too', 'Windowed and borderless only'):
+        for phrase in ('controller and mouse are ignored', 'Co-op switch Off too', 'not when co-op is Off at start',
+                       'Windowed and borderless only'):
             self.assertIn(phrase, help_text)
         self.assertIn("'keepRunning'", page.split('M.SETTINGS_ROWS = ', 1)[1].split('\n', 1)[0])
 

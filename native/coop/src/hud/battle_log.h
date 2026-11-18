@@ -193,6 +193,7 @@ using element_fn = uint8_t (*)(void* ctx, uint16_t action);
 constexpr uint32_t HISTORY = 32;          // lines kept
 constexpr uint32_t COMPACT_LINES = 5;
 constexpr uint32_t EXPANDED_LINES = 20;
+static_assert(EXPANDED_LINES == ILC_LOG_LINES_MAX && COMPACT_LINES <= ILC_LOG_LINES_COMPACT_MAX, "the settings ranges match the view");
 constexpr uint32_t TARGETS_SHOWN = 3;     // distinct target names on one line
 constexpr uint32_t AMOUNTS_SHOWN = 4;     // amounts listed on one line (the count keeps going)
 constexpr uint32_t ICONS = 4;
@@ -437,7 +438,10 @@ struct view {
     uint8_t line_count;
     uint8_t reserved;
     uint32_t seat_colour[4];              // packed rgba (0x80 = 1.0) of each seat
-    uint32_t reserved2;
+    uint8_t compact_lines;                // the settings' line counts and hold time; 0 = the built-in default
+    uint8_t expanded_lines;
+    uint8_t fade_s;
+    uint8_t reserved2;
     line lines[HISTORY];                  // oldest first
 };
 
@@ -461,8 +465,13 @@ constexpr uint8_t DOT_CLUT = 6;           // the glow dot's white palette (tinte
 constexpr uint8_t DIM_POS3 = 92;          // compact: alpha of the 4th newest line (0x80 = 1.0)
 constexpr uint8_t DIM_POS4 = 58;          // compact: alpha of the 5th newest line
 
-// Alpha (0..0x80) of a line at `now` from its age (no position dimming): holds, then fades.
-uint8_t time_alpha(const line& l, uint64_t now);
+// Alpha (0..0x80) of a line at `now` from its age (no position dimming): holds, then fades. An ordinary line holds
+// `life_ms`, an important one twice as long (the defaults: LIFE_MS and LINGER_MS).
+uint8_t time_alpha(const line& l, uint64_t now, uint64_t life_ms = LIFE_MS);
+// The view's line counts and hold time, the built-in defaults where the view carries 0.
+uint32_t compact_lines(const view& v);
+uint32_t expanded_lines(const view& v);
+uint64_t life_ms(const view& v);
 // Whether a line passes the filter.
 bool passes(const line& l, uint8_t filter, uint8_t filter_seat);
 // The lines shown, oldest first, as indices into v.lines; alpha per shown line. Returns how many.
@@ -471,6 +480,30 @@ uint32_t select(const view& v, uint64_t now, uint8_t* index, uint8_t* alpha, uin
 bool header_shown(const view& v, uint64_t now);
 // The line's text as drawn in one run (expanded view, tests): actor, body, targets, amounts, tags.
 uint32_t line_text(const line& l, char* out, uint32_t cap);
+
+// One line as coloured pieces of text (the overlay draws them with its own font: overlay/hud_scene.h). Each run is a
+// piece of `text` in one tone; `tags` is the first run of the tags (CRIT, WEAK, ...), n when none (status icons go
+// before them). status_words: the line's status icons as words too (the overlay has no icon atlas yet: true).
+constexpr uint32_t RUN_TEXT = 160;
+constexpr uint32_t RUNS = 10;
+struct runs {
+    char text[RUN_TEXT];
+    uint8_t start[RUNS];
+    uint8_t len[RUNS];
+    uint8_t tone[RUNS];
+    uint32_t n;
+    uint32_t used;
+    uint32_t tags;
+};
+void build_runs(const line& l, runs& r, bool status_words);
+// The main tone of a line (its kill/reward/KO/revive/important colour, else plain text).
+uint8_t line_tone(const line& l);
+// Our short name of a status (status bit order), "" for an id beyond 31.
+const char* status_name(uint32_t status_id);
+
+// The chain as the co-op thread read it on its last beat: false when the chain rows are not stock or nothing was read
+// (any thread, wait-free; one packed word).
+bool chain_now(uint16_t* shown, uint8_t* level);
 // Draws the view (the pass's body; pure: the view, now and the room left). Returns the commands added.
 // dy: the corner headers' drop (layout::header_dy: the boss gauge). The expanded log keeps its zone's bottom and
 // drops its oldest lines instead (layout::log_lines).
@@ -483,7 +516,9 @@ struct settings {
     uint8_t expand_control;               // 0 = none, else an ilc_pad_control (1..24): any seat's press toggles expanded
     uint8_t filter;                       // filter
     uint8_t filter_seat;                  // 1..4 for FILTER_MINE
-    uint8_t reserved[3];
+    uint8_t compact_lines;                // lines in the compact view, 1..ILC_LOG_LINES_COMPACT_MAX (0 = COMPACT_LINES)
+    uint8_t expanded_lines;               // lines in the expanded view, 5..EXPANDED_LINES (0 = EXPANDED_LINES)
+    uint8_t fade_s;                       // seconds an ordinary line holds before it fades, 3..15 (0 = LIFE_MS)
 };
 settings defaults();
 void configure(const settings& s);

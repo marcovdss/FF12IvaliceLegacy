@@ -9,9 +9,9 @@
 //   IN-05  keyboard finalize          (call row, tick thread)   the keyboard filter
 //
 // The pad focus gate (IN-06, with its IN-06a guard) belongs to the background setting now (focus/focus.h): while the
-// window is unfocused and the game keeps running, player 1's pads read neutral, and so does the substitution host
-// below (P1 fed from SDL, or a guest driving the native menus): it gets the neutral block, and the presses made
-// meanwhile are consumed, never replayed on refocus. The focus-loss event rewrite (IN-07)
+// window is unfocused and the game keeps running, player 1's XInput pad keeps playing, and so does the substitution
+// host below (P1 fed from SDL, or a guest driving the native menus): it is fed as usual (Marco, 2026-11-16: no frozen
+// controllers on alt-tab). The keyboard and the mouse stay foreground-only. The focus-loss event rewrite (IN-07)
 // was dropped: keeping the game running is that setting's own row. status() still reports whether IN-06 is hooked.
 //
 // Pad policy, per device object at IN-01/02/03, when the record says isolation applies (some guest seat has a pad
@@ -121,7 +121,7 @@ struct counters {
     volatile uint64_t probe_failed; // a probe read or write failed: stock
     volatile uint64_t kb_filtered;
     volatile uint64_t kb_expired;   // budget spent: stock
-    volatile uint64_t background;   // host visits made neutral: the game runs unfocused (focus::running_unfocused)
+    volatile uint64_t background;   // host visits while the game runs unfocused (fed as usual: focus::running_unfocused)
     volatile uint64_t focus_kept;   // retired (always 0): the focus-loss event rewrite was dropped
     volatile uint64_t host_changes;
     volatile uint64_t feed_drains;  // a menu drive started or ended: the incoming seat's presses consumed unused

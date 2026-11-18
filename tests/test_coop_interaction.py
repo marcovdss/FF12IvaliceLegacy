@@ -46,7 +46,7 @@ def S(name, fields):
 
 IxEntry = S('IxEntry', [('entry', u64), ('skeleton', u64), ('handle', u32), ('member', u16), ('seat', u8),
                         ('active', u8)])
-IxRecord = S('IxRecord', [('head', RecordHead), ('active', u32), ('reserved', u32), ('slot', IxEntry * 2)])
+IxRecord = S('IxRecord', [('head', RecordHead), ('active', u32), ('reserved', u32), ('slot', IxEntry * 3)])  # guest seats P2..P4
 IxPrivate = S('IxPrivate', [('resource', u64 * 8), ('text', u64 * 8), ('state', u32 * 8), ('handle', u32 * 8),
                             ('tick', u32), ('mark', u32), ('source_handle', u32), ('epoch', u32)])
 Request = S('Request', [('state', u32), ('ticket', u32), ('epoch', u32), ('policy', u32), ('seat', u32),
@@ -55,7 +55,7 @@ Request = S('Request', [('state', u32), ('ticket', u32), ('epoch', u32), ('polic
 COUNTER_NAMES = ['steps', 'published', 'presses', 'requests', 'requests_expired'] + [f'r{k}' for k in range(12)] + \
     ['holds'] + [f'end{k}' for k in range(5)] + ['gateway_passes', 'gateway_skipped', 'class_rewritten',
                                                  'private_passes', 'private_finds', 'windows', 'guard_hits',
-                                                 'loot_owned']
+                                                 'loot_owned', 'menu_opens']
 Counters = S('Counters', [(n, u64) for n in COUNTER_NAMES])
 DebugView = S('DebugView', [('pass_active', u32), ('pass_slot', u32), ('pass_entry', u64), ('guard_active', u32),
                             ('driver', u32), ('hold_active', u32), ('hold_seat', u32), ('hold_opened', u32),
@@ -202,12 +202,23 @@ class RulesTest(unittest.TestCase):
         self.assertTrue(d.ILCT_IxPressAllowed(0, 1, 0x4021), 'idle and unarmed')
         self.assertTrue(d.ILCT_IxPressAllowed(0, 0, 0xFFFF), 'standing, no action')
         self.assertTrue(d.ILCT_IxPressAllowed(WEAPON_DRAWN, 1, 0x4021), 'a drawn weapon: the game holsters it')
+        self.assertTrue(d.ILCT_IxPressAllowed(0, 1, 0x4124), 'following the leader: walking with the party')
         for flags, state, action, why in ((WEAPON_HANDLING, 1, 0x4021, 'drawing or sheathing'),
                                           (EXECUTION, 1, 0x4021, 'an execution motion'),
-                                          (0, 2, 0x4021, 'busy state'), (0, 1, 0x0096, 'an action queued'),
+                                          (WEAPON_HANDLING, 1, 0x4124, 'following, but drawing or sheathing'),
+                                          (0, 2, 0x4021, 'busy state'), (0, 2, 0x4124, 'following, busy state'),
+                                          (0, 1, 0x0096, 'an action queued'),
                                           (0, 0x101, 0x4021, 'state read as a whole word'),
-                                          (0, 1, 0x14021, 'action read as a whole word')):
+                                          (0, 1, 0x14021, 'not a u16 action value')):
             self.assertFalse(d.ILCT_IxPressAllowed(flags, state, action), why)
+
+    def test_the_action_is_the_u16_at_0x714(self):
+        """The readers take two bytes: whatever follows the action (+0x716) never makes a free character busy."""
+        src = (pe.COOP / 'src' / 'interaction')
+        facts = (src / 'interaction_facts.h').read_text(encoding='utf-8')
+        self.assertIn('ACTOR_ACTION = 0x714;               // u16', facts)
+        self.assertIn('r.u16(actor + facts::ACTOR_ACTION, &action)', (src / 'interaction.cpp').read_text(encoding='utf-8'))
+        self.assertIn('load(actor + facts::ACTOR_ACTION, &word)', (src / 'hooks.cpp').read_text(encoding='utf-8'))
 
     def test_p1s_leader_gate_for_object_interactions(self):
         d = self.d
@@ -1064,6 +1075,83 @@ class CoopThreadTest(unittest.TestCase):
         self.step()
         self.assertEqual(self.record().head.flags, 0, 'party down: hands off')
 
+    def test_a_fourth_seat_gets_its_own_slot(self):
+        p4 = self.actor(0, 3, gen=5)
+        self.publish(seats={1: self.p2, 2: self.p3, 3: p4})
+        self.step()
+        r = self.record()
+        self.assertEqual(r.active, 0b111, 'three guest slots with four seats')
+        self.assertEqual((r.slot[2].entry, r.slot[2].handle, r.slot[2].seat), (p4['entry'], p4['handle'], 3))
+        self.d.ILCT_IxPress(1 << 3)
+        self.step()
+        self.assertEqual((self.request().state, self.request().seat), (REQ_ARMED, 3), "P4's press arms its request")
+
+    def menu_opens(self) -> int:
+        fn = self.d.ILCT_IxTakeMenuOpens
+        fn.argtypes, fn.restype = [ctypes.c_uint32], ctypes.c_uint32
+        return fn(EPOCH)
+
+    def test_a_confirm_that_finds_nothing_opens_the_guests_menu(self):
+        """Together's order (0.1.58, Marco's playtest): an interaction first, then NPC talk, then the menu. A guest's
+        CONFIRM whose request finds nothing (no object, no NPC, or no NPC scan possible) asks for that guest's menu;
+        anything the guest could use, or a busy character, never does."""
+        self.publish()
+        self.step()
+        self.assertEqual(self.menu_opens(), 0)
+        cases = [(WR['NO_TARGET'], 1 << 1), (WR['TALK'], 0), (WR['CONSUMED'], 0), (WR['P1_BUSY'], 1 << 1),
+                 (WR['GUARDS_OFF'], 1 << 1), (WR['OWNER_BUSY'], 0), (WR['BLOCKED'], 0), (WR['STALE'], 0)]
+        for result, want in cases:
+            with self.subTest(result=result):
+                self.d.ILCT_IxStop()
+                self.d.ILCT_IxStart(self.img.base, self.now)
+                self.publish()
+                self.step()
+                self.menu_opens()
+                self.d.ILCT_IxPress(1 << 1)
+                self.step()
+                q = self.request()
+                self.assertEqual((q.state, q.seat, q.policy), (REQ_ARMED, 1, 3), 'no object found: the NPC request')
+                self.finish(result)
+                self.step()
+                self.assertEqual(self.menu_opens(), want)
+                self.assertEqual(self.menu_opens(), 0, 'taken once')
+
+    def test_guest_interactions_off_a_confirm_opens_the_menu(self):
+        opt = self.d.ILCT_OptSet
+        opt.argtypes = [ctypes.c_char_p]
+        try:
+            opt(bytes([1, 0, 0, 0, 1, 5, 20, 6]))
+            self.publish()
+            self.step()
+            self.menu_opens()
+            self.d.ILCT_IxPress(1 << 2)
+            self.step()
+            self.assertEqual(self.menu_opens(), 1 << 2, 'guests stay out of the world: CONFIRM is the menu button')
+        finally:
+            self.d.ILCT_OptReset()
+
+    def test_guest_interactions_off_keeps_doors_chests_npcs_and_shops_p1s(self):
+        """Settings guest_interactions 0 (0.1.53): no private passes (no ROUTING) and a guest's CONFIRM arms nothing;
+        gateways and walk-over loot keep working. Back on, the same press arms a request."""
+        opt = self.d.ILCT_OptSet
+        opt.argtypes = [ctypes.c_char_p]
+        try:
+            opt(bytes([1, 0, 0, 0, 1, 5, 20, 6]))
+            self.publish()
+            self.step()
+            self.assertEqual(self.record().head.flags, IXF_GATEWAYS | IXF_LOOT)
+            self.d.ILCT_IxPress(1 << 1)
+            self.step()
+            self.assertNotEqual(self.request().state, REQ_ARMED, 'no request while guests stay out of the world')
+            self.assertEqual(self.d.ILCT_IxHoldSeats(EPOCH), 0)
+        finally:
+            self.d.ILCT_OptReset()
+        self.step()
+        self.assertEqual(self.record().head.flags, IXF_GATEWAYS | IXF_ROUTING | IXF_LOOT)
+        self.d.ILCT_IxPress(1 << 1)
+        self.step()
+        self.assertEqual(self.request().state, REQ_ARMED)
+
     def test_a_press_without_a_find_asks_for_npc_talk(self):
         self.publish()
         self.step()
@@ -1126,6 +1214,29 @@ class CoopThreadTest(unittest.TestCase):
         self.d.ILCT_IxPress(1 << 1)
         self.step()
         self.assertEqual(self.request().policy, POLICY_NPC)
+
+    def test_a_guest_following_the_leader_presses_like_an_idle_one(self):
+        """The party walks: the guest's action word is 0x4124 and the bytes after it hold something else."""
+        door = handle_of(1, 4, 2)
+        self.entry(1, 4, 2)
+        for label, word in (('follow the leader', 0x4124), ('idle, other bytes after the action', 0x00074021),
+                            ('follow, other bytes after the action', 0xBEEF4124)):
+            with self.subTest(label):
+                self.request().state = REQ_IDLE
+                self.img.p32(self.p2['actor'] + 0x714, word)
+                self.publish()
+                self.find(5, door, 3, tick=20 + word % 7, mark=20 + word % 7)
+                self.step()
+                self.d.ILCT_IxPress(1 << 1)
+                self.step()
+                q = self.request()
+                self.assertEqual((q.state, q.policy, q.object_handle), (REQ_ARMED, POLICY_LEADER, door))
+        self.request().state = REQ_IDLE
+        self.img.p32(self.p2['actor'] + 0x714, 0x0096)
+        self.step()
+        self.d.ILCT_IxPress(1 << 1)
+        self.step()
+        self.assertEqual(self.request().state, REQ_IDLE, 'an action queued: no request')
 
     def test_a_busy_guest_or_a_parked_one_asks_nothing(self):
         self.publish()
@@ -1323,7 +1434,8 @@ class MenuDriverRoutingTest(unittest.TestCase):
         self.d.ILCT_IsoFakeDriver(2)
         self.assertEqual(self.compose(self.settings(guests=(1, 2))).reserved0, 2)
         self.d.ILCT_IsoFakeDriver(3)
-        self.assertEqual(self.compose(self.settings(guests=(1, 2))).flags & self.ISO_DRIVER, 0, 'never a fourth seat')
+        r = self.compose(self.settings(guests=(1, 2)))
+        self.assertEqual((r.flags & self.ISO_DRIVER, r.reserved0), (self.ISO_DRIVER, 3), 'P4 may drive (0.1.53)')
 
     def visit(self):
         return [self.iso.call(which, dev.ctx()) for which, dev in self.pads]

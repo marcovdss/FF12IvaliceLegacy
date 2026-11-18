@@ -2,7 +2,10 @@
 //
 // They match the Mod Menu defaults: P1 on XInput 0, guests without a pad, keyboard and mouse on
 // P2, P2 Basch, P3 Balthier, P4 and P1 automatic, the canonical colour set, every battle sound on, the
-// follower binding tables and the Battle HUD with every element on. constexpr, so the module holds them as
+// follower binding tables (join keys F6, F7, F9; F8 is the co-op on/off key), every subsystem armed (no
+// developer disarm), the shared camera on, guests using the world, towns showing the players' characters, Wait
+// pausing only while every player is in a menu, guests allowed to pause, and the Battle HUD on with the Standard
+// element set: every element but the status timers (battle log: 5 compact lines, 20 expanded, 6 s before a line fades). constexpr, so the module holds them as
 // constant data (no start-up code) and the schema generator emits the same bytes into schema/bridge-abi-v1.json
 // for the Lua seed to compare against.
 #pragma once
@@ -103,7 +106,6 @@ constexpr ilc_settings default_settings()
     s.header.size = sizeof(ilc_settings);
     s.header.generation = 0;  // 0 = native defaults; every record Lua sends is >= 1
     s.module_enabled_at_start = 1;
-    s.all_characters_at_start = 1;
     s.kbm_seat = 2;
     s.colour_mode = ILC_COLOUR_MODE_CHARACTER;
     s.character_colour[ILC_CHAR_VAAN] = ILC_COLOUR_SAPPHIRE;
@@ -113,12 +115,22 @@ constexpr ilc_settings default_settings()
     s.character_colour[ILC_CHAR_BASCH] = ILC_COLOUR_EMERALD;
     s.character_colour[ILC_CHAR_PENELO] = ILC_COLOUR_GOLD;
     s.keep_running = 1;  // the game keeps running when alt-tabbed (windowed and borderless; fullscreen is stock)
-    s.subsystems_armed = static_cast<uint32_t>(ILC_ENUM_OR(ILC_SUBSYSTEMS));  // all armed; bisect by clearing
-    s.hud_enabled = 1;  // Battle HUD on, every element on, log filter All, no expand button
-    s.hud_elements = static_cast<uint32_t>(ILC_ENUM_OR(ILC_HUD_ELEMENTS));
+    s.subsystems_disarm = 0;  // every subsystem follows the module (developers bisect by setting bits)
+    s.hud_enabled = 1;  // Battle HUD on, the Standard elements, log filter All, no expand button
+    // The Standard preset of the Mod Menu's Battle HUD row (the page reads "Standard" when the bits equal it): every
+    // element but PARTY_TIMERS (numbers on the party rows are clutter on a TV; Full adds them).
+    s.hud_elements = static_cast<uint32_t>(ILC_ENUM_OR(ILC_HUD_ELEMENTS)) & ~static_cast<uint32_t>(ILC_HUD_PARTY_TIMERS);
     s.log_filter = ILC_LOG_FILTER_ALL;
     s.log_filter_seat = 1;
     s.log_expand_control = 0;
+    s.shared_camera = 1;
+    s.guest_interactions = 1;
+    s.town_view = ILC_TOWN_VIEW_PLAYERS;
+    s.wait_pause = ILC_WAIT_PAUSE_ALL;
+    s.guest_pause = 1;
+    s.log_lines_compact = 5;
+    s.log_lines_expanded = 20;
+    s.log_fade_s = 6;
     s.kill_switch[0].kind = ILC_BIND_KEY;
     s.kill_switch[0].code = 0x77;  // F8
 
@@ -146,11 +158,13 @@ constexpr ilc_settings default_settings()
     pad(p1, ILC_ACTION_PAUSE, ILC_PAD_START);
     // P1 has no Identify by default: every button of P1's pad also reaches the game. P1 may bind one (P1_ACTION_MASK).
 
-    // FF12's Quickening slot buttons: P2 Square (X), P3 Cross (A). P4 keeps no bindings: only
-    // ILC_ACTIVE_SEATS_MAX seats play in this release.
+    // FF12's Quickening slot buttons: P2 Square (X), P3 Cross (A). The link a guest's QUICKENING press pulses follows
+    // its character's native party slot (frontend.cpp), so P4's button only matters once its character sits in
+    // slot 1 or 2: Square, as P2. Join keys F6, F7 and F9 (F8 is the co-op on/off key, F1-F3 the game's own).
     guest_bindings(s.seats[1], 0x75, ILC_PAD_X);  // F6
     guest_bindings(s.seats[2], 0x76, ILC_PAD_A);  // F7
-    static_assert(ILC_ACTIVE_SEATS_MAX == 3, "defaults give bindings to exactly the active seats");
+    guest_bindings(s.seats[3], 0x78, ILC_PAD_X);  // F9
+    static_assert(ILC_ACTIVE_SEATS_MAX == 4, "defaults give bindings to exactly the active seats");
     return s;
 }
 

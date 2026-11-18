@@ -39,7 +39,7 @@
     X(MAX_RECORD, 65536u, "inLen above this is refused before the buffer is touched")                      \
     X(OUT_CAP_RECOMMENDED, 4096u, "an output buffer this large fits every reply")                          \
     X(SEATS, 4u, "P1..P4: every seat array has this many entries")                                          \
-    X(ACTIVE_SEATS_MAX, 3u, "seats that may play in this release (P1..P3); P4 is refused as kbm_seat, device owner and command seat")\
+    X(ACTIVE_SEATS_MAX, 4u, "seats that may play in this release (P1..P4)")                                \
     X(XINPUT_SLOTS, 4u, "XInput user indices 0..3")                                                         \
     X(ACTIONS, 20u, "ilc_action count")                                                                     \
     X(BINDINGS_PER_ACTION, 4u, "")                                                                          \
@@ -53,7 +53,16 @@
     X(EVENT_QUEUE, 64u, "events held; the oldest is dropped (and counted) when full")                       \
     X(P1_ACTION_MASK, 0x000F8F00u, "bit per ilc_action that P1 may bind")                                  \
     X(STALL_MAX_MS, 5000u, "STALL_COOP_THREAD: the longest sleep arg0 may ask for (milliseconds)")         \
-    X(COUNTERS_LAYOUT, 1u, "ilc_counters.layout: changes whenever a counters field is added, removed or moved")
+    X(COUNTERS_LAYOUT, 4u, "ilc_counters.layout: changes whenever a counters field is added, removed or moved") \
+    X(LOG_LINES_MAX, 20u, "battle log: the most lines a view shows (the expanded view)")                    \
+    X(LOG_LINES_COMPACT_MAX, 8u, "battle log: the most lines the compact view may show")                 \
+    X(HUD_FOES, 8u, "PUSH_HUD_STATES: foe entries per record")                                           \
+    X(HUD_WORDS, 4u, "PUSH_HUD_STATES: party weapon-state words per record")                             \
+    X(HUD_PROCS, 8u, "PUSH_HUD_STATES: proc tags per record")                                            \
+    X(HUD_PROC_AGE_MAX_MS, 5000u, "PUSH_HUD_STATES: the oldest proc a record may carry")             \
+    X(THEME_ID_MAX, 32u, "HUD theme: bytes of a theme id (settings hud_theme, theme list entries)")      \
+    X(THEME_NAME_MAX, 32u, "HUD theme: bytes of a theme's shown name in the theme list")                 \
+    X(THEMES_MAX, 16u, "HUD theme: entries in a theme list reply (the three built-ins first)")
 
 // ---------------------------------------------------------------------------------------------------------
 // Enums: each item is X(PREFIX, NAME, value, doc) and declares PREFIXNAME = value.
@@ -67,6 +76,8 @@
     X(ILC_OP_, POP_EVENTS, 7, "in: nothing; out: ilc_events_reply, 32 + count * 32 bytes, as many as fit")  \
     X(ILC_OP_, GET_SETTINGS, 8, "in: nothing; out: the applied ilc_settings (generation 0 = defaults)")      \
     X(ILC_OP_, GET_COUNTERS, 9, "in: nothing; out: ilc_counters, the module's diagnostic counters (read-only, any state; field names in the schema). Read field by field without a lock: each field is untorn, but fields can disagree with each other") \
+    X(ILC_OP_, PUSH_HUD_STATES, 10, "in: ilc_hud_states; out: nothing. 0 = kept as the latest (the HUD shows it while fresh); push from a script timer, never from a sync hook") \
+    X(ILC_OP_, GET_THEMES, 11, "in: nothing; out: ilc_themes_reply, the HUD themes the Mod Menu offers (built-ins, then valid player themes)") \
     X(ILC_OP_, TEST_SAFE_POINT, 0x7F01, "debug: run the settings safe point now; NOT_AVAILABLE once the boot started its init thread")
 
 #define ILC_ERRORS(X)                                                                                       \
@@ -100,7 +111,9 @@
     X(ILC_REC_, DEVICES, 8, "")                                                                             \
     X(ILC_REC_, EVENTS, 9, "")                                                                              \
     X(ILC_REC_, SAFE_POINT_RESULT, 10, "")                                                                  \
-    X(ILC_REC_, COUNTERS, 11, "")
+    X(ILC_REC_, COUNTERS, 11, "")                                                                        \
+    X(ILC_REC_, HUD_STATES, 12, "")                                                                      \
+    X(ILC_REC_, THEMES, 13, "")
 
 #define ILC_STATES(X)                                                                                       \
     X(ILC_STATE_, INERT, 1, "no hooks, no threads, no game memory access: not started, unsupported build, duplicate copy, or shut down")\
@@ -305,8 +318,9 @@
     X(ILC_SERVICE_, NOT_READY, 0, "input service not built yet: show discovery unavailable")                \
     X(ILC_SERVICE_, READY, 1, "the input service runs; the inventory is current")
 
-// Arm flags for the hidden Diagnostics > Subsystems page. Each future subsystem checks its bit at its own
-// safe point and stays (or returns to) stock behaviour while the bit is clear. Default: all armed.
+// Subsystem bits. With the module on, every subsystem is armed: the arm gates get every bit except those named in
+// subsystems_disarm (a developer override, honoured only while developer = 1) and, with shared_camera 0, CAMERA.
+// Each subsystem checks its bit at its own safe point and stays (or returns to) stock behaviour while it is clear.
 #define ILC_SUBSYSTEMS(X)                                                                                   \
     X(ILC_SUBSYS_, INPUT_ISOLATION, 0x01, "guest pads and keyboard never drive the game")                   \
     X(ILC_SUBSYS_, MOVEMENT, 0x02, "follower steering and movement hooks")                                  \
@@ -329,7 +343,19 @@
     X(ILC_HUD_, SEAT_LINES, 0x080, "target lines in seat colours (gambit allies silver)")                   \
     X(ILC_HUD_, SEAT_DIAMONDS, 0x100, "numbered seat diamonds over the players' characters")                \
     X(ILC_HUD_, AOE_RING, 0x200, "a ring only while a seat aims an area magick or technick")                \
-    X(ILC_HUD_, CIRCLES_OFF, 0x400, "native target circles off")
+    X(ILC_HUD_, CIRCLES_OFF, 0x400, "native target circles off")                                           \
+    X(ILC_HUD_, PARTY_TIMERS, 0x800, "status timers on the party list rows")                                \
+    X(ILC_HUD_, GUEST_CURSORS, 0x1000, "the seats' party-target hands on the party list rows")
+
+// Town visibility (settings town_view).
+#define ILC_TOWN_VIEWS(X)                                                                                   \
+    X(ILC_TOWN_VIEW_, PLAYERS, 0, "only the characters the players control have a body in towns")          \
+    X(ILC_TOWN_VIEW_, PARTY, 1, "the whole party as the game (or Companions) shows it: nothing is hidden")
+
+// When the co-op Wait rule stops battle time (settings wait_pause).
+#define ILC_WAIT_PAUSES(X)                                                                                  \
+    X(ILC_WAIT_PAUSE_, ALL, 0, "only while every playing seat has its battle menu open")                   \
+    X(ILC_WAIT_PAUSE_, ANY, 1, "while any playing seat has its battle menu open")
 
 // Battle log filters (settings log_filter).
 #define ILC_LOG_FILTERS(X)                                                                                  \
@@ -347,6 +373,46 @@
     X(ILC_HUD_REPORT_, CIRCLES_BY_VISION, 0x08, "native target circles are off through Vision's own patch (adopted)")\
     X(ILC_HUD_REPORT_, CIRCLES_FOREIGN, 0x10, "another mod changed the target-circle code: left alone")\
     X(ILC_HUD_REPORT_, RENDER_OFF, 0x20, "the HUD is not drawn: rendering is off or faulted, or the frame hook is not attached")
+
+// The Legacy script states the HUD shows (PUSH_HUD_STATES): a foe's state bits.
+#define ILC_HUD_FOE_FLAGS(X)                                                                             \
+    X(ILC_HUD_FOE_, BROKEN, 0x01, "Broken: broken_s seconds left (family_identities noteBroken)")        \
+    X(ILC_HUD_FOE_, STAGGERED, 0x02, "Staggered: its push budget is spent until it acts")                \
+    X(ILC_HUD_FOE_, SPOTTED, 0x04, "Spotted: the next dodge roll against it cannot be dodged (spotter_seat)") \
+    X(ILC_HUD_FOE_, OIL, 0x08, "Oil not yet kindled (Gillie Boots)")                                     \
+    X(ILC_HUD_FOE_, KINDLED, 0x10, "its Oil was kindled (the first hit Slowed it)")                      \
+    X(ILC_HUD_FOE_, KING, 0x20, "the king of the zone (kings_runtime)")                                  \
+    X(ILC_HUD_FOE_, CROWNED, 0x40, "a crowned story boss (crown_element)")                               \
+    X(ILC_HUD_FOE_, MARK, 0x80, "a hunt mark")
+
+// A party member's weapon-state word (PUSH_HUD_STATES ilc_hud_word.kind).
+#define ILC_HUD_WORD_KINDS(X)                                                                            \
+    X(ILC_HUD_WORD_, NONE, 0, "no word")                                                                 \
+    X(ILC_HUD_WORD_, GUARD, 1, "guard fatigue: value = worn steps 0..4 (shown from 2)")                  \
+    X(ILC_HUD_WORD_, CADENCE, 2, "fist Cadence: value = steps 1..5")                                     \
+    X(ILC_HUD_WORD_, FLOW, 3, "pole Counterflow: value = the bonus, +N")
+
+// A Proficiency / identity proc as a log tag (PUSH_HUD_STATES ilc_hud_proc.tag).
+#define ILC_HUD_TAGS(X)                                                                                  \
+    X(ILC_HUD_TAG_, NONE, 0, "")                                                                         \
+    X(ILC_HUD_TAG_, SUNDER, 1, "axe: a Defense dent")                                                    \
+    X(ILC_HUD_TAG_, BREAK, 2, "a hit Broke the foe")                                                     \
+    X(ILC_HUD_TAG_, CADENCE, 3, "fists: Cadence full")                                                   \
+    X(ILC_HUD_TAG_, COUNTERFLOW, 4, "pole: a lent Counter")                                              \
+    X(ILC_HUD_TAG_, GUARD, 5, "a guard held (block, parry, dodge)")                                      \
+    X(ILC_HUD_TAG_, UNSEEN, 6, "ninja sword: a tired foe could not dodge")                               \
+    X(ILC_HUD_TAG_, PIERCE, 7, "a pierce Broke the foe")                                                 \
+    X(ILC_HUD_TAG_, MEND, 8, "rod: an overflowing heal drew foes")                                       \
+    X(ILC_HUD_TAG_, PROFICIENCY, 9, "a Proficiency proc")                                                \
+    X(ILC_HUD_TAG_, SPOTTED, 10, "a Spotter mark")                                                       \
+    X(ILC_HUD_TAG_, KINDLE, 11, "Oil kindled: Slow")
+
+// HUD theme list entries (GET_THEMES).
+#define ILC_THEME_FLAGS(X)                                                                               \
+    X(ILC_THEME_, BUILTIN, 0x01, "compiled into the module")                                            \
+    X(ILC_THEME_, DEFAULT, 0x02, "the built-in default (used when hud_theme is all zero or cannot be used)") \
+    X(ILC_THEME_, ACTIVE, 0x04, "the theme the overlay draws with now")                                 \
+    X(ILC_THEME_, SELECTED, 0x08, "the theme the applied settings ask for")
 
 // Pairing outcomes (PAIRING_RESULT a & 0xFF). Success outcomes never change settings: Lua commits them.
 #define ILC_PAIRING_OUTCOMES(X)                                                                             \
@@ -402,9 +468,15 @@
     E(subsystem, ilc_subsystem_bit, uint32_t, ILC_SUBSYSTEMS)                                               \
     E(hud_element, ilc_hud_element_bit, uint32_t, ILC_HUD_ELEMENTS)                                         \
     E(log_filter, ilc_log_filter, uint8_t, ILC_LOG_FILTERS)                                                 \
+    E(town_view, ilc_town_view, uint8_t, ILC_TOWN_VIEWS)                                                    \
+    E(wait_pause, ilc_wait_pause, uint8_t, ILC_WAIT_PAUSES)                                                 \
     E(hud_report, ilc_hud_report_bit, uint8_t, ILC_HUD_REPORTS)                                             \
     E(pairing_outcome, ilc_pairing_outcome, uint8_t, ILC_PAIRING_OUTCOMES)                                  \
-    E(capture_outcome, ilc_capture_outcome, uint8_t, ILC_CAPTURE_OUTCOMES)
+    E(capture_outcome, ilc_capture_outcome, uint8_t, ILC_CAPTURE_OUTCOMES)                               \
+    E(hud_foe_flag, ilc_hud_foe_flag, uint8_t, ILC_HUD_FOE_FLAGS)                                        \
+    E(hud_word_kind, ilc_hud_word_kind, uint8_t, ILC_HUD_WORD_KINDS)                                     \
+    E(hud_tag, ilc_hud_tag, uint8_t, ILC_HUD_TAGS)                                                       \
+    E(theme_flag, ilc_theme_flag, uint8_t, ILC_THEME_FLAGS)
 
 // ---------------------------------------------------------------------------------------------------------
 // Records. Each field is X(kind, type, name, count, min, max, doc):
@@ -467,10 +539,10 @@
 #define ILC_SETTINGS_FIELDS(X)                                                                              \
     X(REC, ilc_header, header, 1, 0, 0, "record_type SETTINGS; generation >= 1, monotonic")                 \
     X(VAL, uint8_t, module_enabled_at_start, 1, 0, 1, "module switch as Lua sees it; native reads coop.json at start") \
-    X(VAL, uint8_t, all_characters_at_start, 1, 0, 1, "start with all characters available")                                                \
+    X(PAD, uint8_t, reserved0, 1, 0, 0, "was all_characters_at_start (nothing read it)")                   \
     X(VAL, uint8_t, kbm_seat, 1, 0, ILC_SEATS, "seat that owns keyboard and mouse; 0 none, 1..ACTIVE_SEATS_MAX")      \
     X(VAL, uint8_t, colour_mode, 1, 0, ILC_ENUM_MAX(ILC_COLOUR_MODES), "colour mode, ilc_colour_mode")               \
-    X(VAL, uint8_t, log_level, 1, 0, 1, "0 normal, 1 verbose")                                              \
+    X(VAL, uint8_t, log_level, 1, 0, 1, "hook.log detail: 0 normal (start-up, faults, refusals), 1 verbose (also each applied record, co-op on/off, seat toggles)") \
     X(VAL, uint8_t, network_mode, 1, 0, 0, "phase 1: 0 = local only")                                       \
     X(VAL, uint8_t, alias_count, 1, 0, ILC_ALIASES_MAX, "aliases in use; the rest are all zero")            \
     X(VAL, uint8_t, keep_running, 1, 0, 1, "keep running while another window has focus (windowed, borderless)") \
@@ -481,12 +553,21 @@
     X(REC, ilc_economy, economy, 1, 0, 0, "Legacy MP economy parameters")                                   \
     X(RECS, ilc_seat_settings, seats, ILC_SEATS, 0, 0, "P1..P4")                                            \
     X(RECS, ilc_device_alias, aliases, ILC_ALIASES_MAX, 0, 0, "")                                           \
-    X(VAL, uint32_t, subsystems_armed, 1, 0, ILC_ENUM_OR(ILC_SUBSYSTEMS), "ilc_subsystem_bit mask; 0 bit = disarmed") \
+    X(VAL, uint32_t, subsystems_disarm, 1, 0, ILC_ENUM_OR(ILC_SUBSYSTEMS), "developer override: ilc_subsystem_bit bits kept disarmed, honoured only while developer = 1; 0 = every subsystem follows the module") \
     X(VAL, uint8_t, hud_enabled, 1, 0, 1, "Battle HUD on/off; off = every element stock (the co-op battle menus stay)") \
     X(VAL, uint8_t, log_expand_control, 1, 0, ILC_ENUM_MAX(ILC_PAD_CONTROLS), "battle log expand button: ilc_pad_control pressed on any seat's pad; 0 none") \
     X(VAL, uint8_t, log_filter, 1, 0, ILC_ENUM_MAX(ILC_LOG_FILTERS), "battle log filter, ilc_log_filter") \
     X(VAL, uint8_t, log_filter_seat, 1, 1, ILC_ACTIVE_SEATS_MAX, "seat the MINE filter shows")          \
-    X(VAL, uint32_t, hud_elements, 1, 0, ILC_ENUM_OR(ILC_HUD_ELEMENTS), "ilc_hud_element_bit bits; set = on")
+    X(VAL, uint32_t, hud_elements, 1, 0, ILC_ENUM_OR(ILC_HUD_ELEMENTS), "ilc_hud_element_bit bits; set = on") \
+    X(VAL, uint8_t, shared_camera, 1, 0, 1, "shared group camera; 0 = the game's camera follows P1 (CAMERA stays disarmed)") \
+    X(VAL, uint8_t, guest_interactions, 1, 0, 1, "guests use doors, chests, crystals, NPCs and shops; 0 = only P1 does (gateways and loot stay)") \
+    X(VAL, uint8_t, town_view, 1, 0, ILC_ENUM_MAX(ILC_TOWN_VIEWS), "who has a body in towns, ilc_town_view") \
+    X(VAL, uint8_t, wait_pause, 1, 0, ILC_ENUM_MAX(ILC_WAIT_PAUSES), "when Wait mode stops time for the co-op menus, ilc_wait_pause") \
+    X(VAL, uint8_t, guest_pause, 1, 0, 1, "guests may pause the game and open the Party menu; 0 = a guest's PAUSE and PARTY do nothing") \
+    X(VAL, uint8_t, log_lines_compact, 1, 1, ILC_LOG_LINES_COMPACT_MAX, "battle log lines in the compact view; at most log_lines_expanded") \
+    X(VAL, uint8_t, log_lines_expanded, 1, 5, ILC_LOG_LINES_MAX, "battle log lines in the expanded view") \
+    X(VAL, uint8_t, log_fade_s, 1, 3, 15, "seconds an ordinary battle log line holds before it fades (important lines twice as long)") \
+    X(BYTES, uint8_t, hud_theme, ILC_THEME_ID_MAX, 0, 0, "HUD theme id: lower-case letters, digits, '-' or '_', zero after it; all zero = the built-in default (legacy-bold). A theme that is missing or broken at run time draws the default")
 
 #define ILC_SETTINGS_ACK_FIELDS(X)                                                                          \
     X(REC, ilc_header, header, 1, 0, 0, "generation = the generation sent")                                 \
@@ -543,7 +624,7 @@
     X(VAL, int32_t, last_reject_code, 1, 0, 0, "ilc_error")                                                 \
     X(VAL, uint32_t, last_reject_field, 1, 0, 0xFFFFFFFFu, "field id, 0 if none")                           \
     X(VAL, uint32_t, last_reject_location, 1, 0, 0xFFFFFFFFu, "outer << 8 | inner")                         \
-    X(VAL, uint32_t, applied_subsystems, 1, 0, 0xFFFFFFFFu, "subsystems_armed of the applied settings")     \
+    X(VAL, uint32_t, applied_subsystems, 1, 0, 0xFFFFFFFFu, "the subsystem mask the applied settings ask for: every bit, less the developer disarm and (shared camera off) CAMERA") \
     X(VAL, uint32_t, reason_detail, 1, 0, 0xFFFFFFFFu, "depends on reason (see ilc_reason)")                \
     X(VAL, uint32_t, boot_flags, 1, 0, 0xFFFFFFFFu, "ilc_boot_flag bits")                                   \
     X(VAL, uint8_t, coop_switch, 1, 0, ILC_ENUM_MAX(ILC_COOP_SWITCHES), "ilc_coop_switch: the kill switch") \
@@ -615,6 +696,51 @@
     X(VAL, uint32_t, applied_digest, 1, 0, 0xFFFFFFFFu, "")                                                 \
     X(VAL, uint32_t, safe_points, 1, 0, 0xFFFFFFFFu, "")
 
+#define ILC_HUD_FOE_FIELDS(X)                                                                            \
+    X(VAL, uint64_t, record, 1, 0, 0xFFFFFFFFFFFFFFFFull, "the foe's battle record address as the script sees it (opaque; 0 = unused entry)") \
+    X(VAL, uint8_t, flags, 1, 0, ILC_ENUM_OR(ILC_HUD_FOE_FLAGS), "ilc_hud_foe_flag bits")                \
+    X(VAL, uint8_t, broken_s, 1, 0, 60, "seconds of Broken left")                                        \
+    X(VAL, uint8_t, dent_pct, 1, 0, 50, "Sunder's Defense dent, percent of the starting value")          \
+    X(VAL, uint8_t, tired, 1, 0, 4, "guard fatigue steps")                                               \
+    X(VAL, uint8_t, spotter_seat, 1, 0, ILC_SEATS, "the seat whose member set the Spotter mark, 0 unknown") \
+    X(VAL, uint8_t, crown_element, 1, 0, 255, "element 0..7 of a crowned boss, 255 none")                \
+    X(PAD, uint8_t, reserved, 2, 0, 0, "")
+
+#define ILC_HUD_WORD_FIELDS(X)                                                                           \
+    X(VAL, uint16_t, member, 1, 0, 0xFFFFu, "party id 0..39; the entry all zero = unused")                     \
+    X(VAL, uint8_t, kind, 1, 0, ILC_ENUM_MAX(ILC_HUD_WORD_KINDS), "ilc_hud_word_kind")                   \
+    X(VAL, uint8_t, value, 1, 0, 255, "depends on kind")
+
+#define ILC_HUD_PROC_FIELDS(X)                                                                           \
+    X(VAL, uint64_t, record, 1, 0, 0xFFFFFFFFFFFFFFFFull, "the battle record of the unit whose hit fired it (0 = unused entry)") \
+    X(VAL, uint8_t, tag, 1, 0, ILC_ENUM_MAX(ILC_HUD_TAGS), "ilc_hud_tag")                                \
+    X(PAD, uint8_t, reserved, 3, 0, 0, "")                                                               \
+    X(VAL, uint32_t, age_ms, 1, 0, ILC_HUD_PROC_AGE_MAX_MS, "how long ago it fired, at the push")
+
+#define ILC_HUD_STATES_FIELDS(X)                                                                         \
+    X(REC, ilc_header, header, 1, 0, 0, "record_type HUD_STATES; generation = the script's push counter") \
+    X(VAL, uint8_t, foe_count, 1, 0, ILC_HUD_FOES, "foes used")                                          \
+    X(VAL, uint8_t, word_count, 1, 0, ILC_HUD_WORDS, "words used")                                       \
+    X(VAL, uint8_t, proc_count, 1, 0, ILC_HUD_PROCS, "procs used")                                       \
+    X(PAD, uint8_t, reserved, 5, 0, 0, "")                                                               \
+    X(RECS, ilc_hud_foe, foes, ILC_HUD_FOES, 0, 0, "the first foe_count are used, the rest all zero")    \
+    X(RECS, ilc_hud_word, words, ILC_HUD_WORDS, 0, 0, "the first word_count are used, the rest all zero") \
+    X(RECS, ilc_hud_proc, procs, ILC_HUD_PROCS, 0, 0, "the first proc_count are used, the rest all zero")
+
+#define ILC_THEME_ENTRY_FIELDS(X)                                                                        \
+    X(BYTES, uint8_t, id, ILC_THEME_ID_MAX, 0, 0, "theme id (lower-case letters, digits, '-', '_'), zero after it") \
+    X(BYTES, uint8_t, name, ILC_THEME_NAME_MAX, 0, 0, "the theme's name, printable ASCII, zero after it") \
+    X(VAL, uint8_t, flags, 1, 0, ILC_ENUM_OR(ILC_THEME_FLAGS), "ilc_theme_flag bits")                   \
+    X(PAD, uint8_t, reserved, 3, 0, 0, "")
+
+#define ILC_THEMES_REPLY_FIELDS(X)                                                                       \
+    X(REC, ilc_header, header, 1, 0, 0, "record_type THEMES; generation = applied settings generation") \
+    X(VAL, uint32_t, count, 1, 0, ILC_THEMES_MAX, "entries in use: the built-ins first, then the valid player themes") \
+    X(VAL, uint32_t, refused, 1, 0, 0xFFFFFFFFu, "player theme folders refused in the last scan (each named in hook.log)") \
+    X(VAL, uint32_t, scans, 1, 0, 0xFFFFFFFFu, "completed scans of the themes folder (0: the first is still running)") \
+    X(PAD, uint8_t, reserved, 4, 0, 0, "")                                                               \
+    X(RECS, ilc_theme_entry, entries, ILC_THEMES_MAX, 0, 0, "the first count are used, the rest all zero")
+
 #define ILC_COUNTERS_FIELDS(X)                                                                              \
     X(REC, ilc_header, header, 1, 0, 0, "record_type COUNTERS; generation = applied generation")            \
     X(VAL, uint32_t, layout, 1, 0, 0xFFFFFFFFu, "ILC_COUNTERS_LAYOUT of the writer")                        \
@@ -632,7 +758,7 @@
     X(VAL, uint32_t, stale_fallbacks, 1, 0, 0xFFFFFFFFu, "detour entries with an open gate that ran stock because the liveness sample was stale or torn") \
     X(VAL, uint32_t, stale_ticks, 1, 0, 0xFFFFFFFFu, "UI ticks that ran the stale clean-up instead of the tick") \
     X(VAL, uint32_t, stale_releases, 1, 0, 0xFFFFFFFFu, "Wait pauses the stale clean-up gave back")         \
-    X(VAL, uint32_t, subsystems_applied, 1, 0, 0xFFFFFFFFu, "subsystems_armed of the applied settings")     \
+    X(VAL, uint32_t, subsystems_applied, 1, 0, 0xFFFFFFFFu, "the subsystem mask the applied settings ask for (as status applied_subsystems)") \
     X(VAL, uint32_t, subsystems_gates, 1, 0, 0xFFFFFFFFu, "the subsystem mask the arm gates use now (0 while co-op is off)") \
     X(VAL, uint32_t, subsystems_faulted, 1, 0, 0xFFFFFFFFu, "latched fault bits (0x40000000 = the CORE rows)") \
     X(VAL, uint32_t, subsystems_live, 1, 0, 0xFFFFFFFFu, "bit set = that subsystem may act now (live, armed, not faulted)") \
@@ -754,7 +880,22 @@
     X(VAL, uint32_t, iso_substituted, 1, 0, 0xFFFFFFFFu, "")                                                \
     X(VAL, uint32_t, iso_probe_failed, 1, 0, 0xFFFFFFFFu, "")                                               \
     X(VAL, uint32_t, focus_forced, 1, 0, 0xFFFFFFFFu, "application held active while unfocused")            \
-    X(VAL, uint32_t, focus_probe_failed, 1, 0, 0xFFFFFFFFu, "")
+    X(VAL, uint32_t, focus_probe_failed, 1, 0, 0xFFFFFFFFu, "")                                             \
+    X(VAL, uint32_t, frame_hook_us_last, 1, 0, 0xFFFFFFFFu, "the HUD frame hook's last call: our work and the replay's game draw calls, the native log draw excluded (0 until the timer is calibrated)") \
+    X(VAL, uint32_t, frame_hook_us_max, 1, 0, 0xFFFFFFFFu, "the HUD frame hook's longest call")             \
+    X(VAL, uint32_t, frame_hook_us_avg, 1, 0, 0xFFFFFFFFu, "the HUD frame hook's average call since start") \
+    X(VAL, uint32_t, frame_hook_calls, 1, 0, 0xFFFFFFFFu, "HUD frame hook calls timed")                     \
+    X(VAL, uint32_t, canvas_atlas_lookups, 1, 0, 0xFFFFFFFFu, "atlas texture lookups by name (the atlas cache's misses)") \
+    X(VAL, uint32_t, canvas_text_last, 1, 0, 0xFFFFFFFFu, "texts replayed on the last frame drawn")          \
+    X(VAL, uint32_t, canvas_chars_last, 1, 0, 0xFFFFFFFFu, "characters of those texts")                     \
+    X(VAL, uint32_t, probe_queries, 1, 0, 0xFFFFFFFFu, "VirtualQuery calls of the fault-safe probe, every thread") \
+    X(VAL, uint32_t, probe_hot_hits, 1, 0, 0xFFFFFFFFu, "hot-path game reads and writes served from a cached region") \
+    X(VAL, uint32_t, probe_hot_misses, 1, 0, 0xFFFFFFFFu, "hot-path game reads and writes that probed their region") \
+    X(VAL, uint32_t, canvas_ring_ours_last, 1, 0, 0xFFFFFFFFu, "render-ring bytes the last replay with sprites or bars added") \
+    X(VAL, uint32_t, canvas_zero_output, 1, 0, 0xFFFFFFFFu, "replays that drew sprites or bars but added nothing to the render ring") \
+    X(VAL, uint32_t, canvas_child_space, 1, 0, 0xFFFFFFFFu, "frames drawn in the HUD root's child space (its own context has no matrix)") \
+    X(VAL, uint32_t, canvas_declined_matrix, 1, 0, 0xFFFFFFFFu, "frames not drawn: no usable draw matrix") \
+    X(VAL, uint32_t, probe_hot_failed, 1, 0, 0xFFFFFFFFu, "hot-path reads refused because their region is not readable")
 
 // The list of records, dependencies first: S(type name, struct id, field list, doc).
 #define ILC_STRUCTS(S)                                                                                      \
@@ -777,7 +918,13 @@
     S(ilc_event, 17, ILC_EVENT_FIELDS, "")                                                                  \
     S(ilc_events_reply, 18, ILC_EVENTS_REPLY_FIELDS, "POP_EVENTS out (variable length)")                    \
     S(ilc_safe_point_result, 19, ILC_SAFE_POINT_RESULT_FIELDS, "TEST_SAFE_POINT out")                       \
-    S(ilc_counters, 20, ILC_COUNTERS_FIELDS, "GET_COUNTERS out")
+    S(ilc_counters, 20, ILC_COUNTERS_FIELDS, "GET_COUNTERS out")                                         \
+    S(ilc_hud_foe, 21, ILC_HUD_FOE_FIELDS, "")                                                           \
+    S(ilc_hud_word, 22, ILC_HUD_WORD_FIELDS, "")                                                         \
+    S(ilc_hud_proc, 23, ILC_HUD_PROC_FIELDS, "")                                                         \
+    S(ilc_hud_states, 24, ILC_HUD_STATES_FIELDS, "PUSH_HUD_STATES in")                                   \
+    S(ilc_theme_entry, 25, ILC_THEME_ENTRY_FIELDS, "")                                                   \
+    S(ilc_themes_reply, 26, ILC_THEMES_REPLY_FIELDS, "GET_THEMES out")
 
 // ---------------------------------------------------------------------------------------------------------
 // Expansion into C++.
@@ -854,6 +1001,10 @@ static_assert(ILC_ENUM_OR(ILC_HUD_ELEMENTS) + 1 == (1ull << ILC_ENUM_COUNT(ILC_H
               "Battle HUD element bits are one bit each, dense from bit 0");
 static_assert(ILC_ENUM_MIN(ILC_LOG_FILTERS) == 0 && ILC_ENUM_MAX(ILC_LOG_FILTERS) + 1 == ILC_ENUM_COUNT(ILC_LOG_FILTERS),
               "log filters are dense from 0");
+static_assert(ILC_ENUM_MIN(ILC_TOWN_VIEWS) == 0 && ILC_ENUM_MAX(ILC_TOWN_VIEWS) + 1 == ILC_ENUM_COUNT(ILC_TOWN_VIEWS) &&
+                  ILC_ENUM_MIN(ILC_WAIT_PAUSES) == 0 && ILC_ENUM_MAX(ILC_WAIT_PAUSES) + 1 == ILC_ENUM_COUNT(ILC_WAIT_PAUSES),
+              "town views and Wait pause rules are dense from 0");
+static_assert(ILC_ACTIVE_SEATS_MAX >= 2 && ILC_ACTIVE_SEATS_MAX <= ILC_SEATS, "active seats fit the seat arrays");
 
 #define ILC_DECL_VAL(type, name, count) type name;
 #define ILC_DECL_ARR(type, name, count) type name[count];
@@ -880,7 +1031,7 @@ static_assert(sizeof(ilc_seat_device) == 140, "ilc_seat_device");
 static_assert(sizeof(ilc_seat_settings) == 308, "ilc_seat_settings");
 static_assert(sizeof(ilc_device_alias) == 140, "ilc_device_alias");
 static_assert(sizeof(ilc_economy) == 8, "ilc_economy");
-static_assert(sizeof(ilc_settings) == 3532, "ilc_settings");
+static_assert(sizeof(ilc_settings) == 3572, "ilc_settings");
 static_assert(sizeof(ilc_settings_ack) == 32, "ilc_settings_ack");
 static_assert(sizeof(ilc_command) == 32, "ilc_command");
 static_assert(sizeof(ilc_hello_reply) == 96, "ilc_hello_reply");
@@ -892,7 +1043,19 @@ static_assert(sizeof(ilc_devices_reply) == 32 + 16 * 148, "ilc_devices_reply");
 static_assert(sizeof(ilc_event) == 32, "ilc_event");
 static_assert(sizeof(ilc_events_reply) == 32 + 64 * 32, "ilc_events_reply");
 static_assert(sizeof(ilc_safe_point_result) == 32, "ilc_safe_point_result");
-static_assert(sizeof(ilc_counters) == 16 + 138 * 4, "ilc_counters");
+static_assert(sizeof(ilc_counters) == 16 + 153 * 4, "ilc_counters");
+static_assert(sizeof(ilc_hud_foe) == 16, "ilc_hud_foe");
+static_assert(sizeof(ilc_hud_word) == 4, "ilc_hud_word");
+static_assert(sizeof(ilc_hud_proc) == 16, "ilc_hud_proc");
+static_assert(sizeof(ilc_hud_states) == 24 + 8 * 16 + 4 * 4 + 8 * 16, "ilc_hud_states");
+static_assert(ILC_ENUM_MIN(ILC_HUD_WORD_KINDS) == 0 && ILC_ENUM_MAX(ILC_HUD_WORD_KINDS) + 1 == ILC_ENUM_COUNT(ILC_HUD_WORD_KINDS) &&
+                  ILC_ENUM_MIN(ILC_HUD_TAGS) == 0 && ILC_ENUM_MAX(ILC_HUD_TAGS) + 1 == ILC_ENUM_COUNT(ILC_HUD_TAGS),
+              "HUD word kinds and tags are dense from 0");
+static_assert(ILC_ENUM_OR(ILC_HUD_FOE_FLAGS) == 0xFF, "the foe flags fill one byte");
+static_assert(sizeof(ilc_theme_entry) == ILC_THEME_ID_MAX + ILC_THEME_NAME_MAX + 4, "ilc_theme_entry");
+static_assert(sizeof(ilc_themes_reply) == 32 + ILC_THEMES_MAX * sizeof(ilc_theme_entry), "ilc_themes_reply");
+static_assert(sizeof(ilc_themes_reply) <= ILC_OUT_CAP_RECOMMENDED, "the theme list fits the recommended output");
+static_assert(ILC_THEMES_MAX > 3, "the theme list holds the three built-ins and player themes");
 static_assert(ILC_SEAT_BINDINGS == ILC_ACTIONS * ILC_BINDINGS_PER_ACTION, "binding table");
 static_assert(sizeof(ilc_settings) <= ILC_OUT_CAP_RECOMMENDED, "recommended output size");
 static_assert(sizeof(ilc_devices_reply) <= ILC_OUT_CAP_RECOMMENDED, "recommended output size");

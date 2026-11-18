@@ -120,9 +120,9 @@ bool parse_string(reader& r, char* key, bool* key_ok)
     return false;  // unterminated
 }
 
-// A JSON number. *integer_one: the number is exactly the integer 1 (no fraction or exponent); *above_one: an
-// integer above 1.
-bool parse_number(reader& r, bool* integer_one, bool* above_one)
+// A JSON number. *known: the number is a plain integer (no fraction or exponent) from 1 to SETTINGS_SCHEMA_MAX;
+// *newer: a plain integer above SETTINGS_SCHEMA_MAX.
+bool parse_number(reader& r, bool* known, bool* newer)
 {
     const char* start = r.p;
     bool negative = false;
@@ -169,11 +169,13 @@ bool parse_number(reader& r, bool* integer_one, bool* above_one)
     }
     const char* digits = start + (negative ? 1 : 0);
     const size_t len = static_cast<size_t>(int_end - digits);
-    if (integer_one != nullptr) {
-        *integer_one = plain && !negative && len == 1 && digits[0] == '1';
+    static_assert(SETTINGS_SCHEMA_MAX >= 1 && SETTINGS_SCHEMA_MAX <= 9, "one digit");
+    const bool one_digit = plain && !negative && len == 1;
+    if (known != nullptr) {
+        *known = one_digit && digits[0] >= '1' && digits[0] <= static_cast<char>('0' + SETTINGS_SCHEMA_MAX);
     }
-    if (above_one != nullptr) {
-        *above_one = plain && !negative && (len > 1 || (len == 1 && digits[0] > '1'));
+    if (newer != nullptr) {
+        *newer = plain && !negative && (len > 1 || (len == 1 && digits[0] > static_cast<char>('0' + SETTINGS_SCHEMA_MAX)));
     }
     return true;
 }
@@ -181,8 +183,8 @@ bool parse_number(reader& r, bool* integer_one, bool* above_one)
 // What the caller wants to learn about the value being parsed.
 struct probe_out {
     value_type type;
-    bool integer_one;
-    bool above_one;
+    bool known;   // a schema this module reads (1..SETTINGS_SCHEMA_MAX)
+    bool newer;   // an integer above SETTINGS_SCHEMA_MAX
 };
 
 bool parse_value(reader& r, uint32_t depth, probe_out* out, const char* want_key, probe_out* want_out);
@@ -302,7 +304,7 @@ bool parse_value(reader& r, uint32_t depth, probe_out* out, const char* want_key
         return literal(r, "null");
     }
     o->type = T_NUMBER;
-    return parse_number(r, &o->integer_one, &o->above_one);
+    return parse_number(r, &o->known, &o->newer);
 }
 
 }  // namespace
@@ -328,8 +330,8 @@ settings_switch parse_module_switch(const char* text, size_t size, bool default_
     if (r.p != r.end) {
         return {SETTINGS_INVALID, INVALID_SYNTAX, false};  // trailing bytes after the document
     }
-    if (schema.type != T_NUMBER || !schema.integer_one) {
-        return {SETTINGS_INVALID, schema.type == T_NUMBER && schema.above_one ? INVALID_NEWER_SCHEMA : INVALID_SCHEMA,
+    if (schema.type != T_NUMBER || !schema.known) {
+        return {SETTINGS_INVALID, schema.type == T_NUMBER && schema.newer ? INVALID_NEWER_SCHEMA : INVALID_SCHEMA,
                 false};
     }
     if (module.type == T_NONE) {

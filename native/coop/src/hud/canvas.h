@@ -164,6 +164,20 @@ struct counters {
     uint64_t faults;           // guarded faults (RENDER latched)
     uint64_t published;        // frames the producer published
     uint64_t ring_gaps;        // ring samples not one frame after the last: a new baseline, nothing charged or decayed
+    // The frame hook's own cost per call (h0 + h0_after, the native log draw between them excluded), in time-stamp
+    // counter ticks: the last finished call, the longest, and the sum over `hook_calls` calls (for the average).
+    uint64_t hook_ticks_last;
+    uint64_t hook_ticks_max;
+    uint64_t hook_ticks_total;
+    uint64_t hook_calls;
+    uint64_t atlas_lookups;    // texture lookups by name (FN_TEXTURE_BY_NAME): the atlas cache's misses
+    uint64_t text_last;        // texts replayed on the last frame drawn (the text cost is the game's font batch: CPU)
+    uint64_t chars_last;       // ... and their characters
+    uint64_t ring_ours_last;   // render-ring bytes the last replay with sprites or bars moved the cursor by
+    uint64_t zero_output;      // replays that drew sprites or bars and moved the ring cursor by nothing
+    uint64_t child_space;      // frames drawn in the root's child space (its own context had no usable matrix)
+    uint64_t declined_matrix;  // frames not drawn: no usable draw matrix (also counted in declined_context)
+    uint64_t clips;            // scissor calls of the replay (2 per replayed frame: lift, set back)
 };
 const counters* stats();
 
@@ -175,7 +189,12 @@ struct budget_view {
     uint64_t cursor;           // the ring cursor at the last hook call
     float matrix[16];          // the drawing context's transform at the last hook call (for the coordinate check)
     uint32_t depth;            // ancestors walked from the log manager to the window whose context was used
-    uint32_t reserved;
+    uint32_t source;           // where `matrix` came from: matrix_source
+};
+enum matrix_source : uint32_t {
+    MATRIX_CONTEXT = 0,        // the window's own context
+    MATRIX_CHILD_SPACE = 1,    // a root's context+0xE0: the matrix it hands its children (hud_facts.h)
+    MATRIX_NONE = 2,           // neither usable: the frame was not drawn (`matrix` = the unusable one)
 };
 budget_view budget();
 
@@ -201,6 +220,19 @@ void test_set_pins_ok(bool ok);
 void test_inject_fault(bool on);     // the replay dereferences address 8 before drawing
 void test_set_ring(uint64_t start, uint64_t end, uint64_t cursor);  // the ring baseline of the last hook call
 int32_t test_replay(const frame& f, uint64_t context);   // the guarded replay on a context, no checks before it
+// Stand-ins for the game functions the replay calls (null = the game's own); the atlas cache is dropped either way.
+struct test_natives {
+    void* text_draw;
+    void* text_params;
+    void* batch_begin;
+    void* batch_sprite;
+    void* batch_end;
+    void* bar;
+    void* texture_by_name;
+    void* scissor;
+};
+void test_set_natives(const test_natives* n);
+void test_forget_atlases();
 void test_produce(uint32_t epoch, uint64_t now_ms);      // build and publish the test-draw frame
 int32_t test_row();
 

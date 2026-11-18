@@ -43,6 +43,40 @@ bool seat_shown(uint32_t seat);
 // The seat's window has been left out of every presented frame for more than LIVE_MS.
 bool seat_lost(uint32_t seat, uint64_t now_ms);
 
+// The overlay's run of consecutive presented frames: Player 1's menu moves onto the overlay only after a run of them,
+// and goes back to the vanilla menu as soon as the run breaks twice in a row or goes stale (frontend.h, rules.h
+// p1_arm_step). note_run, break_run and note_failed are written by the overlay alone (the render thread); the run is
+// read by the co-op thread. note_drawn has a second, dormant writer: the old HUD frame driver (hud/driver.cpp), whose
+// layer is off in the module (driver::set_layer_enabled(false)); its fault path's note_drawn(0) also breaks the run.
+//  * note_run(now): this frame presented the layer: one more frame in the run (a gap of more than RUN_GAP_MS since
+//    the last one starts a new run: the frame hook stopped being called meanwhile); the missed count goes to zero;
+//  * break_run(): the overlay reached a frame and did not present the layer (the HUD hidden, nothing presentable,
+//    the guard busy): the run starts again from zero and the missed count (frames in a row not presented) grows;
+//  * note_failed(now): the GPU side refused a frame that would have presented the layer (device removed, swap chain
+//    or back buffer gone, a creation failure): the run breaks and the failure time is kept (Player 1's buttons go
+//    back to the game at once; the guests' menus keep the usual LIVE_MS grace).
+// note_drawn(0) (a fault) breaks the run too.
+constexpr uint64_t RUN_GAP_MS = 100;
+void note_run(uint64_t now_ms);
+void break_run();
+void note_failed(uint64_t now_ms);
+// note_gpu_drawn(now): the GPU side really drew this frame (gpu::DRAWN, not an empty READY frame): proof the back buffer,
+// its view and the upload work. Player 1 arms only after such a frame since the last refused one (rules.h).
+void note_gpu_drawn(uint64_t now_ms);
+// run() is coherent: the writer zeroes the frame count before it moves since/last to a new run and sets the count last;
+// the reader takes frames, since and last, reads frames again and retries on a change (a torn view is never returned
+// as a run: after three tries it reports a broken run).
+struct run_view {
+    uint32_t frames;       // presented frames in the current run (0 = broken)
+    uint32_t missed;       // frames in a row the overlay reached and did not present (0 after a presented frame)
+    uint64_t since_ms;     // the run's first frame (0 = none)
+    uint64_t last_ms;      // its last frame
+    uint64_t failed_ms;    // the last refused frame (0 = none)
+    uint64_t gpu_drawn_ms; // the last frame the GPU side really drew (0 = none)
+};
+static_assert(sizeof(run_view) == 40, "run_view layout (host tests read it)");
+run_view run();
+
 // Host tests: simulate the overlay. 1 = always live, 0 = never, -1 = the stamp decides (the shipped behaviour).
 void test_simulate(int32_t mode);
 void test_reset();

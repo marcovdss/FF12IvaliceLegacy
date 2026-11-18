@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "hud/circles.h"
+#include "hud/driver.h"
 #include "hud/relayout.h"
 #include "patch/patch_engine.h"
 #include "patch/site_table.h"
@@ -98,7 +99,10 @@ uint32_t parts()
 
 bool wanted()
 {
-    return __atomic_load_n(&g_enabled, __ATOMIC_ACQUIRE) != 0 && parts() != 0 && render_live();
+    // The reduced party list and circles off make room for, and stand in for, pieces of the co-op layer: with the layer
+    // off (0.1.57 interim) the native list and circles stay stock (a held change is given back).
+    return __atomic_load_n(&g_enabled, __ATOMIC_ACQUIRE) != 0 && parts() != 0 && render_live() &&
+           driver::layer_enabled();
 }
 
 void step(uint64_t now_ms)

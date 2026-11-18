@@ -1,6 +1,6 @@
 // Ivalice Legacy co-op module: the call-row stubs (see call_island.h).
 //
-// Per call row k (0..19):
+// Per call row k (0..24):
 //
 //   ilc_call_entry_k   jmp qword [ilc_call_slot + 8k]. No unwind data: a single jump at a call boundary, so an
 //                      unwinder treats it as a leaf and finds site+5 at [rsp]. Touches no register, flag or
@@ -28,9 +28,9 @@
 // the dispatcher chose (0 TAIL, 1 RETURN, 2 AROUND).
 #include "patch/call_island.h"
 
-static_assert(ilc::patch::island::ROWS == 22, "the .irp lists below name 22 call rows");
+static_assert(ilc::patch::island::ROWS == 25, "the .irp lists below name 25 call rows");
 
-#define ILC_CALL_K "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21"
+#define ILC_CALL_K "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
 
 asm(".text\n"
     // ---- entries (leaf jumps) ----

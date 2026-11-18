@@ -60,6 +60,8 @@ hud_snapshot g_snap;                        // the snapshot copy this beat compo
 view g_next;                                // built here, then published
 view g_last;                                // the last view that showed a target (held while it is gone)
 uint64_t g_gone_since = 0;
+uint64_t g_engaged_ms = 0;        // the last beat the party was engaged (item 6), 0 none in this world
+volatile int32_t g_force_engaged = -1;
 uint32_t g_epoch = 0;
 ghost_state g_ghost = {};
 uint32_t g_ko_handle = 0;
@@ -514,6 +516,36 @@ void fill(game_reader& r, const hud_snapshot& snap, uint32_t seat, const hud_uni
                                                           v->status_flags, v->status_secs));
 }
 
+// The party's fighting stance (actor +0x02 bit 7, as world_marks reads it), bit per members[] index.
+uint32_t stance_mask(const hud_snapshot& snap)
+{
+    constexpr uint32_t ACTOR_STANCE = 0x02;
+    constexpr uint8_t STANCE_FIGHTING = 0x80;
+    game_reader r(image_base());
+    uint32_t mask = 0;
+    for (uint32_t m = 0; m < snap.member_count && m < SNAP_MEMBERS && m < 32; ++m) {
+        const hud_unit& u = snap.members[m];
+        if (u.handle == 0 || (u.flags & UNIT_ACTOR) == 0) {
+            continue;
+        }
+        const uintptr_t actor = targets::live_actor(r, u.handle, false);
+        uint8_t stance = 0;
+        if (actor != 0 && r.u8(actor + ACTOR_STANCE, &stance) && (stance & STANCE_FIGHTING) != 0) {
+            mask |= 1u << m;
+        }
+    }
+    return mask;
+}
+
+bool engaged_now(const hud_snapshot& snap)
+{
+    const int32_t forced = __atomic_load_n(&g_force_engaged, __ATOMIC_ACQUIRE);
+    if (forced >= 0) {
+        return forced != 0;
+    }
+    return engaged(snap, stance_mask(snap));
+}
+
 bool build(const hud_snapshot& snap, uint64_t now, view* v)
 {
     zero_bytes(v, sizeof(*v));
@@ -526,8 +558,18 @@ bool build(const hud_snapshot& snap, uint64_t now, view* v)
         zero_bytes(&g_ghost, sizeof(g_ghost));
         g_gone_since = 0;
         g_ko_handle = 0;
+        g_engaged_ms = 0;
     }
     refresh_colours();
+    // Engagement (item 6): only while engaged, and ENGAGE_HOLD_MS after; otherwise nothing, and no sticky target.
+    if (engaged_now(snap)) {
+        g_engaged_ms = now != 0 ? now : 1;
+    }
+    if (g_engaged_ms == 0 || since(now, g_engaged_ms) > ENGAGE_HOLD_MS) {
+        zero_bytes(&g_last, sizeof(g_last));
+        g_gone_since = 0;
+        return true;   // an empty view: the pass is live, nothing shown
+    }
     int32_t index = -1;
     const int32_t seat = select_seat(snap, &index);
     if (seat >= 0 && index >= 0) {
@@ -563,6 +605,7 @@ void reset_state()
     zero_bytes(&g_last, sizeof(g_last));
     zero_bytes(&g_ghost, sizeof(g_ghost));
     g_gone_since = 0;
+    g_engaged_ms = 0;
     g_ko_handle = 0;
     g_epoch = 0;
 }
@@ -634,6 +677,14 @@ void test_reset()
     __atomic_store_n(&g_last_drawn, uint64_t{0}, __ATOMIC_RELEASE);
     __atomic_store_n(&g_test_stamp, uint64_t{0}, __ATOMIC_RELEASE);
     test_set_p1_owned(-1);
+    // The older host tests build views from snapshots without any engagement: they keep their meaning with the rule
+    // forced on; the engagement tests set -1 (the rule) themselves.
+    __atomic_store_n(&g_force_engaged, 1, __ATOMIC_RELEASE);
+}
+
+void test_force_engaged(int32_t state)
+{
+    __atomic_store_n(&g_force_engaged, state, __ATOMIC_RELEASE);
 }
 
 void test_set_image_base(uintptr_t image_base_)

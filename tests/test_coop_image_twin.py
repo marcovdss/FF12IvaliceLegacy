@@ -165,7 +165,9 @@ class ImageTwinDrillTest(unittest.TestCase):
         cases = 0
         # An OPTIONAL row (flag 0x08: the HUD frame hook, the native TARGET INFO open, the two party-row HP colour
         # rows, the seat diamonds' overhead pass call, the stock ring call, the battle log feed and its five per-hit and
-        # kill reward copies) that is not stock is skipped instead of refusing; the HUD suites drill that. Every other
+        # kill reward copies, the guests' interaction prompt call, the overlay's present call, the two treasure-log rows)
+        # that is not stock is skipped instead of refusing; the
+        # HUD and prompt suites drill that. Every other
         # PATCH row
         # refuses with zero writes.
         refusing = [row for row in self.twin.patch if not self.twin.rows[row]['flags'] & 0x08]
@@ -193,7 +195,7 @@ class ImageTwinDrillTest(unittest.TestCase):
         for k, address in enumerate(self.sites):
             self.assertEqual(self.d.ILCT_ParkGetRip(k), address, 'a parked thread moved')
         self.assertEqual(cases, sum(2 if self.twin.rows[r]['hook_len'] > 1 else 1 for r in refusing))
-        self.assertEqual(len(self.twin.patch) - len(refusing), 12, 'twelve optional rows')
+        self.assertEqual(len(self.twin.patch) - len(refusing), 16, 'sixteen optional rows')
 
     # ---- RIP in a window -> retry, then commit ----
     def test_rip_in_range_retries_then_commits(self):

@@ -28,6 +28,14 @@ local ACTION_LABELS = {TOGGLE_CONTROL = 'Join/leave key', WALK_RUN = 'Walk/run',
 function M.action_label(action) return ACTION_LABELS[action] or title(action) end
 local actionLabel = M.action_label
 
+-- How a pad control is named for the player (the game's controller buttons, not the schema's identifiers).
+local PAD_NAMES = {A = 'A', B = 'B', X = 'X', Y = 'Y', LB = 'LB', RB = 'RB', BACK = 'Back', START = 'Start', L3 = 'L3',
+                   R3 = 'R3', DPAD_UP = 'D-pad Up', DPAD_DOWN = 'D-pad Down', DPAD_LEFT = 'D-pad Left',
+                   DPAD_RIGHT = 'D-pad Right', LT = 'LT', RT = 'RT', LS_UP = 'Left stick Up', LS_DOWN = 'Left stick Down',
+                   LS_LEFT = 'Left stick Left', LS_RIGHT = 'Left stick Right', RS_UP = 'Right stick Up',
+                   RS_DOWN = 'Right stick Down', RS_LEFT = 'Right stick Left', RS_RIGHT = 'Right stick Right'}
+function M.pad_name(name) return PAD_NAMES[name] or title(name) end
+
 -- Windows virtual-key code -> short name (only the common keys; others show their code).
 local function keyName(vk)
   if vk >= 0x70 and vk <= 0x7B then return 'F' .. (vk - 0x6F) end
@@ -47,7 +55,7 @@ function M.create(deps)
   local E = C.enums
   local ACTIVE = C.schema.const.ACTIVE_SEATS_MAX or 3      -- seats with a human player (fail closed: 3)
   local log = deps.log or function() end
-  local F = {now = 0, action_label = M.action_label, killed = false, pending = nil, devices = nil, seats = nil, identified = {}, lastSlowPoll = nil}
+  local F = {now = 0, action_label = M.action_label, pad_name = M.pad_name, killed = false, pending = nil, devices = nil, seats = nil, identified = {}, lastSlowPoll = nil}
 
   local base = deps.seed
   if base == nil then base = (type(os) == 'table' and os.time and os.time()) or 0 end
@@ -67,7 +75,7 @@ function M.create(deps)
       if b.kind == 'KEY' then parts[#parts + 1] = keyName(b.code)
       elseif b.kind == 'MOUSE' then
         parts[#parts + 1] = b.code == 1 and 'Left mouse' or b.code == 2 and 'Right mouse' or ('Mouse ' .. b.code)
-      elseif b.kind == 'PAD' then parts[#parts + 1] = title(C.name_of('pad_control', b.code) or ('control ' .. b.code))
+      elseif b.kind == 'PAD' then parts[#parts + 1] = M.pad_name(C.name_of('pad_control', b.code) or ('control ' .. b.code))
       else parts[#parts + 1] = '?' end
     end
     return table.concat(parts, ', ')
@@ -161,6 +169,30 @@ function M.create(deps)
     return text
   end
 
+  -- Why a joined guest may be silent, from what the settings hold (no native data): nil when nothing is wrong. Only a
+  -- guest who takes part (not parked) is checked.
+  function F.seat_issue(seat)
+    if math.type(seat) ~= 'integer' or seat < 2 or seat > ACTIVE then return nil end
+    local st = store.state
+    local s = st.seats[seat]
+    if not s or s.parked then return nil end
+    local kb = st.keyboardSeat == seat
+    local pad = s.device.kind ~= 'NONE'
+    if not pad and not kb then return 'No controller: press Controller to pair one' end
+    local any, usable = false, false
+    for action, list in pairs(s.bindings) do
+      for _, b in ipairs(list) do
+        any = true
+        if action == 'BATTLE_MENU' and ((pad and b.kind == 'PAD') or (kb and (b.kind == 'KEY' or b.kind == 'MOUSE'))) then
+          usable = true
+        end
+      end
+    end
+    if usable then return nil end
+    if kb and not pad and not any then return 'Keyboard is on ' .. seatLabel(seat) .. ', who has no controls' end
+    return "No battle-menu key: reset this player's controls"
+  end
+
   function F.seat_state_text(seat)
     local s = F.seats and F.seats.seats[seat]
     if not s then return 'No game running' end
@@ -175,6 +207,18 @@ function M.create(deps)
     local names = {[0] = 'Vaan', 'Ashe', 'Fran', 'Balthier', 'Basch', 'Penelo'}
     if names[who] and (s.playing or seat == 1) then base = base .. ' as ' .. names[who] end
     return base
+  end
+
+  -- Players the game counts now: Player 1 (the host) and every guest seat that plays. nil until the seats were read.
+  function F.player_count()
+    local seats = F.seats and F.seats.seats
+    if not seats then return nil end
+    local n = 0
+    for i = 1, ACTIVE do
+      local s = seats[i]
+      if s and (s.playing or i == 1) then n = n + 1 end
+    end
+    return n
   end
 
   ---- the one running operation (pairing or capture) ---------------------------------------------------------------------
@@ -448,7 +492,7 @@ function M.create(deps)
     if seat == 0 then
       rid, err = send('CAPTURE_START', 0, 0, slot)
       if not rid and err == 'BAD_FIELD' then
-        D.notify('This version of the co-op module cannot capture the on/off key. Use Co-op right now on the main page.')
+        D.notify('This version of the co-op module cannot capture the on/off key. Use the Co-op switch on the main page.')
         return
       end
     else
@@ -779,6 +823,16 @@ function M.create(deps)
       end
     end
     return ok, why
+  end
+
+  -- "Last used": the seat keeps the character it plays now. Needs the seats read from the module (the live member).
+  function F.set_last_used(seat)
+    local s = F.seats and F.seats.seats[seat]
+    local name = s and s.liveMember and s.liveMember >= 0 and s.liveMember <= 5 and C.name_of('character', s.liveMember)
+    if not name or not E.character[name] then
+      return false, string.format('%s has no character to remember yet. Join first, then choose Last used.', seatLabel(seat))
+    end
+    return F.set_character(seat, name)
   end
 
   ---- co-op on/off now (the menu action) -----------------------------------------------------------------------------------

@@ -9,7 +9,8 @@
 namespace ilc::interaction {
 
 // A guest's own character may start an interaction: not drawing or sheathing a weapon, no execution motion, idle
-// or walking, and no action other than "none" or idle queued. A drawn weapon is fine (the game holsters it).
+// or walking, and no action other than "none", idle or "follow the leader" (the action a party member walking with
+// the party carries). A drawn weapon is fine (the game holsters it). The action is the u16 at actor +0x714.
 bool press_allowed(uint64_t actor_flags, uint32_t actor_state, uint32_t actor_action);
 
 // Player 1's leader is free for an object interaction a guest starts (the game animates P1's leader for doors,

@@ -366,7 +366,12 @@ class TickTest(unittest.TestCase):
         TickTest.generation += 1
         record = bytearray(S.defaults())
         struct.pack_into('<I', record, S.locate('ilc_settings', ['header', 'generation'])[0], TickTest.generation)
-        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_armed'])[0], mask)
+        # The record carries a developer disarm override (0.1.53): the mask asked for is every subsystem but those
+        # bits, honoured with developer options on.
+        every = sum(S.enums['subsystem'].values())
+        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_disarm'])[0], every & ~mask)
+        if mask != every:
+            record[S.locate('ilc_settings', ['developer'])[0]] = 1
         status, _ = self.bridge.call(S.e('op', 'SET_SETTINGS'), bytes(record))
         self.assertGreater(status, 0)
         return TickTest.generation
@@ -464,7 +469,12 @@ class LiveSwitchTest(unittest.TestCase):
             generation = LiveSwitchTest.generation
         record = bytearray(S.defaults())
         struct.pack_into('<I', record, S.locate('ilc_settings', ['header', 'generation'])[0], generation)
-        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_armed'])[0], mask)
+        # The record carries a developer disarm override (0.1.53): the mask asked for is every subsystem but those
+        # bits, honoured with developer options on.
+        every = sum(S.enums['subsystem'].values())
+        struct.pack_into('<I', record, S.locate('ilc_settings', ['subsystems_disarm'])[0], every & ~mask)
+        if mask != every:
+            record[S.locate('ilc_settings', ['developer'])[0]] = 1
         status, _ = self.bridge.call(S.e('op', 'SET_SETTINGS'), bytes(record))
         return status
 
@@ -765,6 +775,8 @@ class TickEmulator(pe.Emulator):
             pass
         elif name == 'GetTickCount64':
             uc.reg_write(X.UC_X86_REG_RAX, self.clock)
+        elif name == 'GetCurrentThreadId':  # the probe's per-thread region cache: one emulated thread
+            uc.reg_write(X.UC_X86_REG_RAX, 0x1F1C)
         elif name in ('memcpy', 'memmove'):
             uc.mem_write(rcx, bytes(uc.mem_read(rdx, r8)))
             uc.reg_write(X.UC_X86_REG_RAX, rcx)

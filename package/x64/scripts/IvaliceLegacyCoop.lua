@@ -50,9 +50,20 @@ local ok, why = pcall(function()
     end,
   })
   page.start()
+  -- The Legacy script states the HUD overlay shows (Broken, Sunder's dent, Guard/Cadence/Flow, proc tags): the Family
+  -- module lives in the Forge script's own Lua state, which publishes them into a memory block (global symbol
+  -- ilc_hud_share); this state reads that block every 250 ms and pushes it through the bridge. Read only; absent
+  -- pieces show nothing.
+  local clock = function() return type(event.getClock) == 'function' and event.getClock() or 0 end
+  local hudModule = load('hud_states')
+  local hudStates = hudModule.create({
+    bridge = bridge, codec = codec, after = event.executeAfterMs, log = print, clock = clock,
+    view = hudModule.share_reader({memory = memory, clock = clock, codec = codec}),
+  })
   event.registerEventAsync('onInitDone', function()
     bridge.start()
     if bridge.is_ready() then store.sync(bridge) end
+    hudStates.start()
   end)
   event.registerEventAsync('exit', function()
     flows.cancel()
@@ -62,6 +73,6 @@ local ok, why = pcall(function()
   -- page timer alone is not documented as keeping it alive. "Definitions keep their owner script alive even without
   -- callbacks" (loader docs, event.defineEvent).
   if event.defineEvent then pcall(event.defineEvent, 'IvaliceLegacyCoop.alive', 'async') end
-  rawset(_G, 'IvaliceLegacyCoop', {bridge = bridge, store = store, page = page, flows = flows})
+  rawset(_G, 'IvaliceLegacyCoop', {bridge = bridge, store = store, page = page, flows = flows, hud_states = hudStates})
 end)
 if not ok then print('Legacy co-op page: not started (' .. tostring(why) .. ')') end

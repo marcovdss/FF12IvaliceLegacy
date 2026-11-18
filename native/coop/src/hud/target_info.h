@@ -109,6 +109,10 @@ enum view_flag : uint32_t {
 enum drop_kind : uint8_t { DROP = 0, STEAL = 1, SPECIAL = 2, POACH = 3 };
 enum drop_state : uint8_t { ITEM_KNOWN = 0, ITEM_UNKNOWN = 1 };
 enum drop_flag : uint8_t { DROP_TAKEN = 0x01, DROP_RARE = 0x02, DROP_GIL = 0x04 };
+// The drop slots shown as rare: the chain table's rare and very rare tiers (section06: common 0, uncommon 1, rare 2,
+// very rare 3, guaranteed 4).
+constexpr uint32_t RARE_SLOT = 2;
+constexpr uint32_t VERY_RARE_SLOT = 3;
 
 struct drop_line {
     uint8_t kind;              // drop_kind
@@ -148,9 +152,22 @@ static_assert(sizeof(view) <= 512, "the pass copies a view onto the game thread'
 
 // ---- pure rules (tested directly) -----------------------------------------------------------------------------------
 // The seat whose target the shared TI shows: the seat that moved onto a target most recently (since_ms), whose
-// target is still in the snapshot; ties go to the lower seat. Returns the seat index 0..3 and the target's index in
+// target is still in the snapshot; ties go to the lower seat. Seat 0's native target mode aim (native_aim) wins while
+// it lasts. Returns the seat index 0..3 and the target's index in
 // snap.targets, or -1.
 int32_t select_seat(const hud_snapshot& snap, int32_t* target_index);
+
+// Engagement (0.1.60 item 6, Marco: "At least just while you are engaged with an enemy"). Target Info shows only while
+// one of these holds, and for ENGAGE_HOLD_MS after the last beat it held (0.1.59 kept the sticky last seat target up
+// for good, snapshot.h seat_target):
+//  * a seat aims at a foe: its menu on a target page (seat_target.on_page) or P1's native target mode aim
+//    (native_aim), on a present target of a foe unit type (1, 4, 7);
+//  * a party member is in fighting stance (actor +0x02 bit 7; `stance_mask` bit = members[] index);
+//  * a party member's current target is a present foe;
+//  * a present foe's current target is a party member.
+// The shown target follows select_seat; a KO target fades out as before (KO_FADE_MS) and is never kept up by the hold.
+constexpr uint64_t ENGAGE_HOLD_MS = 2000;
+bool engaged(const hud_snapshot& snap, uint32_t stance_mask);
 
 struct gate_in {
     uint8_t party;             // the target is a party member
@@ -266,6 +283,7 @@ void test_set_attached(bool on);
 // Compose and publish a view from this snapshot now (the co-op thread's step without reading the published one).
 bool test_build(const hud_snapshot& snap, uint64_t now_ms, view* out);
 void test_publish(const view& v);
+void test_force_engaged(int32_t state);   // -1 the engagement rule; 0 / 1 forced
 void test_set_last(uint64_t drawn_ms, uint64_t stamp_ms);
 void test_set_p1_owned(int32_t owned);   // -1: the firewall record; 0 / 1 forced
 // Item name lookup through the game's text (the sampler's own path).

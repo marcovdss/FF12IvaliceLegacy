@@ -321,6 +321,7 @@ void sample_seats(game_reader& r, uint32_t epoch, uint64_t now, hud_snapshot* s)
         out.group = t.group;
         out.on_page = t.on_page;
         out.since_ms = t.since;
+        out.native_aim = 0;
         if (k != 0) {
             continue;
         }
@@ -337,6 +338,7 @@ void sample_seats(game_reader& r, uint32_t epoch, uint64_t now, hud_snapshot* s)
         out.group = 0;
         out.on_page = 1;
         out.since_ms = g_aim.since;
+        out.native_aim = 1;   // Target Info prefers this aim while it lasts (review 11)
     }
 }
 

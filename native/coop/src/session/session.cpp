@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "runtime/game_thread.h"
+#include "runtime/probe.h"
 #include "movement/movement.h"
 #include "session/session.h"
 
@@ -73,6 +74,7 @@ patch::record_slot<session_record> g_slot;
 volatile uint32_t g_epoch = 0;
 volatile uint64_t g_generation = 0;
 volatile int32_t g_force_movement_live = -1;
+volatile uint32_t g_p1_native = 1;   // session.h set_p1_native: on in the module, off after test_reset()
 counters g_counters;
 
 void bump(volatile uint64_t& c, uint64_t n = 1)
@@ -463,6 +465,7 @@ void step(uint64_t now)
 
     game_reader r(c.image_base);
     sample_world(r, &c.world);
+    c.world.p1_native = p1_native() ? 1 : 0;   // the policy reads the switch from the sample (it stays pure)
     const world_sample& w = c.world;
     if (reresolve) {
         identity resolved;
@@ -525,6 +528,7 @@ void step(uint64_t now)
         }
         ++c.session_epoch;
         bump(g_counters.epoch_bumps);
+        invalidate_game_regions();  // a new world: the hot readers probe their regions afresh
         c.force_scan = 1;
     }
     c.last_valid = valid ? 1 : 0;
@@ -858,6 +862,16 @@ uint32_t take_effects(pending_effect* out, uint32_t max)
     return n;
 }
 
+void set_p1_native(bool on)
+{
+    __atomic_store_n(&g_p1_native, on ? 1u : 0u, __ATOMIC_RELEASE);
+}
+
+bool p1_native()
+{
+    return __atomic_load_n(&g_p1_native, __ATOMIC_ACQUIRE) != 0;
+}
+
 const counters* stats()
 {
     return &g_counters;
@@ -903,6 +917,7 @@ void test_reset()
     g_slot.withdraw();
     gtq::set_world(0, false);
     __atomic_store_n(&g_force_movement_live, -1, __ATOMIC_RELAXED);
+    __atomic_store_n(&g_p1_native, 0u, __ATOMIC_RELEASE);   // host tests: the pre-p1_native behaviour unless set
     __atomic_store_n(&g_live_off, 0u, __ATOMIC_RELAXED);
     __atomic_store_n(&g_epoch, 0u, __ATOMIC_RELEASE);
     __atomic_store_n(&g_generation, 0ull, __ATOMIC_RELEASE);

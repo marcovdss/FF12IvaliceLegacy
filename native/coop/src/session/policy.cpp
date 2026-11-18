@@ -373,8 +373,14 @@ void evaluate_world(const identity& id, const world_sample& w, int32_t materiali
     const bool p1_gameplay = (p1_structural || summon_seat == 0) && !loading;
     const bool gameplay = structural && !loading;
     const bool p1_is_leader = w.leader != LEADER_NONE && w.leader == p1_now;
+    // P1's own battle menu, leader select or command tree is P1's business and stops nobody else (as in Together, where
+    // P1's menu never set this flag): the guests' menus stay eligible and the characters may still be steered. That
+    // holds whether or not P1 is on the game's own frontends (p1_native): while the co-op menus own P1 the gate refuses
+    // those frontends, so one that is up is P1's own (P1 native, a give-back, or the stock KO path with nobody free).
+    // Any other native menu still stops them. Cutscene detection above and party identity keep the raw menu_open.
+    const bool menu_blocks = w.menu_open && !w.p1_battle_menu;
     if (!loading) {
-        if (w.menu_open) {
+        if (menu_blocks) {
             reason = WR_MENU;
         } else if (w.modal_active) {
             reason = WR_MODAL;
@@ -390,7 +396,7 @@ void evaluate_world(const identity& id, const world_sample& w, int32_t materiali
             reason = WR_P1_NOT_LEADER;
         }
     }
-    const bool menus_open = w.control_enabled && !w.menu_open && !w.modal_active && !w.town && !w.chocobo;
+    const bool menus_open = w.control_enabled && !menu_blocks && !w.modal_active && !w.town && !w.chocobo;
     out->loading = loading;
     out->cutscene = cutscene;
     out->p1_gameplay = p1_gameplay;
@@ -401,7 +407,7 @@ void evaluate_world(const identity& id, const world_sample& w, int32_t materiali
         out->guest_menu[s] = gameplay && in_session(id, s) && id.member[s] != MEMBER_NONE && menus_open &&
                              (summon_seat == NO_SEAT || summon_seat == static_cast<int8_t>(s));
     }
-    out->movement = gameplay && w.control_enabled && !w.menu_open && !w.modal_active;
+    out->movement = gameplay && w.control_enabled && !menu_blocks && !w.modal_active;
     out->camera = gameplay && !cutscene;
     out->summon_seat = summon_seat;
     if (p1_is_leader) {
@@ -441,7 +447,8 @@ bool guest_may_move(const world_view& v, const identity& id, const world_sample&
             ready = true;
         }
     }
-    return v.p1_gameplay && w.control_enabled && !w.menu_open && !w.modal_active && !v.loading && !v.cutscene &&
+    const bool menu_blocks = w.menu_open && !w.p1_battle_menu;   // as evaluate_world
+    return v.p1_gameplay && w.control_enabled && !menu_blocks && !w.modal_active && !v.loading && !v.cutscene &&
            ready;
 }
 

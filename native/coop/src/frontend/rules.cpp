@@ -240,6 +240,68 @@ uint8_t presenter_mode_of(const presenter_in& in)
     return in.native_open != 0 ? PM_HOLD : PM_IDLE;
 }
 
+// ---- Player 1's menu on the overlay -----------------------------------------------------------------------------------
+uint8_t p1_arm_step(p1_arm* s, const p1_arm_in& in, uint64_t now)
+{
+    const bool failed = in.failed_ms != 0 &&
+                        (now >= in.failed_ms ? now - in.failed_ms <= P1_FAILED_MS : in.failed_ms - now <= P1_FAILED_MS);
+    const auto within = [now](uint64_t t, uint64_t limit) {
+        return t != 0 && (now >= t ? now - t <= limit : t - now <= limit);
+    };
+    // overlay_live with its hysteresis: false for longer than P1_LIVE_HOLD_MS ends it (item 7).
+    const bool overlay = within(in.live_last, P1_LIVE_HOLD_MS);
+    const bool keep = in.wanted != 0 && in.live != 0 && in.layer != 0 && !failed && overlay;
+    const uint32_t now_s = static_cast<uint32_t>(now / 1000);
+    uint8_t ev = PA_NONE;
+    if (in.gave_back != 0) {
+        // An overlay failure: escalating holds, then the latch.
+        ++s->holds;
+        s->decay_base_s = now_s;
+        if (s->holds >= P1_HOLDS_MAX) {
+            s->latched = 1;
+            ev = PA_LATCHED;
+        } else {
+            const uint32_t doublings = s->holds - 1;   // 5 s, 10 s, 20 s
+            s->hold_until = now + (P1_HOLD_MS << doublings);
+            ev = PA_HELD;
+        }
+    } else if (s->armed != 0 && in.vanilla_race != 0) {
+        // A race: vanilla wins for seat 0, one short fixed hold, no escalation.
+        const uint64_t until = now + P1_RACE_HOLD_MS;
+        s->hold_until = s->hold_until > until ? s->hold_until : until;
+        ev = PA_HELD;
+    }
+    if (s->armed != 0) {
+        if (!keep || ev != PA_NONE) {
+            s->armed = 0;
+            s->armed_ms = 0;
+            ++s->disarms;
+            if (ev == PA_NONE) {
+                ev = PA_DISARMED;
+            }
+        } else if (s->holds != 0 && s->latched == 0) {
+            // Ten minutes armed without a give-back: one give-back forgotten.
+            const uint32_t armed_s = static_cast<uint32_t>(s->armed_ms / 1000);
+            const uint32_t base = armed_s > s->decay_base_s ? armed_s : s->decay_base_s;
+            if (now_s >= base && static_cast<uint64_t>(now_s - base) * 1000u >= P1_DECAY_MS) {
+                --s->holds;
+                s->decay_base_s = now_s;
+            }
+        }
+    } else if (ev == PA_NONE && s->latched == 0 && keep && within(in.live_last, P1_LIVE_FRESH_MS) && in.drawn_ok != 0 &&
+               now >= s->hold_until && in.native_up == 0 && in.live_since != 0 && now >= in.live_since &&
+               now - in.live_since >= P1_ARM_MS) {
+        s->armed = 1;
+        s->armed_ms = now != 0 ? now : 1;
+        ++s->arms;
+        ev = PA_ARMED;
+    }
+    if (ev != PA_NONE) {
+        s->last_event = ev;
+    }
+    return ev;
+}
+
 // ---- the native Party request -------------------------------------------------------------------------------------
 bool party_begin(party_request* p, uint8_t seat, uint64_t now)
 {

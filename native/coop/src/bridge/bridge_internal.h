@@ -10,7 +10,8 @@ namespace ilc {
 // The settings safe point. The module's game-thread tick will call this once per tick: it moves staged
 // settings into the applied slot. It never blocks: if a bridge call holds the lock it returns
 // ILC_SAFE_POINT_BUSY and the next tick tries again. Returns an ilc_safe_point_outcome. When it returns
-// ILC_SAFE_POINT_APPLIED and `applied_subsystems` is not null, the applied record's subsystems_armed mask is
+// ILC_SAFE_POINT_APPLIED and `applied_subsystems` is not null, the arm mask the applied record asks for
+// (options::effective_subsystems) is
 // stored there (read under the same try-lock), for the patch layer's arm gates; when `applied_copy` is not null,
 // the whole applied record is copied there too (for the input service).
 uint32_t bridge_safe_point(uint32_t* applied_subsystems = nullptr, ilc_settings* applied_copy = nullptr);

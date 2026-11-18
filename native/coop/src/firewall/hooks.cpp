@@ -210,7 +210,7 @@ int32_t body_fw04(ctx* c, const fw_record& r)
         return RUN_ORIGINAL;
     }
     const int32_t zero = 0;
-    copy_to_caller(reinterpret_cast<void*>(c->rcx + facts::DEV_DESKTOP_WHEEL), &zero, sizeof(zero));
+    store_game(reinterpret_cast<void*>(c->rcx + facts::DEV_DESKTOP_WHEEL), &zero, sizeof(zero));
     c->xmm[0][0] = 0;
     c->xmm[0][1] = 0;
     bump(detail::g_counters.wheel_consumed);
@@ -222,7 +222,7 @@ int32_t body_fw05(ctx* c, const fw_record& r)
 {
     if ((r.head.flags & FWF_SUPPRESS_MOUSE_LOOK) != 0) {
         const uint64_t zero = 0;
-        if (copy_to_caller(reinterpret_cast<void*>(c->rcx + facts::DEV_DESKTOP_LOOK), &zero, sizeof(zero))) {
+        if (store_game(reinterpret_cast<void*>(c->rcx + facts::DEV_DESKTOP_LOOK), &zero, sizeof(zero))) {
             bump(detail::g_counters.look_cleared);
         } else {
             bump(detail::g_counters.probe_failed);

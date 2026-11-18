@@ -6,7 +6,10 @@
 #include "input/edge_history.h"
 #include "input/pad_mirror.h"
 #include "interaction/interaction_facts.h"
+#include "interaction/prompt.h"
 #include "interaction/rules.h"
+#include "interaction/treasure_log.h"
+#include "runtime/options.h"
 #include "runtime/probe.h"
 #include "session/reader.h"
 #include "session/session.h"
@@ -127,9 +130,9 @@ bool guest_free(session::game_reader& r, uint64_t actor)
 {
     uint64_t flags = 0;
     uint32_t state = 0;
-    uint32_t action = 0;
+    uint16_t action = 0;  // a u16: the bytes after it are not part of the action
     return actor != 0 && r.u64(actor + facts::ACTOR_FLAGS, &flags) && r.u32(actor + facts::ACTOR_STATE, &state) &&
-           r.u32(actor + facts::ACTOR_ACTION, &action) && press_allowed(flags, state, action);
+           r.u16(actor + facts::ACTOR_ACTION, &action) && press_allowed(flags, state, action);
 }
 
 void count_result(int32_t result)
@@ -153,7 +156,9 @@ ix_record compose(session::game_reader& r, const session_record& s)
         (gates & session::GATE_PARTY_DOWN) == 0) {
         f |= IXF_GATEWAYS | IXF_LOOT;
     }
-    if ((gates & session::GATE_INTERACTION) != 0) {
+    // Settings guest_interactions 0: the guests' own scans do not run (no private passes, no prompt of theirs) and
+    // their CONFIRM arms no request (step); gateways and walk-over loot keep working.
+    if ((gates & session::GATE_INTERACTION) != 0 && options::guest_interactions()) {
         f |= IXF_ROUTING;
     }
     rec.head.flags = f;
@@ -189,6 +194,19 @@ ix_record compose(session::game_reader& r, const session_record& s)
 // Bit s: seat s pressed CONFIRM since the last beat. The cursor always moves, so a press made while a request or
 // a hold was running is never replayed later; a press from a load or another epoch does nothing.
 volatile uint64_t g_menu_seats = 0;  // epoch << 32 | seats: the co-op menus' CONFIRM owners (set_menu_seats)
+volatile uint64_t g_menu_opens = 0;  // epoch << 32 | seats: CONFIRM presses that found nothing (take_menu_opens)
+
+// The guest's CONFIRM found nothing to use: its battle menu opens instead (interaction.h, take_menu_opens).
+void open_menu_instead(uint32_t epoch, uint32_t seats)
+{
+    if (seats == 0 || epoch == 0) {
+        return;
+    }
+    const uint64_t v = __atomic_load_n(&g_menu_opens, __ATOMIC_ACQUIRE);
+    const uint32_t kept = static_cast<uint32_t>(v >> 32) == epoch ? static_cast<uint32_t>(v) : 0u;
+    __atomic_store_n(&g_menu_opens, (static_cast<uint64_t>(epoch) << 32) | (kept | seats), __ATOMIC_RELEASE);
+    bump(detail::g_counters.menu_opens);
+}
 
 uint32_t menu_owned(uint32_t epoch)
 {
@@ -274,6 +292,7 @@ void arm_request(session::game_reader& r, const session_record& s, uint32_t seat
         state = object_state(published, sleeping_mimic(r, object));
         if (state == 0) {
             count_result(WR_NO_TARGET);  // an object the game does not offer for use yet
+            open_menu_instead(s.head.epoch, 1u << seat);
             return;
         }
         policy = is_treasure(r, object) ? POLICY_TREASURE : POLICY_LEADER;
@@ -310,6 +329,12 @@ void poll_request(const session_record& s, uint64_t now, bool live)
         const int32_t result = q.result;
         if (live && (result == WR_CONSUMED || result == WR_TALK) && q.seat >= 1 && q.seat < ACTIVE_SEATS) {
             begin_hold(s, q.seat, q.target_handle, now);
+        }
+        // Nothing to use near the guest (no object, no NPC, or no NPC scan possible): its menu opens instead.
+        const bool nothing = result == WR_NO_TARGET ||
+                             (q.policy == POLICY_NPC && (result == WR_P1_BUSY || result == WR_GUARDS_OFF));
+        if (live && nothing && q.seat >= 1 && q.seat < ACTIVE_SEATS && q.epoch == s.head.epoch) {
+            open_menu_instead(s.head.epoch, 1u << q.seat);
         }
         __atomic_store_n(&q.state, static_cast<uint32_t>(REQ_IDLE), __ATOMIC_RELEASE);
     } else if (st == REQ_ARMED && patch::now_ms() > q.deadline_ms) {
@@ -387,9 +412,82 @@ void end_hold(uint32_t why)
     }
 }
 
+// ---- the guests' prompts ----------------------------------------------------------------------------------------------
+// P1's leader is free for an object interaction a guest would start (doors, crystals and switches animate it), read
+// the way the window reads it.
+bool leader_free(session::game_reader& r)
+{
+    uint32_t handle = 0;
+    uintptr_t actor = 0;
+    uint64_t flags = 0;
+    const uintptr_t leader = r.u32(r.global(facts::CONTROLLED_HANDLE), &handle) ? resolve(r, handle) : 0;
+    return leader != 0 && r.ptr(leader + facts::E_ACTOR, &actor) && actor != 0 &&
+           r.u64(actor + facts::ACTOR_FLAGS, &flags) && leader_allows(flags);
+}
+
+// One beat's prompt record: per manual guest that steers its character, what its own private pass found (fresh, for
+// this character), as the native marker's level; a usable level shows as the "!" while the guest could not use it
+// now (its character busy, or P1's leader busy for an object the game animates P1's leader for). Nobody gets one
+// while guests may not interact (the setting, the subsystem, GATE_INTERACTION), a native modal is up, or a guest
+// interaction is in flight or held.
+prompt::prompt_record compose_prompt(session::game_reader& r, const session_record& s, uint64_t now, bool may)
+{
+    prompt::prompt_record rec;
+    memset(&rec, 0, sizeof(rec));
+    rec.head.epoch = s.head.epoch;
+    rec.head.generation = s.head.generation;
+    if (!may || (s.head.flags & session::GATE_INTERACTION) == 0 || (s.facts & session::FACT_MODAL) != 0 ||
+        g.hold.active || request_in_flight()) {
+        return rec;
+    }
+    const uint32_t menus = menu_owned(s.head.epoch);
+    uint32_t controlled = 0;
+    r.u32(r.global(facts::CONTROLLED_HANDLE), &controlled);
+    int32_t leader = -1;  // read once, only if needed
+    for (uint32_t seat = 1; seat < ACTIVE_SEATS; ++seat) {
+        const session::seat_entry& e = s.seat[seat];
+        const uint16_t need = session::SEATF_STEERS | session::SEATF_ACTOR | session::SEATF_ALIVE |
+                              session::SEATF_MANUAL | session::SEATF_IN_SESSION;
+        if ((e.flags & need) != need || e.handle == 0 || e.handle == controlled || (menus & (1u << seat)) != 0) {
+            continue;  // an AI-controlled member, a parked or absent seat, P1's leader, or a guest in its menu
+        }
+        uint32_t object = 0;
+        uint32_t state = 0;
+        if (!private_object(seat - 1, e.handle, now, &object, &state) || resolve(r, object) == 0) {
+            continue;
+        }
+        if (prompt::level_of(state) == 0) {
+            continue;
+        }
+        // The guest's own actor is not asked (prompt::seat_level): its action word reads "follow the leader" while
+        // it walks with the party. Only P1's leader, for an object that animates it, drops a usable level.
+        const bool chest = is_treasure(r, object);
+        if (!chest && prompt::level_of(state) >= 2 && leader < 0) {
+            leader = leader_free(r) ? 1 : 0;
+        }
+        prompt::prompt_seat& p = rec.seats[seat - 1];
+        p.actor = e.handle;
+        p.object = object;
+        p.level = static_cast<uint8_t>(prompt::seat_level(state, chest, leader == 1));
+        p.seat = static_cast<uint8_t>(seat);
+        // The find's name and resource for the label (the same publication slot as the object).
+        ix_private found;
+        if (detail::g_private[seat - 1].read(found)) {
+            const int32_t k = current_slot(found.state);
+            if (k >= 0 && found.handle[k] == object) {
+                p.text = found.text[k];
+                p.resource = found.resource[k];
+            }
+        }
+        rec.visible |= 1u << (seat - 1);
+    }
+    return rec;
+}
+
 void end_everything()
 {
     detail::g_slot.withdraw();
+    prompt::withdraw();
     cancel_request();
     end_hold(HOLD_WORLD_CHANGED);
     __atomic_store_n(&g_hold_word, 0ull, __ATOMIC_RELEASE);
@@ -411,6 +509,7 @@ void start(uintptr_t base, uint64_t now_ms)
 
 void step(uint64_t now_ms)
 {
+    treasure_log::step(now_ms);   // its one-time hook.log line (the rows act on their own)
     if (!g.started) {
         return;
     }
@@ -427,9 +526,14 @@ void step(uint64_t now_ms)
     // withdrawn and the hold ends for good, so the menus are P1's and stay P1's when co-op comes back on. A request
     // the window already claimed finishes, but starts no hold.
     const bool live = patch::subsystem_live(ILC_SITE_SUBSYS_MOVEMENT);
+    // Guests switched away from the world (settings guest_interactions 0): no new request; a waiting one is
+    // withdrawn. A hold already running (a guest in a shop or a dialog) finishes as usual, so nobody is cut off.
+    const bool allowed = options::guest_interactions();
     if (!live) {
         cancel_request();
         end_hold(HOLD_OWNER_GONE);
+    } else if (!allowed) {
+        cancel_request();
     }
     poll_request(s, now_ms, live);
     maintain_hold(r, s, now_ms);
@@ -437,9 +541,14 @@ void step(uint64_t now_ms)
     if (presses != 0) {
         bump(detail::g_counters.presses);
     }
+    // Guests may not interact now (settings, or the session's interaction gate): a CONFIRM opens the guest's menu.
+    if (presses != 0 && live && !request_in_flight() && !g.hold.active &&
+        (!allowed || (s.head.flags & session::GATE_INTERACTION) == 0)) {
+        open_menu_instead(s.head.epoch, presses);
+    }
     // One interaction at a time: the game has one descriptor and one consumer.
     if (presses != 0 && !request_in_flight() && !g.hold.active && (s.head.flags & session::GATE_INTERACTION) != 0 &&
-        live) {
+        live && allowed) {
         for (uint32_t seat = 1; seat < ACTIVE_SEATS; ++seat) {
             if ((presses & (1u << seat)) != 0) {
                 arm_request(r, s, seat, now_ms);
@@ -449,6 +558,7 @@ void step(uint64_t now_ms)
             }
         }
     }
+    prompt::publish(compose_prompt(r, s, now_ms, live && allowed));
     publish_words(s.head.epoch);
 }
 
@@ -476,6 +586,12 @@ bool sleeping_mimic_handle(session::game_reader& r, uint32_t handle)
 void set_menu_seats(uint32_t epoch, uint32_t seats)
 {
     __atomic_store_n(&g_menu_seats, (static_cast<uint64_t>(epoch) << 32) | seats, __ATOMIC_RELEASE);
+}
+
+uint32_t take_menu_opens(uint32_t epoch)
+{
+    const uint64_t v = __atomic_exchange_n(&g_menu_opens, 0ull, __ATOMIC_ACQ_REL);
+    return static_cast<uint32_t>(v >> 32) == epoch && epoch != 0 ? static_cast<uint32_t>(v) : 0u;
 }
 
 uint32_t menu_seats(uint32_t epoch)
@@ -530,6 +646,7 @@ void test_reset()
     g_hold_word = 0;
     g_test_presses = nullptr;
     g_menu_seats = 0;
+    g_menu_opens = 0;
     g_test_image_base = 0;
     memset(const_cast<counters*>(&detail::g_counters), 0, sizeof(detail::g_counters));
     memset(&detail::g_request, 0, sizeof(detail::g_request));
@@ -550,6 +667,11 @@ void test_set_image_base(uintptr_t base)
 void test_set_calls(const game_calls* c)
 {
     hooks_detail::set_override(c);
+}
+
+void test_note_menu_open(uint32_t epoch, uint32_t seats)
+{
+    open_menu_instead(epoch, seats);
 }
 
 void test_set_presses(uint32_t (*source)(uint32_t epoch))

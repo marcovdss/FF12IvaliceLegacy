@@ -17,12 +17,8 @@ constexpr uint64_t VT_STATE_WINDOW = 0x1CB3F50;      // VA: VTS::Phyre::ScreenSt
 constexpr uint64_t VT_STATE_BORDERLESS = 0x1CB4000;  // VA: VTS::Phyre::ScreenStateBorderless vtable
 constexpr uint32_t STATE_ACTIVE = 0x18;              // u8: the state's active byte (Window/Borderless)
 constexpr uint64_t WINDOW_HANDLE = 0x2EA5248;        // VA: the game window's HWND (written at WM_CREATE)
-constexpr uint64_t PAD_FOCUS_FLAG = 0x2EA5213;       // VA: u8 shared focus flag the pad poll writes every tick
-constexpr uint64_t XI_INTERPRET = 0x7A2243;          // VA: the XInput update past its focus store (packet compare)
-constexpr uint32_t XI_PACKET = 0x28;                 // site rsp: XINPUT_STATE.dwPacketNumber (u32)
-constexpr uint32_t XI_GAMEPAD = 0x2C;                // site rsp: XINPUT_GAMEPAD (buttons, triggers, sticks)
-constexpr uint32_t XI_GAMEPAD_SIZE = 12;
-constexpr uint32_t XI_PACKET_FLIP = 0x80000000u;     // NOTADDR: a packet number the pad itself never reaches soon
+constexpr uint64_t XI_FOCUSED_PATH = 0x7A223C;       // VA: the XInput update's focused path (the jne not taken: the
+                                                     // focus flag 0x2EA5213 = 1, then the real packet interpreted)
 constexpr uint64_t DI_PAD_FINALIZE = 0x7A1C9F;       // VA: mov rcx,rbx; call the shared finalizer (pad update)
 constexpr uint32_t DI_PAD_BLOCK = 0x414;             // the device platform block, through +0x44E
 constexpr uint32_t DI_PAD_BLOCK_SIZE = 0x3B;
@@ -82,12 +78,12 @@ void count(volatile uint64_t& c)
 template <typename T>
 bool read_game(uint64_t address, T* out)
 {
-    return copy_from_caller(out, reinterpret_cast<const void*>(address), sizeof(T));
+    return ilc::read_game(out, reinterpret_cast<const void*>(address), sizeof(T));
 }
 
 bool write_game(uint64_t address, const void* data, size_t n)
 {
-    return copy_to_caller(reinterpret_cast<void*>(address), data, n);
+    return store_game(reinterpret_cast<void*>(address), data, n);
 }
 
 bool hooked(int32_t row)
@@ -174,31 +170,19 @@ int32_t fp01(patch::ctx* c, uint32_t epoch)
     return patch::RUN_ORIGINAL;
 }
 
-// IN-06, the XInput focus gate 0x7A2236 (jne, ZF clear = another window has the foreground). rsp = the update's frame.
+// IN-06, the XInput focus gate 0x7A2236 (jne, ZF clear = another window has the foreground). XInputGetState has already
+// filled the state on the update's frame. Stock, the unfocused branch (0x7A2410) only clears the focus flag and returns,
+// so the last interpreted pad stays latched. With the setting on, an unfocused update takes the focused path instead
+// (the branch not taken: 0x7A223C sets the focus flag and interprets the real packet), so player 1's pad keeps playing
+// while another window has the foreground (Marco, 2026-11-16: no frozen controllers on alt-tab).
 int32_t in06(patch::ctx* c, uint32_t epoch)
 {
     (void)epoch;
     if ((c->rflags & ZERO_FLAG) != 0 || !keep_running()) {
         return patch::RUN_ORIGINAL;  // focused, or the setting off (the game is paused: stock)
     }
-    // A zero gamepad under a packet number that differs from the stored one: the game's own code interprets it,
-    // stores the packet and runs the finalizer, so every held button and stick releases. The fake packet is the real
-    // one with its top bit flipped, so on refocus the real packet always reads new and is interpreted again.
-    uint32_t packet = 0;
-    if (!read_game(c->rsp + XI_PACKET, &packet)) {
-        count(g_counters.probe_failed);
-        return patch::RUN_ORIGINAL;
-    }
-    const uint8_t neutral[XI_GAMEPAD_SIZE] = {};
-    const uint32_t fake = packet ^ XI_PACKET_FLIP;
-    const uint8_t unfocused = 0;
-    if (!write_game(c->rsp + XI_GAMEPAD, neutral, sizeof(neutral)) || !write_game(c->rsp + XI_PACKET, &fake, 4) ||
-        !write_game(game(PAD_FOCUS_FLAG), &unfocused, 1)) {
-        count(g_counters.probe_failed);
-        return patch::RUN_ORIGINAL;
-    }
     count(g_counters.xinput);
-    c->resume = game(XI_INTERPRET);
+    c->resume = game(XI_FOCUSED_PATH);
     return patch::RESUME;
 }
 

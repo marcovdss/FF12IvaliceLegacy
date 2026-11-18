@@ -158,13 +158,13 @@ template <typename T>
 bool load(uintptr_t address, T* out)
 {
     *out = 0;
-    return address != 0 && load_from_caller(out, reinterpret_cast<const void*>(address), sizeof(T));
+    return address != 0 && load_game(out, reinterpret_cast<const void*>(address), sizeof(T));
 }
 
 template <typename T>
 bool store(uintptr_t address, T value)
 {
-    return address != 0 && copy_to_caller(reinterpret_cast<void*>(address), &value, sizeof(T));
+    return address != 0 && store_game(reinterpret_cast<void*>(address), &value, sizeof(T));
 }
 
 bool pins_now()

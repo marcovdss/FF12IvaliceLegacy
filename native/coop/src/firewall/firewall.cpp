@@ -8,6 +8,7 @@
 #include "input/input_service.h"
 #include "interaction/interaction.h"
 #include "isolation/isolation.h"
+#include "runtime/options.h"
 #include "session/reader.h"
 #include "session/session.h"
 
@@ -51,7 +52,10 @@ struct core {
     uint8_t kbm_seat;
     uint8_t guest_devices;
     uint8_t prompt_ready;
-    uint8_t reserved;
+    uint8_t prompt_foe;        // the last prompt read named a live foe
+    uint32_t prompt_why;       // prompt_block bits of the last beat
+    uint64_t prompt_ms;        // the last beat the prompt was ready without the grace (0 none)
+    uint32_t last_p1_mask;     // P1's mask in the record composed last beat (what the game read since)
     menu_report menus;
     bool menus_posted;         // a report exists, posted at beat menus_beat in epoch menus_epoch (0: before a beat)
     uint32_t menus_epoch;
@@ -111,8 +115,12 @@ bool target_info_open(session::game_reader& r)
            window != 0;
 }
 
-// A foe's prompt never becomes P1's CONFIRM (it would open nothing useful and could start an attack): an actor
-// (registry 0) whose unit type is a foe's (1, 4, 7), unless it is a mimic asleep as a chest.
+// A foe's prompt never becomes P1's CONFIRM (it would open nothing useful and could start an attack): a live actor
+// (registry 0, the entry's actor carries this very handle) whose unit type is a foe's (1, 4, 7), unless it is a
+// treasure chest (name key 434) or a mimic asleep as a chest. Bug 3 (0.1.60): at a chest (handle 0x10000d, registry 0)
+// our prompt_ready stayed 0 while the game's own prompt read 2, and P1's A opened the co-op menu: the only term that
+// can drop a state-2 prompt to 0 here is this check. The fork excluded only live, targetable foes (its foe list); an
+// entry without an actor of its own, or named as a chest, is never one.
 bool foe_target(session::game_reader& r, uint32_t handle)
 {
     if (((handle >> facts::HANDLE_REGISTRY_SHIFT) & 0x0F) != 0) {
@@ -125,6 +133,16 @@ bool foe_target(session::game_reader& r, uint32_t handle)
     }
     const uint8_t type = unit & 0x0F;
     if (type != 1 && type != 4 && type != 7) {
+        return false;
+    }
+    uint16_t key = 0;
+    if (r.u16(entry + facts::ENTRY_NAME_KEY, &key) && static_cast<int16_t>(key) == facts::TREASURE_NAME_KEY) {
+        return false;
+    }
+    uintptr_t actor = 0;
+    uint32_t actor_handle = 0;
+    if (!r.ptr(entry + facts::ENTRY_ACTOR, &actor) || actor == 0 || !r.u32(actor + facts::ACTOR_HANDLE, &actor_handle) ||
+        actor_handle != handle) {
         return false;
     }
     return !interaction::sleeping_mimic_handle(r, handle);
@@ -146,14 +164,20 @@ uint8_t prompt_state(session::game_reader& r)
     }
     uint32_t state = 0;
     uint32_t handle = 0;
-    if (can_use != 0 && d_state >= facts::PROMPT_SELECTED && d_handle != 0) {
+    // The descriptor wins when the scan published a usable target (can_use): state 1 (highlighted: the keyboard's
+    // Enter interacts there, and in combat FF12 keeps a door or chest prompt at 1) or 2 (selected).
+    if (can_use != 0 && d_state >= facts::PROMPT_HIGHLIGHTED && d_handle != 0) {
         state = d_state;
         handle = d_handle;
     } else if (o_state != 0 && o_handle != 0) {
         state = o_state;
         handle = o_handle;
     }
-    if (state == 0 || foe_target(r, handle)) {
+    if (state == 0) {
+        return 0;
+    }
+    if (foe_target(r, handle)) {
+        g.prompt_foe = 1;
         return 0;
     }
     return state > 0xFF ? 0xFF : static_cast<uint8_t>(state);
@@ -201,6 +225,7 @@ beat_inputs gather(uint64_t now)
     in.live = patch::subsystem_live(ILC_SUBSYS_FIREWALL_MENUS) ? 1 : 0;
     session::game_reader r(image_base());
     read_decide(r, now);
+    g.prompt_foe = 0;
     if (in.epoch != 0 && in.phase >= session::PHASE_LOADING) {
         in.paused = pointer_set(r, facts::PAUSE_PRIMARY) || pointer_set(r, facts::PAUSE_SECONDARY) ? 1 : 0;
         in.target_info = target_info_open(r) ? 1 : 0;
@@ -265,6 +290,8 @@ fw_record beat(const beat_inputs& in, uint64_t now)
     rec.p1_slot = 0xFF;
     const menu_report& m = in.menus;
     const bool native_menu = (in.facts & (FACT_MENU | FACT_MODAL)) != 0 || in.paused != 0;
+    // A screen the guests' edges may drive: not P1's own battle frontend (menu_report.p1_battle).
+    const bool guest_screen = native_menu && m.p1_battle == 0;
 
     policy_inputs pi = {};
     pi.active = in.live != 0 && in.switched_on != 0 && in.epoch != 0 && in.phase >= PHASE_LOADING ? 1 : 0;
@@ -286,7 +313,29 @@ fw_record beat(const beat_inputs& in, uint64_t now)
     pi.leader_gate = m.leader_gate;
     const contract c = pi.active != 0 ? derive(pi) : contract{};
     const policy p = pi.active != 0 ? masks(c) : policy{};
-    rec.p1_mask = p.p1_mask;
+    // P1's world prompt (bug 3): ready while the replacement withholds P1's buttons, P1's co-op menu is closed and a
+    // non-foe prompt is highlighted, or was so within PROMPT_GRACE_MS (the menu and replacement terms still hold).
+    const bool pulses_on = pi.active != 0 && in.driver == 0;  // a guest driving a native menu owns it alone
+    const bool prompt_terms = pulses_on && c.p1_replacement != 0 && m.p1_open == 0;
+    const bool prompt_now = prompt_terms && in.prompt_state >= facts::PROMPT_HIGHLIGHTED;
+    if (prompt_now) {
+        g.prompt_ms = now != 0 ? now : 1;
+    } else if (!prompt_terms) {
+        g.prompt_ms = 0;
+    }
+    const bool prompt_ready = prompt_now || (prompt_terms && g.prompt_ms != 0 && now >= g.prompt_ms &&
+                                             now - g.prompt_ms <= PROMPT_GRACE_MS);
+    g.prompt_ready = prompt_ready ? 1 : 0;
+    g.prompt_why = prompt_ready ? 0u
+                                : (pi.active == 0 ? static_cast<uint32_t>(PB_INACTIVE) : 0u) |
+                                      (in.driver != 0 ? static_cast<uint32_t>(PB_DRIVER) : 0u) |
+                                      (pi.active != 0 && c.p1_replacement == 0 ? static_cast<uint32_t>(PB_NO_REPLACEMENT)
+                                                                               : 0u) |
+                                      (m.p1_open != 0 ? static_cast<uint32_t>(PB_MENU_OPEN) : 0u) |
+                                      (in.prompt_state == 0
+                                           ? static_cast<uint32_t>(g.prompt_foe != 0 ? PB_FOE : PB_NO_PROMPT)
+                                           : 0u);
+    rec.p1_mask = p1_prompt_mask(p.p1_mask, c, prompt_ready);
     rec.other_mask = p.other_mask;
     rec.refused = p.refused;
     uint32_t flags = p.flags;
@@ -318,7 +367,6 @@ fw_record beat(const beat_inputs& in, uint64_t now)
 
     // ---- pulses ----
     scheduler& sc = g.sched;
-    const bool pulses_on = pi.active != 0 && in.driver == 0;  // a guest driving a native menu owns it alone
     p1_inputs p1 = {};
     p1.replacement = c.p1_replacement;
     p1.menu_open = m.p1_open;
@@ -331,10 +379,9 @@ fw_record beat(const beat_inputs& in, uint64_t now)
     p1.prompt_state = in.prompt_state;
     p1.target_info = in.target_info;
     p1.target_info_due = now >= sc.target_info_next ? 1 : 0;
-    g.prompt_ready = pulses_on && c.p1_replacement != 0 && m.p1_open == 0 &&
-                             in.prompt_state >= facts::PROMPT_HIGHLIGHTED
-                         ? 1
-                         : 0;
+    // The record the game read since the last beat (composed then): CONFIRM unmasked means P1's A reached it natively.
+    p1.confirm_native = (g.last_p1_mask & M_CONFIRM) == 0 ? 1 : 0;
+    g.last_p1_mask = rec.head.flags != 0 ? rec.p1_mask : 0u;
     if (!pulses_on) {
         for (uint32_t k = 0; k < ILC_SEATS; ++k) {
             drop_pending(k);
@@ -357,7 +404,7 @@ fw_record beat(const beat_inputs& in, uint64_t now)
                 drop_pending(k);
                 continue;
             }
-            uint32_t gid = guest_pulse(in.act_pressed[k], in.act_held[k], native_menu);
+            uint32_t gid = guest_pulse(in.act_pressed[k], in.act_held[k], guest_screen, options::guest_pause());
             if (gid == 0 && (m.quickening & QB_CHAIN) != 0 &&
                 (in.act_pressed[k] & (1u << ILC_ACTION_QUICKENING)) != 0) {
                 // A native Quickening chain: the guest presses its own link (the slot's button on P1's device).
@@ -372,7 +419,7 @@ fw_record beat(const beat_inputs& in, uint64_t now)
                 sc.pending_at[k] = now;
                 sc.requested[k] = 0;
             } else if (sc.pending[k] != 0 && sc.pending[k] != facts::SEM_PAUSE && sc.requested[k] == 0 &&
-                       !native_menu && (m.quickening & QB_CHAIN) == 0) {
+                       !guest_screen && (m.quickening & QB_CHAIN) == 0) {
                 drop_pending(k);  // the native screen (or chain) it was meant for has closed
             }
         }
@@ -492,6 +539,11 @@ void stop()
 bool p1_prompt_ready()
 {
     return g.prompt_ready != 0;
+}
+
+uint32_t p1_prompt_why()
+{
+    return g.prompt_why;
 }
 
 uint32_t decide_button()

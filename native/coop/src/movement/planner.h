@@ -69,7 +69,10 @@ struct steer_record {
     steer_entry slot[SLOTS];
 };
 static_assert(sizeof(steer_record) == 24 + 48 * SLOTS, "steer_record layout (host tests read it)");
-static_assert(sizeof(steer_record) <= 128, "kept small: copied at mid-function detour sites");
+// Copied at mid-function detour sites, where no UCRT memcpy may run (README, "Handlers"): the pinned g++ 16.2 at -O2
+// expands a fixed-size __builtin_memcpy of up to 256 bytes inline as SSE moves (XMM only); 512 becomes a call.
+// tests/test_coop_seat_four.py checks that against the pinned compiler.
+static_assert(sizeof(steer_record) <= 256, "kept small: copied at mid-function detour sites");
 
 // One seat's logical input this tick (from the action frame and the movement consumer's edge cursor).
 struct seat_input {

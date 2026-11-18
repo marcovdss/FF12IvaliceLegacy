@@ -147,7 +147,7 @@ class SettingsHandshake(unittest.TestCase):
             lua, s = self.store(root)
             s.load()
             lua.globals().S = s
-            lua.execute('S.change(function(st) st.fullRoster = false end, nil)')
+            lua.execute('S.change(function(st) st.keepRunning = false end, nil)')
             out = (root / PATH).read_bytes()
             kept = json.loads(out)
             self.assertEqual(kept['top'], doc['top'])
@@ -173,7 +173,7 @@ class SettingsHandshake(unittest.TestCase):
             lua, s = self.store(root)
             s.load()
             lua.globals().S = s
-            lua.execute('S.change(function(st) st.fullRoster = false end, nil)')
+            lua.execute('S.change(function(st) st.keepRunning = false end, nil)')
             out = (root / PATH).read_bytes()
             self.assertLess(depth(json.loads(out)), 30)
             self.assertEqual(self.parse(out), (boot.SETTINGS_ON, 0, False))
@@ -195,7 +195,7 @@ class SettingsHandshake(unittest.TestCase):
                 doc['killSwitch'] = kill
                 doc['seats'][2]['bindings']['TOGGLE_CONTROL'] = [{'kind': 'KEY', 'code': kill[0]['code']}]  # as KEY
                 doc['seats'][1]['bindings']['CONFIRM'] = [{'kind': 'KEY', 'code': 0x01}]  # not a toggle: kept
-                doc['fullRoster'] = not doc['fullRoster']
+                doc['keepRunning'] = not doc['keepRunning']
                 (root / PATH).write_text(json.dumps(doc))
                 lua, s = self.store(root)
                 s.load()
@@ -206,7 +206,7 @@ class SettingsHandshake(unittest.TestCase):
                 want = default_toggle if code in (1, 2, 4, 5, 6) else [{'kind': 'KEY', 'code': code}]
                 self.assertEqual(out['seats'][2]['bindings']['TOGGLE_CONTROL'], want)
                 self.assertEqual(out['seats'][1]['bindings']['CONFIRM'], [{'kind': 'KEY', 'code': 0x01}])
-                self.assertEqual(out['fullRoster'], doc['fullRoster'], 'only the refused fields are reset')
+                self.assertEqual(out['keepRunning'], doc['keepRunning'], 'only the refused fields are reset')
                 self.assertEqual(self.parse((root / PATH).read_bytes())[0], boot.SETTINGS_ON)
         for kill, toggle in (([{'kind': 'MOUSE', 'code': 2}], [{'kind': 'KEY', 'code': 3}]),
                              ([{'kind': 'KEY', 'code': 3}], [{'kind': 'MOUSE', 'code': 1}])):
@@ -255,6 +255,128 @@ class SettingsHandshake(unittest.TestCase):
                 out = json.loads((root / PATH).read_text())
                 self.assertEqual((s.fileStatus, out['seats'][1]['bindings']['CONFIRM']),
                                  ('ok', [{'kind': 'MOUSE', 'code': code}]))
+
+    # ---- schema 1 -> 2 (0.1.53): "Co-op On" means every subsystem works ------------------------------------------------
+    SEED_V1 = {  # what the first test session's seed left in coop.json: every subsystem disarmed, developer and test draw on
+        'schema': 1, 'module': {'enabledAtStart': True}, 'fullRoster': False, 'logLevel': 'NORMAL',
+        'diagnostics': {'arm': {k: False for k in ('inputIsolation', 'movement', 'party', 'camera', 'firewallMenus',
+                                                    'wait', 'render', 'targetsCards')},
+                        'developer': True, 'hudTestDraw': True, 'later': {'kept': 1}},
+        'keepRunning': True,
+    }
+
+    def test_the_seed_file_migrates_to_every_subsystem_armed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / PATH).parent.mkdir(parents=True)
+            raw = json.dumps(self.SEED_V1).encode()
+            (root / PATH).write_bytes(raw)
+            self.assertEqual(self.parse(raw), (boot.SETTINGS_ON, 0, False), 'native still reads the old file')
+            lua, s = self.store(root)
+            s.load()
+            self.assertEqual((s.fileStatus, s.migratedFrom), ('migrated', 1))
+            out = json.loads((root / PATH).read_text())
+            self.assertEqual(out['schema'], 2)
+            self.assertNotIn('arm', out['diagnostics'], 'the old arm switches are gone')
+            self.assertNotIn('fullRoster', out)
+            self.assertEqual(set(out['diagnostics']['disarm'].values()), {False}, 'no developer disarm')
+            self.assertEqual(out['diagnostics']['later'], {'kept': 1}, 'unknown keys survive the migration')
+            self.assertIs(out['diagnostics']['developer'], False, 'the seed developer switch is a lab leftover: reset')
+            self.assertIs(out['diagnostics']['hudTestDraw'], False, "the seed HUD test pattern is a lab leftover: reset")
+            self.assertEqual(out['play'], {'sharedCamera': True, 'guestInteractions': True, 'townView': 'PLAYERS',
+                                           'waitPause': 'ALL', 'guestPause': True})
+            self.assertEqual({k: out['battleHud']['log'][k] for k in ('compactLines', 'expandedLines', 'fadeSeconds')},
+                             {'compactLines': 5, 'expandedLines': 20, 'fadeSeconds': 6})
+            self.assertEqual((out['battleHud']['elements']['partyTimers'], out['battleHud']['elements']['guestCursors']),
+                             (False, True), 'the Standard preset: no status timers, guest cursors on')
+            # (the coop.json.v1 sidecar needs the filesystem plugin, which this harness does not give the store)
+            self.assertEqual(self.parse((root / PATH).read_bytes()), (boot.SETTINGS_ON, 0, False),
+                             'native reads the migrated file')
+            # The record the store pushes asks native for no disarm at all, developer and test draw off.
+            lua.globals().S = s
+            sd = lua.eval('function(src) return assert(load(src, "@schema_data", "t", _ENV))() end')(
+                (COOP / 'schema_data.lua').read_text(encoding='utf-8'))
+            codec = lua.eval('function(src, sd) return assert(load(src, "@codec", "t", _ENV))().new(sd) end')(
+                (COOP / 'codec.lua').read_text(encoding='utf-8'), sd)
+            decode = lua.eval("""function(C) local r = C.decode('ilc_settings', S.encode(S.state, 1))
+                                 return r.subsystems_disarm, r.developer, r.shared_camera, r.hud_test_draw end""")
+            self.assertEqual(tuple(decode(codec)), (0, 0, 1, 0))
+            self.assertEqual((s.state.diagnostics.developer, s.state.diagnostics.hudTestDraw), (False, False))
+
+    def test_the_migration_resets_developer_and_test_draw_once(self):
+        """Schema 1 -> 2 sets diagnostics.developer and hudTestDraw to false, whatever the old file held and whether or not
+        it held a diagnostics block with them. From schema 2 on they are the player's own switches and survive a start."""
+        for diagnostics in ({'developer': True, 'hudTestDraw': True}, {'developer': True}, {'hudTestDraw': True},
+                            {'developer': False, 'hudTestDraw': False}, {}):
+            with self.subTest(diagnostics=diagnostics), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                (root / PATH).parent.mkdir(parents=True)
+                (root / PATH).write_text(json.dumps({'schema': 1, 'diagnostics': diagnostics}))
+                lua, s = self.store(root)
+                s.load()
+                self.assertEqual((s.fileStatus, s.migratedFrom), ('migrated', 1))
+                out = json.loads((root / PATH).read_text())
+                self.assertEqual(out['schema'], 2)
+                self.assertEqual((s.state.diagnostics.developer, s.state.diagnostics.hudTestDraw), (False, False))
+                self.assertIs(out['diagnostics'].get('developer', False), False)
+                self.assertIs(out['diagnostics'].get('hudTestDraw', False), False)
+        with tempfile.TemporaryDirectory() as tmp:                      # a schema-2 file keeps what the player set
+            root = Path(tmp)
+            lua, s = self.store(root)
+            s.load()
+            lua.globals().S = s
+            lua.execute('S.change(function(st) st.diagnostics.developer = true; st.diagnostics.hudTestDraw = true end, nil)')
+            lua, s = self.store(root)
+            s.load()
+            self.assertEqual((s.fileStatus, s.state.diagnostics.developer, s.state.diagnostics.hudTestDraw),
+                             ('ok', True, True), 'no second reset')
+
+    def test_a_developer_disarm_round_trips_and_a_newer_file_is_read_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            lua, s = self.store(root)
+            s.load()
+            lua.globals().S = s
+            lua.execute("S.change(function(st) st.diagnostics.disarm.render = true; st.play.townView = 'PARTY' end, nil)")
+            out = json.loads((root / PATH).read_text())
+            self.assertIs(out['diagnostics']['disarm']['render'], True)
+            self.assertEqual(out['play']['townView'], 'PARTY')
+            lua, s = self.store(root)
+            s.load()
+            self.assertEqual(s.fileStatus, 'ok')
+            self.assertIs(s.state.diagnostics.disarm.render, True)
+            doc = json.loads((root / PATH).read_text())
+            doc['schema'] = 3
+            (root / PATH).write_text(json.dumps(doc))
+            self.assertEqual(self.parse((root / PATH).read_bytes())[:2], (boot.SETTINGS_INVALID, boot.INVALID_NEWER))
+            lua, s = self.store(root)
+            s.load()
+            self.assertEqual((s.fileStatus, s.readOnly), ('readonly', True))
+
+    def test_bad_play_and_log_values_fall_back_one_by_one(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            lua, s = self.store(root)
+            s.load()
+            doc = json.loads((root / PATH).read_text())
+            doc['play'] = {'sharedCamera': 'no', 'guestInteractions': False, 'townView': 'EVERYONE', 'waitPause': 'ANY',
+                           'guestPause': 0}
+            doc['battleHud']['log'].update({'compactLines': 9, 'expandedLines': 12, 'fadeSeconds': 2})
+            (root / PATH).write_text(json.dumps(doc))
+            lua, s = self.store(root)
+            s.load()
+            self.assertEqual((s.fileStatus, s.repairs), ('repaired', 5))
+            p, l = s.state.play, s.state.battleHud.log
+            self.assertEqual((p.sharedCamera, p.guestInteractions, p.townView, p.waitPause, p.guestPause),
+                             (True, False, 'PLAYERS', 'ANY', True))
+            self.assertEqual((l.compactLines, l.expandedLines, l.fadeSeconds), (5, 12, 6))
+            # compact above expanded is refused by the store as by native
+            doc['battleHud']['log'].update({'compactLines': 8, 'expandedLines': 6, 'fadeSeconds': 15})
+            (root / PATH).write_text(json.dumps(doc))
+            lua, s = self.store(root)
+            s.load()
+            l = s.state.battleHud.log
+            self.assertEqual((l.compactLines, l.expandedLines, l.fadeSeconds), (5, 6, 15))
 
 
 if __name__ == '__main__':

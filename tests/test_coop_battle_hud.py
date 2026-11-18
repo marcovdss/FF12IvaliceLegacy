@@ -22,6 +22,7 @@ from pathlib import Path
 
 from coop_native_support import SCHEMA, native_test
 from test_coop_input_service import fresh_test_dll
+from coop_page_support import PageEnv
 
 try:
     from lupa import LuaRuntime
@@ -68,6 +69,8 @@ ALONE_OFF = {
     'SEAT_LINES': {'lines': 0},
     'SEAT_DIAMONDS': {'diamonds': 0},
     'AOE_RING': {'rings': 0},
+    'PARTY_TIMERS': {'rows_parts': 0x3F & ~PR_TIMERS},
+    'GUEST_CURSORS': {'rows_parts': 0x3F & ~PR_CURSORS},
 }
 
 
@@ -95,14 +98,13 @@ class SchemaTest(unittest.TestCase):
         rec = defaults_record()
         self.assertEqual([b for b in seat_bindings(rec, 1) if b[0] == ACT['IDENTIFY']], [],
                          'P1: no default (each button of P1\'s pad also reaches the game)')
-        for seat in (2, 3):
+        for seat in (2, 3, 4):
             with self.subTest(seat=seat):
                 rows = seat_bindings(rec, seat)
                 mine = {(k, c) for a, k, c in rows if a == ACT['IDENTIFY']}
                 self.assertEqual(mine, {(BK['KEY'], ord('T')), (BK['PAD'], PADC['BACK'])})
                 others = {(k, c) for a, k, c in rows if a != ACT['IDENTIFY']}
                 self.assertFalse(mine & others, 'no other action of the seat uses the same key or control')
-        self.assertEqual(seat_bindings(rec, 4), [], 'P4 cannot play in this release')
 
     def test_no_game_or_menu_path_reads_identify(self):
         """The firewall, the P1 parity pulses, the menus, the frontend gate and the isolation never see IDENTIFY."""
@@ -115,11 +117,11 @@ class SchemaTest(unittest.TestCase):
     def test_hud_fields_and_defaults(self):
         rec = defaults_record()
         self.assertEqual(rec['hud_enabled'], 1)
-        self.assertEqual(rec['hud_elements'], ALL)
+        self.assertEqual(rec['hud_elements'], ALL & ~HUD['PARTY_TIMERS'], 'the default is the Standard preset')
         self.assertEqual(rec['log_filter'], LF['ALL'])
         self.assertEqual(rec['log_filter_seat'], 1)
         self.assertEqual(rec['log_expand_control'], 0)
-        self.assertEqual(ALL, 0x7FF)
+        self.assertEqual(ALL, 0x1FFF)
         self.assertEqual(set(LF), {'ALL', 'PARTY', 'FOES', 'STATUSES', 'MINE'})
         fields = {f['name']: f for f in S.json['structs']['ilc_settings']['fields']}
         self.assertEqual((fields['log_filter_seat']['min'], fields['log_filter_seat']['max']), (1, S.const['ACTIVE_SEATS_MAX']))
@@ -218,15 +220,18 @@ class NativeSwitchTest(unittest.TestCase):
         self.d.ILCT_BhConfigure(self.record(**fields))
         return self.switches()
 
-    def test_defaults_turn_every_element_on(self):
+    def test_defaults_turn_on_the_standard_elements(self):
+        """The default record is the Mod Menu's Standard preset: every element but the status timers."""
         native = (ctypes.c_uint8 * S.size('ilc_settings'))()
         self.d.ILCT_BhDefaults(native)
         self.assertEqual(bytes(native), S.defaults(), 'the native defaults are the schema defaults')
         sw = self.configure()
-        self.assertEqual(sw, {'native': 1, 'native_parts': N_SHRINK | N_CIRCLES, 'rows': 1, 'rows_parts': 0x3F, 'ti': 1,
-                              'log': 1, 'log_button': 0, 'log_filter': 0, 'log_seat': 1, 'lines': 1, 'diamonds': 1,
-                              'rings': 1, 'log_expanded': 0})
-        self.assertEqual(self.d.ILCT_BhElements(), ALL)
+        self.assertEqual(sw, {'native': 1, 'native_parts': N_SHRINK | N_CIRCLES, 'rows': 1, 'rows_parts': 0x3F & ~PR_TIMERS,
+                              'ti': 1, 'log': 1, 'log_button': 0, 'log_filter': 0, 'log_seat': 1, 'lines': 1,
+                              'diamonds': 1, 'rings': 1, 'log_expanded': 0})
+        self.assertEqual(self.d.ILCT_BhElements(), ALL & ~HUD['PARTY_TIMERS'])
+        sw = self.configure(hud_elements=ALL)
+        self.assertEqual((sw['rows_parts'], self.d.ILCT_BhElements()), (0x3F, ALL), 'Full: every element')
 
     def test_battle_hud_off_turns_every_element_off(self):
         sw = self.configure(hud_enabled=0)
@@ -238,7 +243,7 @@ class NativeSwitchTest(unittest.TestCase):
         self.assertEqual((on['native'], on['rows'], on['rings']), (1, 1, 1), 'and back on with the next record')
 
     def test_each_element_turns_off_only_its_own_switch(self):
-        base = self.configure()
+        base = self.configure(hud_elements=ALL)
         self.assertEqual(set(ALONE_OFF), set(HUD), 'every element has a row here')
         for name, bit in HUD.items():
             with self.subTest(element=name):
@@ -247,10 +252,18 @@ class NativeSwitchTest(unittest.TestCase):
                 self.assertEqual(changed, ALONE_OFF[name])
                 self.assertEqual(self.d.ILCT_BhElements(), ALL & ~bit)
 
-    def test_party_rows_keep_timers_and_hands_while_the_hud_is_on(self):
+    def test_party_timers_and_hands_follow_their_own_elements(self):
+        """0.1.53: the status timers and the guests' party-target hands are elements (PARTY_TIMERS, GUEST_CURSORS),
+        no longer hard-wired on; the party rows themselves stay on while the HUD is on."""
         sw = self.configure(hud_elements=0)
-        self.assertEqual(sw['rows_parts'], PR_TIMERS | PR_CURSORS)
+        self.assertEqual(sw['rows_parts'], 0)
         self.assertEqual((sw['rows'], sw['native'], sw['native_parts']), (1, 1, 0))
+        sw = self.configure(hud_elements=HUD['PARTY_TIMERS'])
+        self.assertEqual(sw['rows_parts'], PR_TIMERS)
+        sw = self.configure(hud_elements=HUD['GUEST_CURSORS'])
+        self.assertEqual(sw['rows_parts'], PR_CURSORS)
+        sw = self.configure(hud_enabled=0)
+        self.assertEqual((sw['rows'], sw['rows_parts']), (0, 0), 'Battle HUD off: every element off')
 
     def test_log_fields_pass_through_and_the_expanded_state_is_kept(self):
         sw = self.configure(log_expand_control=PADC['R3'], log_filter=LF['MINE'], log_filter_seat=3)
@@ -384,7 +397,7 @@ class StoreTest(unittest.TestCase):
         h = self.st.state.battleHud
         self.assertIs(h.enabled, True)
         for k in self.mod.HUD_ELEMENTS.values():
-            self.assertIs(h.elements[k], True, k)
+            self.assertIs(h.elements[k], k != 'partyTimers', k)   # the Standard preset: every element but the timers
         self.assertEqual((h.log.expandButton, h.log.filter, h.log.filterSeat), ('NONE', 'ALL', 1))
         self.assertEqual(set(self.mod.HUD_ELEMENT_BIT.values()), set(HUD), 'one key per schema element')
         self.assertEqual(len(self.mod.HUD_ELEMENTS), len(HUD))
@@ -404,14 +417,15 @@ class StoreTest(unittest.TestCase):
           end''')(self.C, self.st, st)
         rec = {k: back[k] for k in ('hud_enabled', 'hud_elements', 'log_expand_control', 'log_filter', 'log_filter_seat')}
         self.assertEqual(rec['hud_enabled'], 0)
-        self.assertEqual(rec['hud_elements'], ALL & ~HUD['SEAT_LINES'] & ~HUD['CIRCLES_OFF'])
+        # from the default state (the Standard preset: no status timers)
+        self.assertEqual(rec['hud_elements'], ALL & ~HUD['PARTY_TIMERS'] & ~HUD['SEAT_LINES'] & ~HUD['CIRCLES_OFF'])
         self.assertEqual((rec['log_expand_control'], rec['log_filter'], rec['log_filter_seat']), (PADC['R3'], LF['MINE'], 2))
         ok = self.st.check(st)
         self.assertTrue(ok)
 
     def test_bad_values_fall_back_one_by_one(self):
         doc = self.lua.eval('''function() return {schema = 1, battleHud = {enabled = 'yes',
-            elements = {seatLines = false, lowHpGlow = 3}, log = {expandButton = 'XYZ', filter = 'FOES', filterSeat = 4}}} end''')()
+            elements = {seatLines = false, lowHpGlow = 3}, log = {expandButton = 'XYZ', filter = 'FOES', filterSeat = 5}}} end''')()
         self.config.loadJson = self.lua.eval('function(d) return function() return d end end')(doc)
         st = self.mod.create(self.lua.table_from({'codec': self.C, 'config': self.config}))
         st.load()
@@ -424,72 +438,75 @@ class StoreTest(unittest.TestCase):
 
 @unittest.skipIf(LuaRuntime is None, 'requires lupa')
 class PageTest(unittest.TestCase):
-    """The page with the real modules, a recording Mod Menu, and a Vision settings table."""
-
-    HARNESS = r"""
-local S, C, V, B, ST, D, F, page, vision = ...
-local calls = {visible = {}, tables = {}, status = {}, notes = {}}
-local mm = {}
-function mm.addTable(t) calls.tables[#calls.tables + 1] = t; return true end
-function mm.setVisible(mod, changes) calls.visible[#calls.visible + 1] = changes end
-function mm.setStatus(mod, id, text) calls.status[id] = text end
-function mm.setActive() end
-function mm.setValue() end
-function mm.getValue() return nil end
-local P = page.create({modmenu = mm, store = ST, bridge = B, codec = C, views = V, flows = F, dialogs = D,
-                       statusview = S, vision = vision})
-assert(P.start())
-return P, calls
-"""
+    """The Battle HUD part of the page (HUD > status, preset, Elements, Battle log, colours) with the real modules, the
+    enforcing Mod Menu double and a Vision settings table."""
 
     def setUp(self):
-        self.lua, load, self.C = lua_env()
-        self.S = load((LUA / 'statusview.lua').read_text(encoding='utf-8'), 'statusview')
-        views = load((LUA / 'views.lua').read_text(encoding='utf-8'), 'views').new(self.C)
-        self.bridge = load((LUA / 'bridge.lua').read_text(encoding='utf-8'), 'bridge').create(
-            self.lua.table_from({'codec': self.C, 'after': self.lua.eval('function() end')}))
-        config = self.lua.eval('{loadJson = function() return nil end, saveJson = function() return true end}')
-        self.store = load((LUA / 'store.lua').read_text(encoding='utf-8'), 'store').create(
-            self.lua.table_from({'codec': self.C, 'config': config}))
-        self.store.load()
-        dialogs = load((LUA / 'dialogs.lua').read_text(encoding='utf-8'), 'dialogs').create(self.lua.table())
-        flows = load((LUA / 'flows.lua').read_text(encoding='utf-8'), 'flows').create(self.lua.table_from(
-            {'store': self.store, 'bridge': self.bridge, 'codec': self.C, 'views': views, 'dialogs': dialogs, 'seed': 1}))
-        self.page_mod = load((LUA / 'page.lua').read_text(encoding='utf-8'), 'page')
-        self.vision_doc = self.lua.eval('''{noMinimap = {state = true}, noOverheadHpBars = {state = true},
-            noOverheadStatusEffects = {state = false}, noCombatLog = {state = false}}''')
-        holder = self.lua.eval('function(doc) local h = {doc = doc}; return h, function() return h.doc end end')
-        self.holder, vision = holder(self.vision_doc)
-        run = self.lua.eval('function(src, ...) return assert(load(src, "@harness", "t", _ENV))(...) end')
-        self.P, self.calls = run(self.HARNESS, self.S, self.C, views, self.bridge, self.store, dialogs, flows,
-                                 self.page_mod, vision)
+        self.env = PageEnv()
+        self.P, self.store, self.page_mod = self.env.P, self.env.store, self.env.page_mod
 
-    def row(self, rows, wanted):
-        for k in range(1, len(rows) + 1):
-            r = rows[k]
-            if r.id == wanted:
-                return r
-            if r.sub is not None:
-                found = self.row(r.sub, wanted)
-                if found is not None:
-                    return found
-        return None
+    def elements(self):
+        return {k: self.store.state.battleHud.elements[k] for k in self.store.HUD_ELEMENTS.values()}
 
-    def hud_rows(self):
-        sub = self.row(self.calls.tables[1].schema, 'battleHud').sub
-        return [sub[k].id for k in range(1, len(sub) + 1)]
+    def native_hud_bits(self):
+        decode = self.env.lua.eval(
+            "function(C, T) local r = C.decode('ilc_settings', T.encode(T.state, 1)); return r.hud_elements end")
+        return decode(self.env.C, self.store)
 
     def test_every_row(self):
-        ids = self.hud_rows()
-        want = ['hudStatus', 'hudOn'] + ['hud_' + k for k in self.store.HUD_ELEMENTS.values()] + \
-               ['hudLogExpand', 'hudLogFilter', 'hudLogSeat', 'hudIdentify1', 'hudIdentify2', 'hudIdentify3',
-                'visionMinimap', 'visionOverheadHp', 'visionOverheadStatus', 'visionCombatLog', 'hudTestDraw']
-        for w in want:
-            self.assertIn(w, ids)
-        self.assertIsNone(self.row(self.row(self.calls.tables[1].schema, 'diagnostics').sub, 'hudTestDraw'),
-                          'the test draw moved to the Battle HUD page')
-        self.assertIn('battleHud', list(self.page_mod.SETTINGS_ROWS.values()), 'hidden with the other settings pages')
-        self.assertLess(ids.index('hud_battleLog'), ids.index('hudLogExpand'), 'the log rows follow the log toggle')
+        env = self.env
+        self.assertEqual(env.sub_ids('hud'), ['hudStatus', 'hudPreset', 'hudTheme', 'hudElements', 'hudLog', 'colourMode'])
+        self.assertEqual(env.sub_ids('hudElements'), ['hud_partyTimers', 'hud_guestCursors', 'hud_seatLines',
+                                                      'hud_seatDiamonds', 'hud_battleLog', 'hud_targetInfo'])
+        self.assertEqual(env.sub_ids('hudLog'), ['hudLogCompact', 'hudLogExpanded', 'hudLogFade', 'hudLogExpand',
+                                                 'hudLogFilter', 'hudLogSeat'])
+        for gone in ('hudOn', 'hudIdentify1', 'visionMinimap', 'visionOverheadHp', 'visionCombatLog', 'hud_circlesOff',
+                     'hud_aoeRing', 'hud_partyShrink', 'hudDivider_party'):
+            self.assertIsNone(env.row(gone), gone)
+        self.assertIsNotNone(env.row('hudTestDraw'), 'the test draw lives under Advanced > Developer')
+        self.assertIn('hud', list(self.page_mod.SETTINGS_ROWS.values()), 'hidden with the other settings pages')
+
+    def test_the_presets_set_the_element_bits(self):
+        P, mod = self.P, self.page_mod
+        self.assertEqual(list(mod.HUD_PRESET_LABELS.values()), ['Off', 'Light', 'Standard', 'Full', 'Custom'])
+        self.assertEqual(P.presetIndex(), 2, 'the shipped default (every element but the timers) reads as Standard')
+        sets = {n: set(mod.HUD_PRESETS[n].values()) for n in ('Light', 'Standard', 'Full')}
+        self.assertEqual(sets['Full'], set(self.store.HUD_ELEMENTS.values()), 'Full is every element')
+        self.assertLess(sets['Light'], sets['Standard'])
+        self.assertLess(sets['Standard'], sets['Full'])
+        for n, keep in sets.items():
+            self.assertIn('circlesOff', keep, "the game's target circles stay hidden in " + n)
+            self.assertIn('aoeRing', keep, 'the area ring while aiming stays in ' + n)
+        self.assertEqual(sets['Full'] - sets['Standard'], {'partyTimers'})
+        self.assertEqual(sets['Standard'] - sets['Light'],
+                         {'damageGhost', 'actionLine', 'seatLines', 'seatDiamonds', 'targetInfo', 'battleLog'})
+        for index, n in ((1, 'Light'), (2, 'Standard'), (3, 'Full')):
+            P.onChange('IvaliceLegacyCoop', 'hudPreset', index)
+            self.assertEqual({k for k, v in self.elements().items() if v}, sets[n], n)
+            self.assertIs(self.store.state.battleHud.enabled, True)
+            self.assertEqual(P.presetIndex(), index)
+            self.assertEqual(self.native_hud_bits(), sum(HUD[self.store.HUD_ELEMENT_BIT[k]] for k in sets[n]), n)
+        P.onChange('IvaliceLegacyCoop', 'hudPreset', 0)
+        self.assertIs(self.store.state.battleHud.enabled, False)
+        self.assertEqual(P.presetIndex(), 0)
+        self.assertEqual({k for k, v in self.elements().items() if v}, sets['Full'], 'Off leaves the elements alone')
+        P.onChange('IvaliceLegacyCoop', 'hudPreset', 2)
+        self.assertEqual(P.presetIndex(), 2)
+
+    def test_editing_an_element_shows_custom_and_the_preset_comes_back(self):
+        P = self.P
+        P.onChange('IvaliceLegacyCoop', 'hudPreset', 2)
+        self.assertEqual(P.presetIndex(), 2)
+        P.onChange('IvaliceLegacyCoop', 'hud_seatDiamonds', 0)
+        self.assertEqual(P.presetIndex(), 4, 'Custom')
+        P.onChange('IvaliceLegacyCoop', 'hudPreset', 4)      # choosing Custom changes nothing
+        self.assertIs(self.store.state.battleHud.elements.seatDiamonds, False)
+        P.onChange('IvaliceLegacyCoop', 'hud_seatDiamonds', 1)
+        self.assertEqual(P.presetIndex(), 2, 'back to the same set of elements: Standard again')
+        P.onChange('IvaliceLegacyCoop', 'hud_partyTimers', 1)
+        self.assertEqual(P.presetIndex(), 3, 'Standard plus the timers is Full')
+        self.store.state.battleHud.elements.circlesOff = False        # a file that shows the game's circles
+        self.assertEqual(P.presetIndex(), 4)
 
     def test_a_toggle_changes_only_its_element(self):
         before = self.store.copy(self.store.state)
@@ -499,58 +516,113 @@ return P, calls
         for k in self.store.HUD_ELEMENTS.values():
             if k != 'seatDiamonds':
                 self.assertIs(h.elements[k], before.battleHud.elements[k], k)
-        self.P.onChange('IvaliceLegacyCoop', 'hudOn', 0)
-        self.assertIs(self.store.state.battleHud.enabled, False)
-        self.assertIs(self.store.state.battleHud.elements.targetInfo, True, 'the master switch leaves the elements alone')
+        self.assertIs(h.enabled, True)
         self.P.onChange('IvaliceLegacyCoop', 'hudLogFilter', 4)
         self.assertEqual(self.store.state.battleHud.log.filter, 'MINE')
-        self.P.onChange('IvaliceLegacyCoop', 'hudLogSeat', 2)
-        self.assertEqual(self.store.state.battleHud.log.filterSeat, 3)
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogSeat', 3)
+        self.assertEqual(self.store.state.battleHud.log.filterSeat, 4, 'a fourth player can be the one shown')
         expand = list(self.P.expandOptions().values())
         self.assertEqual(expand[0], 'NONE')
         self.assertEqual(len(expand), 1 + len(PADC))
         self.P.onChange('IvaliceLegacyCoop', 'hudLogExpand', expand.index('R3'))
         self.assertEqual(self.store.state.battleHud.log.expandButton, 'R3')
 
-    def test_identify_rows_show_the_bindings(self):
-        self.assertEqual(self.P.rows.hudIdentify1.status(None), 'Unbound')
-        self.assertEqual(self.P.rows.hudIdentify2.status(None), 'T, Back')
+    def test_the_log_rows_and_their_rules(self):
+        env = self.env
+        log = self.store.state.battleHud.log
+        self.assertEqual(env.options('hudLogCompact'), [str(n) for n in range(1, 9)])
+        self.assertEqual((env.options('hudLogExpanded')[0], env.options('hudLogExpanded')[-1]), ('5', '20'))
+        self.assertEqual((env.options('hudLogFade')[0], env.options('hudLogFade')[-1]), ('3 s', '15 s'))
+        self.assertEqual((log.compactLines, log.expandedLines, log.fadeSeconds), (5, 20, 6))
+        self.assertEqual([env.row(r).default for r in ('hudLogCompact', 'hudLogExpanded', 'hudLogFade')], [4, 15, 3])
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogCompact', 2)
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogExpanded', 0)
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogFade', 12)
+        log = self.store.state.battleHud.log
+        self.assertEqual((log.compactLines, log.expandedLines, log.fadeSeconds), (3, 5, 15))
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogCompact', 7)       # 8 > 5: refused by the page, nothing sent
+        self.assertEqual(self.store.state.battleHud.log.compactLines, 3)
+        self.assertIn('compact log cannot have more', env.last_note())
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogCompact', 4)       # 5 <= 5
+        self.assertEqual(self.store.state.battleHud.log.compactLines, 5)
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogExpanded', 2)      # 7
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogCompact', 7)       # 8 > 7
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogExpanded', 0)      # 5 < 5? equal: fine
+        self.assertEqual(self.store.state.battleHud.log.expandedLines, 5)
+        mod = self.page_mod
 
-    def status(self, report, ready=True):
-        self.bridge.status.state = 'ready' if ready else 'starting'
-        self.P.native = self.lua.table_from({'hudReport': report}) if ready else None
-        return self.P.hudStatusText()
+        def span(name):
+            f = env.C.field('ilc_settings', name)
+            return (f.min, f.max)
+        self.assertEqual(tuple(mod.COMPACT_LINES.values()), span('log_lines_compact'))
+        self.assertEqual(tuple(mod.EXPANDED_LINES.values()), span('log_lines_expanded'))
+        self.assertEqual(tuple(mod.FADE_SECONDS.values()), span('log_fade_s'))
+
+    def test_the_log_player_row_follows_the_filter(self):
+        self.assertIs(self.env.row('hudLogSeat').visible, False, 'registered hidden: the filter is All')
+        self.P.refresh()
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogFilter', 4)
+        self.P.refresh()
+        self.assertIs(self.env.menu.rows['hudLogSeat'].visible, True)
+        self.P.onChange('IvaliceLegacyCoop', 'hudLogFilter', 0)
+        self.P.refresh()
+        self.assertIs(self.env.menu.rows['hudLogSeat'].visible, False)
+
+    def test_player_colours_is_one_row(self):
+        self.assertEqual(self.env.options('colourMode'), ['By character', 'By player'])
+        self.assertEqual(self.env.row('colourMode').default, 0, 'native default: by character')
+        self.P.onChange('IvaliceLegacyCoop', 'colourMode', 1)
+        self.assertEqual(self.store.state.colours.mode, 'PLAYER')
+        for gone in ('playerColour1', 'playerColour2', 'characterColour_VAAN', 'uiSounds1', 'seatToggleKey2'):
+            self.assertIsNone(self.env.row(gone), gone)
+
+    def status(self, report, ready=True, **native):
+        env = self.env
+        if ready:
+            env.go_ready(hudReport=report, **native)
+        else:
+            env.bridge.status.state = 'starting'
+            env.P.native = None
+        return env.P.hudStatusText()
 
     def test_status_line_follows_the_report_and_vision(self):
         self.assertEqual(self.status(0), 'On')
-        self.assertEqual(self.status(REP['VISION_NO_COMBAT_LOG'] | REP['FRAME_HOOK_OFF']), "Turn off Vision's No Combat Log")
-        self.assertEqual(self.status(REP['FRAME_HOOK_OFF']), 'Not drawing (frame hook off)')
-        self.assertEqual(self.status(REP['RENDER_OFF']), 'Not drawing (rendering off)', 'never "On" while not drawn')
-        self.assertEqual(self.status(REP['RENDER_OFF'] | REP['PARTY_LAYOUT_FOREIGN']), 'Not drawing (rendering off)')
+        self.assertEqual(self.status(REP['VISION_NO_COMBAT_LOG'] | REP['FRAME_HOOK_OFF']),
+                         "Turn off Vision's No Combat Log")
+        self.assertEqual(self.status(REP['FRAME_HOOK_OFF']), 'Not drawing: another mod holds the HUD hook')
         self.assertEqual(self.status(REP['PARTY_LAYOUT_FOREIGN'] | REP['CIRCLES_BY_VISION']),
                          'On; party list kept as another mod set it; circles hidden by Vision')
         self.assertEqual(self.status(0, ready=False), 'n/a')
-        self.vision_doc.noCombatLog.state = True
+        self.env.vision_doc.noCombatLog.state = True
         self.P.readVision()
         self.assertEqual(self.status(0, ready=False), "Turn off Vision's No Combat Log",
-                         'Vision\'s file alone says it is on (even before the module answers)')
-        self.vision_doc.noCombatLog.state = False
+                         "Vision's file alone says it is on (even before the module answers)")
+        self.env.vision_doc.noCombatLog.state = False
         self.P.readVision()
         self.store.state.battleHud.enabled = False
         self.assertEqual(self.status(0), 'Off')
+        self.assertEqual(self.status(REP['RENDER_OFF']), 'Off', 'the preset is the reason, not an error')
 
-    def test_vision_rows_are_read_only_state(self):
-        rows = {r.id: r for r in self.page_mod.VISION_ROWS.values()}
-        self.assertEqual(self.P.visionText(rows['visionMinimap']), 'Off (Vision)')
-        self.assertEqual(self.P.visionText(rows['visionOverheadStatus']), 'Shown')
-        self.assertEqual(self.P.visionText(rows['visionCombatLog']), 'Off (correct)')
-        self.assertIsNone(self.P.rows.visionMinimap.row.callback, 'nothing to press: Vision owns it')
-        self.holder.doc = None
-        self.P.readVision()
-        self.assertEqual(self.P.visionText(rows['visionMinimap']), 'Vision not found')
-        self.holder.doc = self.lua.eval('{noMinimap = {state = "on"}}')
-        self.P.readVision()
-        self.assertEqual(self.P.visionText(rows['visionMinimap']), 'Unknown')
+    def test_render_off_names_the_real_reason(self):
+        """The first session's HUD said "stopped after an error" while the cause was the developer override."""
+        render = self.env.C.enums.subsystem.RENDER
+        off = REP['RENDER_OFF']
+        no_render = 0xFF & ~render
+        self.assertEqual(self.status(off), 'Not drawing: the HUD could not start')
+        self.assertEqual(self.status(off, appliedSubsystems=no_render), 'Not drawing: render is not running')
+        self.assertEqual(self.status(off, appliedSubsystems=no_render, coopSwitch=2), 'Not drawing: co-op is switched off')
+        self.store.state.diagnostics.disarm.render = True
+        self.store.state.diagnostics.developer = False
+        self.assertEqual(self.status(off, appliedSubsystems=no_render), 'Not drawing: render is not running',
+                         'the override only counts while Developer options is On')
+        self.store.state.diagnostics.developer = True
+        self.assertEqual(self.status(off, appliedSubsystems=no_render),
+                         'Not drawing: render switched off by developer override')
+        self.P.explainHud()
+        note = self.env.last_note()
+        self.assertIn('switched off by the developer override', note)
+        self.assertIn('Advanced', note)
+        self.assertNotIn('stopped after an error', note)
 
     def test_vision_file_is_only_read(self):
         page = (LUA / 'page.lua').read_text(encoding='utf-8')

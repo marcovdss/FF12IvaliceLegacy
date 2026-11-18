@@ -1,8 +1,8 @@
 -- Ivalice Legacy co-op: the settings store (scripts/config/IvaliceLegacy/coop.json) and its push to the native module.
 --
 -- * Lua is the only writer of coop.json. Native never parses it live (it reads the module-enable flag once at start).
--- * The file is schema 1. Unknown keys are kept at every level of the structural containers (module, colours, each seat,
---   its bindings, diagnostics.arm, battleHud and its elements and log), an older schema is migrated step by step (the old file is kept as coop.json.v<n>), a
+-- * The file is schema 2. Unknown keys are kept at every level of the structural containers (module, colours, each seat,
+--   its bindings, diagnostics.disarm, play, battleHud and its elements and log), an older schema is migrated step by step (the old file is kept as coop.json.v<n>), a
 --   newer schema makes the store read-only, a file that does not parse is copied to a rotating coop.json.bad[-n] sidecar
 --   (ten slots, the oldest is dropped) and replaced by defaults. Nothing here can raise on bad data.
 -- * Seeding is runtime-only: the package never ships coop.json (the package carries no settings file). A missing file is created from the
@@ -14,10 +14,46 @@
 -- * Every accepted change is pushed with generation + 1 and then saved. A change the native module refuses is not kept.
 local M = {}
 
-M.SCHEMA = 1
--- Migrations: M.MIGRATIONS[n] turns a schema-n document into schema n+1 (it may edit and return its argument). Schema 1 is
--- the first release, so the table is empty; the chain machinery is exercised by tests with a pretend schema 2.
-M.MIGRATIONS = {}
+M.SCHEMA = 2
+-- Migrations: M.MIGRATIONS[n] turns a schema-n document into schema n+1 (it may edit and return its argument).
+--   1 -> 2 (0.1.53): "Co-op On" means every subsystem works. The per-subsystem switches became a developer override that
+--   disarms (diagnostics.disarm, default none), so the old diagnostics.arm block is dropped: a file that still carried
+--   the test seed's all-false arm switches comes back fully armed. fullRoster (never read by the module) is dropped.
+--   The new keys (play.*, the battle log's line counts and fade time, the two new HUD elements) take their defaults.
+--   diagnostics.developer and diagnostics.hudTestDraw are set to false: the first test session's seed left both on (lab
+--   leftovers), so a migrated file must not keep a developer override or the HUD test pattern. From schema 2 on they
+--   are the player's own switches again (Advanced > Developer options) and a later start keeps them.
+-- The HUD theme (battleHud.theme): a theme id, lower-case letters, digits, '-' or '_' (at most THEME_ID_MAX bytes); ''
+-- stands for the built-in default (legacy-bold). A key that is absent takes the default (no schema change: new keys
+-- take their defaults). Whether the theme exists is native's question at run time (a missing one draws the default).
+function M.validThemeId(v, max)
+  return type(v) == 'string' and #v <= (max or 32) and (v == '' or v:find('^[a-z0-9_%-]+$') ~= nil)
+end
+-- A stored seat that has no device and every binding list empty (or none at all) has no controls whatever: nothing a player
+-- could have chosen (a reset restores the defaults; capturing a key adds one). Used by the 1 -> 2 migration and by the
+-- one-time repair on load.
+function M.blankSeat(s)
+  if type(s) ~= 'table' or type(s.bindings) ~= 'table' then return false end
+  if type(s.device) == 'table' and s.device.kind ~= nil and s.device.kind ~= 'NONE' then return false end
+  for _, list in pairs(s.bindings) do
+    if type(list) ~= 'table' or next(list) ~= nil then return false end
+  end
+  return true
+end
+M.MIGRATIONS = {
+  [1] = function(doc)
+    doc.fullRoster = nil
+    -- Schema 1 always wrote the fourth (then unused) seat with every binding list empty and no device. Drop it so the
+    -- fourth player's real defaults (guest layout, F9 join key) apply instead of a seat with no controls.
+    if type(doc.seats) == 'table' and M.blankSeat(doc.seats[4]) then doc.seats[4] = nil end
+    if type(doc.diagnostics) == 'table' then
+      doc.diagnostics.arm = nil
+      doc.diagnostics.developer = false
+      doc.diagnostics.hudTestDraw = false
+    end
+    return doc
+  end,
+}
 M.BAD_SLOTS = 10
 M.PATH = 'scripts/config/IvaliceLegacy/coop.json'
 M.CHARACTERS = {'VAAN', 'ASHE', 'FRAN', 'BALTHIER', 'BASCH', 'PENELO'}
@@ -28,17 +64,19 @@ M.SUBSYSTEM_BIT = {inputIsolation = 'INPUT_ISOLATION', movement = 'MOVEMENT', pa
                    firewallMenus = 'FIREWALL_MENUS', wait = 'WAIT', render = 'RENDER', targetsCards = 'TARGETS_CARDS'}
 -- Battle HUD elements in page order: our key -> the schema's `hud_element` enum name (the bit comes from the schema).
 M.HUD_ELEMENTS = {'partyShrink', 'seatEdge', 'lowHpGlow', 'damageGhost', 'actionLine', 'targetInfo', 'battleLog',
-                  'seatLines', 'seatDiamonds', 'aoeRing', 'circlesOff'}
+                  'seatLines', 'seatDiamonds', 'aoeRing', 'circlesOff', 'partyTimers', 'guestCursors'}
 M.HUD_ELEMENT_BIT = {partyShrink = 'PARTY_SHRINK', seatEdge = 'SEAT_EDGE', lowHpGlow = 'LOW_HP_GLOW',
                      damageGhost = 'DAMAGE_GHOST', actionLine = 'ACTION_LINE', targetInfo = 'TARGET_INFO',
                      battleLog = 'BATTLE_LOG', seatLines = 'SEAT_LINES', seatDiamonds = 'SEAT_DIAMONDS', aoeRing = 'AOE_RING',
-                     circlesOff = 'CIRCLES_OFF'}
+                     circlesOff = 'CIRCLES_OFF', partyTimers = 'PARTY_TIMERS', guestCursors = 'GUEST_CURSORS'}
 
 -- Field positions inside the schema structs (0-based, header = 0 where there is one).
-local SET = {moduleEnabled = 1, fullRoster = 2, keyboardSeat = 3, colourMode = 4, logLevel = 5, networkMode = 6,
+-- Position 2 is a reserved byte (it was all_characters_at_start, which nothing read): never addressed.
+local SET = {moduleEnabled = 1, keyboardSeat = 3, colourMode = 4, logLevel = 5, networkMode = 6,
              aliasCount = 7, keepRunning = 8, characterColour = 9, hudTestDraw = 10, developer = 11, killSwitch = 12, economy = 13,
-             seats = 14, aliases = 15, subsystemsArmed = 16, hudEnabled = 17, logExpand = 18, logFilter = 19,
-             logFilterSeat = 20, hudElements = 21}
+             seats = 14, aliases = 15, subsystemsDisarm = 16, hudEnabled = 17, logExpand = 18, logFilter = 19,
+             logFilterSeat = 20, hudElements = 21, sharedCamera = 22, guestInteractions = 23, townView = 24, waitPause = 25,
+             guestPause = 26, logLinesCompact = 27, logLinesExpanded = 28, logFadeSeconds = 29, hudTheme = 30}
 local SEAT = {character = 0, colour = 1, uiSounds = 2, parked = 3, device = 5, bindings = 6}
 local ECO = {present = 0, major = 1, minor = 2, patch = 3, divisor = 4, cap = 5}
 local DEV = {kind = 0, slot = 1, sdl = 3}
@@ -108,7 +146,7 @@ function M.create(opts)
   local migrations = opts.migrations or M.MIGRATIONS
   local T = {path = path, fileStatus = 'new', unsaved = false, copy = copy, same = same,
              ACTIVE_SEATS = ACTIVE, CHARACTERS = M.CHARACTERS, COLOURS = M.COLOURS, SUBSYSTEMS = M.SUBSYSTEMS,
-             HUD_ELEMENTS = M.HUD_ELEMENTS}
+             HUD_ELEMENTS = M.HUD_ELEMENTS, SUBSYSTEM_BIT = M.SUBSYSTEM_BIT, HUD_ELEMENT_BIT = M.HUD_ELEMENT_BIT}
 
   local function fname(sname, idx) return (C.field_at(sname, idx)) end
   local N = {
@@ -202,7 +240,6 @@ function M.create(opts)
   local function fromRecord(rec)
     local st = {schema = CURRENT}
     st.module = {enabledAtStart = rec[N.settings('moduleEnabled')] == 1}
-    st.fullRoster = rec[N.settings('fullRoster')] == 1
     st.keepRunning = rec[N.settings('keepRunning')] == 1
     st.keyboardSeat = rec[N.settings('keyboardSeat')]
     st.colours = {mode = enumName('colour_mode', rec[N.settings('colourMode')]), characters = {}}
@@ -222,14 +259,23 @@ function M.create(opts)
       local a = rec[N.settings('aliases')][i]
       st.aliases[i] = {slot = a[N.alias('slot')], sdl = identityFromRecord(a[N.alias('sdl')])}
     end
-    st.diagnostics = {arm = {}, hudTestDraw = rec[N.settings('hudTestDraw')] == 1,
+    -- disarm[k] = true keeps that subsystem off (a developer override; native honours it only while developer is on)
+    st.diagnostics = {disarm = {}, hudTestDraw = rec[N.settings('hudTestDraw')] == 1,
                       developer = rec[N.settings('developer')] == 1}
-    local mask = rec[N.settings('subsystemsArmed')]
-    for _, k in ipairs(M.SUBSYSTEMS) do st.diagnostics.arm[k] = (mask & E.subsystem[M.SUBSYSTEM_BIT[k]]) ~= 0 end
+    local mask = rec[N.settings('subsystemsDisarm')]
+    for _, k in ipairs(M.SUBSYSTEMS) do st.diagnostics.disarm[k] = (mask & E.subsystem[M.SUBSYSTEM_BIT[k]]) ~= 0 end
+    st.play = {sharedCamera = rec[N.settings('sharedCamera')] == 1,
+               guestInteractions = rec[N.settings('guestInteractions')] == 1,
+               townView = enumName('town_view', rec[N.settings('townView')]),
+               waitPause = enumName('wait_pause', rec[N.settings('waitPause')]),
+               guestPause = rec[N.settings('guestPause')] == 1}
     local hud = rec[N.settings('hudElements')]
     st.battleHud = {enabled = rec[N.settings('hudEnabled')] == 1, elements = {}, log = {
       expandButton = rec[N.settings('logExpand')] == 0 and 'NONE' or enumName('pad_control', rec[N.settings('logExpand')]),
-      filter = enumName('log_filter', rec[N.settings('logFilter')]), filterSeat = rec[N.settings('logFilterSeat')]}}
+      filter = enumName('log_filter', rec[N.settings('logFilter')]), filterSeat = rec[N.settings('logFilterSeat')],
+      compactLines = rec[N.settings('logLinesCompact')], expandedLines = rec[N.settings('logLinesExpanded')],
+      fadeSeconds = rec[N.settings('logFadeSeconds')]},
+      theme = (rec[N.settings('hudTheme')] or ''):gsub('%z.*$', '')}
     for _, k in ipairs(M.HUD_ELEMENTS) do st.battleHud.elements[k] = (hud & E.hud_element[M.HUD_ELEMENT_BIT[k]]) ~= 0 end
     return st
   end
@@ -241,7 +287,6 @@ function M.create(opts)
   function T.to_record(st, generation, extras)
     local rec = {header = C.header('SETTINGS', C.size('ilc_settings'), generation)}
     rec[N.settings('moduleEnabled')] = st.module.enabledAtStart and 1 or 0
-    rec[N.settings('fullRoster')] = st.fullRoster and 1 or 0
     rec[N.settings('keepRunning')] = st.keepRunning and 1 or 0
     rec[N.settings('keyboardSeat')] = st.keyboardSeat
     rec[N.settings('colourMode')] = enumVal('colour_mode', st.colours.mode)
@@ -249,9 +294,14 @@ function M.create(opts)
     rec[N.settings('networkMode')] = 0
     local mask = 0
     for _, k in ipairs(M.SUBSYSTEMS) do
-      if st.diagnostics.arm[k] then mask = mask | E.subsystem[M.SUBSYSTEM_BIT[k]] end
+      if st.diagnostics.disarm[k] then mask = mask | E.subsystem[M.SUBSYSTEM_BIT[k]] end
     end
-    rec[N.settings('subsystemsArmed')] = mask
+    rec[N.settings('subsystemsDisarm')] = mask
+    rec[N.settings('sharedCamera')] = st.play.sharedCamera and 1 or 0
+    rec[N.settings('guestInteractions')] = st.play.guestInteractions and 1 or 0
+    rec[N.settings('townView')] = enumVal('town_view', st.play.townView) or 0
+    rec[N.settings('waitPause')] = enumVal('wait_pause', st.play.waitPause) or 0
+    rec[N.settings('guestPause')] = st.play.guestPause and 1 or 0
     rec[N.settings('hudTestDraw')] = st.diagnostics.hudTestDraw and 1 or 0
     rec[N.settings('developer')] = st.diagnostics.developer and 1 or 0
     local hud = 0
@@ -264,6 +314,10 @@ function M.create(opts)
     rec[N.settings('logExpand')] = button == 'NONE' and 0 or (enumVal('pad_control', button) or 0)
     rec[N.settings('logFilter')] = enumVal('log_filter', st.battleHud.log.filter) or 0
     rec[N.settings('logFilterSeat')] = st.battleHud.log.filterSeat
+    rec[N.settings('logLinesCompact')] = st.battleHud.log.compactLines
+    rec[N.settings('logLinesExpanded')] = st.battleHud.log.expandedLines
+    rec[N.settings('logFadeSeconds')] = st.battleHud.log.fadeSeconds
+    rec[N.settings('hudTheme')] = M.validThemeId(st.battleHud.theme, schema.const.THEME_ID_MAX) and st.battleHud.theme or ''
     local cc = {}
     for i, name in ipairs(M.CHARACTERS) do cc[i] = enumVal('colour', st.colours.characters[name]) end
     rec[N.settings('characterColour')] = cc
@@ -360,7 +414,7 @@ function M.create(opts)
 
   -- Overlay `loaded` on a copy of the defaults. Returns the state and the number of values that were repaired.
   local function normalize(loaded)
-    local st, fixes = T.defaults(), 0
+    local st, fixes, repaired = T.defaults(), 0, {}
     local function take(ok, apply)
       if ok then apply() else fixes = fixes + 1 end
     end
@@ -368,7 +422,6 @@ function M.create(opts)
     if type(loaded.module) == 'table' and present(loaded.module.enabledAtStart) then
       take(isBool(loaded.module.enabledAtStart), function() st.module.enabledAtStart = loaded.module.enabledAtStart end)
     end
-    if present(loaded.fullRoster) then take(isBool(loaded.fullRoster), function() st.fullRoster = loaded.fullRoster end) end
     if present(loaded.keepRunning) then take(isBool(loaded.keepRunning), function() st.keepRunning = loaded.keepRunning end) end
     if present(loaded.keyboardSeat) then take(isInt(loaded.keyboardSeat, 0, ACTIVE), function() st.keyboardSeat = loaded.keyboardSeat end) end
     if present(loaded.logLevel) then
@@ -403,7 +456,9 @@ function M.create(opts)
           if present(s.uiSounds) then take(isBool(s.uiSounds), function() d.uiSounds = s.uiSounds end) end
           if present(s.parked) then take(isBool(s.parked), function() d.parked = s.parked end) end
           if present(s.device) then take(validDevice(s.device), function() d.device = copy(s.device) end) end
-          if type(s.bindings) == 'table' then
+          if i >= 2 and M.blankSeat(s) then
+            repaired[#repaired + 1] = i        -- no controls at all: keep the defaults, and say so (see T.load)
+          elseif type(s.bindings) == 'table' then
             for action in pairs(E.action) do
               local list = s.bindings[action]
               if present(list) then
@@ -436,11 +491,25 @@ function M.create(opts)
       end
       take(ok, function() st.aliases = list end)
     end
-    if type(loaded.diagnostics) == 'table' and type(loaded.diagnostics.arm) == 'table' then
+    if type(loaded.diagnostics) == 'table' and type(loaded.diagnostics.disarm) == 'table' then
       for _, k in ipairs(M.SUBSYSTEMS) do
-        local v = loaded.diagnostics.arm[k]
-        if present(v) then take(isBool(v), function() st.diagnostics.arm[k] = v end) end
+        local v = loaded.diagnostics.disarm[k]
+        if present(v) then take(isBool(v), function() st.diagnostics.disarm[k] = v end) end
       end
+    end
+    if type(loaded.play) == 'table' then
+      local p, d = loaded.play, st.play
+      if present(p.sharedCamera) then take(isBool(p.sharedCamera), function() d.sharedCamera = p.sharedCamera end) end
+      if present(p.guestInteractions) then
+        take(isBool(p.guestInteractions), function() d.guestInteractions = p.guestInteractions end)
+      end
+      if present(p.townView) then
+        take(type(p.townView) == 'string' and E.town_view[p.townView] ~= nil, function() d.townView = p.townView end)
+      end
+      if present(p.waitPause) then
+        take(type(p.waitPause) == 'string' and E.wait_pause[p.waitPause] ~= nil, function() d.waitPause = p.waitPause end)
+      end
+      if present(p.guestPause) then take(isBool(p.guestPause), function() d.guestPause = p.guestPause end) end
     end
     if type(loaded.diagnostics) == 'table' and present(loaded.diagnostics.hudTestDraw) then
       local v = loaded.diagnostics.hudTestDraw
@@ -453,6 +522,9 @@ function M.create(opts)
     if type(loaded.battleHud) == 'table' then
       local h, d = loaded.battleHud, st.battleHud
       if present(h.enabled) then take(isBool(h.enabled), function() d.enabled = h.enabled end) end
+      if present(h.theme) then
+        take(M.validThemeId(h.theme, schema.const.THEME_ID_MAX), function() d.theme = h.theme end)
+      end
       if type(h.elements) == 'table' then
         for _, k in ipairs(M.HUD_ELEMENTS) do
           local v = h.elements[k]
@@ -469,9 +541,27 @@ function M.create(opts)
           take(type(l.filter) == 'string' and E.log_filter[l.filter] ~= nil, function() d.log.filter = l.filter end)
         end
         if present(l.filterSeat) then take(isInt(l.filterSeat, 1, ACTIVE), function() d.log.filterSeat = l.filterSeat end) end
+        -- The ranges come from the schema; the compact view never shows more lines than the expanded one.
+        local function range(name)
+          local f = C.field('ilc_settings', name)
+          return f.min, f.max
+        end
+        local cLo, cHi = range(N.settings('logLinesCompact'))
+        local eLo, eHi = range(N.settings('logLinesExpanded'))
+        local fLo, fHi = range(N.settings('logFadeSeconds'))
+        if present(l.expandedLines) then
+          take(isInt(l.expandedLines, eLo or 5, eHi or 20), function() d.log.expandedLines = l.expandedLines end)
+        end
+        if present(l.compactLines) then
+          take(isInt(l.compactLines, cLo or 1, math.min(cHi or 8, d.log.expandedLines)),
+               function() d.log.compactLines = l.compactLines end)
+        end
+        if present(l.fadeSeconds) then
+          take(isInt(l.fadeSeconds, fLo or 3, fHi or 15), function() d.log.fadeSeconds = l.fadeSeconds end)
+        end
       end
     end
-    return st, fixes
+    return st, fixes, repaired
   end
 
   -- Whole-state sanity for a proposed change: the same domains, and the range check native will apply.
@@ -525,6 +615,11 @@ function M.create(opts)
     return false
   end
 
+  -- Plain text access for the page's Safety rows (other mods' settings files): the same reader and writer as coop.json.
+  -- read_text returns the text, or nil and why (see readRaw); write_text returns true when the bytes were written.
+  function T.read_text(p) return readRaw(p) end
+  function T.write_text(p, data) return writeRaw(p, data) end
+
   local function exists(p)
     if fs and fs.exists then
       local ok, res = pcall(fs.exists, p)
@@ -565,8 +660,8 @@ function M.create(opts)
   -- are merged (their unknown keys survive); every record the schema owns (devices, aliases, binding lists, kill switch)
   -- is replaced wholesale, so a key the schema no longer uses cannot come back from an old copy.
   local MERGE = {[''] = true, module = true, colours = true, ['colours.characters'] = true, seats = true,
-                 ['seats.#'] = true, ['seats.#.bindings'] = true, diagnostics = true, ['diagnostics.arm'] = true,
-                 battleHud = true, ['battleHud.elements'] = true, ['battleHud.log'] = true}
+                 ['seats.#'] = true, ['seats.#.bindings'] = true, diagnostics = true, ['diagnostics.disarm'] = true,
+                 play = true, battleHud = true, ['battleHud.elements'] = true, ['battleHud.log'] = true}
   local function isMap(t) return type(t) == 'table' and next(t) ~= nil and #t == 0 end
   local function overlay(base, st, where)
     local out = {}
@@ -649,7 +744,7 @@ function M.create(opts)
   -- Load the file. Always leaves T.state usable. fileStatus: new | ok | repaired | migrated | reset | recovered | readonly |
   -- unreadable (the file exists but could not be read: nothing is saved this session).
   function T.load()
-    T.raw, T.readOnly, T.repairs, T.badPath, T.migratedFrom = {}, false, 0, nil, nil
+    T.raw, T.readOnly, T.repairs, T.badPath, T.migratedFrom, T.seatRepaired = {}, false, 0, nil, nil, nil
     local raw, why = readRaw(path)
     if raw == nil and why == 'error' then
       T.fileStatus, T.readOnly = 'unreadable', true
@@ -711,11 +806,15 @@ function M.create(opts)
       T.badPath = T.badPath or (raw and keepBad(raw)) or nil
       return reset()
     end
-    local st, fixes = normalize(loaded)
+    local st, fixes, blank = normalize(loaded)
     T.state, T.repairs, T.raw = st, fixes, capDepth(loaded, 1)
+    if #blank > 0 then
+      T.seatRepaired = blank
+      log('coop.json: player ' .. table.concat(blank, ', ') .. ' had no controls at all; the default controls were restored')
+    end
     T.fileStatus = T.migratedFrom and 'migrated' or recovered and 'recovered' or (fixes > 0 and 'repaired' or 'ok')
     if fixes > 0 and not recovered then T.badPath = T.badPath or (raw and keepBad(raw)) or nil end
-    if fixes > 0 or recovered or T.migratedFrom then T.save() end
+    if fixes > 0 or recovered or T.migratedFrom or T.seatRepaired then T.save() end
     return st
   end
 
@@ -728,6 +827,11 @@ function M.create(opts)
     if s == 'unreadable' then return 'settings file could not be read (nothing is saved this session)' end
     if s == 'readonly' then return 'settings are read-only (file is from a newer version)' end
     if T.unsaved then return 'settings not saved' end
+    if T.seatRepaired then
+      local names = {}
+      for i, n in ipairs(T.seatRepaired) do names[i] = 'Player ' .. n end
+      return table.concat(names, ' and ') .. ' had no controls: the default controls were restored'
+    end
     return nil
   end
 

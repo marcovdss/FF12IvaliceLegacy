@@ -58,6 +58,7 @@ LOG_DRAW = 0x2BF230
 TEXT_DRAW, TEXT_PARAMS, TEXT_RENDER, TEXT_RENDER_EX = 0x2D8650, 0x2B3400, 0x2B0280, 0x3649A0
 BATCH_BEGIN, BATCH_SPRITE, BATCH_END = 0x2D9C40, 0x2D9380, 0x2D9B00
 SELECTION_BAR, TEXTURE_BY_NAME, NODE_DRAW = 0x242C90, 0x24A5A0, 0x2435C0
+SCISSOR = 0x2D8530              # the scissor setter (HD-V12): the replay lifts the log window's clip and sets it back
 REGISTRY, UI_READY, RENDER_ARENA = 0x208F580, 0x215E6D0, 0x1F7F4C0
 IMPORT_THUNKS = range(0x861E90, 0x862088, 6)  # jmp [iat] thunks: the twin's IAT is not bound, never run them
 MEMSET_THUNK = 0x861EC0
@@ -68,7 +69,8 @@ HD_ROWS = {'HD-V1': (LOG_DRAW, '40 55 41 54 41 56 41 57 48 81 ec 28 01 00 00 48'
            'HD-V5': (BATCH_SPRITE, '48 8b c4 48 89 58 20 55 56 57 41 54 41 55 41 56'),
            'HD-V6': (BATCH_END, '48 89 5c 24 10 57 48 83 ec 20 4c 8b 49 08 48 8b'),
            'HD-V7': (SELECTION_BAR, '40 55 53 56 41 56 41 57 48 8d 6c 24 d9 48 81 ec'),
-           'HD-V8': (TEXTURE_BY_NAME, '4c 8b d9 4c 8d 0d d6 4f e4 01 45 33 d2 0f 1f 00')}
+           'HD-V8': (TEXTURE_BY_NAME, '4c 8b d9 4c 8d 0d d6 4f e4 01 45 33 d2 0f 1f 00'),
+           'HD-V12': (SCISSOR, 'f7 41 5c 00 00 02 00 48 8d 49 48 b8 00 00 00 00')}
 RENDER = 0x40
 SITE_MISMATCH = 7
 SITE_CHANGED = 28
@@ -103,7 +105,12 @@ class Frame(ctypes.Structure):
 
 
 COUNTERS = ('reached', 'drawn', 'commands', 'texts', 'sprites', 'bars', 'declined_off', 'declined_frame',
-            'declined_context', 'declined_budget', 'skipped_commands', 'faults', 'published', 'ring_gaps')
+            'declined_context', 'declined_budget', 'skipped_commands', 'faults', 'published', 'ring_gaps',
+            'hook_ticks_last', 'hook_ticks_max', 'hook_ticks_total', 'hook_calls', 'atlas_lookups', 'text_last',
+            'chars_last', 'ring_ours_last', 'zero_output', 'child_space', 'declined_matrix', 'clips')
+
+
+HOOK_TIMING = {'hook_ticks_last', 'hook_ticks_max', 'hook_ticks_total', 'hook_calls'}   # move on every call
 
 
 class Counters(ctypes.Structure):
@@ -112,7 +119,7 @@ class Counters(ctypes.Structure):
 
 class Budget(ctypes.Structure):
     _fields_ = [('capacity', u64), ('frame_use', u64), ('peak', u64), ('ours', u64), ('cursor', u64),
-                ('matrix', f32 * 16), ('depth', u32), ('reserved', u32)]
+                ('matrix', f32 * 16), ('depth', u32), ('source', u32)]
 
 
 class Status(ctypes.Structure):
@@ -560,6 +567,7 @@ class HookDecisionTest(unittest.TestCase):
         self.hw.setup(reset_hud=reset_hud)
         a = ctypes.addressof
         struct.pack_into('<Q', self.mgr, 0x38, a(self.ctx))
+        ctypes.memmove(self.ctx, IDENTITY, len(IDENTITY))   # a usable draw matrix (an all-zero one is refused)
         struct.pack_into('<h', self.ctx, 0x58, 0x80)
         struct.pack_into('<h', self.ctx, 0x5A, 0x80)
         if reset_hud:
@@ -586,7 +594,8 @@ class HookDecisionTest(unittest.TestCase):
         return r
 
     def delta(self, before: Counters, after: Counters) -> dict:
-        return {n: getattr(after, n) - getattr(before, n) for n in COUNTERS if getattr(after, n) != getattr(before, n)}
+        return {n: getattr(after, n) - getattr(before, n) for n in COUNTERS
+                if n not in HOOK_TIMING and getattr(after, n) != getattr(before, n)}
 
     def run_case(self, prepare=None, epoch=gt.EPOCH) -> tuple[int, dict]:
         if prepare:
@@ -851,7 +860,7 @@ class NativeEquivalenceTest(unittest.TestCase):
     after-handler. The native text renderer (0x2b0280), the batched sprite draw, the batch begin/end and the selection
     bar are where the run stops and records what reached them; everything before them is the game's own code."""
 
-    STOPS = {TEXT_RENDER, TEXT_RENDER_EX, BATCH_BEGIN, BATCH_SPRITE, BATCH_END, SELECTION_BAR}
+    STOPS = {TEXT_RENDER, TEXT_RENDER_EX, BATCH_BEGIN, BATCH_SPRITE, BATCH_END, SELECTION_BAR, SCISSOR}
 
     @classmethod
     def setUpClass(cls):
@@ -1144,12 +1153,12 @@ class SwitchTest(unittest.TestCase):
 
     def test_native_reads_it_only_from_the_players_settings(self):
         src = (HUD_SRC / 'canvas.cpp').read_text(encoding='utf-8')
-        self.assertIn('s.header.generation != 0 && s.hud_test_draw != 0', src)
+        self.assertIn('const bool on = false;', src)   # the old test draw stays off: the switch is the overlay's card
         self.assertIn('volatile uint32_t g_test_draw = 0;', src)
 
     def test_mod_menu_row(self):
         page = (LUA / 'page.lua').read_text(encoding='utf-8')
-        self.assertIn("toggle(hud, 'hudTestDraw', 'HUD test draw', {'Off', 'On'},", page)  # the Battle HUD page's Diagnostics
+        self.assertIn("toggle(dev, 'hudTestDraw', 'Overlay test card', {'Off', 'On'},", page)  # Advanced > Developer
 
     @unittest.skipIf(LuaRuntime is None, 'requires lupa')
     def test_store_round_trip(self):
@@ -1175,7 +1184,7 @@ class SwitchNativeTest(unittest.TestCase):
         self.assertEqual(d.ILCT_HudTestDraw(), 0)
         struct.pack_into('<I', rec, 12, 3)
         d.ILCT_HudConfigure(bytes(rec))
-        self.assertEqual(d.ILCT_HudTestDraw(), 1)
+        self.assertEqual(d.ILCT_HudTestDraw(), 0, 'the old canvas test draw stays off (the switch is the overlay card)')
         rec[f['offset']] = 0
         d.ILCT_HudConfigure(bytes(rec))
         self.assertEqual(d.ILCT_HudTestDraw(), 0)

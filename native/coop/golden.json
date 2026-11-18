@@ -1,8 +1,8 @@
 {
-  "dllSha256": "567155ac72b165d31268394b904c81a0b2c3d118e7d2ea740be13e1733228530",
-  "dllSize": 1486336,
-  "sourceId": "86027bdc0075b55b3debd465fb3b4746eb0a6bca4f2a6acd51cd5d407f142138",
-  "schemaSha256": "4fdfff0a8c4b6bdab64971d316a38d9aba9483030cacbc6a4c737ef2a837a067",
+  "dllSha256": "2b11196d2a5f0417e25bf50eca16d7c0965441fa3e87dcc02bb2aaf1e2a3ce35",
+  "dllSize": 2703872,
+  "sourceId": "40384baaf7d425586585ad71346319f9113aca201762c2d8f6b6f2d809a1a31a",
+  "schemaSha256": "338b041a139d194e9deb6d16317f3dd1d059cc3d249eea6e30a1ba85ff825452",
   "packages": {
     "mingw-w64-ucrt-x86_64-gcc": "mingw-w64-ucrt-x86_64-gcc 16.2.0-3",
     "mingw-w64-ucrt-x86_64-binutils": "mingw-w64-ucrt-x86_64-binutils 2.47-3",

@@ -9,7 +9,8 @@
 //   directory = u32 [header + 0x14]; list = u32 [directory + 4]; text = u32 [list + 4 + index * 4]
 // (every 32-bit value is an address: the resource base is 0). A miss is the game's empty string. Action help ids are
 // bank 4 (the battle's help_action text, which Legacy replaces with its own), so the help follows Legacy's text. An
-// item shows the help of the action it uses (item row +7), the row the game executes.
+// item shows the help of the action whose name it shows (item row +8, the catalog entry's `display`), not of the action
+// it uses (+7): Legacy's mote rows differ there (0.1.60 bug 9, Balance Mote showed Reflectga Mote's help).
 //
 // The text is the game's single-byte text. Formatting tokens start with 0x0F: 0x0F 0x29 is a colour run (a header
 // whose low three bits count its values, 0 = one), 0x0F 0x3C a colour switch and 0x0F 0x3F an inline icon, each with

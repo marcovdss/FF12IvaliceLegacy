@@ -95,6 +95,11 @@ void sample_world(game_reader& r, world_sample* out)
         return;
     }
     out->menu_open = (command_actor != 0 && command_flag == 1) ? 1 : 0;
+    const uint32_t frontend_id = command_actor & FRONTEND_ID_MASK;
+    out->p1_battle_menu = out->menu_open != 0 && (frontend_id == FRONTEND_BATTLE || frontend_id == FRONTEND_LEADER ||
+                                                  frontend_id == FRONTEND_TREE_ACTIVE)
+                              ? 1
+                              : 0;
     out->modal_active = modal_active(r) ? 1 : 0;
 
     uintptr_t battle = 0;

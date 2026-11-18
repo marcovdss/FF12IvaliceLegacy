@@ -117,12 +117,12 @@ static_assert(targets_row(ROW_OVERHEAD, ILC_SITE_KIND_CALL, SITE_OVERHEAD_CALL) 
 template <typename T>
 bool load(uint64_t address, T* out)
 {
-    return load_from_caller(out, reinterpret_cast<const void*>(address), sizeof(T));
+    return load_game(out, reinterpret_cast<const void*>(address), sizeof(T));
 }
 
 bool store(uint64_t address, const void* bytes, uint32_t n)
 {
-    return copy_to_caller(reinterpret_cast<void*>(address), bytes, n);
+    return store_game(reinterpret_cast<void*>(address), bytes, n);
 }
 
 bool targets_live()
@@ -153,7 +153,7 @@ int32_t line_body(patch::ctx* c, const lines_record& r)
     }
     // One probe read for both fields (+0x810 source .. +0x841 type): one region check per line.
     uint8_t span[LINE_TYPE + 2 - LINE_SOURCE];
-    if (!copy_from_caller(span, reinterpret_cast<const void*>(c->r15 + LINE_SOURCE), sizeof(span))) {
+    if (!read_game(span, reinterpret_cast<const void*>(c->r15 + LINE_SOURCE), sizeof(span))) {
         bump(g_counters.lines_unread);
         return patch::RUN_ORIGINAL;
     }
@@ -212,7 +212,7 @@ float to_float(int32_t v) { return static_cast<float>(v); }
 
 // One sprite object: anchor, the frame, colour + alpha + a centred quad, the lift, then the list. False = pool full.
 bool emit(const game_fns& f, uint64_t pool, uint64_t list, uint64_t texture, const float anchor[4], uint32_t sheet,
-          uint32_t cell, uint32_t scale_pct, uint32_t alpha)
+          uint32_t cell, uint32_t scale_pct, uint32_t alpha, const uint32_t* tint = nullptr)
 {
     const uint64_t obj = f.alloc(pool);
     if (obj == 0) {
@@ -232,7 +232,8 @@ bool emit(const game_fns& f, uint64_t pool, uint64_t list, uint64_t texture, con
     struct {
         uint32_t r, g, b, a;
         float x0, y0, x1, y1;
-    } look = {ALPHA_FULL, ALPHA_FULL, ALPHA_FULL, alpha, to_float(-w / 2), to_float(-h / 2), to_float(w - w / 2),
+    } look = {tint != nullptr ? tint[0] : ALPHA_FULL, tint != nullptr ? tint[1] : ALPHA_FULL,
+              tint != nullptr ? tint[2] : ALPHA_FULL, alpha, to_float(-w / 2), to_float(-h / 2), to_float(w - w / 2),
               to_float(h - h / 2)};
     static_assert(sizeof(look) == 0x20, "colour + quad");
     const float lift[2] = {to_float(DIAMOND_LIFT), 1.0f};
@@ -247,9 +248,64 @@ bool emit(const game_fns& f, uint64_t pool, uint64_t list, uint64_t texture, con
 }  // namespace
 
 // ---- the rules -------------------------------------------------------------------------------------------------------------
+namespace {
+
+// targetline_p palettes (HUD-NATIVE-RE 5.1): 0 blue, 1 red, 2 yellow, 3 green, 4 gold, 5 purple, 6 white.
+constexpr uint8_t CLUT_BLUE = 0, CLUT_RED = 1, CLUT_YELLOW = 2, CLUT_GREEN = 3, CLUT_GOLD = 4, CLUT_PURPLE = 5;
+// Per ilc_colour, the palettes by preference: the exact one, or the nearest by colour (RGB distance to the baked
+// palette colours) for pink (245,120,190 -> purple 76, red 83, gold 158, yellow 174) and bronze (205,127,50 -> gold 62,
+// red 67, yellow 95). Never 6 (white): the gambit allies' lines.
+constexpr uint8_t PREFS = 4;
+constexpr uint8_t CLUT_PREFS[ILC_ENUM_COUNT(ILC_COLOURS)][PREFS] = {
+    {CLUT_BLUE, CLUT_BLUE, CLUT_BLUE, CLUT_BLUE},          // sapphire
+    {CLUT_RED, CLUT_RED, CLUT_RED, CLUT_RED},              // ruby
+    {CLUT_PURPLE, CLUT_RED, CLUT_GOLD, CLUT_YELLOW},       // pink
+    {CLUT_GREEN, CLUT_GREEN, CLUT_GREEN, CLUT_GREEN},      // emerald
+    {CLUT_GOLD, CLUT_GOLD, CLUT_GOLD, CLUT_GOLD},          // gold
+    {CLUT_PURPLE, CLUT_PURPLE, CLUT_PURPLE, CLUT_PURPLE},  // amethyst
+    {CLUT_GOLD, CLUT_RED, CLUT_YELLOW, CLUT_YELLOW},       // bronze
+};
+static_assert(ILC_COLOUR_SAPPHIRE == 0 && ILC_COLOUR_RUBY == 1 && ILC_COLOUR_EMERALD == 3 && ILC_COLOUR_GOLD == 4 &&
+                  ILC_COLOUR_AMETHYST == 5,
+              "the exact colours are their own palette index");
+
+bool exact_palette(uint8_t colour)
+{
+    return colour < ILC_ENUM_COUNT(ILC_COLOURS) && colour != ILC_COLOUR_PINK && colour != ILC_COLOUR_BRONZE;
+}
+
+}  // namespace
+
 uint8_t clut_of_colour(uint8_t colour)
 {
-    return colour < CLUT_COUNT ? colour : CLUT_NONE;  // ilc_colour is the target-circle palette index
+    return colour < ILC_ENUM_COUNT(ILC_COLOURS) ? CLUT_PREFS[colour][0] : CLUT_NONE;
+}
+
+void line_cluts(const uint8_t colours[SEATS], uint8_t out[SEATS])
+{
+    uint32_t used = 0;   // bit per palette a seat already holds
+    for (uint32_t s = 0; s < SEATS; ++s) {
+        out[s] = CLUT_NONE;
+        if (exact_palette(colours[s])) {
+            out[s] = CLUT_PREFS[colours[s]][0];
+            used |= 1u << out[s];
+        }
+    }
+    for (uint32_t s = 0; s < SEATS; ++s) {
+        const uint8_t c = colours[s];
+        if (c >= ILC_ENUM_COUNT(ILC_COLOURS) || exact_palette(c)) {
+            continue;
+        }
+        uint8_t pick = CLUT_PREFS[c][0];
+        for (uint32_t k = 0; k < PREFS; ++k) {
+            if ((used & (1u << CLUT_PREFS[c][k])) == 0) {
+                pick = CLUT_PREFS[c][k];
+                break;
+            }
+        }
+        out[s] = pick;
+        used |= 1u << pick;
+    }
 }
 
 uint8_t gem_cell(uint8_t colour)
@@ -260,16 +316,42 @@ uint8_t gem_cell(uint8_t colour)
     case ILC_COLOUR_AMETHYST: return 3;
     case ILC_COLOUR_RUBY: return 4;
     case ILC_COLOUR_GOLD: return 6;
-    case ILC_COLOUR_PINK: return 6;     // palette 2 is yellow: no yellow gem, gold is the nearest
+    case ILC_COLOUR_PINK:     // no pink gem: the grey one, tinted (gem_tint)
     case ILC_COLOUR_BRONZE: return 7;
     default: return GEM_NONE;
     }
 }
 
+bool gem_tint(uint8_t colour, uint32_t rgb[3])
+{
+    rgb[0] = rgb[1] = rgb[2] = ALPHA_FULL;
+    if (colour != ILC_COLOUR_PINK && colour != ILC_COLOUR_BRONZE) {
+        return false;
+    }
+    const rgba c = party_rows::colour_rgba(colour);   // 0x80 = 1.0
+    const uint32_t top = c.r > c.g ? (c.r > c.b ? c.r : c.b) : (c.g > c.b ? c.g : c.b);
+    if (top == 0) {
+        return false;
+    }
+    const uint8_t ch[3] = {c.r, c.g, c.b};
+    for (uint32_t k = 0; k < 3; ++k) {
+        const uint32_t v = (static_cast<uint32_t>(ch[k]) * 0xFFu + top / 2) / top;
+        rgb[k] = v > 0xFF ? 0xFF : v;
+    }
+    return true;
+}
+
+uint32_t party_clut_of_type(uint32_t type)
+{
+    return type == TYPE_PARTY ? CLUT_PARTY : (type == TYPE_PARTY_SUPPORT ? CLUT_PARTY_SUPPORT : CLUT_NONE);
+}
+
 uint32_t line_clut(const lines_record& r, uint32_t source, uint32_t type, uint32_t native)
 {
-    if (type != TYPE_PARTY && type != TYPE_PARTY_SUPPORT) {
-        return native;  // foe and neutral lines keep the game's colours
+    // Only a party line still in the party palette 0x2713B0 gives its type (3 -> 0 blue, 4 -> 3 green) is recoloured:
+    // foe and neutral lines, and any other palette (a special case of another hook, value 4 included), keep theirs.
+    if (native != party_clut_of_type(type)) {
+        return native;
     }
     const line_entry* e = entry_for(r, source);
     return e != nullptr ? e->clut : native;
@@ -277,8 +359,14 @@ uint32_t line_clut(const lines_record& r, uint32_t source, uint32_t type, uint32
 
 uint32_t arrow_clut(const lines_record& r, uint32_t source, uint32_t native)
 {
-    if (native != ARROW_ON) {
-        return native;  // red: the game's own warning state
+    // The arrow's own rule, not the lines' one. The game gives the arrow two palettes (0x3F787C..0x3F78BF): 4 gold
+    // (in range) and 1 red (out of range). Red is the game's out-of-range warning and is always kept. Gold, and the
+    // party palettes 0 and 3 (another hook's), take the palette of the record's entry for the source: a seat's own
+    // colour, so whoever leads is identified by the arrow (the gambit white 6 for a party member no seat holds).
+    // Parity with the co-op fork (its arrow cave recolours every state but palette 1) and our own earlier rule. Any
+    // other value is another hook's special case: kept.
+    if (native != ARROW_ON && native != CLUT_PARTY && native != CLUT_PARTY_SUPPORT) {
+        return native;
     }
     const line_entry* e = entry_for(r, source);
     return e != nullptr ? e->clut : native;
@@ -369,6 +457,27 @@ uint32_t trigger_step(trigger_state& st, uint32_t epoch, const seat_input in[SEA
     return fired;
 }
 
+// 0.1.57 (Marco: identification should stay): a seat that holds a character keeps its diamond. A held seat whose
+// diamond is not up fades it in; one past its fade-in is held at full (its hold restarts every beat), so it never fades
+// out while the seat plays. The triggers above still fire (and count) as before.
+void persist_step(trigger_state& st, const seat_input in[SEATS], uint64_t now_ms)
+{
+    if (st.epoch == 0) {
+        return;
+    }
+    for (uint32_t s = 0; s < SEATS; ++s) {
+        seat_track& t = st.seats[s];
+        if (in[s].held == 0 || t.held == 0) {
+            continue;
+        }
+        if (diamond_alpha(t.shown_ms, now_ms) == 0) {
+            t.shown_ms = now_ms != 0 ? now_ms : 1;
+        } else if (now_ms >= t.shown_ms + DIAMOND_FADE_IN_MS) {
+            t.shown_ms = now_ms - DIAMOND_FADE_IN_MS;
+        }
+    }
+}
+
 // ---- handlers ---------------------------------------------------------------------------------------------------------------
 int32_t line_call(patch::ctx* c, uint32_t epoch)
 {
@@ -450,7 +559,7 @@ void overhead_after(patch::ctx* c, uint32_t epoch)
         }
         for (uint32_t s = 0; s < SEATS; ++s) {
             if (alpha[s] > 0 && !found[s] && handle == r.seats[s].handle) {
-                found[s] = copy_from_caller(anchor[s], reinterpret_cast<const void*>(rec + OVERHEAD_ANCHOR),
+                found[s] = read_game(anchor[s], reinterpret_cast<const void*>(rec + OVERHEAD_ANCHOR),
                                             sizeof(anchor[s]));
             }
         }
@@ -483,8 +592,10 @@ void overhead_after(patch::ctx* c, uint32_t epoch)
             bump(g_counters.pool_full);
             return;
         }
+        uint32_t tint[3];
+        const bool tinted = gem_tint(r.seats[s].colour, tint);
         if (!emit(f, g_pending.pool, g_pending.list_b, texture, anchor[s], GEM_SHEET, r.seats[s].gem, GEM_SCALE_PCT,
-                  alpha[s]) ||
+                  alpha[s], tinted ? tint : nullptr) ||
             !emit(f, g_pending.pool, g_pending.list_b, texture, anchor[s], DIGIT_SHEET, numeral, DIGIT_SCALE_PCT,
                   alpha[s])) {
             bump(g_counters.pool_full);
@@ -597,9 +708,13 @@ void step(uint64_t now_ms)
         }
         colour[s] = party_rows::row_colour(g_colour_mode, g_seat_colours, g_character_colours,
                                            static_cast<uint8_t>(s + 1), e.member);
-        const uint8_t clut = clut_of_colour(colour[s]);
-        if (clut != CLUT_NONE && lines.count < LINE_ENTRIES) {
-            lines.entries[lines.count++] = {e.handle, MARK_SEAT, static_cast<uint8_t>(s + 1), clut, 0};
+    }
+    // Every seat its own palette (pink and bronze the nearest one no other seat holds; never the gambit white).
+    uint8_t clut[SEATS];
+    line_cluts(colour, clut);
+    for (uint32_t s = 0; s < SEATS && s < session::SEATS; ++s) {
+        if (in[s].held != 0 && clut[s] != CLUT_NONE && lines.count < LINE_ENTRIES) {
+            lines.entries[lines.count++] = {in[s].handle, MARK_SEAT, static_cast<uint8_t>(s + 1), clut[s], 0};
         }
     }
     // Gambit allies: the party rows no seat holds.
@@ -621,6 +736,7 @@ void step(uint64_t now_ms)
     }
     const uint32_t identify_mask = __atomic_exchange_n(&g_identify, 0u, __ATOMIC_ACQ_REL);
     const uint32_t fired = trigger_step(g_triggers, srec.head.epoch, in, identify_mask, now_ms);
+    persist_step(g_triggers, in, now_ms);
     for (uint32_t s = 0; s < SEATS; ++s) {
         if (((fired >> (4 * s)) & 0xFu) != 0) {
             bump(g_counters.triggers);
@@ -629,7 +745,7 @@ void step(uint64_t now_ms)
         if (in[s].held == 0 || t.shown_ms == 0) {
             continue;
         }
-        dia.seats[s] = {in[s].handle, static_cast<uint8_t>(s + 1), gem_cell(colour[s]), 0, t.shown_ms};
+        dia.seats[s] = {in[s].handle, static_cast<uint8_t>(s + 1), gem_cell(colour[s]), colour[s], 0, t.shown_ms};
     }
     g_lines.publish(lines);
     g_diamonds.publish(dia);

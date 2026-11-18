@@ -226,7 +226,7 @@ class SourceTest(unittest.TestCase):
         writes = re.findall(r'store_u32\(([^,]+),', self.cpp)
         self.assertEqual(sorted(set(w.strip() for w in writes)), ['g_force_row + ROW_HP_CACHE', 'row + ROW_HP_CACHE',
                                                                   'uint64_t address'])
-        self.assertEqual(self.cpp.count('copy_to_caller('), 1, 'one writer: store_u32')
+        self.assertEqual(self.cpp.count('copy_to_caller(') + self.cpp.count('store_game('), 1, 'one writer: store_u32')
 
     def test_the_driver_runs_it_as_the_party_pass(self):
         driver = (HUD_SRC / 'driver.cpp').read_text(encoding='utf-8')
@@ -640,9 +640,9 @@ class PassTest(unittest.TestCase):
         f = self.draw(party_snapshot(units))
         a = self.anchor(REDUCED, 0, 3)
         lines = [c for c in cmds(f) if c[0] == 'text' and len(c[1]) > 2]
-        self.assertEqual([(c[1], c[2], c[3], c[5]) for c in lines],
-                         [(th.encoded('- Fran'), a.suffix_x, a.suffix_y, a.suffix_scale)],
-                         'a foe target or a self target adds nothing')
+        # Marco, 2026-11-16: the action line names the action only, never its target (the target lines show it).
+        self.assertEqual([(c[1], c[2], c[3], c[5]) for c in lines], [], 'no target name, ally or foe')
+        del a
         # not performing (idle actor, stale target): nothing
         self.d.ILCT_RowsPublish(ctypes.byref(record([(0, 0, GOLD, 0xFFFF)])))
         f = self.draw(party_snapshot([unit(0, seat=1, target=0x100002), unit(2, seat=2)]))

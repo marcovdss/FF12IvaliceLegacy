@@ -31,7 +31,7 @@ committed file; HELLO returns the JSON's SHA-256, so a Lua page can refuse a mod
 | Op | In | Out |
 |---|---|---|
 | 1 `HELLO` | nothing or one header | module version, state, ABI, settings size, accepted/applied generation, ops mask, source and schema ids |
-| 2 `SET_SETTINGS` | `ilc_settings` (3,532 bytes) | ack: STAGED or DUPLICATE |
+| 2 `SET_SETTINGS` | `ilc_settings` (3,540 bytes) | ack: STAGED or DUPLICATE |
 | 3 `COMMAND` | `ilc_command` | nothing. Seat commands (park, seat move, pairing, capture) are queued for the input service (0) and answer with an event; `NOT_READY` while the service is stopped, `BUSY` when its queue is full. `KILL_SWITCH` is taken by the co-op thread at its next beat (0). `STALL_COOP_THREAD` is a developer test (see "Diagnostics"). `RESTORE_DEFAULTS` answers `NOT_READY` until its subsystem exists |
 | 4 `GET_STATUS` | nothing | state, generations, digests, event and reject counters, last reject, applied subsystem mask |
 | 5 `GET_SEATS` | nothing | the configured seat view (no session yet) |
@@ -39,6 +39,7 @@ committed file; HELLO returns the JSON's SHA-256, so a Lua page can refuse a mod
 | 7 `POP_EVENTS` | nothing | as many queued events as fit in `outCap` |
 | 8 `GET_SETTINGS` | nothing | the applied settings (generation 0 = native defaults) |
 | 9 `GET_COUNTERS` | nothing | `ilc_counters`: the module's diagnostic counters (see "Diagnostics" below). Read-only, answers in any state |
+| 10 `PUSH_HUD_STATES` | `ilc_hud_states` | nothing: kept as the latest Legacy script states for the HUD overlay (foes, party words, proc tags), shown while fresh. Push from a script timer, never a sync hook |
 | 0x7F01 `TEST_SAFE_POINT` | nothing | debug: runs the settings safe point; refused once the module's tick owns it |
 
 Settings rules: every field is validated as untrusted (ranges, zero reserved bytes, UTF-8 names, one pad and one
@@ -49,9 +50,12 @@ or mouse button equal to any key or mouse binding of the seat that owns the keyb
 slot; the right mouse button is P2's default CANCEL, so it can be the kill switch only once that binding moves), and
 a guest's `TOGGLE_CONTROL` key or mouse button equal to any key or mouse binding of the seat that owns the keyboard
 (reported at that guest's binding; the keyboard's own seat is exempt for its own join key). Only keyboard keys and
-mouse buttons are compared; pad bindings belong to each seat's own pad and never clash. `subsystems_armed` is a bit per future subsystem (input isolation,
-movement, party, camera, firewall and menus, Wait, render, targets and cards), all armed by default; each
-subsystem must check its bit at its safe point and stay stock while it is clear. A record lands in a staging slot
+mouse buttons are compared; pad bindings belong to each seat's own pad and never clash. The compact battle log never
+shows more lines than the expanded one (`log_lines_compact` > `log_lines_expanded` is a `CONFLICT`). "Co-op On" means
+every subsystem works: the arm gates get every subsystem bit (input isolation, movement, party, camera, firewall and
+menus, Wait, render, targets and cards) less the developer override `subsystems_disarm` (honoured only while
+`developer` = 1) and less CAMERA while `shared_camera` is 0 (`src/runtime/options.h`); each subsystem must check its
+bit at its safe point and stay stock while it is clear. A record lands in a staging slot
 and becomes the applied settings
 at the safe point, which only ever tries the lock. A repeat of the last accepted generation with the same bytes is
 a no-op, an older generation is refused, and the applied settings persist whatever the caller does next. The
@@ -93,6 +97,12 @@ src/hud/            the HUD canvas: frames built on the co-op thread, replayed b
                     driver/snapshot: the HudSnapshot, the element passes in order and the presenter stamp;
                     party_rows: the party list row additions and the low-HP glow (HD-02/HD-03)
                     menus_draw: the co-op battle menus in the native window style (the menu pass) and their view
+src/overlay/        our own overlay (OV-01, RENDER): D3D11 drawing inside the game's frame (gpu.*), the quad batch
+                    and its primitives (batch.*), the theme's SDF font (font.*), the HUD themes (theme*.*: the
+                    built-ins from themes/<id>/font.inc and theme.json, player themes read with the same rules),
+                    the themed composites (marks.*), the test card and the guests' command windows (scene.*), the
+                    frame hook, the HUD heartbeat and the presenter stamp (overlay.*); overlay.hlsl -> shaders.inc
+                    (tools/gen_overlay_shaders.py)
 src/focus/          Keep running in background: the application stays active in windowed and borderless mode,
                     player 1's pads and mouse read neutral while another window has the focus (CORE rows)
 src/patch/          patch layer around MinHook: generated site table (sites.inc), preflight, all-or-nothing
@@ -159,6 +169,9 @@ python -m pytest tests/test_coop_hud_battle_log_hits.py   # battle log: per-hit 
 python -m pytest tests/test_coop_hud_world_marks.py  # seat lines, seat diamonds, AoE-only rings (unicorn)
 python -m pytest tests/test_coop_battle_hud.py       # Battle HUD settings: element switches, Identify, report, page
 python -m pytest tests/test_coop_hud_layout.py       # couch layout: corners, boss gauge, every element at 3 resolutions
+python -m pytest tests/test_coop_options.py          # player options, arm mask, Wait ANY/ALL, guest pause, hook.log
+python -m pytest tests/test_coop_overlay.py         # overlay: font, batch, scene, WARP draws and state, OV-01, P1 native
+python -m pytest tests/test_coop_seat_limit.py       # four seats: P4 as keyboard seat, device owner, command seat, F9
 ```
 
 `test_coop_menu.py` also runs the catalog on the real tables when `ILC_BATTLE_PACK` names a `battle_pack.bin` and,
@@ -375,7 +388,7 @@ read half old, half new.
   direction: map jump, load, title screen, game over, cutscene. Nothing prepared in one epoch acts in another.
 * **Gates:** world valid, gameplay, movement, camera, P1 and guest battle menus, co-op logical, shared camera,
   guests' movement hooks, guest interaction (towns included), party down (the game's own recovery owns input).
-* **Seat table:** `ILC_SEATS` entries, filled only below `ILC_ACTIVE_SEATS_MAX` (3). Per seat: character, party
+* **Seat table:** `ILC_SEATS` entries, filled only below `ILC_ACTIVE_SEATS_MAX` (4: every seat). Per seat: character, party
   slot, actor and physics pointers (compare only), handle, incarnation, alive and movable state, whether it steers.
   A party or leader change made by the game or another mod is adopted once it has held for 200 ms (never during a
   KO promotion or a summon). P1's availability to lead is one bracketed sample (HP and battle pointer read before
@@ -555,11 +568,12 @@ the game; it is the data the menu input, the target picker (`src/targets/`) and 
   Offering, Parsimony, Spellspring, Channeling I-III in single precision; Quickening and Esper ids pay their base on
   the party side) and checked against the game's code in unicorn. An MP cost that cannot be computed (a Channeling
   value unread) is flagged and not greyed for MP: the admission decides at submission.
-- **Legacy's MP economy** (`cost.*`): a party member's Magick (menu kind 1, listed cost above 0) pays a surcharge after
-  the cast, the game's own price times Magick / DIVISOR (never below it, at most CAP times it, rounded half up;
-  version 0.1.x scaled the listed cost). The menu shows the game's price plus that surcharge and greys on the game's
-  price alone, as the game admits the cast on it. The version, DIVISOR and CAP come in the settings record (Lua reads
-  Legacy's `mp_economy.lua`, `coop/economy.lua`); without them every number is the game's.
+- **Legacy's MP economy** (`cost.*`): up to version 0.2.x a party member's Magick (menu kind 1, listed cost above 0)
+  paid a surcharge after the cast, the game's own price times Magick / DIVISOR (never below it, at most CAP times it,
+  rounded half up; version 0.1.x scaled the listed cost). Since 0.3.0 the surcharge is removed: CAP is 1, so the
+  surcharge is always 0 and the menu shows the game's own price. It greys on the game's price, as the game admits the
+  cast on it. The version, DIVISOR and CAP still come in the settings record (Lua reads Legacy's `mp_economy.lua`,
+  `coop/economy.lua`); without them every number is the game's.
 - **Help lines** (`help.*`): an action's help id (action row +0x00) is resolved the way the game's help lookup
   (0x2F9860) walks its banks (bank = id / 1000, loaded flag, bounds), read through the fault-safe reader, formatting
   tokens removed. Items show the help of the action they use. The menu view shows it in the help strip, fitted to
@@ -660,8 +674,9 @@ so the frontend gate stays armed; anything else posts an empty report.
 
 Presenter guard (`presenter.*`): the overlay stamps every frame on which it drew the co-op menu layer. The layer may
 own P1's battle UI, open any menu or selector (guests included) and ask for a Wait pause only while that stamp is at
-most 250 ms old. Nothing stamps it until the overlay exists, so in this build the layer idles: every stock frontend
-is P1's, no co-op menu opens and Wait is never requested.
+most 250 ms old. Our own overlay (`src/overlay/`) stamps it; with Player 1 on the game's own frontends (the shipped
+default, `set_p1_native`) only the guests' menus open, and P1's stock battle menu, leader select and KO path stay
+the game's.
 
 Character selectors: with its menu closed, a seat's UP or DOWN alone opens Player 1's Change Leader or a guest's
 Change Character (the live party's regular characters that can lead, HUD order; another seat's character only while
@@ -690,6 +705,108 @@ itself. Isolation's substitution host (P1 on an SDL-only pad, or a guest driving
 block too, and presses made meanwhile are consumed, not replayed on refocus. FP-V1 pins the only writer of the application's active byte (another mod's rewrite skips FP-01); FP-01 never
 acts unless IN-06 is hooked. The rows have no subsystem bit: they run while dry-armed, act only on the setting, and
 the setting off is stock.
+
+## Our own overlay (`src/overlay/`, RENDER)
+
+The game presents through one wrapper, 0x6234A0(renderer), called from one place: the Present case of the
+render-command dispatcher. That call is OV-01 (a call row, OPTIONAL; OV-V1..OV-V3 gate it: the wrapper's prologue,
+its Present call through the swap chain at renderer +0x118, and the D3D11CreateDeviceAndSwapChain arguments that put
+device, immediate context and swap chain at +0x108/+0x110/+0x118). The handler runs on the render-ring consumer
+thread that owns the immediate context, draws into the back buffer with our own objects, and runs the wrapper
+(RUN_ORIGINAL). No DXGI vtable patch, no dummy device, no window of our own; no new import.
+
+GPU side (`gpu.*`): one vertex and one pixel shader (shader model 4.0, precompiled by `tools/gen_overlay_shaders.py`
+with System32's d3dcompiler_47.dll into `shaders.inc`; build.py refuses a stale one; the pixel shader picks each
+quad's mode by floor(mode), the glass modes carrying their sheen and rim bias in the fraction), one dynamic vertex
+buffer of 6,144 quads (`QUAD_CAP`), the font atlas (R8, immutable), a linear clamp sampler, premultiplied-alpha blend, no cull, no scissor,
+depth off; created once per device, a failure final for that device. Per frame only the back buffer's render target
+view is made and released (the swap chain's buffer is never held). Every state the draw binds is saved first and put
+back after (input layout, topology, vertex buffer 0, VS/PS with class instances, GS/HS/DS nulled, PS resource and
+sampler 0, rasterizer, viewports, scissors, blend with factor and mask, depth-stencil with reference, every render
+target and the depth view; UAVs kept). Checks: the swap chain's device is the renderer's and the context is its
+immediate one; the device is not removed; the back buffer is at least 640x360 in R8G8B8A8/B8G8R8A8 (UNORM or
+sRGB), R10G10B10A2 or R16G16B16A16_FLOAT. Anything else draws nothing.
+
+Space and look (`batch.*`, `font.*`, `theme.*`, `marks.*`): the HUD's 1920x1080 authoring units, one uniform scale,
+centred. Every colour, size, window shape, tab, gauge and mark comes from the active HUD theme (Phase 8): three
+built-ins compiled in from `src/overlay/themes/<id>/` (legacy-bold "Bold Modern", the default; legacy-humanist; legacy-
+crisp; copied and pinned by `tools/gen_overlay_themes.py`, checked by build.py), and player themes read from
+`x64/scripts/config/IvaliceLegacy/themes/<id>/` with the same strict rules (`theme.h`; players: `docs/THEMES-README.md`).
+Text is UTF-8 from the theme's signed-distance-field atlas (body, title and numerals faces, kerning with accents
+falling back to their base letter, small-size tracking, HUD text spaced clear of its outline); window glass computed per
+pixel (rounded or chamfered, a 2..4-stop gradient as stacked bands, rim dimming toward the bottom, the diagonal sheen),
+the outer keyline, inner line and halo as extra quads; slanted, rounded or ticked gauges with a hatched trail; the
+glove, chevrons, seat diamond, dot and status icons as layered SDF recipes. The setting is `hud_theme` (Mod Menu: HUD >
+HUD theme), the list `GET_THEMES`.
+
+What it draws (`scene.*`): the test card while Developer options and the Diagnostics switch (Mod Menu: "Overlay
+test card", settings `hud_test_draw`) are on; every seat's command window, target page and character selector from
+the published menu view, one uniform window per seat in a fixed slot along the bottom (`scene::slot_layout`: 275 x 230
+units from x 24, 16 apart, bottoms at y 1056, P1 leftmost; a closed menu leaves its slot empty). The window moves
+towards the vanilla look, still procedural: blue gradient glass with a light rim, a tab "P2 - Fran" with the seat
+number in the seat colour under a seat-colour accent, white outlined rows (greyed dimmed, Gambits ON in pale gold),
+the white glove outlined in the seat colour, the help line in a footer. The slots end 12 units left of the stock party
+list (209 left of the reduced one) and stay clear of Target Info and the log zone.
+
+Player 1's window is ours only while P1 is not on the game's own frontends (`frontend::p1_native`). The frontend arms
+P1 (`rules.h` `p1_arm_step`) once `overlay::live` (overlay_live, below) has held for 250 ms (`overlay::live_track`:
+gaps of at most 250 ms do not break the streak), never under an open stock frontend or the pause screen; it disarms
+when overlay_live has been false for more than 250 ms, the presenter is not live, a frame was refused within 250 ms
+(`presenter::note_failed`), the layer idles or P1's window is left out (then P1 stays on vanilla for 5 s). Missed
+frames alone never disarm (0.1.59's two-missed-frames rule brought the vanilla HUD back on the D-pad focus panel). Disarmed,
+P1's co-op menu closes and the game's battle menu, leader select and KO path are P1's; a P1 window in the view is then
+reported as left out.
+
+Visibility: the UI tick (`overlay::note_ui_tick`, primary) refreshes the HUD heartbeat while the HUD window
+[0x209be80] + 0x8fa0 (handler 0x2be490) is drawn with its own alpha above 0, the UI is ready and drawn, the field
+gate is open (no frontend, or only P1's own battle frontends 1/3/4) and no pause pointer is set; HD-01 (the HUD
+tree's log draw, `overlay::note_hud`) is a secondary source under the same field gate. The overlay draws only while
+that heartbeat is at most 100 ms old and the field gate read in the frame hook itself is open, so it leaves with the
+HUD the very frame a menu, the map, a cutscene or a fade starts. `overlay::live` (overlay_live) is co-op on, RENDER
+live, an overlay frame presented within 250 ms, a heartbeat that fresh and the field gate open. The old replay path of the
+HUD canvas below stays in the source and off (`driver::set_layer_enabled(false)`).
+
+Presenter: on every frame with a fresh heartbeat, co-op on, FIREWALL_MENUS live, a fresh menu view and HUD snapshot
+of this epoch and a ready GPU side (drawn, or nothing to draw), the handler calls `presenter::note_dropped(mask)`
+(Player 1's window while P1 is native, and any window the batch had no room for), `note_drawn(now)` and
+`note_run(now)`. Otherwise nothing is stamped, the run breaks and the menus idle 250 ms later.
+
+Failure: the frame's work runs inside `guard::call`; a fault puts the saved state back (guarded again), latches
+RENDER faulted and withdraws the stamp. The render thread never logs; `overlay::step` (co-op thread) writes each
+recorded event to hook.log once (first frame with the back buffer's size and format, a creation failure with the
+object and HRESULT, a mismatch, a bad back buffer, a fault) and, with Developer options on, a report every 30 s
+(hooked, device, back buffer, frames drawn/empty/hidden/idle/busy/refused/faults, cost, frame time, heartbeat age,
+stamps, guest windows).
+
+`tests/test_coop_overlay.py`: the font (atlas digest, glyph boxes, measure and fit), the batch (primitives, fade,
+capacity, the authoring space at 16:9 / 16:10 / 21:9, vertex expansion), the scene (the card inside the screen, the
+seats' windows from a view: P1 drawn only when ours, every window in its own slot), the slots against the party list
+in both modes, Target Info and the log, Player 1's arming rule and its give-back, the GPU side on a WARP device
+(pixels drawn where the card is, the background untouched, every pipeline state put back, the fault drill's restore,
+the mismatch, a small back buffer, an empty batch), OV-01 (heartbeat, presenter stamps and their refusals, the fault
+latch, the log lines) and the frontend with Player 1 on the game's own frontends.
+
+### The HUD elements on the overlay (`hud_scene.*`, `hide.*`, `feed.*`, `states.*`)
+
+- `hud_scene`: the party list (bottom-right, from x 1290: right of the four seat slots in every party size), Target
+  Info (top-left) and the battle log (top-right), composed into the quad batch after the seat windows, each within
+  its own budget (900 / 800 / 1100 quads; `QUAD_CAP` 6144) and rolled back whole when it
+  does not fit. Every face, size, colour and icon comes from the active HUD theme's tokens (`theme.h`). The party row's action line
+  names the action only, never its target (the target lines show who targets what).
+- `feed`: the co-op thread's record of what the snapshot lacks: names, MP and MP max (PH-V1), the action gauge as the
+  native row fills it (PH-V2..PH-V4), the damage ghost, the chain. (The top-centre Wait line and its holders are gone:
+  Marco, 2026-11-16, "not needed"; the Wait rule itself is unchanged.)
+- `hide`: the hard blocker of the vanilla battle HUD. While overlay_live holds (and for 250 ms after, the fail-safe's
+  hysteresis) every piece is hidden by the window draw bit: the party panel (not under P1's vanilla leader select or an
+  Esper), the two help-line slots (while the field gate is open and P1's menu is ours), the TARGET INFO window (with
+  Hunter's Insight's drops), both log windows (the first with its backing quad and the log manager) and the chain
+  counter (a seam: its window is not located yet, so it is never touched). A piece follows its element's switch.
+  Pieces are given back by the rule `handler unchanged and (flags & 0x402) == 2` once overlay_live has been false for
+  over 250 ms, in the stale handler, after a CORE fault and at exit; gated by HH-V1..HH-V7. HD-01 also skips the stock
+  log text whenever the overlay is live (`overlay::log_replaces_native`).
+- `states`: the Legacy script states (PUSH_HUD_STATES, op 10): validated by the bridge, resolved from battle-record
+  addresses to handles each beat, drawn while at most 1.5 s old. Producer: `family_identities.hudStates` read by
+  `coop/hud_states.lua` every 250 ms from a timer.
 
 ## HUD canvas (`src/hud/`, RENDER)
 
@@ -761,7 +878,8 @@ a party-down recovery, a Party request in flight, or a resume with nothing drawn
 The frame driver's menu pass (the last pass) draws every co-op battle menu, target page and character selector.
 Player 1's battle menu is a co-op menu, so it is drawn where the stock command window sits: rows bottom-anchored on
 the field layout's list origin (group 14: 122, 1002), the character's name, LEADER and the leader flag at their
-group 14/15 places, the help line on the group 11 strip (534, 924, 360, 36) and, on a target page, the group 30
+group 14/15 places, the help line on the group 11 strip (534, 924, 360, 36; the game's own top-left help line is
+group 7, not this strip) and, on a target page, the group 30
 footer's shoulder-button icons. A guest's window is the same battle glass (bt_win_0_c, nine pieces) with a thin
 seat-colour edge on its left and its header in the seat colour; it slides out of the guest's own party row to the
 left (150 ms, the native open table's time and offset) and a seat-colour line links it to that row. Guests' windows
@@ -957,6 +1075,27 @@ For the Mod Menu's developer options and test sessions.
   latched: the Status keeps its state and reason, and the first beat after the sleep heartbeats again, so the detours
   act again from the next frame. The thread then reports `COMMAND_RESULT` (`a` = the command, `b` = milliseconds
   slept). A stall of 2 s or less never goes stale.
+
+## Player options and hook.log (`src/runtime/options.*`, `src/runtime/log.*`)
+
+The player options the subsystems read on any thread are copied out of each applied record into one 64-bit word
+(`options::configure_from_settings`, on the boot thread and then on the co-op thread when the applied generation
+changes): `shared_camera` (via the arm mask: CAMERA stays clear), `guest_interactions` (interaction: no ROUTING flag
+and no request from a guest's CONFIRM; gateways and loot stay), `town_view` (towns: PARTY allows every member, so the
+filter hides nobody and the planner only shows), `wait_pause` (the Wait rule: ALL or ANY participating seat in a menu),
+`guest_pause` (the firewall drops a guest's PAUSE pulse, the frontend a guest's PARTY request; P1 is never affected),
+and the battle log's `log_lines_compact`, `log_lines_expanded` and `log_fade_s` (through the battle log's settings
+into its view; important lines hold twice the fade time). The HUD elements `PARTY_TIMERS` and `GUEST_CURSORS` are bits
+of `hud_elements` like the others.
+
+Diagnostic lines go to the loader's `hook.log`. The loader's logger, `simpleLog.dll` (`void _log(uint32_t level,
+const char* text)`, level 0 info, 1 warning, 2 error; no format expansion), is looked up among the modules already
+loaded and its export taken by name, so the import table is unchanged; a process without it (the host tests) drops the
+lines, counted. `log::post` never blocks or allocates (a fixed ring under a try-lock); only the boot threads call
+`log::drain` (FF12Hinit, the init thread after start-up, the co-op thread once per beat), never a detour or the game
+thread. Normal level: the start-up result (state, reason, detail), what could not attach, refused settings records,
+latched subsystem faults and the Battle HUD report while live. `log_level` 1 adds every applied record (its arm mask
+and options), the co-op on/off switch and seat toggles.
 
 ## Wait engine (`src/wait/`, WAIT)
 

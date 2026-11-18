@@ -73,6 +73,8 @@ SOURCES += ['src/camera/camera_math.cpp', 'src/camera/camera.cpp']
 SOURCES += ['src/runtime/game_thread.cpp', 'src/runtime/tick.cpp']
 # Diagnostics for the Mod Menu's developer options: the counters record and the co-op thread stall test.
 SOURCES += ['src/runtime/diag.cpp']
+# Player options read on any thread (one word, from the applied settings) and diagnostic lines in the loader's hook.log.
+SOURCES += ['src/runtime/options.cpp', 'src/runtime/log.cpp']
 # Boot: host probe, instance guard, Ivalice Together detection, the start-up switch, the init thread.
 SOURCES += ['src/boot/boot.cpp', 'src/boot/together_detect.cpp', 'src/boot/settings_file.cpp']
 # Session core: world reads through the fault-safe probe, epochs and gates, the seat table, ownership hand-off,
@@ -87,6 +89,10 @@ SOURCES += ['src/movement/steering.cpp', 'src/movement/planner.cpp', 'src/moveme
 SOURCES += ['src/towns/filter.cpp', 'src/towns/towns.cpp', 'src/towns/hooks.cpp']
 # Guest interactions: gateways, doors/chests/crystals, NPC talk and shops through the consumer window, loot.
 SOURCES += ['src/interaction/rules.cpp', 'src/interaction/interaction.cpp', 'src/interaction/hooks.cpp']
+# The guests' interaction prompt ("!"): the game's own marker drawn once more per guest (IX-21).
+SOURCES += ['src/interaction/prompt.cpp']
+# Chests to the combat log without a pause (TL-01/TL-02, MOVEMENT, optional; Together's treasure-to-log).
+SOURCES += ['src/interaction/treasure_log.cpp']
 # Seat changes (PARTY): change-character requests, atomic swaps and leader changes, the leader watcher.
 SOURCES += ['src/party/assign.cpp', 'src/party/remap.cpp', 'src/party/party.cpp']
 # Guest battle menus: catalogs from the game's loaded tables, the per-seat menu model, Gambits state (data model).
@@ -125,6 +131,17 @@ SOURCES += ['src/hud/battle_log.cpp', 'src/hud/battle_log_model.cpp', 'src/hud/b
 # Seat marks in the world (seat-coloured target lines, seat diamonds) and the AoE-only ring rule (TARGETS_CARDS).
 SOURCES += ['src/hud/world_marks.cpp', 'src/hud/rings.cpp']
 SOURCES += ['src/hud/battle_hud.cpp', 'src/hud/layout.cpp']
+# Our own overlay (OV-01): D3D11 drawing inside the game's frame, a baked SDF font, precompiled shaders.
+SOURCES += ['src/overlay/font.cpp', 'src/overlay/batch.cpp', 'src/overlay/scene.cpp', 'src/overlay/gpu.cpp',
+            'src/overlay/overlay.cpp']
+# HUD themes (Phase 8): the three built-ins compiled in (C the default, A, B), the theme reader and module, the marks.
+SOURCES += ['src/overlay/theme_builtin.cpp', 'src/overlay/theme_builtin_bold.cpp', 'src/overlay/theme_builtin_humanist.cpp',
+            'src/overlay/theme_builtin_crisp.cpp', 'src/overlay/theme_json.cpp', 'src/overlay/theme_read.cpp',
+            'src/overlay/theme.cpp', 'src/overlay/marks.cpp']
+# The HUD elements on the overlay (party list, Target Info, battle log, Wait), the vanilla pieces they hide, their feed
+# and the Legacy script states (PUSH_HUD_STATES).
+SOURCES += ['src/overlay/hud_scene.cpp', 'src/overlay/hide.cpp', 'src/overlay/feed.cpp', 'src/overlay/states.cpp',
+            'src/overlay/marquee.cpp']
 MINHOOK_DIR = Path(os.environ.get('ILC_MINHOOK_DIR', str(HERE / 'build' / 'minhook')))
 MINHOOK_LOCK = 'third_party/minhook/minhook.lock.json'
 # Input service: SDL 2.32.10, static, built by third_party/sdl2/build_sdl2.py into SDL2_DIR (pinned in its lock).
@@ -149,7 +166,7 @@ TEST_SOURCES += ['testsupport/boot_tests.cpp']
 TEST_SOURCES += ['testsupport/session_tests.cpp']
 TEST_SOURCES += ['testsupport/movement_tests.cpp']
 TEST_SOURCES += ['testsupport/towns_tests.cpp']
-TEST_SOURCES += ['testsupport/interaction_tests.cpp']
+TEST_SOURCES += ['testsupport/interaction_tests.cpp', 'testsupport/prompt_tests.cpp']
 TEST_SOURCES += ['testsupport/party_tests.cpp']
 TEST_SOURCES += ['testsupport/menu_tests.cpp']
 TEST_SOURCES += ['testsupport/cost_help_tests.cpp']
@@ -166,6 +183,11 @@ TEST_SOURCES += ['testsupport/target_info_tests.cpp']
 TEST_SOURCES += ['testsupport/battle_log_tests.cpp']
 TEST_SOURCES += ['testsupport/world_marks_tests.cpp']
 TEST_SOURCES += ['testsupport/battle_hud_tests.cpp', 'testsupport/layout_tests.cpp']
+TEST_SOURCES += ['testsupport/options_tests.cpp']
+TEST_SOURCES += ['testsupport/overlay_tests.cpp']
+TEST_SOURCES += ['testsupport/treasure_log_tests.cpp']
+TEST_SOURCES += ['testsupport/overlay_hud_tests.cpp']
+TEST_SOURCES += ['testsupport/theme_tests.cpp']
 SCHEMA_TOOL = 'tools/bridge_schema.cpp'
 DEF_FILE = 'coop.def'
 CXXFLAGS = ['-std=c++20', '-O2', '-Wall', '-Wextra', '-Werror', '-fno-exceptions', '-fno-rtti',
@@ -310,6 +332,33 @@ def build_test_dll(compiler: Path, out: Path, sdl2_tarball: Path | None = None,
     return out / TEST_DLL_NAME
 
 
+def check_overlay_inputs() -> dict:
+    """The overlay's generated inputs belong to the committed sources: shaders.inc to overlay.hlsl, the built-in themes
+    (src/overlay/themes/<id>/font.inc, theme.json, theme_json.inc) to themes.lock.json (tools/gen_overlay_shaders.py and
+    tools/gen_overlay_themes.py regenerate them; neither runs here)."""
+    hlsl = (HERE / 'src' / 'overlay' / 'overlay.hlsl').read_bytes().replace(b'\r\n', b'\n')
+    hlsl_sha = hashlib.sha256(hlsl).hexdigest()
+    shaders = (HERE / 'src' / 'overlay' / 'shaders.inc').read_bytes().decode('utf-8')
+    if f'// hlsl-sha256: {hlsl_sha}' not in shaders:
+        raise RuntimeError('overlay shader drift: src/overlay/shaders.inc was not generated from overlay.hlsl. '
+                           'Run tools/gen_overlay_shaders.py after an intended shader change.')
+    themes = HERE / 'src' / 'overlay' / 'themes'
+    lock = json.loads((themes / 'themes.lock.json').read_text(encoding='utf-8'))
+    digests = {}
+    for theme_id in lock['order']:
+        entry = lock['themes'][theme_id]
+        for name, want in entry['files'].items():
+            data = (themes / theme_id / name).read_bytes().replace(b'\r\n', b'\n')
+            if hashlib.sha256(data).hexdigest() != want:
+                raise RuntimeError(f'theme pin: src/overlay/themes/{theme_id}/{name} differs from themes.lock.json. '
+                                   'Run tools/gen_overlay_themes.py --from <the theme packages>.')
+        font_inc = (themes / theme_id / 'font.inc').read_bytes().decode('utf-8')
+        if f'// atlas-digest: {entry["atlasDigest"]}' not in font_inc:
+            raise RuntimeError(f'theme pin: src/overlay/themes/{theme_id}/font.inc atlas digest differs from the lock')
+        digests[theme_id] = entry['atlasDigest']
+    return {'hlslSha256': hlsl_sha, 'themeAtlasDigests': digests}
+
+
 def build(compiler: Path, out: Path, update_schema: bool = False, sdl2_tarball: Path | None = None,
           minhook_tarball: Path | None = None) -> dict:
     toolchain = check_toolchain(compiler)
@@ -325,6 +374,7 @@ def build(compiler: Path, out: Path, update_schema: bool = False, sdl2_tarball: 
         raise RuntimeError(f'schema drift: {SCHEMA.relative_to(HERE).as_posix()} differs from the header. '
                            'Run build.py --update-schema after an intended ABI change.')
     schema_sha = schema_digest(schema)
+    overlay_inputs = check_overlay_inputs()
 
     files = source_files()
     sid = source_id(files)
@@ -364,6 +414,7 @@ def build(compiler: Path, out: Path, update_schema: bool = False, sdl2_tarball: 
         'sourceId': sid,
         'sources': {rel: hashlib.sha256((HERE / rel).read_bytes()).hexdigest() for rel in files},
         'schema': {'path': SCHEMA.relative_to(HERE).as_posix(), 'sha256': schema_sha},
+        'overlay': {**overlay_inputs, 'themes': 'legacy-bold (default), legacy-humanist, legacy-crisp: Ivalice Legacy\'s own fonts and art, baked SDF atlases'},
         'buildScripts': {name: hashlib.sha256((HERE / name).read_bytes()).hexdigest()
                          for name in ('build.py', 'audit_pe.py', 'pe-allowlist.json', SCHEMA_TOOL)},
         'dllSha256': hashlib.sha256(data).hexdigest(),

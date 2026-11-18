@@ -196,6 +196,14 @@ struct counters {
 };
 const counters* stats();
 
+// Player 1 on the game's own battle frontends. frontend::set_p1_native forwards here (one switch); since 0.1.59 the
+// frontend's arming rule drives it every beat (off while our overlay draws P1's menu). P1's own battle menu, leader
+// select or command tree never stops the guests' menus or steering (session/policy.cpp), whichever way the switch is:
+// while the co-op menus own P1 the gate refuses those frontends, so one that is up is P1's own. The phase, FACT_MENU,
+// cutscene detection and party identity still see it. On in the module; test_reset() turns it off. Any thread.
+void set_p1_native(bool on);
+bool p1_native();
+
 // ---- host tests ------------------------------------------------------------------------------------------------
 struct debug_view {
     world_sample world;

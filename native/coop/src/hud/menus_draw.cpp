@@ -23,7 +23,9 @@ constexpr box G14_E0 = {42, 132, 256, 68};
 constexpr box G14_E1 = {122, 44, 256, 28};
 constexpr box G15_E0 = {86, 92, 240, 28};
 constexpr box G15_E1 = {18, 104, 50, 38};
-// Group 11: the command menu's help strip (E0, a flat quad; its text at scale 75).
+// Group 11: a strip near the command window (E0, a flat quad; text at scale 75), used here as the help line's place.
+// The game's own top-left help line is field layout group 7 (rect 106, 60, 1708, 128: a "?" sprite and a text), not
+// this group [hud-hide study 2026-11-16].
 constexpr box G11 = {426, 764, 512, 256};
 constexpr box G11_E0 = {108, 160, 360, 36};
 constexpr int16_t HELP_SCALE = 75;

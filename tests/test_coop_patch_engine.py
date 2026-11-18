@@ -56,8 +56,8 @@ GAME = os.environ.get('IVALICE_LEGACY_GAME')
 SITE_TABLE = os.environ.get('ILC_SITE_TABLE')
 SITES_INC = COOP / 'src' / 'patch' / 'sites.inc'
 TWIN_BASE, TWIN_SIZE, TIMESTAMP = 0x120000, 0x2F76000, 0x5DCA7FD7
-# PATCH rows in the site table: 49 hooked by MinHook, 20 call-type rows hooked through call islands.
-PATCH_ROWS, CALL_ROWS = 77, 22
+# PATCH rows in the site table: 81, of which 25 are call-type rows hooked through call islands (the rest by MinHook).
+PATCH_ROWS, CALL_ROWS = 81, 25
 
 # patch::result
 OK, BAD_BASE, BAD_TIMESTAMP, BAD_SIZE, SITE_MISMATCH = 0, 1, 4, 5, 7
@@ -107,8 +107,8 @@ class PatchStaticTest(unittest.TestCase):
         cls.rows = site_rows()
 
     def test_rows_parse(self):
-        self.assertEqual(len(self.rows), 173)
-        self.assertIn('#define ILC_SITE_COUNT 173', SITES_INC.read_text(encoding='utf-8'))
+        self.assertEqual(len(self.rows), 190)   # 0.1.60: + HH-V1..HH-V7 and PH-V1..PH-V4 (verify-only INFO rows)
+        self.assertIn('#define ILC_SITE_COUNT 190', SITES_INC.read_text(encoding='utf-8'))
 
     def test_patch_rows_and_hook_windows(self):
         patch = [r for r in self.rows if r['policy'] == 'PATCH']
@@ -128,8 +128,9 @@ class PatchStaticTest(unittest.TestCase):
         # so do the battle log's gates HR-V1 (its own short jumps over the flag stores), HR-V3, HR-V4 and KR-V1:
         # harmless for rows that are only compared, never written. So do the Target Info give-back's TI-V1, TI-V5
         # and TI-V9 (branches inside the owner tick, the window update and the request entry they pin).
+        # 0.1.60: the overlay's hide and party-HUD pins HH-V4, PH-V3 and PH-V4 too (branches into the code they pin).
         self.assertEqual(interior, {'CL-02', 'RT-07', 'MN-V1', 'WT-V1', 'WT-V3', 'HD-V3', 'HR-V1', 'HR-V3', 'HR-V4',
-                                    'KR-V1', 'TI-V1', 'TI-V5', 'TI-V9'})
+                                    'KR-V1', 'TI-V1', 'TI-V5', 'TI-V9', 'HH-V4', 'PH-V3', 'PH-V4'})
         self.assertFalse(interior & {r['id'] for r in patch}, 'an INTERIOR row is a port site')
         # Hook windows overlap no other row (INFO rows included).
         for a in patch:

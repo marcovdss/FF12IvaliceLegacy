@@ -291,6 +291,18 @@ function M.create(opts)
   function B.get_status() return call(E.op.GET_STATUS, nil, 'ilc_status') end
   function B.get_counters() return call(E.op.GET_COUNTERS, nil, 'ilc_counters') end
   function B.get_seats() return call(E.op.GET_SEATS, nil, 'ilc_seats_reply') end
+  -- The HUD themes the Mod Menu offers: {count, refused, scans, entries = {{id, name, flags}, ...}} (built-ins first).
+  function B.get_themes()
+    if not E.op.GET_THEMES then return nil, 'unsupported' end
+    local r, err = call(E.op.GET_THEMES, nil, 'ilc_themes_reply')
+    if not r then return nil, err end
+    local out = {count = r.count, refused = r.refused, scans = r.scans, entries = {}}
+    for i = 1, math.min(r.count or 0, #r.entries) do
+      local e = r.entries[i]
+      out.entries[i] = {id = (e.id or ''):gsub('%z.*$', ''), name = (e.name or ''):gsub('%z.*$', ''), flags = e.flags}
+    end
+    return out
+  end
 
   function B.get_devices()
     local r, err = call(E.op.GET_DEVICES, nil, 'ilc_devices_reply', 32)
@@ -299,6 +311,12 @@ function M.create(opts)
   end
 
   function B.pop_events() return call(E.op.POP_EVENTS, nil, 'ilc_events_reply', 32) end
+
+  -- The Legacy script states for the HUD (hud_states.lua builds the record): a table or an already-encoded string.
+  function B.push_hud_states(rec)
+    local bytes = type(rec) == 'string' and rec or C.encode('ilc_hud_states', rec)
+    return call(E.op.PUSH_HUD_STATES, bytes, nil)
+  end
 
   -- One page poll: status, plus queued events when there are any (at most `rounds` pops).
   function B.poll(rounds)

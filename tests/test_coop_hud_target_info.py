@@ -98,6 +98,7 @@ SIGNATURES = {
     'ILCT_TiSizes': ([P(u32), u32], u32), 'ILCT_TiReset': ([], None), 'ILCT_TiSetImageBase': ([u64], None),
     'ILCT_TiSetEnabled': ([i32], None), 'ILCT_TiSetAttached': ([i32], None), 'ILCT_TiSetLast': ([u64, u64], None),
     'ILCT_TiNow': ([], u64), 'ILCT_TiSelect': ([P(Snapshot), P(i32)], i32),
+    'ILCT_TiEngaged': ([P(Snapshot), u32], i32), 'ILCT_TiForceEngaged': ([i32], None),
     'ILCT_TiGate': ([u32, u32, u32, u32, u32], u32), 'ILCT_TiGhost': ([P(Ghost), u32, u32, u64], u32),
     'ILCT_TiBuildDrops': ([ctypes.c_char_p, ctypes.c_char_p, u16, i32, P(DropLine), u32], u32),
     'ILCT_TiDecode': ([ctypes.c_char_p, u32, ctypes.c_char_p, u32], u32),
@@ -447,6 +448,43 @@ class RulesTest(unittest.TestCase):
     def setUp(self):
         self.d.ILCT_TiReset()
 
+    def test_engaged(self):
+        """0.1.60 item 6 (Marco: "At least just while you are engaged with an enemy")."""
+        d = self.d
+        foe = unit(handle=FOE_CLASS | 5)
+        foe.unit_type = 1
+        npc = unit(handle=FOE_CLASS | 6)
+        npc.unit_type = 3
+        vaan = unit(handle=0x00100001, flags=UNIT_PRESENT | UNIT_ACTOR | UNIT_PARTY)
+        vaan.member = 0
+
+        def engaged(seats=((0, 0),) * 4, members=(vaan,), targets=(foe, npc), stance=0, aim=0):
+            s = snap_with(list(targets), list(seats), members=list(members))
+            s.seats[0].native_aim = aim
+            return d.ILCT_TiEngaged(ctypes.byref(s), stance)
+
+        self.assertEqual(engaged(), 0, 'nobody aims, nobody in stance, nobody targets: the sticky target is gone')
+        self.assertEqual(engaged(seats=((foe.handle, NOW),) + ((0, 0),) * 3), 1, 'P1 on a target page, on a foe')
+        self.assertEqual(engaged(seats=((0, 0), (foe.handle, NOW), (0, 0), (0, 0))), 1, 'a guest seat aims')
+        self.assertEqual(engaged(seats=((npc.handle, NOW),) + ((0, 0),) * 3), 0, 'aiming at a neutral is no fight')
+        s = snap_with([foe], [(foe.handle, NOW)] + [(0, 0)] * 3, members=[vaan])
+        s.seats[0].on_page = 0
+        self.assertEqual(d.ILCT_TiEngaged(ctypes.byref(s), 0), 0, 'the remembered last target alone does not count')
+        s.seats[0].native_aim = 1
+        self.assertEqual(d.ILCT_TiEngaged(ctypes.byref(s), 0), 1, "P1's native target mode aim counts")
+        self.assertEqual(engaged(stance=0b1), 1, 'a party member in fighting stance (actor +0x02 bit 7)')
+        fighter = unit(handle=0x00100001, flags=UNIT_PRESENT | UNIT_ACTOR | UNIT_PARTY)
+        fighter.target = foe.handle
+        self.assertEqual(engaged(members=(fighter,)), 1, 'a party member targets a foe')
+        fighter.target = npc.handle
+        self.assertEqual(engaged(members=(fighter,)), 0)
+        hunter = unit(handle=FOE_CLASS | 7)
+        hunter.unit_type, hunter.target = 7, vaan.handle
+        self.assertEqual(engaged(targets=(hunter,)), 1, 'a foe targets the party')
+        gone = unit(handle=FOE_CLASS | 5, flags=UNIT_ACTOR)
+        gone.unit_type = 1
+        self.assertEqual(engaged(seats=((gone.handle, NOW),) + ((0, 0),) * 3, targets=(gone,)), 0, 'not present')
+
     def test_struct_mirrors(self):
         out = (u32 * 16)()
         n = self.d.ILCT_TiSizes(out, 16)
@@ -509,14 +547,14 @@ class RulesTest(unittest.TestCase):
                            poaches=(0x2010, 0xFFFF), special=(0xFFFF, 0x2011))
         none = bytes([0, 0, 0, 0])
         self.assertEqual(self.drops(loot, none), [
-            (DROP, UNKNOWN, 0, 0, '???'), (DROP, UNKNOWN, 2, 0, '???'), (DROP, UNKNOWN, 3, RARE, '???'),
-            (DROP, UNKNOWN, 4, RARE | GIL, '???'), (STEAL, UNKNOWN, 0, 0, '???'), (STEAL, UNKNOWN, 1, 0, '???'),
+            (DROP, UNKNOWN, 0, 0, '???'), (DROP, UNKNOWN, 2, RARE, '???'), (DROP, UNKNOWN, 3, RARE, '???'),
+            (DROP, UNKNOWN, 4, GIL, '???'), (STEAL, UNKNOWN, 0, 0, '???'), (STEAL, UNKNOWN, 1, 0, '???'),
             (SPECIAL, UNKNOWN, 1, 0, '???'), (POACH, UNKNOWN, 0, 0, '???')], 'nothing obtained yet: every slot ???')
         # Drops 0 and 4 obtained, steal 1, the Canopic drop, no poach.
         known = bytes([0b010, 0b10001, 0b10, 0b00])
         self.assertEqual(self.drops(loot, known), [
-            (DROP, KNOWN, 0, 0, 'Item 2001'), (DROP, UNKNOWN, 2, 0, '???'), (DROP, UNKNOWN, 3, RARE, '???'),
-            (DROP, KNOWN, 4, RARE | GIL, '100 Gil'), (STEAL, UNKNOWN, 0, 0, '???'), (STEAL, KNOWN, 1, 0, 'Item 2002'),
+            (DROP, KNOWN, 0, 0, 'Item 2001'), (DROP, UNKNOWN, 2, RARE, '???'), (DROP, UNKNOWN, 3, RARE, '???'),
+            (DROP, KNOWN, 4, GIL, '100 Gil'), (STEAL, UNKNOWN, 0, 0, '???'), (STEAL, KNOWN, 1, 0, 'Item 2002'),
             (SPECIAL, KNOWN, 1, 0, 'Item 2011'), (POACH, UNKNOWN, 0, 0, '???')])
         # Steal 1 already taken from this foe: dimmed; slot 0 still there.
         taken = self.drops(loot, known, steal_left=0b101)
@@ -984,6 +1022,22 @@ class SampleTest(unittest.TestCase):
         st = Status()
         self.d.ILCT_TiStatus(ctypes.byref(st))
         self.assertEqual((st.hi, st.text_ready), (HI_FOUND, 1))
+
+    def test_target_info_only_while_engaged_and_2_s_after(self):
+        """0.1.60 item 6: nothing without an engagement; shown while engaged; kept ENGAGE_HOLD_MS (2 s) after the last
+        engaged beat, then gone (0.1.59 kept the sticky last seat target up for good)."""
+        a = self.foe(loot=loot_record())
+        snap = self.snap_for(a)
+        try:
+            self.d.ILCT_TiForceEngaged(0)
+            self.assertFalse(self.build(snap).flags & VIEW_SHOWN, 'a seat target, but no engagement')
+            self.d.ILCT_TiForceEngaged(1)
+            self.assertTrue(self.build(snap, NOW + 20).flags & VIEW_SHOWN)
+            self.d.ILCT_TiForceEngaged(0)
+            self.assertTrue(self.build(snap, NOW + 2020).flags & VIEW_SHOWN, 'held 2 s after the last engaged beat')
+            self.assertFalse(self.build(snap, NOW + 2021).flags & VIEW_SHOWN, 'then gone, with no sticky target')
+        finally:
+            self.d.ILCT_TiForceEngaged(1)
 
     def test_drops_update_as_items_are_found(self):
         loot = loot_record(drops=(0x2001,) + (0xFFFF,) * 4)
