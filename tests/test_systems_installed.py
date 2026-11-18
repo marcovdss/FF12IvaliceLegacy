@@ -131,23 +131,39 @@ class InstalledSystemsTest(unittest.TestCase):
           assert(FAM.AFFLICT_FACTOR == 2 and FAM.AFFLICT_CAP == 100, 'Afflict: doubled, up to 100%')
           assert(FAM.SPELLBREAK_SHARE == 0.1 and FAM.SPELLBREAK_CAP == 0.1, 'Spellbreak: 10% of damage, at most 10% of the pool')
           assert(FAM.SUNDER_STEP == 0.05 and FAM.SUNDER_FLOOR == 0.5, 'Sunder: 5%, down to half')
-          assert(FAM.RECKLESS_STEP == 0.05 and FAM.RECKLESS_FLOOR == 0.75, 'Reckless: 5% a swing, down to a quarter off')
+          -- Installed 0.5.x carries Reckless, Braced, Open and the rod's Lure; 0.6.0 removed all four. Either state is read
+          -- here for what it is; a half-removed module (some constants, not others) fails.
+          local oldCosts = FAM.RECKLESS_STEP ~= nil
+          if oldCosts then
+            assert(FAM.RECKLESS_STEP == 0.05 and FAM.RECKLESS_CAP == 0.20 and FAM.RECKLESS_WINDOW == 10000000, 'Reckless: foes hit 5% harder per axe Attack, up to +20%, gone after ten seconds')
+          else
+            assert(FAM.RECKLESS_CAP == nil and FAM.RECKLESS_WINDOW == nil and FAM.recklessTaken == nil, 'Reckless is gone entirely')
+          end
           assert(FAM.CADENCE_STEP == 0.06 and FAM.CADENCE_HASTE == 0.05 and FAM.CADENCE_CAP == 5, 'Cadence: +6%, 5% faster, five steps')
           assert(FAM.FATIGUE_CUT == 0.25 and FAM.FATIGUE_MAX == 4, 'guard fatigue: 25% less evasion per avoid in a row')
-          assert(FAM.BRACED_PUSH == 0.10, 'Braced: 10%')
-          assert(FAM.OPEN_WINDOW == 10000000 and FAM.RECKLESS_WINDOW == 10000000 and FAM.FATIGUE_WINDOW == 10000000
-                 and FAM.CADENCE_WINDOW == 10000000, 'ten seconds')
-          assert(FAM.LURE_SCALE == 0.25, 'Mend Lure: a quarter of the full duration')
+          if oldCosts then
+            assert(FAM.BRACED_PUSH == 0.10, 'Braced: 10%')
+            assert(FAM.OPEN_WINDOW == 10000000 and FAM.RECKLESS_WINDOW == 10000000, 'ten seconds')
+            assert(FAM.LURE_SCALE == 0.25, 'Mend Lure: a quarter of the full duration')
+          else
+            assert(FAM.BRACED_PUSH == nil and FAM.OPEN_WINDOW == nil and FAM.LURE_SCALE == nil and FAM.LURE == nil, 'Braced, Open and Lure are gone')
+          end
+          assert(FAM.FATIGUE_WINDOW == 10000000 and FAM.CADENCE_WINDOW == 10000000, 'ten seconds')
           assert(FAM.COUNTER_PARRY_EVADE == 30, 'a rolled counter parries at 30')
           local lines = 0 for _ in pairs(FAM.FAMILY_LINES) do lines = lines + 1 end
           assert(lines == 18, 'one tip line per family: ' .. lines)
           -- the tip lines quote the same numbers
-          assert(FAM.FAMILY_LINES.sword[2]:find('10%%'))
+          if oldCosts then assert(FAM.FAMILY_LINES.sword[2]:find('10%%'))
+          else assert(not FAM.FAMILY_LINES.sword[2]:find('charge back'), 'the sword line no longer states a cost') end
           assert(FAM.FAMILY_LINES.spear[2]:find('30%% of Defense'))
-          assert(FAM.FAMILY_LINES.rod[2]:find('+20%%'))
+          assert((FAM.FAMILY_LINES.rod[2]:find('+20%%') or FAM.FAMILY_LINES.rod[2]:find('20%% more')))
           assert(FAM.FAMILY_LINES.mace[2]:find('10%% of the damage') and FAM.FAMILY_LINES.mace[2]:find('10%% of its pool'))
-          assert(FAM.FAMILY_LINES.axe[2]:find('5%% of its start') and FAM.FAMILY_LINES.axe[2]:find('quarter'))
-          assert(FAM.FAMILY_LINES.unarmed[2]:find('+6%%') and FAM.FAMILY_LINES.unarmed[2]:find('+30%%'))
+          if oldCosts then
+            assert(FAM.FAMILY_LINES.axe[2]:find('5%% of its start') and FAM.FAMILY_LINES.axe[2]:find('5%% stronger, up to 20%%'))
+          else
+            assert(FAM.FAMILY_LINES.axe[2]:find('5%% of its starting value') and not FAM.FAMILY_LINES.axe[2]:find('stronger'))
+          end
+          assert(((FAM.FAMILY_LINES.unarmed[2]:find('+6%%') and FAM.FAMILY_LINES.unarmed[2]:find('+30%%')) or FAM.FAMILY_LINES.unarmed[2]:find('6%% harder, up to 30%%')))
         ''')
 
 

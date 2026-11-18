@@ -169,7 +169,7 @@ class Review0148Tests(unittest.TestCase):
           for _, o in ipairs({0, 6, 7, 8, 9, 11}) do local f = foeUnit(660 + o); ctl[#ctl + 1] = o .. ':' .. swing(f, o) .. ':' .. tostring(M.isBroken(f, NOW)) end
           local fn = foeUnit(680); local none = swing(fn, nil)
           local fu = foeUnit(681); local unread = swing(fu, nil, true)
-          -- Reckless is unchanged by the evade rule: an evaded axe Attack still takes its step
+          -- 0.6.0: Reckless is gone: an evaded axe Attack takes no step and logs nothing
           reports = {}
           local fresh = wielder(5)
           local fr = foeUnit(690)
@@ -185,7 +185,7 @@ class Review0148Tests(unittest.TestCase):
               got[4] == '0:95:true 6:95:true 7:95:true 8:95:true 9:95:true 11:95:true')
         check('A4 controls: no outcome field, and an unreadable one, count as a landed swing (95, Broken), as before 0.1.48',
               got[5] == 95 and got[6] is True and got[7] == 95 and got[8] is True)
-        check('A4 control: Reckless is unchanged (an evaded axe Attack still takes its step)', got[9] == 1)
+        check('A4 control: Reckless is gone (an evaded axe Attack logs no Reckless step)', got[9] == 0)
 
         # ---- A1 (sandbox): an ally's credit lasts at most 10 s from the ally's own Break; renewals past that credit the axe user
         got = sandbox().execute(STUB + r'''

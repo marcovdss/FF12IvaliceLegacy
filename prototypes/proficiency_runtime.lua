@@ -1050,10 +1050,9 @@ function R.listens(job, event)
   return rule ~= nil and rule[event] ~= nil
 end
 
--- Hermes Sandals: the accessory's permanent Haste gives tempo, but it never satisfies a job or hybrid
--- "Hasted" condition. A wearer's snapshot drops haste from casterStatus and sets casterHeldHaste, which the Haste grant
--- that carries a rider (Zanshin I) still reads as "already Hasted".
-R.HERMES_SANDALS = 4473
+-- 2026-11-16 (Marco, "Haste is haste"): the Hermes Sandals and Pixie Shoes guards are gone. A status a unit wears
+-- counts everywhere the game asks for it: Haste for the Zanshin and hybrid Hasted stages, Float for Highwind. Hermes
+-- no longer wears Haste; it grants one at the start of a fight (accessory_effects.lua, the fightStart event).
 -- Second Accessory (deployed with Legacy) keeps each party member's second accessory in its own memory: global symbol
 -- sa_saveMem, a u16 per member (stride 4), indexed by the battle-unit keep's identifier byte (+0x04), as its own
 -- assembly and Duplicate Augment Detector read it. Resolved once; anything missing means "no second accessory".
@@ -1084,16 +1083,6 @@ function R.wears(unit, id, classes)
   for _, worn in ipairs(R.worn(unit, classes)) do if worn == id then return true end end
   return false
 end
-function R.wearsHermes(unit, classes) return R.wears(unit, R.HERMES_SANDALS, classes) end
--- Pixie Shoes: the accessory's permanent Float carries the wearer over traps, but it never satisfies a job or hybrid
--- "While you Float" condition (the Hermes guard, for Float).
-R.PIXIE_SHOES = 4476
--- The same guard for an ally target's snapshot (allyHasted on heals and ally casts).
-function R.guardTarget(s, unit, classes)
-  if s.targetStatus and s.targetStatus.haste and unit.type == 0 and R.wearsHermes(unit, classes) then
-    s.targetStatus.haste = nil
-  end
-end
 
 function R.base(unit, flags, classes, helpers)
   if unit.type ~= 0 then return nil end
@@ -1102,10 +1091,8 @@ function R.base(unit, flags, classes, helpers)
   if not job then return nil end
   local actor = R.partyActor(unit)
   if not actor then return nil end
-  local status, heldHaste = statusSet(flags), nil
-  if status.haste and R.wearsHermes(unit, classes) then status.haste, heldHaste = nil, true end
-  if status.float and R.wears(unit, R.PIXIE_SHOES, classes) then status.float = nil end
-  return {job = job, casterHeldHaste = heldHaste, actorId = actor, self = unit.address, party = R.party(classes, helpers),
+  local status = statusSet(flags)
+  return {job = job, actorId = actor, self = unit.address, party = R.party(classes, helpers),
           casterStatus = status, casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100, casterHp = unit.currentHp,
           casterMp = unit.currentMp, casterMaxMp = unit.maxMp, selfMaxHp = unit.maxHp,
           roll = function(percent) return helpers.getRandomNumber(100) < percent end,
@@ -1302,6 +1289,7 @@ end
 -- then differ from the latch only by that push (it sits where the record's last push left it). Anything else, or no
 -- clock, or a charge that cannot be read, reads afresh and ends the record again (the per-call rule of 0.1.45).
 R.ACTION_WINDOW = 1000000   -- 1 s between two calls of one action (event clock, microseconds)
+Hybrid.ACTION_WINDOW = R.ACTION_WINDOW   -- the same window groups the hits of one foe attack for the struck stages
 R.acting = {}
 function R.foeCharge(address, classes, helpers)
   local ok, cur, req = pcall(function()
@@ -1332,8 +1320,12 @@ function R.foeAction(formula, caster, classes, helpers)
   local staggered, by = R.foeStaggered(address, classes, helpers)
   R.foeActs(caster, classes, helpers)
   if carried and last.staggered then staggered, by = true, last.by end
+  -- id: what one foe action is, for the struck and counter stages (a multi-hit attack is one blow). A fresh action takes a
+  -- new id; a carried one (the same action continuing after a push on it) keeps its id.
+  R.actionSerial = (R.actionSerial or 0) + 1
   R.acting[address] = okA and {at = now, action = action, first = first, hp = hp, level = level, rec = pushes[address],
-                               cur = cur, req = req, staggered = staggered, by = by} or nil
+                               cur = cur, req = req, staggered = staggered, by = by,
+                               id = carried and last.id or R.actionSerial} or nil
   return staggered, by
 end
 
@@ -1460,10 +1452,12 @@ function R.apply(a, formula, member, classes, helpers, target)
     end
   end
   if a.casterCharge then R.armCharge(member.address, a.casterCharge, classes, helpers) end
-  -- Cleave II: the axe's Reckless dent clears (family_identities keeps it; nothing happens without an axe dent).
-  if a.clearReckless then
+  -- Warrior Cleave II-2..4: the hit Breaks the foe (the shared Broken clock family_identities keeps, as a Brave spear does).
+  if a.breakFoe and type(target) == 'table' and target.type == 1 then
     local family = rawget(_G, 'IvaliceLegacyFamily')
-    if type(family) == 'table' and type(family.clearReckless) == 'function' then pcall(family.clearReckless, member.address) end
+    if type(family) == 'table' and type(family.noteBroken) == 'function' then
+      pcall(family.noteBroken, target, clock(), member.address)
+    end
   end
   -- MP a spell hands back is capped by its cast's budget; MP taken from a foe's own pool by a reaction is free.
   local freeMp = 0
@@ -1657,6 +1651,12 @@ function R.hook165(formula, caster, target, classes, helpers)
       mine.attacker, mine.attackerStatus, mine.attackerMp = caster.address, foeStatusSet(caster.temporaryStatusEffects, caster, clock()), caster.currentMp
       mine.attackerMaxMp, mine.attackerTough = caster.maxMp, R.isTough(caster.address, classes, helpers)
       mine.damage, mine.dropCritical = formula.target.removedHp, dropped
+      -- One foe attack reaches this hook once per hit: the clock and action id let the line count a multi-hit as one blow.
+      mine.now = clock()
+      local okAction, action = pcall(function() return formula.action end)
+      if okAction then mine.action = action end
+      local record = R.acting[caster.address]
+      mine.actionId = record and record.id or nil
       mine.foes = R.foes(classes, caster.address)
       local a = P.decide('struck', mine, effective())
       if a then R.apply(a, nil, target, classes, helpers); R.report('struck', mine, a) end
@@ -1699,6 +1699,12 @@ function R.hook240(formula, caster, target, classes, helpers)
   s.attackerStatus, s.attackerMp = foeStatusSet(caster.temporaryStatusEffects, caster, clock()), caster.currentMp
   s.attackerMaxMp, s.attackerTough = caster.maxMp, R.isTough(caster.address, classes, helpers)
   s.attackerStaggered = staggered == true
+  -- The same action identity and fallback as hook 165, so a counter and a later hit of one foe action count as one blow.
+  s.now = clock()
+  local okAction, action = pcall(function() return formula.action end)
+  if okAction then s.action = action end
+  local record = R.acting[caster.address]
+  s.actionId = record and record.id or nil
   s.foes = R.foes(classes, caster.address)
   -- A counter pays only when the blow was answered with a swing (0.1.34, audit B2/D1b): Forge 41-43 write outcome 2 (weapon
   -- parry + counter) or 4 (shield block + counter). A counter roll without a parry or block does nothing visible.
@@ -1728,7 +1734,6 @@ function R.hook110(formula, caster, target, classes, helpers, _, item)
   s.item = item
   s.healAmount = math.floor(formula.target.addedHp)
   s.targetStatus = statusSet(target.temporaryStatusEffects)
-  R.guardTarget(s, target, classes)
   s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
   s.foes = R.foes(classes)
   if not item then s.castId, s.action = R.castId(caster, formula.action), formula.action end
@@ -1851,7 +1856,6 @@ function R.hook181(formula, caster, target, classes, helpers, before)
   s.foe = target.type == 1
   s.targetStatus, s.targetMp = (target.type == 1 and foeStatusSet or statusSet)(formula.target.statusEffects, target, s.now), target.currentMp
   if target.type == 1 then s.staggered = R.foeStaggered(target.address, classes, helpers) end
-  R.guardTarget(s, target, classes)
   s.targetMaxMp = target.maxMp
   if s.job >= Hybrid.FIRST_ID and target.type == 1 then s.tough = R.isTough(target.address, classes, helpers) end
   s.targetHpPct = target.maxHp > 0 and 100 * target.currentHp // target.maxHp or 100
@@ -1883,13 +1887,9 @@ function R.accessoryBase(unit, flags, classes, helpers)
   if #ids == 0 then return nil end
   local actor = R.partyActor(unit)
   if not actor then return nil end
-  local status, heldHaste = statusSet(flags), nil
-  for _, id in ipairs(worn) do
-    if id == R.HERMES_SANDALS and status.haste then status.haste, heldHaste = nil, true end
-    if id == R.PIXIE_SHOES then status.float = nil end
-  end
+  local status = statusSet(flags)
   return {ids = ids, actorId = actor, self = unit.address, party = R.party(classes, helpers), casterStatus = status,
-          casterHeldHaste = heldHaste, casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100,
+          casterHpPct = unit.maxHp > 0 and 100 * unit.currentHp // unit.maxHp or 100,
           casterHp = unit.currentHp, casterMp = unit.currentMp, casterMaxMp = unit.maxMp, selfMaxHp = unit.maxHp,
           targetStatus = {}, now = clock(),
           roll = function(percent) return helpers.getRandomNumber(100) < percent end,
@@ -1931,6 +1931,19 @@ function R.weaponElement(unit)
   return ok and type(mask) == 'number' and mask or 0
 end
 
+-- The first foe contact of a new fight (accessory_effects.lua keeps the fight clock, a 30 s gap starts a new one): every
+-- living party member's accessory stages hear 'fightStart' once, the same loop the 'ally' event uses. Hermes Sandals'
+-- opening Haste is the only stage that listens. Sent from 165 and 170 (a party hit or spell, a foe's damaging blow) and
+-- from 222 (any foe action on the party).
+local function fightStart(classes, helpers)
+  if not Accessory.fightStarted() then return end
+  for _, p in ipairs(R.party(classes, helpers)) do
+    local k = classes.getBattleUnitKeep(p.address)
+    local s = R.accessoryBase(k, k.temporaryStatusEffects, classes, helpers)
+    if s then decideAccessory('fightStart', s, nil, k, classes, helpers) end
+  end
+end
+
 -- 165: a party member's hit on a foe ('hit'); a foe's physical hit that drops a party member to critical HP ('struck'
 -- for that member, 'ally' for the others).
 function R.accessory165(formula, caster, target, classes, helpers)
@@ -1939,6 +1952,7 @@ function R.accessory165(formula, caster, target, classes, helpers)
   if caster.type == 0 and target.type == 1 then
     if formula.target.removedHp == -1 then return end
     Accessory.touch(now)
+    fightStart(classes, helpers)
     local status = statusSet(formula.target.statusEffects)
     Accessory.noteStatus(target.address, status)
     -- Spotter reads a combo follow-up or a critical hit; the memory lives in the accessory module (every party hit counts)
@@ -1956,6 +1970,7 @@ function R.accessory165(formula, caster, target, classes, helpers)
     local removed = formula.target.removedHp
     if type(removed) ~= 'number' or removed <= 0 then return end
     Accessory.touch(now)
+    fightStart(classes, helpers)
     local quarter = target.maxHp // 4
     -- dropped to critical HP and still standing: a killing blow is not a rescue moment and spends no Vanish
     if not (target.currentHp > quarter and target.currentHp - removed <= quarter and target.currentHp - removed > 0) then return end
@@ -1978,6 +1993,16 @@ function R.accessory165(formula, caster, target, classes, helpers)
   end
 end
 
+-- 222: the first foe action on the party opens the fight, whatever it is (a damage or status spell, a hit that misses or is
+-- blocked, an item effect). 165 only hears a physical hit that deals damage, 170 and 181 only a party caster, so a fight
+-- opened by a foe's spell would otherwise leave a Hermes Sandals wearer un-Hasted until someone landed a hit. Forge 222
+-- runs for every target of every action before its effects; Accessory.fightStarted() makes the dispatch once per fight.
+function R.accessory222(formula, caster, target, classes, helpers)
+  if not Accessory or caster.type ~= 1 or target.type ~= 0 or target.address == 0 or not R.inCampaign() then return end
+  Accessory.touch(clock())
+  fightStart(classes, helpers)
+end
+
 -- 170: a party member's damage spell on a foe ('magick'): Burst and Spellcatcher's payoff; its element is remembered.
 function R.accessory170(formula, caster, target, classes, helpers)
   if not Accessory or caster.type ~= 0 or target.type ~= 1 or not R.inCampaign() then return end
@@ -1985,6 +2010,7 @@ function R.accessory170(formula, caster, target, classes, helpers)
   if damage == -1 then return end
   local now = clock()
   Accessory.touch(now)
+  fightStart(classes, helpers)
   local okE, mask = pcall(R.element, formula.action)
   mask = okE and type(mask) == 'number' and mask or 0
   local s = R.accessoryBase(caster, formula.caster.statusEffects, classes, helpers)

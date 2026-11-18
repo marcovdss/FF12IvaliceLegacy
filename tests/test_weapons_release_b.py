@@ -73,7 +73,7 @@ class RulesTest(unittest.TestCase):
           assert(push(36, 1) == 4500)
           assert(push(50, 2, {targetStatus={slow=true}}) == 9000)   -- Slowed 15% x2
           assert(P.SUPPRESSION_CT_BASE == 24 and P.SUPPRESSION_CT_CAP == 2)
-          assert(P.GEAR[P.JOB.gunner][1][1]:find('CT/24'))
+          assert(P.GEAR[P.JOB.gunner][1][1]:find('slower weapon pushes harder', 1, true))
         ''')
 
     def test_measure_buff_spreads_to_a_second_ally(self):

@@ -16,10 +16,27 @@ INV = {v: k for k, v in C.GLYPHS.items()}
 RESULT_KEYS = {'menuhandbook_tutorial.bin': 'list', 'menuhandbook_tutorial.dat': 'checks',
                'menuhandbook_tutorial000.dat': 'pages', 'penelosdiary.bin': 'titles'}
 # The pages files earlier releases installed (the previous families wordings): 0.1.33, 0.1.34 and 0.1.35-0.1.37
-# (families tips 0.1.5, the unformatted text). A game still on any of them carries one of these.
+# (families tips 0.1.5, the unformatted text), the 0.1.10 wording (installed through 0.1.58) before the text clarity
+# pass, the 0.1.11 clarity-pass build (b0f7db92, built but not shipped on its own: 0.1.12 replaced it), the 0.1.12 build
+# (f7196152, replaced on 2026-11-17 when the Proficiency tip began to define Leech) and the Proficiency tip's own earlier
+# pages file (2533c49f, the families source before that change), and the two builds of the same day that the counter
+# wording of the Leech paragraph replaced (00ec8cc4 the Proficiency tip, 384cd2b2 the families tips), and the two builds
+# its second rewording replaced (c1a37783, d22caacf), and the 0.1.15 families build (2432436d) that the 1117 gear and items
+# audit replaced when the Sword and Hammer lines were made true, and the 0.1.16 build (0894f8fa) that the 2026-11-18 review
+# replaced when the Armor line followed damage formula 0.8.2. A game still on any of them carries one of these.
 PREVIOUS_PAGES = ('33fec20605944c93a4407af2423a05f144d8b63d741d89637c53a107c0983090',
                   'd8a51b8508fba85d1f46fcd82fba6f96cb9acd0f628b6406fdcd48171bdc2984',
-                  '134c6e934c2923f7ac4036e8cbe40417e6e8fdc5d16498eed8cd998e73b0943c')
+                  '134c6e934c2923f7ac4036e8cbe40417e6e8fdc5d16498eed8cd998e73b0943c',
+                  '084cfca4644fb2becaa7237c594e9c5ce4f53dc6e597688dad9796a6a4a79212',
+                  'b0f7db92b69b402a3288147012aff267bbec984f96bef32f04114fe59603a8d2',
+                  'f7196152ff5ec94895d02c43bf17bf19bb3fdd9caa9b0a20e7d71ba49b8e4645',
+                  '2533c49f7b497e071d4b97ed521e1f2e92d95760c31cbed55744103b48da1c1b',
+                  '00ec8cc4ef1fbbf6b3d7653eefbeacecf9e4ecd44855e73b5446d9beb426817f',
+                  '384cd2b295682a4e244ada49696f91dacf8704360a3fcb02c6248bb2ed0d9d8e',
+                  'c1a37783887aef16f943de05285805e7d318f874f20e587895430b8a6c1f4a55',
+                  'd22caacf96b458f12da6d42554372ddeb1cc25c73c27052c49e45860d7fb5a98',
+                  '2432436d0eca5b2f06981a243f07005ec73358a20b675aa6e6876a0f47536af9',
+                  '0894f8fa3fbf7ab45fba841bdbbff8d8e60ce1cbc14a3ea6c2727d73a6cb093a')
 SOURCE_KEYS = {'listSha256': 'menuhandbook_tutorial.bin', 'checksSha256': 'menuhandbook_tutorial.dat',
                'pagesSha256': 'menuhandbook_tutorial000.dat', 'titlesSha256': 'penelosdiary.bin'}
 

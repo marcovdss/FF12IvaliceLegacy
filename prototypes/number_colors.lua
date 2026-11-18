@@ -15,7 +15,7 @@
 --   RVA 0x3E6700 turns the style into a palette index through STYLE_COLOUR (.rdata: style 0 -> 0x00, 1/3/5/7 ->
 --   0x13, 2/4 -> 0x11, 6/8 -> 0x12), then into a palette entry (count at PALETTE_COUNT, entries of 8 bytes at the
 --   pointer in PALETTE_PTR; the entry's colour dword is grey, its fourth byte is the gradient index).
-local M = {version = '0.2.0'}
+local M = {version = '0.3.0'}
 
 M.TYPE_TABLE = 0x120000 + 0x1DCD300
 M.STYLE_COLOUR = 0x120000 + 0xC027A8
@@ -24,7 +24,8 @@ M.PALETTE_PTR = 0x120000 + 0x203E6C8
 M.NATIVE = {2, 4, 1, 3, 6, 8, 5, 7}
 M.NATIVE_STYLE_COLOUR = {[0] = 0x00, 0x13, 0x11, 0x13, 0x11, 0x13, 0x12, 0x13, 0x12}
 M.DUMP_LIMIT = 0x40        -- palette entries dumped; the number colours live below this
-M.FOE_DAMAGE_STYLE = 6     -- style 6 draws in palette colour 0x12: one side's damage numbers
+M.FOE_DAMAGE_STYLE = 6     -- style 6 draws in palette colour 0x12: blue, the party's damage on foes (play, 2026-11-16)
+M.WHITE_STYLE = 0          -- style 0 draws in palette colour 0x00 (expected white; not yet seen in play)
 
 -- One diagnostic dump per load: palette entries (both dwords each), the style->colour table, the type table.
 -- Read-only. Returns true when rows were emitted, false when the palette is not loaded yet.
@@ -69,7 +70,10 @@ function M.plan(mem)
   local styles = {}
   for i = 1, 8 do styles[i] = M.NATIVE[i] end
   styles[4], styles[8] = M.FOE_DAMAGE_STYLE, M.FOE_DAMAGE_STYLE
-  return styles, 'diagnostic: MP recovery (both sides) now drawn in the foe-damage colour'
+  -- 0.3.0 (play, 2026-11-16): MP recovery in style 6 shows blue, the same blue as the party's damage on foes. Style 0
+  -- (palette 0x00, the only colour outside the red/blue/green trio) takes the party's HP damage on foes.
+  styles[5] = M.WHITE_STYLE
+  return styles, 'MP recovery (both sides) in the foe-damage colour; party damage on foes in style 0'
 end
 
 function M.apply(mem, styles)

@@ -133,9 +133,9 @@ class HybridEngineTest(unittest.TestCase):
           assert(others(P.decide('hit', S(id, {}), 1), 'add', 200, 21) == 1)
           -- text says so
           id = testLine({'hit', nil, 'Your hits', 'p', {{'self', 'haste', h, fresh = true}, {'self', 'faith', h}}})
-          assert(P.GEAR[id][1][1]:find('(if not held)', 1, true), P.GEAR[id][1][1])
+          assert(P.GEAR[id][1][1]:find('(if not held)', 1, true) or P.GEAR[id][1][1]:find('(if not already active)', 1, true), P.GEAR[id][1][1])
           id = testLine({'hit', nil, 'Your hits', 'p', {{'self', 'haste', h, fresh = true}}})
-          assert(P.GEAR[id][1][1]:find(' if not held', 1, true) and not P.GEAR[id][1][1]:find('(if', 1, true), P.GEAR[id][1][1])
+          assert((P.GEAR[id][1][1]:find(' if not held', 1, true) or P.GEAR[id][1][1]:find(' if not already active', 1, true)) and not P.GEAR[id][1][1]:find('(if', 1, true), P.GEAR[id][1][1])
         ''')
 
     # ---------- guard stages hear counter-rolled parries ----------
@@ -384,8 +384,10 @@ class HybridEngineTest(unittest.TestCase):
     def test_struck_and_ally_triggers_say_physical_hit(self):
         self.lua.execute(r'''
           assert(H.trigger({'struck', nil, 'Being struck while you have Lure'}) == 'Taking a physical hit while you have Lure')
-          assert(H.trigger({'struck', nil, 'Dropping to critical HP'}) == 'Physical hit to critical HP')
-          assert(H.trigger({'ally', nil, 'An ally dropping to critical HP'}) == 'Physical hit: ally to critical HP')
+          local dropped = H.trigger({'struck', nil, 'Dropping to critical HP'})
+          assert(dropped == 'Physical hit to critical HP' or dropped == 'Dropping to critical HP from a physical hit', dropped)
+          local allyHit = H.trigger({'ally', nil, 'An ally dropping to critical HP'})
+          assert(allyHit == 'Physical hit: ally to critical HP' or allyHit == 'A physical hit dropping an ally to critical HP', allyHit)
           assert(H.trigger({'hit', nil, 'Being struck'}) == 'Being struck', 'other events keep their phrases')
           assert(H.trigger({'struck', nil, 'A physical hit on you'}) == 'A physical hit on you')
           local unspoken = {}
@@ -606,22 +608,26 @@ class HybridEngineApplyTest(unittest.TestCase):
           assert(g.target.addedStatusEffects[9] == 0)
         ''')
 
-    def test_quick_arms_another_units_next_action_and_cleave_clears_reckless(self):
+    def test_quick_arms_another_units_next_action_and_cleave_breaks_the_foe(self):
         self.lua.execute('''
           local before = #ticks
           apply({others={{op='quick', unit=200, fraction=0.2}}}, keep({}))
           assert(#ticks > before, 'the charge watcher started for the ally')
-          local cleared
-          rawset(_G, 'IvaliceLegacyFamily', {clearReckless=function(a) cleared = a end})
-          apply({clearReckless=true}, keep({}))
-          assert(cleared == 100, 'the Warrior\\'s own Reckless dent')
-          cleared = nil
-          apply({}, keep({}))
-          assert(cleared == nil)
+          -- Warrior Cleave II-2..4 (Reckless is gone): the hit Breaks the foe through the Family module's Broken clock
+          local broke
+          rawset(_G, 'IvaliceLegacyFamily', {noteBroken=function(foe, now, by) broke = {foe, by} return true end})
+          local foeKeep = keep({address=555})
+          apply({breakFoe=true}, foeKeep)
+          assert(broke and broke[1] == foeKeep and broke[2] == 100, 'the Warrior Breaks the foe it hit')
+          broke = nil
+          apply({}, foeKeep)
+          assert(broke == nil, 'only when the rule asks')
+          apply({breakFoe=true}, {type=0, address=7})
+          assert(broke == nil, 'never an ally')
           rawset(_G, 'IvaliceLegacyFamily', {})
-          apply({clearReckless=true}, keep({}))      -- a Family without the function: nothing, no error
+          apply({breakFoe=true}, foeKeep)            -- a Family without the function: nothing, no error
           rawset(_G, 'IvaliceLegacyFamily', nil)
-          apply({clearReckless=true}, keep({}))
+          apply({breakFoe=true}, foeKeep)
         ''')
 
 

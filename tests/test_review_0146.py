@@ -364,21 +364,22 @@ class Review0146Tests(unittest.TestCase):
         import json
         from ivalice_legacy import clan_primer as CP
         check('A6: family_identities is 0.5.4 or later (0.1.47: 0.5.5) and its ready line prints the version',
-              int(re.search(r"M\.version = '0\.5\.(\d+)'", FAM).group(1)) >= 4
+              (lambda v: (int(v.group(1)), int(v.group(2))) >= (5, 4))(re.search(r"M\.version = '0\.(\d+)\.(\d+)'", FAM))
               and "'Legacy Family: identities ' .. M.version .. ' ready" in FAM)
-        ax = re.search(r"axe = \{'Sunder', '(.*?)'\},", FAM, re.S).group(1)
+        ax = re.search(r"axe = \{'Sunder', (['\"])(.*?)\1\},", FAM, re.S).group(2)
         check('A1: FAMILY_LINES.axe says every hit Breaks, twice as deep on a Staggered foe, and the dents stop at half',
-              'every hit Breaks the foe' in ax and 'the dents stop at half, the Breaks do not' in ax and 'twice as deep on a Staggered foe' in ax)
+              'Every hit Breaks the foe' in ax and 'stops at half, but the Breaks go on' in ax and 'twice as deep on a Staggered foe' in ax)
         tp = json.loads((ROOT / 'patches/families_tip.json').read_text(encoding='utf-8'))
         bodies = [t['body'] for t in CP.tips(tp)]
         check('tips: Sunder says every hit Breaks and the dents stop at half; Broken is an ailment for job and hybrid triggers, not gambits',
-              'Dents stop at half, yet every hit {y}Breaks{/} it.' in bodies[0] and 'gambits do not.' in bodies[0]
-              and 'not to gambits.' in bodies[3] and 'It counts as an ailment.' not in bodies[0])
+              'Every hit {y}Breaks{/} the foe' in bodies[0] and 'down to half. The Breaks go on after that.' in bodies[0].replace(chr(10) + '  ', ' ')
+              and 'gambits do not.' in bodies[0].replace(chr(10) + '  ', ' ')
+              and 'but gambits do not.' in bodies[3].replace(chr(10) + '  ', ' ') and 'It counts as an ailment.' not in bodies[0])
         check('tips: the 5 s Regen guard is an ally\'s and the smaller push limit names rare game; every tip fits the window',
-              'or 5 for an ally with Regen.' in bodies[2] and 'marks and rare\n  game.' in bodies[2]
+              '5 for an ally with Regen' in bodies[2].replace('\n  ', ' ') and 'bosses, marks and rare game' in bodies[2].replace('\n  ', ' ')
               and all(len(CP.visible(b).split('\n')) <= CP.MAX_BODY_LINES and max(map(len, CP.visible(b).split('\n'))) <= 56 for b in bodies))
         gp = json.loads((ROOT / 'patches/gambit_text.json').read_text(encoding='utf-8'))
-        fix = [c for c in gp['fieldCorrections'] if c['row'] == 226]
+        fix = [c for c in gp['fieldCorrections'] if c['row'] == 226 and c['offset'] == 8]
         check('gambits: row 226\'s reason calls it a native gambit (0.1.48: in Vaan\'s starting inventory, not sold in shops), not an '
               'unused row; the correction itself is unchanged',
               len(fix) == 1 and 'unused' not in fix[0]['reason'] and "Vaan's starting inventory" in fix[0]['reason']

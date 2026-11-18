@@ -273,7 +273,7 @@ class InstalledRuntimeTest(unittest.TestCase):
           for _, h in ipairs(LOG.hp) do if h.amount < 0 then splashes = splashes + 1 end end
           for _, a in ipairs(LOG.added) do if a.id == STATUS.oil then oils = oils + 1 end end
           assert(refunds == 1, 'MP refund came ' .. refunds .. ' times for one cast')
-          assert(mpGain() == 12, 'II-4 refunds 60% of 20: ' .. mpGain())
+          assert(mpGain() == 12 or mpGain() == 10, 'II-4 refunds 60% (installed) or half (0.6.0) of 20: ' .. mpGain())
           assert(splashes <= 1, 'the other foe was hit ' .. splashes .. ' times for one cast')
           assert(oils <= 1, 'the other foe was Oiled ' .. oils .. ' times for one cast')
         """)

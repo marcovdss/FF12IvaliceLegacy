@@ -98,7 +98,7 @@ function plus(values)
   local status = strict('statusEffects', STATUS, {reverse = v.reverse or 0, stop = v.stop or 0, sleep = v.sleep or 0,
                                                   disable = v.disable or 0, blind = v.blind or 0})
   return strict('procWorkPlus', PLUS, {
-    augments = strict('augments', AUGS, {counter = v.counterAug or 0, counterBoost = 0}),
+    augments = strict('augments', AUGS, {counter = v.counterAug or 0, counterBoost = v.counterBoostAug or 0}),
     keep = procKeep, battleUnitWork = unitWork, statusEffects = status, identifier = v.identifier or 0,
     classification = v.classification or 0, maxHp = v.maxHp or 1000, maxMp = v.maxMp or 100,
     addedStatusEffects = slots(0), statusEffectDurations = slots(-1),
@@ -130,7 +130,7 @@ function hit(caster, target, fields)
                   blind = f.attackerBlind}
   w.target = plus{identifier = target.identifier, reverse = f.reverse, classification = f.classification,
                   mpUpdateState = f.mpUpdateState, maxMp = target.maxMp, stop = f.stop, sleep = f.sleep,
-                  disable = f.disable, counterAug = f.counterAug}
+                  disable = f.disable, counterAug = f.counterAug, counterBoostAug = f.counterBoostAug}
   return work(w)
 end
 '''
@@ -471,6 +471,23 @@ class FamilyIdentityTests(unittest.TestCase):
           local last
           for _, r in ipairs(reports) do if r[1]=='cadence' then last=r end end
           assert(last[4]==5 and last[5]=='fresh' and last[6]==1300, tostring(last[5]))
+        """)
+
+    def test_cadence_uses_the_proficiency_runtime_charge_route_when_loaded(self):
+        # 0.6.0 (row 11): one queue for every "next action faster" bonus, so Cadence and a Proficiency stage never stack.
+        self.lua.execute(r"""
+          cat='unarmed'
+          NOW=1000000; own={}; routed={}
+          deps.clock=function() return NOW end
+          deps.armCharge=function(address, fraction) own[#own+1]={address, fraction} end
+          _G.IvaliceLegacyProficiency={armCharge=function(address, fraction) routed[#routed+1]={address, fraction} end}
+          wrapped=module.wrap165(function(f,c,t) f.target.removedHp=1000 end,deps)
+          a=wielder(); t1=foe(555,20,1000,10)
+          run(wrapped,a,t1); NOW=NOW+2000000; run(wrapped,a,t1)
+          assert(#routed==1 and #own==0 and routed[1][1]==11 and math.abs(routed[1][2]-0.05)<1e-9)
+          _G.IvaliceLegacyProficiency=nil
+          NOW=NOW+2000000; run(wrapped,a,t1)
+          assert(#routed==1 and #own==1, 'without the runtime the module keeps its own queue')
         """)
 
     def test_cadence_gates(self):
@@ -855,7 +872,9 @@ class FamilyIdentityTests(unittest.TestCase):
           assert(module.isBroken(floored, NOW)==true, 'a hit at the floor renews Broken')
         """)
 
-    def test_family_costs_on_the_evade_roll(self):
+    def test_no_family_costs_the_wielder_on_the_evade_roll(self):
+        # 0.6.0: Braced (a sword parry pushed the wielder's charge back), Open (a katana combo left it unguarded) and Long
+        # haft (a spear's evade zeroed at run time) are gone. A downside is a visible trade, never a cost on success.
         self.lua.execute(r"""
           OUT=1; SKIP=1; seen={}
           local roll=function(f) seen[#seen+1]={f.evadeShield, f.evadeWeapon, f.evadeParry}; f.outcomeType=OUT; f.skipState=SKIP end
@@ -866,33 +885,66 @@ class FamilyIdentityTests(unittest.TestCase):
             local f=hit(foe(),defender); f.evadeShield=30; f.evadeWeapon=20; f.evadeParry=40
             wrapped(f,foe(),defender,{},classes,helpers); return f
           end
-          -- Braced: a sword wielder's parry costs 10% of its own charge
+          -- a sword parry, a block and a dodge leave the wielder's own charge alone
           cat='sword'; local knight=wielder()
-          attack(knight); assert(w.currentChargeTime==500, w.currentChargeTime)
-          OUT=3; attack(wielder(1,99)); assert(w.currentChargeTime==400)                -- a block too
-          OUT=1; attack(wielder(2,98)); assert(w.currentChargeTime==300)                -- a sword parry (weapon roll)
-          OUT=5; attack(wielder(8,92)); assert(w.currentChargeTime==300)                -- a dodge costs nothing
-          OUT=0; SKIP=0; attack(wielder(3,97)); assert(w.currentChargeTime==300)        -- nor a hit taken
-          w.currentChargeTime=1000; OUT=5; SKIP=1; attack(wielder(4,96)); assert(w.currentChargeTime==1000)  -- full: untouched
-          cat='pole'; w.currentChargeTime=600; attack(wielder(5,95)); assert(w.currentChargeTime==600)  -- only swords
-          -- Long haft: a spear never parries (weapon roll); its shield and dodge stay
+          attack(knight); assert(w.currentChargeTime==600, w.currentChargeTime)
+          OUT=3; attack(wielder(1,99)); assert(w.currentChargeTime==600)
+          OUT=1; attack(wielder(2,98)); assert(w.currentChargeTime==600)
+          OUT=5; attack(wielder(8,92)); assert(w.currentChargeTime==600)
+          -- a spear keeps the evade its row shows: nothing is zeroed at run time
+          OUT=0; SKIP=0
           cat='spear'; seen={}; attack(wielder(6,94))
-          assert(seen[1][2]==0 and seen[1][1]==30 and seen[1][3]==40)
-          -- Open: after a katana combo the next attack meets no evasion, once
-          OUT=0; SKIP=0                                                                  -- hits land: no fatigue
+          assert(seen[1][1]==30 and seen[1][2]==20 and seen[1][3]==40, 'a spear weapon evade is its row, not zero')
+          -- a katana combo opens nothing
           cat='katana'; local sam=wielder(7,93)
           local function forge10(f) f.comboState=1; f.caster.keep.battleFlags.comboCount=3 end
           local f=hit(sam,foe()); module.wrap10(forge10,deps)(f,sam,foe(),{},{},{})
           seen={}; attack(sam); attack(sam)
-          assert(seen[1][1]==0 and seen[1][2]==0 and seen[1][3]==0, 'opened')
-          assert(seen[2][3]==40, 'the opening is spent on one attack')
-          -- a fresh katana Attack closes an unused opening
-          f=hit(sam,foe()); module.wrap10(forge10,deps)(f,sam,foe(),{},{},{})
-          f=hit(sam,foe()); module.wrap10(function(f) f.comboState=0 end,deps)(f,sam,foe(),{},{},{})
-          seen={}; attack(sam); assert(seen[1][3]==40, 'closed by the next Attack')
+          assert(seen[1][1]==30 and seen[1][2]==20 and seen[1][3]==40 and seen[2][3]==40, 'no opening after a combo')
           local kinds={}
           for _, r in ipairs(reports) do kinds[r[1]]=true end
-          assert(kinds.braced and kinds.fatigue)
+          assert(not kinds.braced and not kinds.open)
+          for _, name in ipairs({'brace', 'BRACED_PUSH', 'OPEN_WINDOW'}) do assert(module[name]==nil, name) end
+        """)
+
+    def test_counterflow_counter_boost_without_the_licence_uses_speed_times_two(self):
+        # 0.6.0 (row 10): Genji Armor's Counter Boost used to do nothing on a pole without a Counter licence, because
+        # Counterflow overwrote the chance. With Counter Boost the base is Speed x 2 instead of Speed / 2; the cap stays 75.
+        self.lua.execute(r"""
+          cat='pole'; seen={}
+          wrapped=module.wrap8(function(f,c,t) seen[#seen+1]=f.counterChance end,deps)
+          local plain=wielder(0, 11)                        -- speed 40
+          run(wrapped,foe(),plain,{counterChance=0}); assert(seen[1]==20, seen[1])
+          local boosted=wielder(1, 12); boosted.permanentAugments.counterBoost=1
+          run(wrapped,foe(),boosted,{counterChance=0}); assert(seen[2]==75, 'speed 40 x 2 = 80, capped at 75 without the licence: '..seen[2])
+          local slow=wielder(2, 13, {speed=20}); slow.permanentAugments.counterBoost=1
+          run(wrapped,foe(),slow,{counterChance=0}); assert(seen[3]==40, seen[3])            -- 4 times the 10 of an unboosted pole
+          run(wrapped,foe(),slow,{counterChance=0}); assert(seen[4]==50, 'flow still builds on top')
+          local temp=wielder(3, 14, {speed=20}); temp.temporaryAugments.counterBoost=1
+          run(wrapped,foe(),temp,{counterChance=0}); assert(seen[5]==40, 'a temporary Counter Boost counts too')
+          -- the licence path is unchanged: base is Forge 7's own chance, doubled
+          local licensed=wielder(4, 15); licensed.permanentAugments.counter=1; licensed.permanentAugments.counterBoost=1
+          run(wrapped,foe(),licensed,{counterChance=80}); assert(seen[6]==100, seen[6])
+          -- the field name is confirmed once in the log
+          local n, first = 0
+          for _, r in ipairs(reports) do if r[1]=='counterboost-field' then n=n+1; first=first or r end end
+          assert(n==1 and first[2]=='name=counterBoost' and first[3]=='read=ok held=false' and first[4]=='source=none' and first[5]=='views=3of3', n)
+          -- Forge 7's own view: the effective augments of this hit count even when the keep tables do not show it
+          local viaForge=wielder(5, 16, {speed=20})
+          run(wrapped,foe(),viaForge,{counterChance=0, counterBoostAug=1}); assert(seen[#seen]==40, 'formula view: '..tostring(seen[#seen]))
+        """)
+
+    def test_counterflow_survives_a_forge_without_the_counter_boost_field(self):
+        # A build whose augment view lacks the field falls back to the plain base and says so once.
+        self.lua.execute(r"""
+          cat='pole'; seen={}
+          wrapped=module.wrap8(function(f,c,t) seen[#seen+1]=f.counterChance end,deps)
+          local d=wielder(0, 11, {permanentAugments=setmetatable({counter=0}, {__index=function(_, k) error("Couldn't get unknown augment: "..tostring(k)) end})})
+          run(wrapped,foe(),d,{counterChance=0}); assert(seen[1]==20, 'plain base, not a crash: '..tostring(seen[1]))
+          local n, line = 0
+          for _, r in ipairs(reports) do if r[1]=='counterboost-field' then n=n+1; line=r end end
+          assert(n==1 and line[3]=='read=ok held=false' and line[5]=='views=2of3', 'the formula view still answers: ' .. tostring(line[3]))
+          assert(module.hasCounterBoost({permanentAugments=d.permanentAugments, temporaryAugments=d.permanentAugments}, deps, {}) == false, 'no view readable: false, no error')
         """)
 
     def test_reset_clears_the_dent_memory(self):

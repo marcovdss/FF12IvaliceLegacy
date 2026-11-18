@@ -1,0 +1,15 @@
+{
+    "ignoreAllies": 1,
+    "ignoreBosses": 1,
+    "ignoreMarks": 1,
+    "ignoreRareGames": 1,
+    "randomizeCommons": 0,
+    "superChance": 20,
+    "superEnabled": 1,
+    "superExp": 3,
+    "superHp": 0,
+    "superInTrials": 1,
+    "superLoot": 0,
+    "superLp": 3,
+    "superReturns": 0
+}

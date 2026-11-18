@@ -3,7 +3,13 @@
 -- the job. The Proficiency runtime (proficiency_runtime.lua) dispatches the wearer's stages from the same Forge hooks
 -- and applies the result through R.apply, so every proven budget holds for accessories too: statuses go through the
 -- immunity checks (R.mayAdd) and the duration rule (a shorter grant never cuts a longer one), charge pushes through the
--- per-foe allowance (no accessory pushes), and no accessory returns MP or grants Haste or Bravery.
+-- per-foe allowance (no accessory pushes), and no accessory returns MP or grants Bravery.
+--
+-- House rules (Marco, 2026-11-16: "Haste is haste", "nothing hurts its own wearer"):
+--   * A worn status counts everywhere the game asks for it: no accessory hides its status from any job or hybrid.
+--   * An accessory grants a status at most once per fight, never refreshes it (a grant is skipped while the status is
+--     held), and never grants Bravery. Hermes Sandals' opening Haste is the one such grant.
+--   * No accessory debuffs or harms its own wearer, whatever their role.
 --
 -- Rules:
 --   * Each accessory counts once, in either slot (the same id in both slots runs its stages once).
@@ -14,16 +20,24 @@
 --
 -- Party memory (per foe, cleared on load and map change): the element of the last party hit or damage spell on it and
 -- who dealt it, who landed each ailment it holds, a Spotter mark, and which Oil a Gillie Boots wearer already used.
-local A = {version = '0.1.0'}
+local A = {version = '0.2.0'}
 
-A.ID = {rubicante = 4437, barbariccia = 4438, mistflow = 4440, hyperWrist = 4444, braver = 4451, indigo = 4462,
-        cameo = 4468, nishijin = 4469, shinobi = 4472, hermes = 4473, gillie = 4474, pixie = 4476}
+A.ID = {rubicante = 4437, barbariccia = 4438, mistflow = 4440, hyperWrist = 4444, braver = 4451, elmdore = 4464,
+        indigo = 4462, cameo = 4468, nishijin = 4469, shinobi = 4472, hermes = 4473, gillie = 4474}
 
 local h = 0.5
 -- Stage = {event, conditions (all must hold) or nil, effects}. Effects: {'quick', percent} (your next action charges
 -- faster), {'dmg', percent}, {'foe', status, durationScale}, {'self', status, durationScale, fresh = true},
--- {'mark'} (Spotter), {'dmgNext', percent, seconds} (your next damage spell).
+-- {'mark'} (Spotter), {'dmgNext', percent, seconds} (your next damage spell), {'heal', percent} (the wearer heals that
+-- share of its own max HP, never past full).
 A.STAGES = {
+  -- Hermes Sandals, Opening stride: at the start of each fight the wearer gains a real, full-length Haste unless it is
+  -- already Hasted. The Haste is an ordinary Haste: every job and hybrid reads it (Zanshin II and III, the Hasted hybrid
+  -- stages), and when it ends their own Haste triggers take over. Once per fight, whoever the fight starts with.
+  [4473] = {{'fightStart', nil, {{'self', 'haste', 1, fresh = true}}}},
+  -- Elmdore Fang, Drinker: each attack you land on a foe holding Sap or Poison heals you 3% of your max HP. Once per
+  -- attack: a combo's follow-up hits do not count, and neither do the other foes a sweep (a greatsword swing) reaches.
+  [4464] = {{'hit', {'sapOrPoison', 'notComboFollow', 'oncePerSwing'}, {{'heal', 3}}}},
   -- Hyper Wrist, Opportunist: your hit on a foe holding an ailment an ally landed, or a foe an ally Broke or Staggered
   -- (0.1.44, decisions 2 and 3).
   [4444] = {{'hit', {'allyAilment'}, {{'quick', 10}}}},
@@ -45,13 +59,15 @@ A.STAGES = {
 }
 A.ELEMENT_WINDOW = 5000000     -- clock units (microseconds): Burst reads an ally's element hit up to 5 s old
 A.MARK_WINDOW = 6000000        -- Spotter mark
-A.FIGHT_GAP = 30000000         -- no foe seen for 30 s: the next foe starts a new fight (Vanish is once per fight)
+A.SWING_WINDOW = 100000         -- one Attack's hits on several foes are processed together (Drinker heals once per swing)
+A.FIGHT_GAP = 30000000         -- no foe seen for 30 s: the next foe starts a new fight (Vanish and Hermes are once per fight)
 A.INDIGO_SCALE = 0.5           -- Indigo Pendant: ailments its wearer's Vitality-checked spells land last half as long
 A.SPILL_SHARE = 10             -- Mistflow: the overflow heals the most hurt ally, at most 10% of that ally's max HP
 
 local foe, wearer = {}, {}
 local lastHit = {}   -- party member address -> {target, at}: the member's previous hit, for combo follow-ups
 local fight, lastFoe = 1, nil
+local dispatched = 0     -- the fight the fightStart event was last sent for
 A.log = function() end
 
 function A.reset()
@@ -67,6 +83,13 @@ function A.touch(now)
   lastFoe = now
 end
 function A.fight() return fight end
+-- True once per fight: the caller then sends 'fightStart' to every party member's stages. A new fight (a 30 s gap, a
+-- load or a map change) is a new number, so it is true again.
+function A.fightStarted()
+  if dispatched == fight then return false end
+  dispatched = fight
+  return true
+end
 
 local function foeMem(address)
   local m = foe[address]
@@ -115,6 +138,20 @@ local LOCAL = {}
 -- This hit is a combo follow-up or a critical hit (not critical HP: that is the hybrid condition of the same name).
 function LOCAL.comboOrCrit(s)
   return s.hitCombo == true or s.hitCritical == true
+end
+-- The foe holds Sap or Poison (Drinker). `targetStatus` is the foe's status set as the hit saw it.
+function LOCAL.sapOrPoison(s)
+  local t = s.targetStatus or {}
+  return t.sap == true or t.poison == true
+end
+-- The wearer has not already drunk for this swing: a sweep that reaches several Sapped or Poisoned foes heals once.
+function LOCAL.oncePerSwing(s)
+  local drank = wearerMem(s.self).drank
+  return not (drank and type(s.now) == 'number' and s.now >= drank and s.now - drank <= A.SWING_WINDOW)
+end
+-- This hit starts its Attack: a combo's follow-up hits (the same member on the same foe within the combo window) do not.
+function LOCAL.notComboFollow(s)
+  return s.hitCombo ~= true
 end
 -- The foe holds an ailment that another party member landed, or another member Broke or Staggered it (0.1.44: the
 -- runtime sets allyBroken and allyStaggered from the family module's Broken clock and the push budget).
@@ -168,7 +205,7 @@ local function add(a, field, id, scale)
   a[field][id] = math.max(a[field][id] or 0, scale or 1)
 end
 local function other(a, o) a.others = a.others or {}; a.others[#a.others + 1] = o end
-local REACTION = {struck = true, ally = true, reflected = true}
+local REACTION = {struck = true, ally = true, reflected = true, fightStart = true}
 
 local function apply(fx, ev, s, a)
   local S = A.S
@@ -181,6 +218,14 @@ local function apply(fx, ev, s, a)
     if not (fx.fresh and s.casterStatus[fx[2]]) then
       if REACTION[ev] then other(a, {op = 'add', unit = s.self, id = S[fx[2]], scale = fx[3] or 1})
       else add(a, 'casterAdd', S[fx[2]], fx[3]) end
+    end
+  elseif op == 'heal' then
+    -- the wearer's own max HP, never past full: a heal at full HP writes nothing
+    local max, now = s.selfMaxHp, s.casterHp
+    wearerMem(s.self).drank = s.now     -- this swing has had its heal, whether or not HP was missing
+    if type(max) == 'number' and type(now) == 'number' then
+      local amount = math.min(math.floor(max * fx[2] / 100), max - now)
+      if amount > 0 then other(a, {op = 'hp', unit = s.self, amount = amount}) end
     end
   elseif op == 'mark' then
     if s.target then foeMem(s.target).mark = {by = s.self, at = s.now} end
@@ -197,7 +242,7 @@ function A.worn(main, second)
   end
   return out
 end
-A.PASSIVE = {[4438] = true, [4440] = true, [4462] = true, [4473] = true, [4476] = true}
+A.PASSIVE = {[4438] = true, [4440] = true, [4462] = true}
 
 function A.wears(s, id)
   for _, w in ipairs(s.ids or {}) do if w == id then return true end end

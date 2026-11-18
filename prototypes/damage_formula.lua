@@ -22,16 +22,24 @@
 -- light blades are unchanged against ordinary Defense and bounce off armor. The same floor now also guards formula 23
 -- (axe, hammer, hand-bomb), which damages through Forge 126 (adapter 126.lua wraps it with this module).
 --
--- 0.6.0: Reckless. A party axe wielder's Reckless steps raise a foe's hit on them by 5% each (up to +20%), applied to
--- the attack term after the floor rule, so the cost holds where the floor decides the hit. The Defense dent of 0.5.0
--- is gone.
+-- 0.6.0: Reckless (an axe wielder's damage taken rose with each swing). 0.8.0 (Marco, 2026-11-16: a downside is never a
+-- punishment): Reckless is gone, and the foe-hit path no longer reads any wielder state.
 --
 -- 0.7.0: armour type floors and physical-only Reckless. A foe's damaging physical hit on a party member keeps at least
 -- 50% of its attack term in heavy body armour, 60% in light and 70% in mystic (the body armour worn, keep +0x56), so
 -- armour weight matters under the floor. Foe magicks, hits the target absorbs, and a member in no known body armour keep
 -- the half floor of 0.4.0. Reckless now raises only a foe's damaging physical hit, never a magick or an absorbed heal.
 -- "Physical" is a formula that carries Forge 165 (the physical after-hit hook) in Forge 1.0.3's formula lists.
-local M = {version = '0.7.0', FLOOR_DIVISOR = 4, FOE_FLOOR_DIVISOR = 2, GLANCING_DIVISOR = 8, ATTACK = 150}
+--
+-- 0.8.2 (gear and items audit, 2026-11-17): armour never makes a foe's physical hit bigger than wearing no body armour
+-- would. The light (60%) and mystic (70%) floors sit above the 50% a bare body keeps, so under the floor a piece could
+-- raise a hit its wearer would have taken bare (an Iron Duke in a Cotton Shirt took 21 where a bare body took 20). The hit
+-- is now the smaller of the floored hit with the worn piece at its type share and the floored hit with that piece's
+-- Defense taken out of the target's defense term, at the bare 50% share. Where the bare body would take at least the type
+-- floor, the 60% and 70% floors still bind; heavy armour (50%) is unchanged. The piece's Defense is the section 13 value
+-- in BODY_DEFENSE; that the keep's defense stat includes it additively is not verifiable from the scripts [U], and a piece
+-- missing from the table subtracts nothing, so the result can only fall back toward the 0.8.0 hit, never above it.
+local M = {version = '0.8.2', FLOOR_DIVISOR = 4, FOE_FLOOR_DIVISOR = 2, GLANCING_DIVISOR = 8, ATTACK = 150}
 M.GLANCING = {dagger = true, ninjaSword = true}
 M.PHYSICAL = {[20] = true, [21] = true, [22] = true, [23] = true, [24] = true, [25] = true, [26] = true, [27] = true,
               [28] = true, [29] = true, [64] = true, [103] = true, [104] = true}
@@ -40,6 +48,19 @@ M.PHYSICAL = {[20] = true, [21] = true, [22] = true, [23] = true, [24] = true, [
 M.ARMOUR_TYPES = {{first = 4376, last = 4396, kind = 'light'}, {first = 4397, last = 4417, kind = 'mystic'},
                   {first = 4418, last = 4435, kind = 'heavy'}}
 M.TYPE_SHARE = {heavy = 0.5, light = 0.6, mystic = 0.7}
+-- Defense of each body armour (section 13 0.1.60 values, ids 4376-4435): what the piece adds to the wearer's defense term.
+M.BODY_DEFENSE = {
+  [4376] = 4, [4377] = 5, [4378] = 6, [4379] = 8, [4380] = 10, [4381] = 12,
+  [4382] = 14, [4383] = 17, [4384] = 20, [4385] = 23, [4386] = 26, [4387] = 28,
+  [4388] = 30, [4389] = 32, [4390] = 33, [4391] = 35, [4392] = 37, [4393] = 39,
+  [4394] = 39, [4395] = 39, [4396] = 41, [4397] = 2, [4398] = 3, [4399] = 4,
+  [4400] = 5, [4401] = 6, [4402] = 7, [4403] = 9, [4404] = 11, [4405] = 13,
+  [4406] = 14, [4407] = 15, [4408] = 16, [4409] = 17, [4410] = 19, [4411] = 20,
+  [4412] = 21, [4413] = 22, [4414] = 24, [4415] = 24, [4416] = 24, [4417] = 25,
+  [4418] = 7, [4419] = 8, [4420] = 10, [4421] = 13, [4422] = 16, [4423] = 19,
+  [4424] = 24, [4425] = 29, [4426] = 32, [4427] = 34, [4428] = 38, [4429] = 41,
+  [4430] = 44, [4431] = 48, [4432] = 51, [4433] = 55, [4434] = 55, [4435] = 59,
+}
 
 -- The armour type of the body armour `unit` wears, or nil (none, a guest or reserve row, or unreadable).
 function M.armourType(unit)
@@ -59,7 +80,7 @@ end
 
 -- What a hit is: a foe (type 1) striking a party member (type 0), then whether its formula is physical and whether it
 -- heals. The side is read on its own, so the half floor never depends on the other two; an unreadable formula reads as
--- "not a damaging physical hit" (no type floor, no Reckless).
+-- "not a damaging physical hit" (no type floor).
 function M.kind(formula, caster, target)
   local okSide, foeOnParty = pcall(function() return caster.type == 1 and target.type == 0 end)
   if not (okSide and foeOnParty == true) then return false, false, true end
@@ -87,16 +108,6 @@ function M.glancing(formula, caster, deps)
   return M.GLANCING[deps.category(caster)] == true
 end
 
--- The target's Reckless damage multiplier, from the shared Family module (read at call time); 1 otherwise.
-function M.reckless(target, deps)
-  local Family = rawget(_G, 'IvaliceLegacyFamily')
-  if type(Family) ~= 'table' or type(Family.recklessTaken) ~= 'function' then return 1 end
-  local resolved = deps
-  if resolved == nil and type(Family.deps) == 'function' then resolved = Family.deps() end
-  if type(resolved) ~= 'table' then return 1 end
-  return Family.recklessTaken(target, resolved)
-end
-
 -- Wrap Forge 113 (or 126). Only hits below the floor change, the party's and foes' alike; formula.multiplier and formula.modifier are restored
 -- afterwards, so every later Forge function and observer sees the native fields.
 function M.wrap(original, deps)
@@ -110,35 +121,28 @@ function M.wrap(original, deps)
     local divisor = foeOnParty and M.FOE_FLOOR_DIVISOR or nil
     local bodyHit = foeOnParty and physical and not heals
     -- Armour type floors (0.7.0): a damaging physical hit keeps the share its body armour type lets through.
+    local bare   -- (0.8.2) the term the same hit would have with the worn piece's Defense removed, at the bare half floor
     if bodyHit then
       local okT, kind = pcall(M.armourType, target)
       local share = okT and kind and M.TYPE_SHARE[kind]
-      if type(share) == 'number' and share > 0 then divisor = 1 / share end
-    end
-    -- Reckless: a party axe wielder takes more from a foe's damaging physical hit (family_identities.lua keeps the
-    -- state). The factor scales the attack term the floor rule chose, so it acts whether the floor or the subtraction
-    -- decides.
-    local taken = 1
-    if bodyHit then
-      local okR, factor = pcall(M.reckless, target, deps)
-      local Family = rawget(_G, 'IvaliceLegacyFamily')
-      local cap = type(Family) == 'table' and type(Family.RECKLESS_CAP) == 'number' and Family.RECKLESS_CAP or 0.2
-      if okR and type(factor) == 'number' and factor > 1 and factor <= 1 + cap + 1e-9 then taken = factor end
+      if type(share) == 'number' and share > 0 then
+        divisor = 1 / share
+        local piece = M.BODY_DEFENSE[target.armor]
+        if type(piece) == 'number' and type(defense) == 'number' and type(attack) == 'number' then
+          local without = math.max(0, defense - piece)
+          bare = M.floor(attack, without, M.FOE_FLOOR_DIVISOR) or (attack - without)
+        end
+      end
     end
     if not divisor then
       local okG, glancing = pcall(M.glancing, formula, caster, deps)
       if okG and glancing then divisor = M.GLANCING_DIVISOR end
     end
     local term = M.floor(attack, defense, divisor)
-    if not term then
-      if taken == 1 then return original(formula, caster, target, functions, classes, helpers) end
-      formula.multiplier, formula.modifier = attack * taken, defense * taken
-      local native = table.pack(pcall(original, formula, caster, target, functions, classes, helpers))
-      formula.multiplier, formula.modifier = attack, defense
-      if not native[1] then error(native[2], 0) end
-      return table.unpack(native, 2, native.n)
-    end
-    formula.multiplier, formula.modifier = term * taken, 0
+    if not term then return original(formula, caster, target, functions, classes, helpers) end
+    -- armour never increases damage: never above the hit with no piece
+    if bare and bare < term then term = bare end
+    formula.multiplier, formula.modifier = term, 0
     local result = table.pack(pcall(original, formula, caster, target, functions, classes, helpers))
     formula.multiplier, formula.modifier = attack, defense
     if not result[1] then error(result[2], 0) end

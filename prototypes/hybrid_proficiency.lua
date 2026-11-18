@@ -7,7 +7,8 @@
 -- Effect = {op, ..., f = first level (default 1)}; a value may be a number or a table of four (levels 1-4).
 -- Events: hit (weapon hit on a foe), magick (damage spell on a foe), heal (heal on an ally, items included),
 --         guard (a foe's attack on you was parried, blocked or dodged), counter (you counterattack),
---         struck (a foe's hit damaged you), ally (an ally dropped to critical HP), status (an ailment you landed with
+--         struck (a foe's hit damaged you; a multi-hit attack is one blow, so its per-action rewards come once),
+--         ally (an ally dropped to critical HP), status (an ailment you landed with
 --         an attack or a spell, the same set on both routes), cast (a status spell you cast landed: castFoe on a foe,
 --         castAlly on an ally, cast on either).
 -- Effect flags: f = first level; fresh = true (self, ally and party grants) applies only to a unit that does not hold the status.
@@ -100,12 +101,14 @@ H.LINES = {
    {'heal', {'allyAiling'}, 'Healing an ally with an ailment', 's', {{'cureAlly', {1, 1, 2, 2}}, {'cureOther', 1},
      {'ally', 'haste', h, f = 3}}},
    {'heal', {'item'}, 'Using a healing item on an ally', 's', {{'partyHealPct', {25, 25, 25, 35}},
-     {'allyMp', 5, f = 2}, {'hp', 5, f = 3}}}},
+     {'allyMp', 5, f = 2}, {'hp', 5, f = 3}},
+    text = {[3] = 'Using a healing item on an ally heals every other ally for 25% of the heal, adds 5% of it to their MP and heals you for 5% of max HP',
+            [4] = 'Using a healing item on an ally heals every other ally for 35% of the heal, adds 5% of it to their MP and heals you for 5% of max HP'}}},
   -- 11 Cannoneer (Lancer + Gunner)
   {line = 'Siege',
    {'hit', {'firstHit'}, 'Your first hit on each foe', 's', {{'strip', {'protect'}}, {'ally', 'bravery', h, f = 2},
      {'strip', {'shell'}, f = 3}, {'dmg', 15, f = 4}}},
-   {'hit', {'buffless', 'about'}, 'Hits on a bare foe about to act', 'p', {{'push', {10, 10, 10, 15}},
+   {'hit', {'buffless', 'about'}, 'Hits on an unbuffed foe about to act', 'p', {{'push', {10, 10, 10, 15}},
      {'foe', 'silence', h, f = 2}, {'dmg', 15, f = 3}}},
    {'hit', {'kill'}, 'A kill', 's', {{'stripOther', {'protect', 'shell'}}, {'dmgNext', {15, 15, 15, 25}, f = 2},
      {'self', 'haste', h, f = 3}}}},
@@ -113,22 +116,24 @@ H.LINES = {
   {line = 'Unmake',
    {'hit', {'lowMp'}, 'Hits on a foe with a quarter of its MP or less', 'p', {{'strip', {'protect', 'shell'}},
      {'strip', {'haste', 'regen'}, f = 2}, {'dmg', 15, f = 3}, {'strip', {'reflect', 'faith'}, f = 4}}},
-   {'status', {'buffless'}, 'An ailment you land on a bare foe', 's', {{'foe', 'silence', {h, h, h, t}},
+   {'status', {'buffless'}, 'An ailment you land on an unbuffed foe', 's', {{'foe', 'silence', {h, h, h, t}},
      {'drain', 5, f = 2}, {'self', 'shell', h, f = 3}}},
-   {'hit', {'lowMp', 'buffless'}, 'Hits on a bare foe with a quarter of its MP or less', 'p', {{'foe', 'berserk', {h, h, h, t}},
+   {'hit', {'lowMp', 'buffless'}, 'Hits on an unbuffed foe with a quarter of its MP or less', 'p', {{'foe', 'berserk', {h, h, h, t}},
      {'mp', 3, f = 2}, {'party', 'faith', h, f = 3}}}},
   -- 13 Templar (Knight + Lancer)
   {line = 'Phalanx',
    {'struck', {'buffed'}, 'Being struck by a physical hit from a buffed foe', 's', {{'strip', {'protect'}},
      {'self', 'lure', {h, h, t, t}}, {'strip', {'shell'}, f = 2}, {'strip', {'haste', 'reflect'}, f = 3}}},
-   {'hit', {'lured', 'buffless'}, 'While you have Lure, hits on a bare foe', 'p', {{'foe', 'immobilize', {h, h, h, t}},
+   {'hit', {'lured', 'buffless'}, 'While you have Lure, hits on an unbuffed foe', 'p', {{'foe', 'immobilize', {h, h, h, t}},
      {'dmg', 15, f = 2}, {'drain', 5, f = 3}}},
    {'hit', {'lured', 'immobilized'}, 'While you have Lure, hits on an Immobilized foe', 'p', {{'dmg', {20, 20, 20, 30}},
      {'pushOther', 10, f = 2}, {'party', 'bravery', h, f = 3}}}},
   -- 14 Hell Knight (Lancer + Mystic)
   {line = 'Hellfire',
-   {'counter', nil, 'Each counter', 's', {{'strip', {'protect', 'haste'}}, {'hp', {5, 5, 5, 8}},
-     {'foe', 'immobilize', h, f = 2}, {'strip', {'bravery', 'faith'}, f = 3}}},
+   {{'counter', 'struck'}, nil, 'A counter or a physical hit you take', 's', {{'strip', {'protect', 'haste'}}, {'hp', {5, 5, 5, 8}},
+     {'foe', 'immobilize', h, f = 2}, {'strip', {'bravery', 'faith'}, f = 3}},
+    text = {[3] = 'A counter or a physical hit you take Immobilizes the foe, strips its Protect, Haste, Bravery and Faith and heals you for 5% of max HP',
+            [4] = 'A counter or a physical hit you take Immobilizes the foe, strips its Protect, Haste, Bravery and Faith and heals you for 8% of max HP'}},
    {'hit', {'immobilized'}, 'Hits on an Immobilized foe', 'p', {{'drain', {5, 5, 5, 8}}, {'strip', {'shell'}, f = 2},
      {'foe', 'silence', h, f = 3}}},
    {'magick', {'immobilized'}, 'Spells on an Immobilized foe', 'p', {{'dmg', {20, 20, 20, 30}}, {'heal', 10, f = 2},
@@ -139,7 +144,7 @@ H.LINES = {
      {'strip', {'float', 'faith'}, f = 2}, {'mp', {3, 3, 3, 5}, f = 3}}},
    {'hit', {'slowed', 'buffed'}, 'Hits on a Slowed foe that still has buffs', 'p', {{'strip', {'protect', 'shell'}},
      {'strip', {'reflect', 'regen'}, f = 2}, {'mp', {2, 2, 2, 3}, f = 3}}},
-   {'hit', {'slowed', 'buffless'}, 'Hits on a bare Slowed foe', 'p', {{'dmg', {20, 20, 20, 30}},
+   {'hit', {'slowed', 'buffless'}, 'Hits on an unbuffed Slowed foe', 'p', {{'dmg', {20, 20, 20, 30}},
      {'extend', 'slow', 10, f = 2}, {'foe', 'disable', h, f = 3}}}},
   -- 16 Ravager (Lancer + Warrior)
   {line = 'Havoc',
@@ -147,7 +152,7 @@ H.LINES = {
      {'strip', {'shell', 'regen'}, f = 3}}},
    {'hit', {'buffless', 'kill'}, 'Killing a foe with no buffs', 's', {{'other', 'slow', h},
      {'heal', {10, 10, 10, 15}, f = 2}, {'self', 'bravery', h, f = 3}}},
-   {'hit', {'critical', 'buffless'}, 'At critical HP, hits on a bare foe', 'p', {{'dmg', {20, 20, 20, 30}},
+   {'hit', {'critical', 'buffless'}, 'At critical HP, hits on an unbuffed foe', 'p', {{'dmg', {20, 20, 20, 30}},
      {'foe', 'immobilize', h, f = 2}, {'party', 'bravery', h, f = 3}}}},
   -- 17 Beastslayer (Lancer + Hunter)
   {line = 'Big Game',
@@ -155,7 +160,7 @@ H.LINES = {
      {'heal', 5, f = 2}, {'foe', 'disease', h, f = 3}}},
    {'hit', {'wounded'}, 'Hits on a foe below half HP', 'p', {{'strip', {'protect', 'shell'}}, {'heal', 10, f = 2},
      {'push', {10, 10, 10, 15}, f = 3}}},
-   {'hit', {'tough'}, 'Hits on big game', 'p', {{'strip', {'protect', 'regen'}},
+   {'hit', {'tough'}, 'Hits on a boss, mark or rare game', 'p', {{'strip', {'protect', 'regen'}},
      {'dmg', {15, 15, 20, 25}}, {'self', 'haste', h, f = 2, fresh = true}, {'party', 'bravery', h, f = 3}}}},
   -- 18 Dragonkin (Lancer + Black Mage)
   {line = 'Fracture',
@@ -171,14 +176,15 @@ H.LINES = {
      {'drain', 5, f = 3}, {'strip', {'protect'}, f = 4}}},
    {'hit', {'floating'}, 'While you Float, your hits', 'p', {{'dmg', {15, 15, 15, 25}}, {'push', 10, f = 2},
      {'allyMp', 5, f = 3}}},
-   {'hit', {'floating', 'buffless'}, 'Floating hits on a bare foe', 'p', {{'foe', 'immobilize', {h, h, h, t}},
+   {'hit', {'floating', 'buffless'}, 'While you Float, hits on an unbuffed foe', 'p', {{'foe', 'immobilize', {h, h, h, t}},
      {'quick', 20, f = 2}, {'party', 'bravery', h, f = 3}}}},
   -- 20 Despoiler (Lancer + Chemist)
   {line = 'Corrode',
    {'status', nil, 'An ailment you land', 's', {{'strip', {'shell'}}, {'strip', {'protect'}, f = 2},
      {'cureAlly', 1, f = 3}, {'strip', {'regen', 'haste'}, f = 4}}},
-   {'hit', {'ailing', 'buffless'}, 'Hits on a bare foe ailing or Broken', 'p', {{'foe', 'disease', {h, h, h, t}},
-     {'dmg', 15, f = 2}, {'allyMp', 5, f = 3}}},
+   {'hit', {'ailing', 'buffless'}, 'Hits on an unbuffed foe ailing or Broken', 'p', {{'foe', 'disease', {h, h, h, t}},
+     {'dmg', 15, f = 2}, {'allyMp', 5, f = 3}},
+    text = {[4] = 'Hits on an unbuffed foe ailing or Broken inflict Disease for longer, deal 15% more and give the lowest-MP ally 5% of the damage as MP'}},
    {'hit', {'diseased'}, 'Hits on a Diseased foe', 'p', {{'otherCopy', {h, h, h, t}}, {'foe', 'silence', h, f = 2},
      {'self', 'haste', h, f = 3, fresh = true}, {'push', 10, f = 4}}}},
   -- 21 Trickster (Gunner + Green Mage)
@@ -241,19 +247,21 @@ H.LINES = {
    {'hit', {'hasted'}, 'While Hasted, your hits', 'p', {{'push', {10, 10, 10, 15}}, {'drain', 5, f = 2},
      {'foe', 'slow', h, f = 3}}},
    {'hit', {'hasted', 'about'}, 'While Hasted, hits on a foe about to act', 'p', {{'dmg', {20, 20, 20, 30}},
-     {'allyMp', 5, f = 2}, {'party', 'haste', h, f = 3}}}},
+     {'allyMp', 5, f = 2}, {'party', 'haste', h, f = 3}},
+    text = {[3] = 'While Hasted, hits on a foe about to act deal 20% more, give the lowest-MP ally 5% of the damage as MP and give the party Haste',
+            [4] = 'While Hasted, hits on a foe about to act deal 30% more, give the lowest-MP ally 5% of the damage as MP and give the party Haste'}}},
   -- 29 Engineer (Gunner + Chemist)
   {line = 'Field Kit',
-   {'status', {'staggered'}, 'An ailment you land on a Staggered foe', 's', {{'allyHeal', 10}}},
+   {'status', nil, 'An ailment you land', 's', {{'allyHeal', {10, 10, 10, 15}}, {'push', 10, f = 2}, {'cureAlly', 1, f = 3}}},
    {'hit', {'about'}, 'Hits on a foe about to act', 'p', {{'otherCopy', {h, h, t, t}}, {'renew', f = 2},
      {'push', 10, f = 4}}},
-   {'hit', {'ailing2'}, 'Hits on a foe with 2+ ailments', 'p', {{'allyHeal', {10, 10, 10, 15}}, {'push', 10, f = 2},
+   {'hit', {'ailing2'}, 'Hits on a foe with two or more ailments', 'p', {{'allyHeal', {10, 10, 10, 15}}, {'push', 10, f = 2},
      {'party', 'shell', h, f = 3}}}},
   -- 30 Warden (Knight + Green Mage)
   {line = 'Snare',
    {'status', nil, 'An ailment you land', 's', {{'self', 'lure', {h, h, t, t}}, {'drain', {5, 5, 5, 8}, f = 2},
      {'foe', 'oil', h, f = 3}}},
-   {'struck', {'lured'}, 'Being struck by a physical hit while you have Lure', 's', {{'foe', 'blind', {h, h, h, t}},
+   {'struck', {'lured'}, 'Taking a physical hit while you have Lure', 's', {{'foe', 'blind', {h, h, h, t}},
      {'strip', {'bravery'}, f = 2}, {'drainFoe', 5, f = 3}}},
    {'guard', {'parryBlock', 'ailing'}, 'A parry or block against a foe ailing or Broken', 's', {{'foe', 'disable', {h, h, h, t}},
      {'self', 'regen', h, f = 2}, {'self', 'shell', h, f = 3}}}},
@@ -293,7 +301,7 @@ H.LINES = {
      {'foe', 'poison', h, f = 2}, {'allyHeal', 10, f = 3}}},
    {'magick', {'oiled'}, 'Spells on an Oiled foe', 'p', {{'dmg', {15, 15, 15, 25}}, {'self', 'faith', h, f = 2},
      {'push', 10, f = 3}}},
-   {'magick', {'ailing2'}, 'Spells on a foe with 2+ ailments', 'p', {{'dmg', {20, 20, 20, 30}},
+   {'magick', {'ailing2'}, 'Spells on a foe with two or more ailments', 'p', {{'dmg', {20, 20, 20, 30}},
      {'foe', 'oil', h, f = 2}, {'party', 'shell', h, f = 3}}}},
   -- 36 Assassin (Samurai + Green Mage)
   {line = 'Ansatsu',
@@ -331,8 +339,8 @@ H.LINES = {
   {line = 'Last Stand',
    {'struck', {'low50'}, 'Taking a physical hit below half HP', 's', {{'self', 'lure', {h, h, t, t}},
      {'self', 'bravery', h, fresh = true}, {'push', 10, f = 2}, {'drainFoe', {5, 5, 5, 8}, f = 3}},
-    text = {[3] = 'Taking a physical hit below half HP gives you Lure (3/4), Bravery (half) if not held, pushes the foe back 10%, drains 5% of its max MP',
-            [4] = 'Taking a physical hit below half HP gives you Lure (3/4), Bravery (half) if not held, pushes the foe back 10%, drains 8% of its max MP'}},
+    text = {[3] = 'Taking a physical hit below half HP gives you Lure and Bravery, pushes the foe back 10% and leeches 5% of your max MP from it',
+            [4] = 'Taking a physical hit below half HP gives you Lure and Bravery, pushes the foe back 10% and leeches 8% of your max MP from it'}},
    {'hit', {'low50'}, 'Below half HP, your hits', 'p', {{'foe', 'blind', {h, h, h, t}}, {'dmg', 10, f = 2},
      {'ally', 'protect', h, f = 3}}},
    {'struck', {'dropCritical'}, 'Dropping to critical HP from a physical hit', 's', {{'party', 'bravery', {h, h, h, t}},
@@ -419,10 +427,10 @@ H.LINES = {
      {'foe', 'slow', h, f = 3}}},
    {'hit', {'slowed', 'low50'}, 'Below half HP, hits on a Slowed foe', 'p', {{'foe', 'sap', {h, h, h, t}},
      {'self', 'bravery', h, f = 2, fresh = true}, {'extend', 'slow', 10, f = 3}, {'pushOther', 10, f = 4}}},
-   {'struck', {'dropCritical'}, 'Physical hit to critical HP', 's', {{'self', 'haste', {h, h, h, t}},
+   {'struck', {'dropCritical'}, 'Dropping to critical HP from a physical hit', 's', {{'self', 'haste', {h, h, h, t}},
      {'other', 'slow', h}, {'stopChance', 15, f = 2}, {'party', 'shell', h, f = 3}},
-    text = {[3] = 'Physical hit to critical HP gives you Haste (half), slows another foe (half), may Stop the foe (15%) and gives the party Shell (half)',
-            [4] = 'Physical hit to critical HP gives you Haste (3/4), slows another foe (half), may Stop the foe (15%) and gives the party Shell (half)'}}},
+    text = {[3] = 'Dropping to critical HP from a physical hit gives you Haste and the party Shell, Slows another foe, may Stop the attacker 15%',
+            [4] = 'Dropping to critical HP from a physical hit gives you longer Haste and the party Shell, Slows another foe, may Stop the attacker'}}},
   -- 52 Ranger (Hunter + Time Mage)
   {line = 'Long Hunt',
    {'hit', {'far', 'slowed'}, 'Hits from range on a Slowed foe', 'p', {{'mp', 2}, {'dmg', {10, 10, 15, 20}, f = 2},
@@ -433,10 +441,10 @@ H.LINES = {
      {'self', 'faith', h, f = 2}, {'party', 'shell', h, f = 3}}}},
   -- 53 Arithmetician (Time Mage + Black Mage)
   {line = 'Entropy',
-   {'magick', {'slowed', 'sameElement'}, 'The same element twice on a Slowed foe', 's', {{'stopChance', {20, 20, 30, 30}},
-     {'quick', 15, f = 2}, {'mp', 3, f = 4}}},
    {'magick', {'sameElement'}, 'Repeating an element', 's', {{'foe', 'slow', {h, h, h, t}}, {'mp', 2, f = 2},
      {'extend', 'slow', 10, f = 3}}},
+   {'magick', {'slowed', 'sameElement'}, 'The same element twice on a Slowed foe', 's', {{'stopChance', {20, 20, 30, 30}},
+     {'quick', 15, f = 2}, {'mp', 3, f = 4}}},
    {'magick', {'stopped'}, 'Spells on a Stopped foe', 'p', {{'splash', {25, 25, 25, 35}}, {'other', 'slow', h, f = 2},
      {'party', 'haste', h, f = 3}}}},
   -- 54 Swiftblade (Samurai + Time Mage)
@@ -453,8 +461,9 @@ H.LINES = {
      {'ally', 'bravery', h, f = 2}, {'hp', 5, f = 3}}},
    {'castFoe', {'slowCast'}, 'Casting Slow on a foe', 's', {{'other', 'slow', {h, h, h, t}}, {'mp', 3, f = 2},
      {'foe', 'disable', h, f = 3}}},
-   {'status', {'slowCast'}, 'A Slow you land, bolt or spell', 's', {{'ally', 'haste', {h, h, h, t}},
-     {'allyHeal', 10, f = 2}, {'party', 'haste', h, f = 3}}}},
+   {'status', {'slowCast'}, 'A Slow you land with a weapon or a spell', 's', {{'ally', 'haste', {h, h, h, t}},
+     {'allyHeal', 10, f = 2}, {'party', 'haste', h, f = 3}},
+    text = {[4] = 'A Slow you land with a weapon or a spell gives the most hurt ally a longer Haste, heals them for 10% of the damage and Hastes the party'}}},
   -- 56 Viking (Warrior + Hunter)
   {line = 'Raid',
    {'hit', {'low50', 'ailing'}, 'Below half HP, hits on a foe ailing or Broken', 'p', {{'steal'},
@@ -475,8 +484,8 @@ H.LINES = {
   {line = 'Frenzy',
    {'hit', {'brave'}, 'While Brave, your hits', 'p', {{'evade'}, {'drain', 5, f = 2}, {'ally', 'bravery', h, f = 3, fresh = true},
      {'dmg', 10, f = 4}},
-    text = {[3] = 'While Brave, your hits cannot be parried, blocked or dodged, drain 5% of damage as MP, give the most hurt ally Bravery (half) if not held',
-            [4] = 'While Brave, your hits cannot be parried, blocked or dodged, drain 5% as MP, deal +10%, give the most hurt ally Bravery (half) if not held'}},
+    text = {[3] = 'While Brave, your hits ignore parry, block and dodge, leech 5% of the damage and give the most hurt ally Bravery',
+            [4] = 'While Brave, your hits ignore parry, block and dodge, leech 5% of the damage, deal 10% more and give the most hurt ally Bravery'}},
    {'struck', {'hasted'}, 'Being struck by a physical hit while Hasted', 's', {{'dmgNext', {15, 15, 20, 25}},
      {'mp', 2, f = 2}, {'push', 10, f = 3}}},
    {'hit', {'critical'}, 'At critical HP, your hits', 'p', {{'mp', {3, 3, 4, 5}}, {'dmg', 20, f = 2},
@@ -503,16 +512,16 @@ H.LINES = {
      {'poisonHasted', f = 2}, {'dmgPoisoned', 15, f = 3}}},
    {'hit', {'kill'}, 'A kill', 's', {{'self', 'invisible', {h, h, h, t}}, {'mp', 5}, {'self', 'regen', h, f = 2},
      {'other', 'slow', h, f = 3}}},
-   {'hit', {'invisible'}, 'Your hit from Invisible', 's', {{'dmg', {25, 25, 25, 40}}, {'push', 20, f = 2},
+   {'hit', {'invisible'}, 'Your hit while Invisible', 's', {{'dmg', {25, 25, 25, 40}}, {'push', 20, f = 2},
      {'drain', 10, f = 3}}}},
   -- 62 Trapper (Hunter + Chemist)
   {line = 'Snaretrap',
    {'status', nil, 'An ailment you land', 's', {{'renew'}, {'self', 'bravery', h, f = 2, fresh = true}, {'hp', 5, f = 3}}},
-   {'hit', {'ailing3'}, 'Hits on a foe with 3+ ailments', 'p', {{'dmg', {20, 20, 20, 30}}, {'drain', 5, f = 2},
+   {'hit', {'ailing3'}, 'Hits on a foe with three or more ailments', 'p', {{'dmg', {20, 20, 20, 30}}, {'drain', 5, f = 2},
      {'foe', 'disable', h, f = 3}}},
-   {'hit', {'ailing2'}, 'Hits on a foe with 2+ ailments', 'p', {{'otherCopy', {h, h, h, t}}, {'push', 10, f = 2},
+   {'hit', {'ailing2'}, 'Hits on a foe with two or more ailments', 'p', {{'otherCopy', {h, h, h, t}}, {'push', 10, f = 2},
      {'foe', 'poison', h, f = 3}, {'allyHeal', 10, f = 4}},
-    text = {[4] = 'Hits on a foe with 2+ ailments pass an ailment on (3/4), push it back 10%, Poison it (half) and heal the most hurt ally 10% of damage'}}},
+    text = {[4] = 'Hits on a foe with two or more ailments pass an ailment on, push it back 10%, Poison it and heal the most hurt ally 10% of the damage'}}},
   -- 63 Spellblade (Samurai + Black Mage)
   {line = 'Imbue',
    {'hit', {'imbued'}, 'Your 3 hits after a spell', 'p', {{'dmg', {10, 10, 15, 20}}, {'mp', 2, f = 2},
@@ -567,8 +576,12 @@ local NAMES = {protect = 'Protect', shell = 'Shell', haste = 'Haste', bravery = 
   libra = 'Libra', reflect = 'Reflect', stop = 'Stop', blind = 'Blind', poison = 'Poison', silence = 'Silence',
   sap = 'Sap', oil = 'Oil', disable = 'Disable', immobilize = 'Immobilize', slow = 'Slow', disease = 'Disease',
   sleep = 'Sleep'}
-local function scaleText(v)
-  if v == 0.5 then return ' (half)' elseif v == 0.75 then return ' (3/4)' elseif v == 1.5 then return ' (+50%)' end
+-- A status duration in words. `short` drops the word "duration" for a second or later status in one sentence
+-- ("Regen at 3/4 duration and Protect at half").
+local function scaleText(v, short)
+  local tail = short and '' or ' duration'
+  if v == 0.5 then return ' at half' .. tail elseif v == 0.75 then return ' at 3/4' .. tail
+  elseif v == 1.5 then return ' lasting 50% longer' end
   return ''
 end
 local function list(items)
@@ -576,7 +589,7 @@ local function list(items)
   return table.concat(items, ', ', 1, #items - 1) .. ' and ' .. items[#items]
 end
 local VERB = {deal = 'deals', give = 'gives', inflict = 'inflicts', strip = 'strips', push = 'pushes', heal = 'heals',
-  drain = 'drains', restore = 'restores', ['return'] = 'returns', free = 'frees', cure = 'cures', speed = 'speeds',
+  drain = 'drains', leech = 'leeches', restore = 'restores', ['return'] = 'returns', free = 'frees', cure = 'cures', speed = 'speeds',
   restart = 'restarts', add = 'adds', extend = 'extends', steal = 'steals', spread = 'spreads', have = 'has', make = 'makes',
   consume = 'consumes', hit = 'hits', hurt = 'hurts', silence = 'silences', move = 'moves', turn = 'turns', renew = 'renews'}
 local function conj(phrase, number)
@@ -587,6 +600,7 @@ end
 local NUM = {'one', 'two', 'three'}
 -- Events without a formula of their own: the foe is the attacker, and statuses go out through Forge helpers.
 local REACTION = {guard = true, counter = true, struck = true, ally = true}
+local FOE_EVENTS = {hit = true, magick = true, status = true, castFoe = true}
 -- A stage's event may be one name or a list of names (it then listens to each; its text is built for the first).
 local function hears(spec, ev)
   if type(spec) == 'table' then
@@ -602,17 +616,17 @@ local GROUPED = {self = true, foe = true, ally = true, party = true, strip = tru
 local function groupPhrase(op, ev, items)
   local same, names = true, {}
   for i, it in ipairs(items) do if it.scale ~= items[1].scale then same = false end end
-  for _, it in ipairs(items) do names[#names + 1] = NAMES[it.id] .. (same and '' or scaleText(it.scale)) end
+  for i, it in ipairs(items) do names[#names + 1] = NAMES[it.id] .. (same and '' or scaleText(it.scale, i > 1)) end
   local tail = same and scaleText(items[1].scale) or ''
   -- fresh grants (only to a unit that lacks the status) say so, once for the group or per status
   local allFresh = true
   for _, it in ipairs(items) do if not it.fresh then allFresh = false end end
-  if allFresh then tail = tail .. ' if not held'
-  else for i, it in ipairs(items) do if it.fresh then names[i] = names[i] .. ' (if not held)' end end end
+  if allFresh then tail = tail .. ' if not already active'
+  else for i, it in ipairs(items) do if it.fresh then names[i] = names[i] .. ' (if not already active)' end end end
   local own = ev == 'heal' or ev == 'ally' or ev == 'castAlly'
   if op == 'self' then return 'give you ' .. list(names) .. tail
-  elseif op == 'foe' then return 'inflict ' .. list(names) .. tail .. (REACTION[ev] and ' on the foe' or '')
-  elseif op == 'other' then return 'inflict ' .. list(names) .. tail .. ' on another foe'
+  elseif op == 'foe' then return 'inflict ' .. list(names) .. (REACTION[ev] and ' on the foe' or '') .. tail
+  elseif op == 'other' then return 'inflict ' .. list(names) .. ' on another foe' .. tail
   elseif op == 'ally' then return 'give ' .. (own and 'them' or 'the most hurt ally') .. ' ' .. list(names) .. tail
   elseif op == 'party' then return 'give the party ' .. list(names) .. tail
   elseif op == 'strip' then return 'strip ' .. (REACTION[ev] and "the foe's " or 'its ') .. list(names)
@@ -622,12 +636,12 @@ end
 local function phrase(fx, ev, L)
   local op, v = fx[1], at(fx[2], L)
   local attacker = REACTION[ev]
-  if op == 'dmg' then return 'deal +' .. v .. '% damage'
+  if op == 'dmg' then return 'deal ' .. v .. '% more damage'
   elseif op == 'push' then return attacker and ('push the foe back ' .. v .. '%') or ("push its charge back " .. v .. '%')
   elseif op == 'pushOther' then return 'push another foe back ' .. v .. '%'
   elseif op == 'heal' then return 'heal you for ' .. v .. '% of the damage'
   elseif op == 'allyHeal' then return 'heal the most hurt ally for ' .. v .. '% of the damage'
-  elseif op == 'drain' then return 'drain ' .. v .. '% of the damage as MP'
+  elseif op == 'drain' then return 'leech ' .. v .. '% of the damage'
   elseif op == 'mp' then return 'restore ' .. v .. '% of max MP'
   elseif op == 'hp' then return 'heal you for ' .. v .. '% of max HP'
   elseif op == 'overflowMp' then return 'return ' .. v .. '% of the overflow as MP'
@@ -636,26 +650,27 @@ local function phrase(fx, ev, L)
       or ('give the lowest-MP ally ' .. v .. '% of the damage as MP')
   elseif op == 'cure' then return 'cure ' .. NUM[v] .. ' of your ailments'
   elseif op == 'cureAlly' then
-    return ev == 'heal' and ('cure ' .. NUM[v] .. ' of their ailments') or ('cure ' .. NUM[v] .. ' ailment' .. (v > 1 and 's' or '') .. ' on an ally')
+    return ev == 'heal' and ('cure ' .. NUM[v] .. ' of their ailments')
+      or (v > 1 and ('cure ' .. NUM[v] .. " of an ally's ailments") or "cure an ally's ailment")
   elseif op == 'quick' then return 'make your next action ' .. v .. '% faster'
   elseif op == 'renew' then return 'renew its ailments'
   elseif op == 'renewFoe' then return 'renew its ailments'
   elseif op == 'extend' then return 'extend its ' .. NAMES[fx[2]]
   elseif op == 'steal' then return 'steal one of its buffs'
   elseif op == 'otherCopy' then return 'spread an ailment to another foe' .. scaleText(v)
-  elseif op == 'stopChance' then return 'have a ' .. v .. '% chance to Stop ' .. (ev == 'struck' and 'the foe' or 'it')
-  elseif op == 'dmgNext' then return 'make your next hit deal +' .. v .. '%'
-  elseif op == 'zeroBonus' then return 'deal +' .. v .. '% to a foe with no MP'
-  elseif op == 'poisonHasted' then return 'Poison the foe while you are Hasted'
-  elseif op == 'dmgPoisoned' then return 'deal +' .. v .. '% to a Poisoned foe'
-  elseif op == 'dmgAiling' then return 'deal +' .. v .. '% to a foe with an ailment'
-  elseif op == 'consume' then return 'consume an ailment for +' .. v .. '% damage'
+  elseif op == 'stopChance' then return 'have a ' .. v .. '% chance to Stop ' .. (ev == 'struck' and 'the attacker' or 'it')
+  elseif op == 'dmgNext' then return 'make your next hit deal ' .. v .. '% more'
+  elseif op == 'zeroBonus' then return 'deal ' .. v .. '% more to a foe with no MP'
+  elseif op == 'poisonHasted' then return 'Poison the foe while Hasted'
+  elseif op == 'dmgPoisoned' then return 'deal ' .. v .. '% more to a Poisoned foe'
+  elseif op == 'dmgAiling' then return 'deal ' .. v .. '% more to a foe with an ailment'
+  elseif op == 'consume' then return 'consume an ailment for ' .. v .. '% more damage'
   elseif op == 'splash' then return 'hit another foe for ' .. v .. '% of the damage'
   elseif op == 'spread' then return 'have a ' .. v .. '% chance to spread to another foe'
   elseif op == 'evade' then return 'cannot be parried, blocked or dodged'
-  elseif op == 'nearHeal' then return 'heal another ally for ' .. v .. '% of it'
+  elseif op == 'nearHeal' then return 'heal another ally for ' .. v .. '% of the heal'
   elseif op == 'drainNear' then return 'hurt a foe for ' .. v .. '% of the heal'
-  elseif op == 'drainFoe' then return 'drain ' .. v .. '% of max MP from the foe'
+  elseif op == 'drainFoe' then return 'leech ' .. v .. '% of your max MP from the foe'
   elseif op == 'otherAlly' then return 'give another ally ' .. NAMES[fx[2]] .. scaleText(at(fx[3], L) or 1)
   elseif op == 'giftBuff' then return 'move one of its buffs to the most hurt ally' .. scaleText(v or 1)
   elseif op == 'stripOther' then
@@ -664,8 +679,8 @@ local function phrase(fx, ev, L)
     return "strip another foe's " .. list(names)
   elseif op == 'leechSilence' then return 'silence a foe it drains dry'
   elseif op == 'transferAilment' then return "move an ally's ailment to the foe"
-  elseif op == 'cureOther' then return 'cure ' .. NUM[v] .. ' ailment' .. (v > 1 and 's' or '') .. ' on another ally'
-  elseif op == 'partyHealPct' then return 'heal every other ally for ' .. v .. '% of it'
+  elseif op == 'cureOther' then return v > 1 and ('cure ' .. NUM[v] .. " of another ally's ailments") or "cure another ally's ailment"
+  elseif op == 'partyHealPct' then return 'heal every other ally for ' .. v .. '% of the heal'
   elseif op == 'drainToHeal' then return 'heal the most hurt ally for ' .. (tonumber(v) or H.DRAIN_HEAL_PCT) .. '% of the damage at full MP'
   elseif op == 'allyQuick' then
     return 'make ' .. ((ev == 'heal' or ev == 'ally' or ev == 'castAlly') and 'their' or "the most hurt ally's") ..
@@ -715,8 +730,8 @@ H.HEAL_MP, H.itemStage = HEAL_MP, itemStage
 -- phrases are rewritten; a trigger that already says "physical hit" is left alone. A rewrite that leaves the stage text too long
 -- for the help window falls back to the stock phrase (H.unspoken lists those stages, so the line data can be reworded).
 local WORDING = {
-  struck = {{'^Being struck', 'Taking a physical hit'}, {'^Dropping to critical HP', 'Physical hit to critical HP'}},
-  ally = {{'^An ally dropping to critical HP', 'Physical hit: ally to critical HP'}}}
+  struck = {{'^Being struck', 'Taking a physical hit'}, {'^Dropping to critical HP', 'Dropping to critical HP from a physical hit'}},
+  ally = {{'^An ally dropping to critical HP', 'A physical hit dropping an ally to critical HP'}}}
 function H.trigger(stage)
   local text = stage[3]
   if text:find('physical hit', 1, true) then return text end   -- already says it
@@ -729,7 +744,13 @@ end
 
 -- Wording tightened only when a stage text does not fit: each step is true to the same effect, just shorter.
 local COMPACT = {
-  {' of the damage', ' of damage'},
+  {' at half duration', ''},
+  {' at half', ''},
+  {' at 3/4 duration', ' for longer'},
+  {' at 3/4', ' for longer'},
+  {' %(spells only%)', ' (spells)'},
+  {' if not already active', ''},
+  {' %(if not already active%)', ''},
   {' on the foe', ' on it', foe = true},
   {'spread(s?) an ailment to another foe', function(es) return (es == 's' and 'passes' or 'pass') .. ' an ailment on' end}}
 
@@ -763,7 +784,7 @@ function H.stageText(stage, L, first, stock)
   for _, p in ipairs(parts) do
     local text = p.group and groupPhrase(p.group, ev, groups[p.group]) or phrase(p.fx, ev, L)
     if spellsOnly and p.fx and HEAL_MP[p.fx[1]] then
-      text = p.fx[1] == 'allyMp' and text:gsub('of the heal', 'of spell heals', 1) or text .. ' (spells)'
+      text = p.fx[1] == 'allyMp' and text:gsub('of the heal', 'of spell heals', 1) or text .. ' (spells only)'
     end
     phrases[#phrases + 1] = conj(text, number)
   end
@@ -779,6 +800,21 @@ function H.stageText(stage, L, first, stock)
   end
   once('the most hurt ally', 'them', 'their')
   once('the foe', 'it', 'its')
+  -- A trigger that never names the foe ("Your hits", "A kill while Hasted") leaves the first "its" or "it" without an
+  -- owner: name the foe there. Heal and guard-style events keep their own pronouns.
+  -- The same for a heal whose trigger never names the healed ally ("Healing past full HP gives them Haste").
+  if ev == 'heal' and not trigger:find('ally', 1, true) then
+    local a1, b1 = text:find('%f[%w]them%f[%W]', #trigger + 1)
+    local a2, b2 = text:find('%f[%w]their%f[%W]', #trigger + 1)
+    if a1 and (not a2 or a1 < a2) then text = text:sub(1, a1 - 1) .. 'the healed ally' .. text:sub(b1 + 1)
+    elseif a2 then text = text:sub(1, a2 - 1) .. "the healed ally's" .. text:sub(b2 + 1) end
+  end
+  if FOE_EVENTS[ev] and not trigger:find('foe', 1, true) and not trigger:find('game', 1, true) then
+    local a1, b1 = text:find('%f[%w]its%f[%W]', #trigger + 1)
+    local a2, b2 = text:find('%f[%w]it%f[%W]', #trigger + 1)
+    if a1 and (not a2 or a1 < a2) then text = text:sub(1, a1 - 1) .. "the foe's" .. text:sub(b1 + 1)
+    elseif a2 then text = text:sub(1, a2 - 1) .. 'the foe' .. text:sub(b2 + 1) end
+  end
   local wrapped = H.wrap(text, first, #trigger)
   -- Too long for the help window: tighten the wording step by step before giving anything else up.
   for _, step in ipairs(COMPACT) do
@@ -817,6 +853,7 @@ end
 H.about = {checked = 0, fired = 0, hit = {0, 0}, magick = {0, 0}}
 H.ABOUT_LOG_EVERY = 10
 H.log = function() end
+H.ACTION_WINDOW = 1000000   -- one foe action's hits: each within this of the one before (the runtime sets its own window)
 H.DRAIN_HEAL_PCT = 10   -- drainToHeal without an argument: heal 10% of the damage [U]
 function H.countAbout(ev, fired)
   local st = H.about
@@ -990,8 +1027,7 @@ local function apply(fx, ev, s, m, a, L, add, push, other)
   if op == 'dmg' then a.damage = (a.damage or 1) * (1 + v / 100)
   elseif op == 'self' then
     local scale = at(fx[3], L) or 1
-    -- Hermes Sandals' Haste (casterHeldHaste) counts as held for a fresh self-Haste grant.
-    if not (fx.fresh and ((s.casterStatus or {})[fx[2]] or (fx[2] == 'haste' and s.casterHeldHaste))) then
+    if not (fx.fresh and (s.casterStatus or {})[fx[2]]) then
       if reaction then other(a, {op = 'add', unit = s.self, id = S[fx[2]], scale = scale})
       else add(a, 'casterAdd', S[fx[2]], scale) end
     end
@@ -1223,7 +1259,11 @@ local function apply(fx, ev, s, m, a, L, add, push, other)
     local maxHp = p and (p.maxHp or s.selfMaxHp) or 0
     if p and maxHp > 0 then other(a, {op = 'hp', unit = p.address, amount = math.max(1, maxHp * v // 100)}) end
   elseif op == 'drainFoe' then
-    if foe and (s.casterMaxMp or 0) > 0 then
+    -- Leech: the same share of your max, taken as MP from the attacker's pool. An attacker known to have no MP left
+    -- heals you for that share of your max HP instead. An unknown pool pays nothing.
+    if foe and s.attackerMp == 0 and type(s.attackerMaxMp) == 'number' and s.attackerMaxMp > 0 then
+      if (s.selfMaxHp or 0) > 0 then other(a, {op = 'hp', unit = s.self, amount = math.max(1, s.selfMaxHp * v // 100)}) end
+    elseif foe and (s.casterMaxMp or 0) > 0 then
       local amount = math.min(math.max(1, s.casterMaxMp * v // 100), s.attackerMp or 0)
       if amount > 0 then
         other(a, {op = 'mp', unit = foe, amount = -amount}); other(a, {op = 'mp', unit = s.self, amount = amount})
@@ -1235,7 +1275,8 @@ end
 -- A spell reaches each of its targets separately: these effects belong to the cast, so only its first target gives them.
 local PER_CAST = {self = true, mp = true, hp = true, quick = true, party = true, ally = true, allyHeal = true,
   allyMp = true, cure = true, cureAlly = true, pushOther = true, other = true, otherCopy = true, splash = true,
-  drainNear = true, dmgNext = true, otherAlly = true, stripOther = true, cureOther = true, partyHealPct = true}
+  drainNear = true, dmgNext = true, otherAlly = true, stripOther = true, cureOther = true, partyHealPct = true,
+  drainFoe = true}
 
 -- Events a spell can raise once per target: per-cast effects come only from its first target.
 local SPELL_EVENT = {magick = true, cast = true, heal = true, status = true}
@@ -1285,7 +1326,13 @@ local function makeRule(line, parents)
         local ok = true
         for _, c in ipairs(stage[2] or {}) do if not cond(c, s, m, ev) then ok = false; break end end
         local itemHeal = ev == 'heal' and s.item and not itemStage(stage)
+        -- One foe action (a multi-hit attack) is one blow for a struck or counter stage: the first hit of the action on which
+        -- the stage's conditions held pays its per-action rewards, and the later hits of that action pay the strips and
+        -- other per-hit effects only. A hit on which the conditions failed pays nothing and holds nothing back.
+        local latched = s.paid ~= nil and (evName == 'struck' or evName == 'counter')
+        local held = latched and s.paid[k] == true
         if ok then
+          if latched then s.paid[k] = true end
           -- hpOverflowRegen reads the stage's own `hp` effect (the heal that can overflow)
           s.stageHpPct = nil
           for _, fx in ipairs(stage[5]) do
@@ -1293,7 +1340,7 @@ local function makeRule(line, parents)
           end
           for _, fx in ipairs(stage[5]) do
             if active(fx, L) and not (SPELL_EVENT[ev] and s.repeatTarget and PER_CAST[fx[1]])
-                and not (itemHeal and HEAL_MP[fx[1]]) then
+                and not (held and PER_CAST[fx[1]]) and not (itemHeal and HEAL_MP[fx[1]]) then
               apply(fx, evName, s, m, a, L, helpers.add, helpers.push, helpers.other)
             end
           end
@@ -1321,6 +1368,29 @@ local function makeRule(line, parents)
     if used or ev == 'hit' or ev == 'magick' or ev == 'heal' then
       rule[ev] = function(s, a, helpers)
         local m = helpers.slot(s.actorId)
+        -- A foe's multi-hit attack reaches the struck and counter hooks once per hit. Which hits belong to one foe action:
+        -- the runtime's action id (s.actionId, the record of hook 240's foe action, which tells two actions of one foe apart
+        -- by their charge), else, with a clock and an action id only, the same foe and action within the action window of
+        -- the hit before. With neither, every hit counts as its own blow, as before. m.paid holds the stages that already
+        -- paid in the current action; run() fills it and reads it.
+        s.paid = nil
+        if (ev == 'struck' or ev == 'guard') and s.attacker ~= nil then
+          local same
+          if s.actionId ~= nil then
+            -- an id seen again after the action window (measured from the hit before) is a new action: no id holds
+            -- rewards back without an expiry
+            same = m.actId == s.actionId and m.actFoe == s.attacker and s.now ~= nil and m.actAt ~= nil
+              and s.now >= m.actAt and s.now - m.actAt <= H.ACTION_WINDOW
+          elseif s.now ~= nil and s.action ~= nil then
+            same = m.actId == nil and m.actFoe == s.attacker and m.actAction == s.action and m.actAt ~= nil
+              and s.now >= m.actAt and s.now - m.actAt <= H.ACTION_WINDOW
+          end
+          if same ~= nil then
+            if not same or m.paid == nil then m.paid = {} end
+            m.actId, m.actFoe, m.actAction, m.actAt = s.actionId, s.attacker, s.action, s.now
+            s.paid = m.paid
+          end
+        end
         -- Memory every hybrid keeps: chains on one foe, the first hit on each foe, the action before this one.
         if ev == 'hit' and s.foe then
           if m.boost then a.damage = (a.damage or 1) * (1 + m.boost / 100); m.boost = nil end
@@ -1378,6 +1448,12 @@ local function makeRule(line, parents)
             for id in pairs(m.first or {}) do first[id] = true end
             first[s.targetId] = true
             m.first = first
+          end
+          -- Audit 2026-11-16: battle identifiers are reused inside a map, so a killed foe must not leave its "already hit"
+          -- mark or its hit chain to the next foe that takes the same identifier (firstHit, chain2/chain3).
+          if s.kill and s.targetId ~= nil then
+            m.first[s.targetId] = nil
+            m.target, m.count = nil, 0
           end
           if (m.imbue or 0) > 0 then m.imbue = m.imbue - 1 end
           m.last = 'hit'

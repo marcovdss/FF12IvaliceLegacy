@@ -11,12 +11,12 @@
     "titleId": 5863,
     "category": 2,
     "flag": 254,
-    "body": "Clan Centurio trains its members in the ways of their\njobs. Each time you rise in the clan's ranks, ask\nMontblanc in the clan hall about Proficiency: he has a\nWrit for you, or a fresh stamp on the one you carry.\n\nWhile the Writ is in your Key Items, every character\nfights with the Proficiency of the job they hold. Their\nweapons and armour gain that job's edge, whatever they\nwield.\n\nThe Apprentice's Writ opens Proficiency I. The\nJourneyman's and Master's Writs open II and III. Change\njobs freely: the clan's training goes with you."
+    "body": "Clan Centurio trains its members in the ways of their\njobs. Each time you rise in the clan's ranks, ask\nMontblanc in the clan hall about Proficiency: he has a\nWrit for you, or a fresh stamp on the one you carry.\n\nWhile the Writ is in your Key Items, every character\nfights with the Proficiency of the job they hold. Their\nweapons and armour gain that job's edge, whatever they\nwield.\n\nThe Apprentice's Writ opens Proficiency I. The\nJourneyman's and Master's Writs open II and III. Change\njobs freely: the clan's training goes with you.\n\n{y}Leech{/} takes MP from a foe you hit, or from the foe\nthat attacked you. Once that foe has no MP left, the\nsame leech heals your HP instead. A weapon hit you land\nleeches at most 2 percent of your max MP or max HP.\nA counter or a hit you take leeches the share that\nits stage names, which can be more."
   },
   "resultSha256": {
     "list": "e8e056608821c204015201fdf702738149e5352acb08894fa948859106175f03",
     "checks": "3d25c7dbf8edcac24023bfdb18a642c4e1db516159ed31917103343ec33dea34",
-    "pages": "2533c49f7b497e071d4b97ed521e1f2e92d95760c31cbed55744103b48da1c1b",
+    "pages": "b3a96609d38a24ddea0a0b6721e541021aa40a622018278723fc72faa0291402",
     "titles": "2b437c60ddb3d2c5e21424f406e23eeca970c19867580cec95a87df87d758855"
   }
 }

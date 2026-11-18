@@ -382,7 +382,7 @@ class Pass2SynergyTests(unittest.TestCase):
         check('D2: the floor stays at half of the start however fast the dent comes', got[5] == 50)
         check('D2: the doubled dent is logged; without the runtime the dent is the single step', got[6] >= 1 and got[7] == 95)
 
-        # ---- D4: Reckless and Pierce under Bravery
+        # ---- D4: Pierce under Bravery (0.6.0: Reckless is gone; an axe swing, Brave or not, builds no state at all)
         got = sandbox().execute(r'''
           local M = newFamily()
           CAT = 'axe'
@@ -392,30 +392,11 @@ class Pass2SynergyTests(unittest.TestCase):
             local g = {action = M.ATTACK, caster = {statusEffects = {bravery = brave and 1 or 0}}, target = {defense = -1}}
             wrapped(g, caster, foe or foeUnit(900), {}, {}, {})
           end
-          swing(false); NOW = NOW + 1000000; swing(false)
-          local twoSteps = M.recklessDent(caster, deps)                       -- control: two plain swings, two steps
-          NOW = NOW + 1000000; swing(true)                                    -- Brave: no new step
-          local brave = M.recklessDent(caster, deps)
-          local fades = (function() NOW = NOW + 9500000; return M.recklessDent(caster, deps) end)()  -- 10.5 s after the last unbraced swing
-          M.reset()
-          CAT = 'axe'
-          local other = wielder(2)
-          local function openBrave()
-            local g = {action = M.ATTACK, caster = {statusEffects = {bravery = 1}}, target = {defense = -1}}
-            wrapped(g, other, foeUnit(901), {}, {}, {})
-          end
-          openBrave(); openBrave()
-          local fromBrave = M.recklessDent(other, deps)                       -- a Brave axe fighter never builds a step
-          local unreadable = (function()
-            local g = {action = M.ATTACK, caster = {}, target = {defense = -1}}
-            wrapped(g, wielder(3), foeUnit(902), {}, {}, {})
-            return M.recklessDent(wielder(3), deps)
-          end)()
-          return twoSteps, brave, fades, fromBrave, unreadable
+          swing(false); NOW = NOW + 1000000; swing(false); NOW = NOW + 1000000; swing(true)
+          return M.recklessDent == nil, M.recklessStep == nil, count('reckless'), count('error')
         ''')
-        check('D4 control: two plain axe swings are two Reckless steps (+10%)', abs(got[0] - 0.10) < 1e-9)
-        check('D4: a swing while Brave adds no step (still +10%), and the steps fade after 10 s as before', abs(got[1] - 0.10) < 1e-9 and got[2] == 0)
-        check('D4: an axe fighter who is Brave from the start never builds a step', got[3] == 0)
+        check('D4: Reckless is gone: no step function, no dent reader, no log line, no error from the swings',
+              got[0] is True and got[1] is True and got[2] == 0 and got[3] == 0)
 
         got = sandbox().execute(r'''
           local M = newFamily()
@@ -622,6 +603,9 @@ class Pass2SynergyTests(unittest.TestCase):
           for _, name in ipairs({'Last Rites', 'Barrage', 'Field Kit', 'Hex Round'}) do
             stages[#stages + 1] = hasCond(name, 1, 'staggered') and not hasOp(name, 1, 'push', 'pushOther')
           end
+          -- 2026-11-17 (balance follow-up): Field Kit I no longer reads Staggered. It pays on any ailment you land and
+          -- pushes the foe's charge from level 2.
+          stages[3] = not hasCond('Field Kit', 1, 'staggered') and hasOp('Field Kit', 1, 'push')
           local ev = {stageOf('Last Rites', 1)[1], stageOf('Barrage', 1)[1], stageOf('Field Kit', 1)[1], stageOf('Hex Round', 1)[1]}
           -- the payoffs
           local S = function(job, t)
@@ -640,19 +624,21 @@ class Pass2SynergyTests(unittest.TestCase):
           local bOn = P.decide('magick', S(barrage, {staggered = true}), 4)
           local bOff = P.decide('magick', S(barrage, {staggered = false}), 4)
           local fOn = P.decide('status', S(fieldKit, {staggered = true}), 4)
+          local fOff = P.decide('status', S(fieldKit, {staggered = false}), 4)
           local mpBack = bOn and bOn.others and #bOn.others > 0
           local noPush = true
-          for _, a in ipairs({bOn, fOn}) do for _, o in ipairs(a and a.others or {}) do if o.op == 'push' then noPush = false end end end
+          for _, a in ipairs({bOn}) do for _, o in ipairs(a and a.others or {}) do if o.op == 'push' then noPush = false end end end
           return staggered[1], staggered[2], staggered[3], staggered[4], stages[1], stages[2], stages[3], stages[4],
-                 ev[1], ev[2], ev[3], ev[4], bOn ~= nil, mpBack, bOff == nil, fOn ~= nil, noPush
+                 ev[1], ev[2], ev[3], ev[4], bOn ~= nil, mpBack, bOff == nil, fOn ~= nil, noPush, fOff ~= nil
         ''')
         check('D2: the staggered condition reads the foe (a hit) or the attacker foe (a counter), and is false when not set',
               got[0] is True and got[1] is False and got[2] is True and got[3] is False)
-        check('D2: Last Rites I, Barrage I, Field Kit I and Hex Round I read Staggered and no longer push', all(got[4:8]))
+        check('D2: Last Rites I, Barrage I and Hex Round I read Staggered and no longer push; Field Kit I no longer reads it and pushes',
+              all(got[4:8]))
         check('D2: the stages keep their events (hit, magick, status) and Hex Round I now listens to the counter',
               (got[8], got[9], got[10], got[11]) == ('hit', 'magick', 'status', 'counter'))
-        check('D2: Barrage I pays MP on a Staggered foe and not otherwise; Field Kit I heals on one; neither pushes',
-              got[12] is True and got[13] is True and got[14] is True and got[15] is True and got[16] is True)
+        check('D2: Barrage I pays MP on a Staggered foe and not otherwise and does not push; Field Kit I pays with or without Staggered',
+              got[12] is True and got[13] is True and got[14] is True and got[15] is True and got[16] is True and got[17] is True)
 
         # ---- D3: Broken counts as an ailment (Pursuit I, Hunter III, the hybrid tests, dmgAiling)
         got = world().execute(r'''
@@ -971,7 +957,9 @@ class Pass2SynergyTests(unittest.TestCase):
           for id, stages in pairs(R.Accessory.STAGES) do
             for _, st in ipairs(stages) do
               for _, fx in ipairs(st[3]) do
-                if fx[2] == 'haste' or fx[2] == 'bravery' or fx[1] == 'mp' or fx[1] == 'push' or fx[1] == 'pushOther' then bad = bad + 1 end
+                -- house rule (2026-11-16): the one Haste grant is Hermes Sandals' opening, fresh and on fightStart only
+                local openingHaste = fx[2] == 'haste' and st[1] == 'fightStart' and fx.fresh == true and id == 4473
+                if (fx[2] == 'haste' and not openingHaste) or fx[2] == 'bravery' or fx[1] == 'mp' or fx[1] == 'push' or fx[1] == 'pushOther' then bad = bad + 1 end
               end
             end
           end
@@ -981,7 +969,7 @@ class Pass2SynergyTests(unittest.TestCase):
         ''')
         check('Cameo control: a plain first hit does not mark; a critical hit does', got[0] is False and got[1] is True)
         check('accessory rules hold: no stage copies a hybrid stage (after the four hybrid changes), none is dropped', got[2] == 0 and got[4] == 0)
-        check('accessory rules hold: no accessory Haste, Bravery, MP or push', got[3] == 0)
+        check('accessory rules hold: no accessory Bravery, MP or push, and Haste only as the Hermes opening', got[3] == 0)
 
         self_.assertGreaterEqual(len(results), 100)
         self_.assertEqual([n for n, ok in results if not ok], [])

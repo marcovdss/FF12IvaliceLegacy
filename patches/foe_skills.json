@@ -865,22 +865,24 @@
  "help": {
   "help_action.bin": {
    "sourceSha256": "a62f146a495ca50e2dae8092cea765023524fab6fa83511d54d8e96d2ada8a57",
-   "resultSha256": "970a89bfb7e0dd207dcbf396aa349483627a08466bcbbe09f1d07f473b600b7c",
+   "resultSha256": "74e4b6904e32173f1c82f15942ac81d77010664bc8ea5f9274299fe2d5e25fd9",
    "strings": {
     "89": "Remove Stone, Petrify and Doom from one ally.",
     "90": "Remove Silence and Berserk from one ally.",
     "91": "Remove Poison and Sap from one ally.",
-    "95": "Remove Slow, Stop, Disable and Immobilize."
+    "95": "Remove Slow, Stop, Disable and Immobilize from one ally.",
+    "98": "Remove Blind, Poison, Silence and Slow from one ally."
    }
   },
   "listhelp_action.bin": {
    "sourceSha256": "7b661d1ba0694d65935cb28337acf21867ac366942ec16e0f38acbfb89b0d2e4",
-   "resultSha256": "c0ad9b5f93b7dfb1d000f4d3015f830bf3f4bbad5a4d839f7c0f11f703c703a6",
+   "resultSha256": "94a5f60c22cbe726a8230ee3887c379c4d8cec2d2adb1428bb48cb95c03effc3",
    "strings": {
     "95": "Remove Stone, Petrify and Doom from one ally.",
     "96": "Remove Silence and Berserk from one ally.",
     "97": "Remove Poison and Sap from one ally.",
-    "101": "Remove Slow, Stop, Disable and Immobilize."
+    "101": "Remove Slow, Stop, Disable and Immobilize from one ally.",
+    "104": "Remove Blind, Poison, Silence and Slow from one ally."
    }
   }
  },

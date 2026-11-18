@@ -93,8 +93,9 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(P.decide('hit', S({job=1, targetStatus={immobilize=true}}), 12).targetAdd[15] == 0.5)
           -- Warrior II-2.
           local cl = P.decide('hit', S({job=7, casterHpPct=40}), 6)
-          assert(cl.clearReckless == true and not (cl.casterAdd and cl.casterAdd[18]), 'II-2: Reckless dent clears, no Protect (decision 12)')
-          assert(P.decide('hit', S({job=7, casterHpPct=40, targetId=3}), 5).clearReckless == nil)
+          assert(cl.breakFoe == true and not (cl.casterAdd and cl.casterAdd[18]), 'II-2: the hit Breaks the foe (Reckless is gone), no Protect')
+          assert(P.decide('hit', S({job=7, casterHpPct=40, targetId=3}), 5).breakFoe == nil)
+          assert(P.decide('hit', S({job=7, casterHpPct=40}), 6).clearReckless == nil)
           -- Samurai I (0.5.1): a combo, or from 2/4 a critical hit, gives Haste once per Attack.
           P.reset()
           assert(P.decide('hit', S({job=10}), 1) == nil)                                  -- a plain hit: nothing
@@ -203,11 +204,11 @@ class ProficiencyRulesTest(unittest.TestCase):
             targetHp=110, roll=function() calls = calls + 1; return answers[calls] end,
             party={{address=100, job=2, hpPct=100, mp=0, maxMp=0, status={}}, {address=300, job=6, hpPct=100, mp=0, maxMp=0, status={}}}}), 12)
           assert(calls == 1 and a.targetAdd[9], 'the replay kept the first roll')
-          -- Warrior: II keeps a kill's longer Bravery; the Reckless dent clears instead of a Protect (decision 12).
+          -- Warrior: II keeps a kill's longer Bravery; the hit Breaks the foe (0.6.0, Reckless is gone).
           a = P.decide('hit', S({job=7, kill=true, casterHpPct=40}), 8)
-          assert(a.casterAdd[21] == 1.5 and a.clearReckless and not a.casterAdd[18])
+          assert(a.casterAdd[21] == 1.5 and a.breakFoe and not a.casterAdd[18])
           a = P.decide('hit', S({job=7, casterHpPct=40, casterStatus={bravery=true}}), 8)
-          assert(a.clearReckless and not (a.casterAdd and a.casterAdd[21]) and op(a, 'add', 21))
+          assert(a.breakFoe and not (a.casterAdd and a.casterAdd[21]) and op(a, 'add', 21))
           -- Warrior III-4: real, not a longer timer on a status with none.
           local two = {{address=1, status={}}, {address=2, status={}}}
           a = P.decide('hit', S({job=7, kill=true, targetStatus={sap=true}, foes=two}), 12)
@@ -229,7 +230,7 @@ class ProficiencyRulesTest(unittest.TestCase):
           assert(a.damage == 1.15 and op(a, 'hp').amount == 22)                           -- floor(100 x 1.15) is 114, as the runtime applies it
           -- Black Mage: one refund percentage; III-4 raises the splash.
           P.reset()
-          for rank, refund in pairs({[7] = 7, [8] = 11}) do
+          for rank, refund in pairs({[7] = 7, [8] = 9}) do   -- II-3 40%, II-4 half (60% would always be cut by the return cap)
             P.reset()
             local function cast() return P.decide('magick', S({job=9, element=1, mpCost=19}), rank) end
             cast(); cast()
@@ -1025,7 +1026,7 @@ class ProficiencyWritTest(unittest.TestCase):
           assert(suffix(0):find('Kage I 1/4:', 1, true) and suffix(0, 3):find('Kage III 0/4:', 1, true))
           jobs[0], jobs2[0] = 11, nil; tick()
           local one = R3.gearSuffix(8, 1, 1)
-          assert(one == '\n{scale:82}{rgb:90,90,90}Pursuit I 1/4:{lowspace}{rgb:255,255,255}Your hits deal +15% damage to an ailing or Broken foe\nBroken: its Defense or Magick Resist was cut in 10 s', one)
+          assert(one == '\n{scale:82}{rgb:90,90,90}Pursuit I 1/4:{lowspace}{rgb:255,255,255}Your hits deal 15% more damage to an ailing or Broken foe\nBroken means its Defense or Magick Resist was cut in 10 s', one)
           assert(R3.gearSuffix(8, 0, 1):find('Pursuit I 0/4:', 1, true))
           assert(R3.gearSuffix(8, 7, 1):find('Pursuit I 4/4:', 1, true))
           assert(R3.gearSuffix(8, 7, 2):find('Pursuit II 3/4:', 1, true))

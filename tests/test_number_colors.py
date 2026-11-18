@@ -38,7 +38,7 @@ class NumberColourTests(unittest.TestCase):
         self.lua.globals().N = self.lua.execute((ROOT / 'prototypes/number_colors.lua').read_text())
         self.lua.execute(SETUP)
 
-    def test_only_mp_recovery_moves_to_the_foe_damage_style(self):
+    def test_mp_recovery_turns_blue_and_party_damage_on_foes_turns_style_0(self):
         self.lua.execute(r'''
           native(); palette()
           local s, text = N.plan(memory); assert(s, text)
@@ -46,8 +46,8 @@ class NumberColourTests(unittest.TestCase):
           local t = styles()
           -- side A: HP damage, MP damage and HP heal stay native; MP heal -> foe damage style
           assert(t[1] == 2 and t[2] == 4 and t[3] == 1 and t[4] == 6, table.concat(t, ','))
-          -- side B: only MP heal moves
-          assert(t[5] == 6 and t[6] == 8 and t[7] == 5 and t[8] == 6, table.concat(t, ','))
+          -- side B (numbers over foes): HP damage -> style 0, MP heal -> foe damage style
+          assert(t[5] == 0 and t[6] == 8 and t[7] == 5 and t[8] == 6, table.concat(t, ','))
           assert(text:find('foe-damage', 1, true))
           local again, why = N.plan(memory); assert(not again and why:find('already applied', 1, true))
         ''')

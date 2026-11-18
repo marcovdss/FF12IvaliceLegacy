@@ -44,6 +44,10 @@ def help_strings(raw):
     return result
 
 
+# Longest action-help line the writer accepts. 56 holds the widest consumable line (Chronos Tear); the game's own help strings run to 89.
+HELP_MAX = 60
+
+
 def replace_help(raw, replacements, expected_sha256):
     if hashlib.sha256(raw).hexdigest() != expected_sha256:
         raise ValueError('Action-help source changed; review before patching')
@@ -53,8 +57,8 @@ def replace_help(raw, replacements, expected_sha256):
     for index, value in sorted(replacements.items()):
         if type(index) is not int or not 0 <= index < len(old):
             raise ValueError('Invalid action-help record')
-        if not isinstance(value, str) or not 0 < len(value) <= 48 or '\n' in value:
-            raise ValueError('Action help must fit a compact 48-glyph line')
+        if not isinstance(value, str) or not 0 < len(value) <= HELP_MAX or '\n' in value:
+            raise ValueError('Action help must fit a compact %d-glyph line' % HELP_MAX)
         try:
             encoded = bytes(GLYPHS[c] for c in value)
         except KeyError as error:

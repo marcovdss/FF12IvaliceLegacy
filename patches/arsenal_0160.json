@@ -1,0 +1,7732 @@
+{
+  "name": "Arsenal",
+  "description": "Weapon attack and family identities. Attack set per weapon for the story timing on a gentle climb; Warrior axes, Time Mage hammers and bombs brought into line. Identities that change speed, combo or critical rate are offset in attack (damage-neutral); identities that add an effect: sword evade, pole evade, hammer Disable and knockback, greatsword knockback, hand-bomb Slow/Oil, ninja-sword Blind, spear reach. Spears have no weapon evade; hammers and crossbows charge slower. Flame, Diamond and Dragon Shields trade evade for magick evade. Hornito, the Time Mage opening hand-bomb, is priced like the other opening weapons. 0.1.39 gear data (horizontal rework, REVIEW 2026-11-11): tier-mean weapon Attack with one answer per weapon, ward families and P5+ compression on armour, shield caps, accessory roles; hand-bomb rows lose their never-rolled Slow/Oil. 0.1.40: Hornito and Makara lose their never-rolled status; auto-status weapons (Ultima Blade Bubble, Save the Queen Shell, Traitor's Bow Berserk); Magnus Gloves without Magick; Shinobi Tabi Speed and the Immobilize ward; Cameo Belt loses Accuracy Boost (its dodge-only effect is Forge 34). 0.1.41: guest and story weapons on the player curve (Flimsy Blade, Mythril Blade, Lamont's Sword on free row 4541, Lamont's Guard, Larsa's Guard on free row 4544, Nightmare 4265, Chirijiraden, Reddas's Guard display, licence-free Excalipur); Defender auto-Protect; Rubicante, Mistflow, Hyper Wrist and Indigo lose the stat their new effect replaces. 2026-11-16 accessory rows (Marco: \"Haste is haste\", nothing hurts its own wearer): Genji Gloves back to vanilla Combo Boost, Hermes Sandals without Equip Haste, Pixie Shoes weak to Wind, Elmdore Fang without Equip Sap, Miracle Shoes without Equip Slow.",
+  "file": "ps2data/image/ff12/test_battle/us/binaryfile/battle_pack.bin",
+  "section": 13,
+  "sourceFileSha256": "d1bb89aac759cfcd4eb181715d9e88afb78d62a9a3fcffa6242f365f182cbc98",
+  "sourceSectionSha256": "981d88689d4292d55db4697a06fb6105d80a62e83405d25c3422d6716936979e",
+  "appendAttributeBlocks": 55,
+  "items": [
+    {
+      "contentId": 4097,
+      "name": "Broadsword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4098,
+      "name": "Longsword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          22
+        ],
+        "attack": [
+          20,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4099,
+      "name": "Iron Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          17
+        ],
+        "attack": [
+          25,
+          23
+        ]
+      }
+    },
+    {
+      "contentId": 4100,
+      "name": "Zwill Blade",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          25
+        ],
+        "attack": [
+          30,
+          21
+        ],
+        "elements": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4101,
+      "name": "Ancient Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          28
+        ],
+        "attack": [
+          35,
+          31
+        ],
+        "elements": [
+          [],
+          [
+            "Earth"
+          ]
+        ],
+        "statusEffects": [
+          [
+            "Petrify"
+          ],
+          [
+            "Immobilize"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4102,
+      "name": "Blood Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          28
+        ],
+        "attack": [
+          38,
+          31
+        ]
+      }
+    },
+    {
+      "contentId": 4103,
+      "name": "Lohengrin",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          28
+        ],
+        "attack": [
+          40,
+          32
+        ],
+        "elements": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4104,
+      "name": "Flametongue",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          30
+        ],
+        "attack": [
+          45,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4105,
+      "name": "Demonsbane",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          30
+        ],
+        "attack": [
+          51,
+          32
+        ],
+        "elements": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4106,
+      "name": "Icebrand",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          32
+        ],
+        "attack": [
+          55,
+          48
+        ]
+      }
+    },
+    {
+      "contentId": 4107,
+      "name": "Platinum Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          32
+        ],
+        "attack": [
+          61,
+          48
+        ],
+        "elements": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4108,
+      "name": "Bastard Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          35
+        ],
+        "attack": [
+          67,
+          50
+        ]
+      }
+    },
+    {
+      "contentId": 4109,
+      "name": "Diamond Sword",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          35
+        ],
+        "attack": [
+          73,
+          48
+        ],
+        "elements": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4110,
+      "name": "Runeblade",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          38
+        ],
+        "attack": [
+          78,
+          55
+        ],
+        "attributeBlock": [
+          0,
+          206
+        ]
+      }
+    },
+    {
+      "contentId": 4111,
+      "name": "Deathbringer",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          38
+        ],
+        "attack": [
+          83,
+          52
+        ],
+        "elements": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4112,
+      "name": "Stoneblade",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          38
+        ],
+        "attack": [
+          95,
+          74
+        ]
+      }
+    },
+    {
+      "contentId": 4113,
+      "name": "Durandal",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          5,
+          38
+        ],
+        "attack": [
+          99,
+          48
+        ],
+        "elements": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4114,
+      "name": "Claymore",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          83,
+          63
+        ],
+        "knockback": [
+          10,
+          25
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4115,
+      "name": "Defender",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          90,
+          69
+        ],
+        "knockback": [
+          10,
+          25
+        ],
+        "chargeTime": [
+          35,
+          40
+        ],
+        "attributeBlock": [
+          0,
+          230
+        ]
+      }
+    },
+    {
+      "contentId": 4116,
+      "name": "Save the Queen",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          92,
+          69
+        ],
+        "knockback": [
+          10,
+          25
+        ],
+        "chargeTime": [
+          35,
+          40
+        ],
+        "attributeBlock": [
+          0,
+          227
+        ]
+      }
+    },
+    {
+      "contentId": 4117,
+      "name": "Ragnarok",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          117,
+          87
+        ],
+        "knockback": [
+          10,
+          25
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4118,
+      "name": "Ultima Blade",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          109,
+          57
+        ],
+        "knockback": [
+          10,
+          25
+        ],
+        "chargeTime": [
+          35,
+          40
+        ],
+        "attributeBlock": [
+          0,
+          228
+        ]
+      }
+    },
+    {
+      "contentId": 4119,
+      "name": "Excalibur",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          127,
+          73
+        ],
+        "knockback": [
+          10,
+          25
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4120,
+      "name": "Tournesol",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          138,
+          96
+        ],
+        "knockback": [
+          10,
+          25
+        ],
+        "chargeTime": [
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4121,
+      "name": "Kotetsu",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          16,
+          14
+        ],
+        "comboOrCrit": [
+          20,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4122,
+      "name": "Osafune",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          26,
+          21
+        ],
+        "comboOrCrit": [
+          20,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4123,
+      "name": "Kogarasumaru",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          40,
+          30
+        ],
+        "comboOrCrit": [
+          20,
+          36
+        ],
+        "onHitRate": [
+          0,
+          10
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Blind"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4124,
+      "name": "Magoroku",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          50,
+          32
+        ],
+        "comboOrCrit": [
+          20,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4125,
+      "name": "Murasame",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          62,
+          41
+        ],
+        "comboOrCrit": [
+          20,
+          39
+        ]
+      }
+    },
+    {
+      "contentId": 4126,
+      "name": "Kiku-ichimonji",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          71,
+          43
+        ],
+        "comboOrCrit": [
+          20,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4127,
+      "name": "Yakei",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          83,
+          55
+        ],
+        "comboOrCrit": [
+          20,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4128,
+      "name": "Ame-no-Murakumo",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          96,
+          55
+        ],
+        "comboOrCrit": [
+          20,
+          45
+        ]
+      }
+    },
+    {
+      "contentId": 4129,
+      "name": "Muramasa",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          104,
+          58
+        ],
+        "comboOrCrit": [
+          20,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4130,
+      "name": "Masamune",
+      "category": "Katana",
+      "set": {
+        "attack": [
+          111,
+          73
+        ],
+        "comboOrCrit": [
+          30,
+          45
+        ]
+      }
+    },
+    {
+      "contentId": 4131,
+      "name": "Ashura",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          72,
+          57
+        ],
+        "onHitRate": [
+          5,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4132,
+      "name": "Sakura-saezuri",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          77,
+          54
+        ],
+        "statusEffects": [
+          [
+            "Slow"
+          ],
+          [
+            "Confuse",
+            "Blind"
+          ]
+        ],
+        "onHitRate": [
+          8,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4133,
+      "name": "Kagenui",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          81,
+          54
+        ],
+        "statusEffects": [
+          [
+            "Slow"
+          ],
+          [
+            "Blind",
+            "Immobilize"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4134,
+      "name": "Koga Blade",
+      "category": "Ninja sword",
+      "set": {
+        "statusEffects": [
+          [],
+          [
+            "Blind",
+            "Oil"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          10
+        ],
+        "attack": [
+          87,
+          51
+        ]
+      }
+    },
+    {
+      "contentId": 4135,
+      "name": "Iga Blade",
+      "category": "Ninja sword",
+      "set": {
+        "statusEffects": [
+          [],
+          [
+            "Blind"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          10
+        ],
+        "attack": [
+          87,
+          54
+        ]
+      }
+    },
+    {
+      "contentId": 4136,
+      "name": "Orochi",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          94,
+          70
+        ],
+        "statusEffects": [
+          [
+            "Disable"
+          ],
+          [
+            "Blind",
+            "Disable"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4137,
+      "name": "Yagyu Darkblade",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          98,
+          51
+        ],
+        "statusEffects": [
+          [
+            "Doom"
+          ],
+          [
+            "Doom",
+            "Blind"
+          ]
+        ],
+        "onHitRate": [
+          20,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4138,
+      "name": "Javelin",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "evade": [
+          8,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4139,
+      "name": "Spear",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "evade": [
+          8,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4140,
+      "name": "Partisan",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          34,
+          25
+        ],
+        "evade": [
+          8,
+          0
+        ],
+        "attributeBlock": [
+          0,
+          207
+        ]
+      }
+    },
+    {
+      "contentId": 4141,
+      "name": "Heavy Lance",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          42,
+          36
+        ],
+        "evade": [
+          8,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4142,
+      "name": "Storm Spear",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          53,
+          36
+        ],
+        "evade": [
+          8,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4143,
+      "name": "Obelisk",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          68,
+          48
+        ],
+        "evade": [
+          8,
+          0
+        ],
+        "attributeBlock": [
+          0,
+          208
+        ]
+      }
+    },
+    {
+      "contentId": 4144,
+      "name": "Halberd",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          75,
+          50
+        ],
+        "evade": [
+          8,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4145,
+      "name": "Trident",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          85,
+          62
+        ],
+        "evade": [
+          8,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4146,
+      "name": "Holy Lance",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          91,
+          62
+        ],
+        "evade": [
+          8,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4147,
+      "name": "Gungnir",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          95,
+          59
+        ],
+        "evade": [
+          8,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4148,
+      "name": "Dragon Whisker",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          100,
+          69
+        ],
+        "evade": [
+          8,
+          0
+        ],
+        "elements": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4149,
+      "name": "Zodiac Spear",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          141,
+          77
+        ],
+        "evade": [
+          8,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4150,
+      "name": "Oaken Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4151,
+      "name": "Cypress Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          25
+        ],
+        "attack": [
+          22,
+          23
+        ]
+      }
+    },
+    {
+      "contentId": 4152,
+      "name": "Battle Bamboo",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          25
+        ],
+        "attack": [
+          34,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4153,
+      "name": "Musk Stick",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          25
+        ],
+        "attack": [
+          39,
+          33
+        ],
+        "attributeBlock": [
+          0,
+          209
+        ]
+      }
+    },
+    {
+      "contentId": 4154,
+      "name": "Iron Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          27
+        ],
+        "attack": [
+          46,
+          33
+        ]
+      }
+    },
+    {
+      "contentId": 4155,
+      "name": "Six-fluted Pole",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          30,
+          28
+        ],
+        "attack": [
+          59,
+          47
+        ],
+        "elements": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4156,
+      "name": "Gokuu Pole",
+      "category": "Pole",
+      "set": {
+        "attack": [
+          72,
+          49
+        ],
+        "range": [
+          10,
+          50
+        ]
+      }
+    },
+    {
+      "contentId": 4157,
+      "name": "Zephyr Pole",
+      "category": "Pole",
+      "set": {
+        "attack": [
+          77,
+          58
+        ]
+      }
+    },
+    {
+      "contentId": 4158,
+      "name": "Ivory Pole",
+      "category": "Pole",
+      "set": {
+        "attack": [
+          83,
+          61
+        ]
+      }
+    },
+    {
+      "contentId": 4159,
+      "name": "Sweep",
+      "category": "Pole",
+      "set": {
+        "attack": [
+          88,
+          58
+        ],
+        "onHitRate": [
+          0,
+          10
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Immobilize"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4160,
+      "name": "Eight-fluted Pole",
+      "category": "Pole",
+      "set": {
+        "attack": [
+          91,
+          52
+        ]
+      }
+    },
+    {
+      "contentId": 4161,
+      "name": "Whale Whisker",
+      "category": "Pole",
+      "set": {
+        "attack": [
+          108,
+          80
+        ]
+      }
+    },
+    {
+      "contentId": 4162,
+      "name": "Shortbow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          15,
+          14
+        ],
+        "comboOrCrit": [
+          5,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4163,
+      "name": "Silver Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          19,
+          18
+        ],
+        "comboOrCrit": [
+          5,
+          21
+        ]
+      }
+    },
+    {
+      "contentId": 4164,
+      "name": "Aevis Killer",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          25,
+          17
+        ],
+        "comboOrCrit": [
+          5,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4165,
+      "name": "Killer Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          36,
+          32
+        ],
+        "comboOrCrit": [
+          5,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4166,
+      "name": "Longbow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          48,
+          30
+        ],
+        "comboOrCrit": [
+          5,
+          24
+        ],
+        "range": [
+          100,
+          150
+        ]
+      }
+    },
+    {
+      "contentId": 4167,
+      "name": "Elfin Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          54,
+          30
+        ],
+        "comboOrCrit": [
+          5,
+          25
+        ],
+        "attributeBlock": [
+          0,
+          210
+        ]
+      }
+    },
+    {
+      "contentId": 4168,
+      "name": "Loxley Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          60,
+          34
+        ],
+        "comboOrCrit": [
+          5,
+          26
+        ],
+        "chargeTime": [
+          36,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4169,
+      "name": "Giant Stonebow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          73,
+          42
+        ],
+        "comboOrCrit": [
+          5,
+          28
+        ],
+        "evade": [
+          0,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4170,
+      "name": "Burning Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          77,
+          57
+        ],
+        "comboOrCrit": [
+          5,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4171,
+      "name": "Traitor's Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          82,
+          54
+        ],
+        "comboOrCrit": [
+          5,
+          29
+        ],
+        "attributeBlock": [
+          0,
+          229
+        ]
+      }
+    },
+    {
+      "contentId": 4172,
+      "name": "Yoichi Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          89,
+          60
+        ],
+        "comboOrCrit": [
+          5,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4173,
+      "name": "Perseus Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          92,
+          57
+        ],
+        "comboOrCrit": [
+          5,
+          30
+        ],
+        "attributeBlock": [
+          0,
+          211
+        ]
+      }
+    },
+    {
+      "contentId": 4174,
+      "name": "Artemis Bow",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          94,
+          60
+        ],
+        "comboOrCrit": [
+          5,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4175,
+      "name": "Sagittarius",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          97,
+          57
+        ],
+        "comboOrCrit": [
+          5,
+          29
+        ],
+        "attributeBlock": [
+          0,
+          212
+        ]
+      }
+    },
+    {
+      "contentId": 4176,
+      "name": "Bowgun",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          21,
+          18
+        ],
+        "chargeTime": [
+          24,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4177,
+      "name": "Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          31,
+          27
+        ],
+        "chargeTime": [
+          24,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4178,
+      "name": "Paramina Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          42,
+          39
+        ],
+        "chargeTime": [
+          24,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4179,
+      "name": "Recurve Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          57,
+          35
+        ],
+        "chargeTime": [
+          24,
+          30
+        ],
+        "attributeBlock": [
+          0,
+          213
+        ]
+      }
+    },
+    {
+      "contentId": 4180,
+      "name": "Hunting Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          70,
+          45
+        ],
+        "chargeTime": [
+          24,
+          30
+        ],
+        "evade": [
+          5,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4181,
+      "name": "Penetrator Crossbow",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          79,
+          61
+        ],
+        "chargeTime": [
+          24,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4182,
+      "name": "Gastrophetes",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          84,
+          49
+        ]
+      }
+    },
+    {
+      "contentId": 4184,
+      "name": "Capella",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          8,
+          9
+        ]
+      }
+    },
+    {
+      "contentId": 4185,
+      "name": "Vega",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          13,
+          9
+        ]
+      }
+    },
+    {
+      "contentId": 4186,
+      "name": "Sirius",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          17,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4187,
+      "name": "Betelgeuse",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          22,
+          13
+        ],
+        "chargeTime": [
+          50,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4188,
+      "name": "Ras Algethi",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          29,
+          21
+        ],
+        "attributeBlock": [
+          0,
+          214
+        ]
+      }
+    },
+    {
+      "contentId": 4189,
+      "name": "Aldebaran",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          33,
+          21
+        ],
+        "attributeBlock": [
+          0,
+          215
+        ]
+      }
+    },
+    {
+      "contentId": 4190,
+      "name": "Spica",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          38,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4191,
+      "name": "Antares",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          41,
+          27
+        ],
+        "attributeBlock": [
+          0,
+          216
+        ]
+      }
+    },
+    {
+      "contentId": 4192,
+      "name": "Arcturus",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          45,
+          29
+        ],
+        "chargeTime": [
+          50,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4193,
+      "name": "Fomalhaut",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          52,
+          34
+        ],
+        "comboOrCrit": [
+          5,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4194,
+      "name": "Handaxe",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          17,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4195,
+      "name": "Broadaxe",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          36,
+          16
+        ],
+        "attributeBlock": [
+          0,
+          217
+        ]
+      }
+    },
+    {
+      "contentId": 4196,
+      "name": "Slasher",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          54,
+          33
+        ]
+      }
+    },
+    {
+      "contentId": 4197,
+      "name": "Hammerhead",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          81,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4198,
+      "name": "Francisca",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          88,
+          36
+        ],
+        "range": [
+          10,
+          100
+        ],
+        "hitsFlying": [
+          false,
+          true
+        ]
+      }
+    },
+    {
+      "contentId": 4199,
+      "name": "Greataxe",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          110,
+          54
+        ]
+      }
+    },
+    {
+      "contentId": 4200,
+      "name": "Golden Axe",
+      "category": "Axe",
+      "set": {
+        "attack": [
+          120,
+          77
+        ]
+      }
+    },
+    {
+      "contentId": 4201,
+      "name": "Iron Hammer",
+      "category": "Hammer",
+      "set": {
+        "attack": [
+          24,
+          12
+        ],
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Disable"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          15
+        ],
+        "chargeTime": [
+          32,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4202,
+      "name": "War Hammer",
+      "category": "Hammer",
+      "set": {
+        "attack": [
+          42,
+          24
+        ],
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Disable",
+            "Slow"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          15
+        ],
+        "chargeTime": [
+          32,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4203,
+      "name": "Sledgehammer",
+      "category": "Hammer",
+      "set": {
+        "attack": [
+          66,
+          35
+        ],
+        "knockback": [
+          10,
+          30
+        ],
+        "chargeTime": [
+          32,
+          40
+        ],
+        "onHitRate": [
+          20,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4204,
+      "name": "Morning Star",
+      "category": "Hammer",
+      "set": {
+        "attack": [
+          100,
+          43
+        ],
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Disable",
+            "Immobilize"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          15
+        ],
+        "chargeTime": [
+          32,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4205,
+      "name": "Scorpion Tail",
+      "category": "Hammer",
+      "set": {
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Poison",
+            "Disable"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          20
+        ],
+        "attack": [
+          124,
+          68
+        ],
+        "chargeTime": [
+          32,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4206,
+      "name": "Dagger",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          14,
+          11
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4207,
+      "name": "Mage Masher",
+      "category": "Dagger",
+      "set": {
+        "evade": [
+          5,
+          6
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4208,
+      "name": "Assassin's Dagger",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          31,
+          18
+        ],
+        "evade": [
+          5,
+          6
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          16
+        ],
+        "onHitRate": [
+          5,
+          15
+        ],
+        "statusEffects": [
+          [
+            "KO"
+          ],
+          [
+            "Disease"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4209,
+      "name": "Chopper",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          40,
+          29
+        ],
+        "evade": [
+          5,
+          7
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          17
+        ]
+      }
+    },
+    {
+      "contentId": 4210,
+      "name": "Main Gauche",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          46,
+          29
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "evade": [
+          50,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4211,
+      "name": "Gladius",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          56,
+          38
+        ],
+        "evade": [
+          5,
+          8
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          18
+        ],
+        "onHitRate": [
+          0,
+          15
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Slow"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4212,
+      "name": "Avenger",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          66,
+          40
+        ],
+        "evade": [
+          5,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ],
+        "onHitRate": [
+          10,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4213,
+      "name": "Orichalcum Dirk",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          79,
+          51
+        ],
+        "evade": [
+          5,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ],
+        "onHitRate": [
+          10,
+          15
+        ],
+        "statusEffects": [
+          [
+            "Slow"
+          ],
+          [
+            "Poison"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4214,
+      "name": "Platinum Dagger",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          83,
+          51
+        ],
+        "evade": [
+          5,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ],
+        "onHitRate": [
+          10,
+          15
+        ],
+        "statusEffects": [
+          [
+            "Immobilize"
+          ],
+          [
+            "Blind"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4215,
+      "name": "Zwill Crossblade",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          87,
+          38
+        ],
+        "evade": [
+          10,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ],
+        "onHitRate": [
+          0,
+          10
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Sleep"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4216,
+      "name": "Shikari Nagasa",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          90,
+          51
+        ],
+        "evade": [
+          10,
+          9
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          12,
+          19
+        ],
+        "onHitRate": [
+          0,
+          15
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Immobilize"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4218,
+      "name": "Serpent Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          25,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4220,
+      "name": "Gaia Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          43,
+          33
+        ]
+      }
+    },
+    {
+      "contentId": 4221,
+      "name": "Power Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          56,
+          44
+        ]
+      }
+    },
+    {
+      "contentId": 4222,
+      "name": "Empyrean Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          60,
+          42
+        ],
+        "attributeBlock": [
+          4,
+          218
+        ]
+      }
+    },
+    {
+      "contentId": 4223,
+      "name": "Holy Rod",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          63,
+          51
+        ]
+      }
+    },
+    {
+      "contentId": 4224,
+      "name": "Rod of Faith",
+      "category": "Rod",
+      "set": {
+        "attack": [
+          21,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4226,
+      "name": "Cherry Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          20,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4227,
+      "name": "Wizard's Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          26,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4228,
+      "name": "Flame Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          34,
+          31
+        ]
+      }
+    },
+    {
+      "contentId": 4229,
+      "name": "Storm Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          36,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4230,
+      "name": "Glacial Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          38,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4231,
+      "name": "Golden Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          42,
+          41
+        ],
+        "attributeBlock": [
+          7,
+          219
+        ]
+      }
+    },
+    {
+      "contentId": 4232,
+      "name": "Judicer's Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          48,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4233,
+      "name": "Cloud Staff",
+      "category": "Staff",
+      "set": {
+        "attack": [
+          49,
+          36
+        ]
+      }
+    },
+    {
+      "contentId": 4236,
+      "name": "Bronze Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          24,
+          21
+        ],
+        "onHitRate": [
+          0,
+          10
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Blind"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4237,
+      "name": "Bhuj",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          34,
+          30
+        ],
+        "onHitRate": [
+          0,
+          10
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Sleep"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4238,
+      "name": "Miter",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          42,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4239,
+      "name": "Thorned Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          53,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4240,
+      "name": "Chaos Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          69,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4241,
+      "name": "Doom Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          75,
+          60
+        ],
+        "elements": [
+          [],
+          [
+            "Dark"
+          ]
+        ],
+        "onHitRate": [
+          15,
+          0
+        ],
+        "statusEffects": [
+          [
+            "Doom"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "contentId": 4242,
+      "name": "Zeus Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          81,
+          57
+        ],
+        "elements": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4243,
+      "name": "Grand Mace",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          88,
+          71
+        ]
+      }
+    },
+    {
+      "contentId": 4244,
+      "name": "Gilt Measure",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ],
+        "attack": [
+          5,
+          4
+        ]
+      }
+    },
+    {
+      "contentId": 4245,
+      "name": "Arc Scale",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ],
+        "attack": [
+          10,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4246,
+      "name": "Multiscale",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ],
+        "attack": [
+          13,
+          9
+        ]
+      }
+    },
+    {
+      "contentId": 4247,
+      "name": "Cross Scale",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ],
+        "attack": [
+          16,
+          12
+        ]
+      }
+    },
+    {
+      "contentId": 4248,
+      "name": "Caliper",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ],
+        "attack": [
+          19,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4249,
+      "name": "Euclid's Sextant",
+      "category": "Measure",
+      "set": {
+        "evade": [
+          35,
+          10
+        ],
+        "attack": [
+          24,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4250,
+      "name": "Hornito",
+      "category": "Hand-bomb",
+      "set": {
+        "gil": [
+          5000,
+          500
+        ],
+        "attack": [
+          66,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4251,
+      "name": "Fumarole",
+      "category": "Hand-bomb",
+      "set": {
+        "attack": [
+          71,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4252,
+      "name": "Tumulus",
+      "category": "Hand-bomb",
+      "set": {
+        "attack": [
+          76,
+          53
+        ],
+        "chargeTime": [
+          33,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4253,
+      "name": "Caldera",
+      "category": "Hand-bomb",
+      "set": {
+        "attack": [
+          83,
+          44
+        ]
+      }
+    },
+    {
+      "contentId": 4254,
+      "name": "Volcano",
+      "category": "Hand-bomb",
+      "set": {
+        "attack": [
+          90,
+          59
+        ]
+      }
+    },
+    {
+      "contentId": 4261,
+      "name": "Chirijiraden",
+      "category": "Sword",
+      "set": {
+        "attack": [
+          76,
+          50
+        ]
+      }
+    },
+    {
+      "contentId": 4263,
+      "name": "Flimsy Blade",
+      "category": "Sword",
+      "set": {
+        "attack": [
+          22,
+          20
+        ],
+        "onHitRate": [
+          0,
+          10
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Blind"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4264,
+      "name": "Mythril Blade",
+      "category": "Sword",
+      "set": {
+        "attack": [
+          23,
+          21
+        ]
+      }
+    },
+    {
+      "contentId": 4265,
+      "name": "Nightmare II",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          30,
+          41
+        ],
+        "knockback": [
+          15,
+          25
+        ],
+        "chargeTime": [
+          30,
+          40
+        ],
+        "hitsFlying": [
+          false,
+          true
+        ]
+      }
+    },
+    {
+      "contentId": 4266,
+      "name": "Kumbha",
+      "category": "Sword",
+      "set": {
+        "category": [
+          "Sword",
+          "Katana"
+        ],
+        "attack": [
+          117,
+          84
+        ]
+      }
+    },
+    {
+      "contentId": 4267,
+      "name": "Mesa",
+      "category": "Ninja sword",
+      "set": {
+        "attack": [
+          102,
+          77
+        ],
+        "statusEffects": [
+          [
+            "Poison"
+          ],
+          [
+            "Blind",
+            "Poison"
+          ]
+        ],
+        "onHitRate": [
+          20,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4268,
+      "name": "Mina",
+      "category": "Dagger",
+      "set": {
+        "attack": [
+          104,
+          63
+        ],
+        "evade": [
+          25,
+          10
+        ],
+        "chargeTime": [
+          21,
+          15
+        ],
+        "comboOrCrit": [
+          15,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4269,
+      "name": "Wyrmhero Blade",
+      "category": "Greatsword",
+      "set": {
+        "attack": [
+          131,
+          91
+        ]
+      }
+    },
+    {
+      "contentId": 4270,
+      "name": "Vrsabha",
+      "category": "Spear",
+      "set": {
+        "range": [
+          10,
+          25
+        ],
+        "attack": [
+          108,
+          80
+        ]
+      }
+    },
+    {
+      "contentId": 4271,
+      "name": "Bone of Byblos",
+      "category": "Mace",
+      "set": {
+        "attack": [
+          100,
+          57
+        ],
+        "onHitRate": [
+          0,
+          35
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Slow"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4272,
+      "name": "Tula",
+      "category": "Crossbow",
+      "set": {
+        "attack": [
+          91,
+          67
+        ],
+        "chargeTime": [
+          24,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4273,
+      "name": "Great Trango",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          0,
+          40
+        ],
+        "attack": [
+          153,
+          74
+        ],
+        "chargeTime": [
+          25,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4274,
+      "name": "Seitengrat",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          224,
+          72
+        ],
+        "chargeTime": [
+          10,
+          36
+        ]
+      }
+    },
+    {
+      "contentId": 4288,
+      "name": "Karkata",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          16,
+          35
+        ],
+        "attack": [
+          92,
+          76
+        ]
+      }
+    },
+    {
+      "contentId": 4289,
+      "name": "Excalipur",
+      "category": "Greatsword",
+      "set": {
+        "licenseFree": [
+          false,
+          true
+        ]
+      }
+    },
+    {
+      "contentId": 4290,
+      "name": "Simha",
+      "category": "Sword",
+      "set": {
+        "evade": [
+          15,
+          38
+        ],
+        "attack": [
+          103,
+          78
+        ]
+      }
+    },
+    {
+      "contentId": 4291,
+      "name": "Makara",
+      "category": "Hand-bomb",
+      "set": {
+        "attack": [
+          96,
+          62
+        ]
+      }
+    },
+    {
+      "contentId": 4292,
+      "name": "Vrscika",
+      "category": "Hammer",
+      "set": {
+        "knockback": [
+          10,
+          30
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Disable"
+          ]
+        ],
+        "onHitRate": [
+          0,
+          15
+        ],
+        "attack": [
+          133,
+          78
+        ],
+        "chargeTime": [
+          32,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4293,
+      "name": "Mithuna",
+      "category": "Gun",
+      "set": {
+        "attack": [
+          66,
+          48
+        ]
+      }
+    },
+    {
+      "contentId": 4294,
+      "name": "Kanya",
+      "category": "Pole",
+      "set": {
+        "evade": [
+          35,
+          30
+        ],
+        "attack": [
+          112,
+          82
+        ]
+      }
+    },
+    {
+      "contentId": 4295,
+      "name": "Dhanusha",
+      "category": "Bow",
+      "set": {
+        "attack": [
+          109,
+          78
+        ],
+        "comboOrCrit": [
+          20,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4298,
+      "name": "Buckler",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          220
+        ]
+      }
+    },
+    {
+      "contentId": 4299,
+      "name": "Bronze Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          11,
+          7
+        ],
+        "magickEvade": [
+          0,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4300,
+      "name": "Round Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          177
+        ]
+      }
+    },
+    {
+      "contentId": 4301,
+      "name": "Shell Shield",
+      "category": "Shield",
+      "set": {
+        "magickEvade": [
+          0,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4302,
+      "name": "Golden Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          178
+        ]
+      }
+    },
+    {
+      "contentId": 4304,
+      "name": "Flame Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          15,
+          0
+        ],
+        "magickEvade": [
+          0,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4305,
+      "name": "Diamond Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          179
+        ],
+        "evade": [
+          18,
+          10
+        ],
+        "magickEvade": [
+          0,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4306,
+      "name": "Platinum Shield",
+      "category": "Shield",
+      "set": {
+        "attributeBlock": [
+          0,
+          180
+        ]
+      }
+    },
+    {
+      "contentId": 4307,
+      "name": "Dragon Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          23,
+          0
+        ],
+        "magickEvade": [
+          0,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4308,
+      "name": "Crystal Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          25,
+          22
+        ],
+        "attributeBlock": [
+          0,
+          221
+        ]
+      }
+    },
+    {
+      "contentId": 4309,
+      "name": "Genji Shield",
+      "category": "Shield",
+      "set": {
+        "magickEvade": [
+          5,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4310,
+      "name": "Kaiser Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          27,
+          20
+        ],
+        "magickEvade": [
+          0,
+          20
+        ],
+        "attributeBlock": [
+          0,
+          222
+        ]
+      }
+    },
+    {
+      "contentId": 4311,
+      "name": "Aegis Shield",
+      "category": "Shield",
+      "set": {
+        "magickEvade": [
+          50,
+          30
+        ],
+        "attributeBlock": [
+          0,
+          223
+        ]
+      }
+    },
+    {
+      "contentId": 4312,
+      "name": "Demon Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          40,
+          30
+        ],
+        "magickEvade": [
+          0,
+          5
+        ]
+      }
+    },
+    {
+      "contentId": 4314,
+      "name": "Zodiac Escutcheon",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          75,
+          40
+        ],
+        "magickEvade": [
+          45,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4315,
+      "name": "Ensanguined Shield",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          90,
+          60
+        ]
+      }
+    },
+    {
+      "contentId": 4316,
+      "name": "Leather Cap",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          38,
+          181
+        ]
+      }
+    },
+    {
+      "contentId": 4317,
+      "name": "Headgear",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          39,
+          182
+        ]
+      }
+    },
+    {
+      "contentId": 4318,
+      "name": "Headguard",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          40,
+          183
+        ]
+      }
+    },
+    {
+      "contentId": 4319,
+      "name": "Leather Headgear",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          41,
+          184
+        ]
+      }
+    },
+    {
+      "contentId": 4320,
+      "name": "Horned Hat",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          42,
+          185
+        ]
+      }
+    },
+    {
+      "contentId": 4321,
+      "name": "Balaclava",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          12,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4322,
+      "name": "Soldier's Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          14,
+          13
+        ]
+      }
+    },
+    {
+      "contentId": 4323,
+      "name": "Green Beret",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          16,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4324,
+      "name": "Red Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          19,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4325,
+      "name": "Headband",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          22,
+          19
+        ]
+      }
+    },
+    {
+      "contentId": 4326,
+      "name": "Pirate Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          25,
+          21
+        ]
+      }
+    },
+    {
+      "contentId": 4327,
+      "name": "Goggle Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          28,
+          23
+        ]
+      }
+    },
+    {
+      "contentId": 4328,
+      "name": "Adamant Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          31,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4329,
+      "name": "Officer's Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          34,
+          27
+        ]
+      }
+    },
+    {
+      "contentId": 4330,
+      "name": "Chakra Band",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          37,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4331,
+      "name": "Thief's Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          40,
+          31
+        ],
+        "augment": [
+          255,
+          17
+        ]
+      }
+    },
+    {
+      "contentId": 4332,
+      "name": "Gigas Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          43,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4333,
+      "name": "Chaperon",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          46,
+          34
+        ]
+      }
+    },
+    {
+      "contentId": 4334,
+      "name": "Crown of Laurels",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          49,
+          36
+        ]
+      }
+    },
+    {
+      "contentId": 4335,
+      "name": "Renewing Morion",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          52,
+          34
+        ]
+      }
+    },
+    {
+      "contentId": 4336,
+      "name": "Dueling Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          55,
+          34
+        ]
+      }
+    },
+    {
+      "contentId": 4337,
+      "name": "Cotton Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "contentId": 4338,
+      "name": "Magick Curch",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "contentId": 4339,
+      "name": "Pointy Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          6,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4340,
+      "name": "Topkapi Hat",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          62,
+          186
+        ],
+        "magickResist": [
+          8,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4341,
+      "name": "Calot Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          10,
+          12
+        ]
+      }
+    },
+    {
+      "contentId": 4342,
+      "name": "Wizard's Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          12,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4343,
+      "name": "Lambent Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          15,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4344,
+      "name": "Feathered Cap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          18,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4345,
+      "name": "Mage's Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          21,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4346,
+      "name": "Lamia's Tiara",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          25,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4347,
+      "name": "Sorcerer's Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          29,
+          31
+        ]
+      }
+    },
+    {
+      "contentId": 4348,
+      "name": "Black Cowl",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          33,
+          34
+        ]
+      }
+    },
+    {
+      "contentId": 4349,
+      "name": "Astrakhan Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          37,
+          36
+        ]
+      }
+    },
+    {
+      "contentId": 4350,
+      "name": "Gaia Hat",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          41,
+          40
+        ]
+      }
+    },
+    {
+      "contentId": 4351,
+      "name": "Hypnocrown",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          44,
+          43
+        ]
+      }
+    },
+    {
+      "contentId": 4353,
+      "name": "Celebrant's Miter",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          50,
+          51
+        ]
+      }
+    },
+    {
+      "contentId": 4354,
+      "name": "Black Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          53,
+          54
+        ]
+      }
+    },
+    {
+      "contentId": 4355,
+      "name": "White Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          56,
+          54
+        ]
+      }
+    },
+    {
+      "contentId": 4356,
+      "name": "Golden Skullcap",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          58,
+          54
+        ]
+      }
+    },
+    {
+      "contentId": 4357,
+      "name": "Circlet",
+      "category": "Head armor",
+      "set": {
+        "augment": [
+          255,
+          1
+        ]
+      }
+    },
+    {
+      "contentId": 4358,
+      "name": "Leather Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          187
+        ],
+        "magickResist": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "contentId": 4359,
+      "name": "Bronze Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          188
+        ],
+        "magickResist": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "contentId": 4360,
+      "name": "Sallet",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          189
+        ],
+        "magickResist": [
+          7,
+          4
+        ]
+      }
+    },
+    {
+      "contentId": 4361,
+      "name": "Iron Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          190
+        ],
+        "magickResist": [
+          9,
+          6
+        ]
+      }
+    },
+    {
+      "contentId": 4362,
+      "name": "Barbut",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          191
+        ],
+        "magickResist": [
+          11,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4363,
+      "name": "Winged Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          14,
+          9
+        ]
+      }
+    },
+    {
+      "contentId": 4364,
+      "name": "Golden Helm",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          84,
+          192
+        ],
+        "magickResist": [
+          17,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4365,
+      "name": "Burgonet",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          193
+        ],
+        "magickResist": [
+          20,
+          12
+        ]
+      }
+    },
+    {
+      "contentId": 4366,
+      "name": "Close Helmet",
+      "category": "Head armor",
+      "set": {
+        "attributeBlock": [
+          84,
+          194
+        ],
+        "magickResist": [
+          23,
+          12
+        ]
+      }
+    },
+    {
+      "contentId": 4367,
+      "name": "Steel Mask",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          26,
+          13
+        ],
+        "attributeBlock": [
+          85,
+          224
+        ]
+      }
+    },
+    {
+      "contentId": 4368,
+      "name": "Bone Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          29,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4369,
+      "name": "Diamond Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          32,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4370,
+      "name": "Platinum Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          35,
+          17
+        ]
+      }
+    },
+    {
+      "contentId": 4371,
+      "name": "Giant's Helmet",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          38,
+          18
+        ],
+        "augment": [
+          255,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4372,
+      "name": "Dragon Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          41,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4373,
+      "name": "Magepower Shishak",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          46,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4374,
+      "name": "Genji Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          47,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4375,
+      "name": "Grand Helm",
+      "category": "Head armor",
+      "set": {
+        "magickResist": [
+          50,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4376,
+      "name": "Leather Clothing",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          38,
+          195
+        ]
+      }
+    },
+    {
+      "contentId": 4377,
+      "name": "Chromed Leathers",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          39,
+          196
+        ]
+      }
+    },
+    {
+      "contentId": 4378,
+      "name": "Leather Breastplate",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          40,
+          197
+        ]
+      }
+    },
+    {
+      "contentId": 4379,
+      "name": "Bronze Chestplate",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          41,
+          198
+        ]
+      }
+    },
+    {
+      "contentId": 4386,
+      "name": "Viking Coat",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          27,
+          26
+        ]
+      }
+    },
+    {
+      "contentId": 4387,
+      "name": "Metal Jerkin",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          31,
+          28
+        ]
+      }
+    },
+    {
+      "contentId": 4388,
+      "name": "Adamant Vest",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          35,
+          30
+        ]
+      }
+    },
+    {
+      "contentId": 4389,
+      "name": "Barrel Coat",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          38,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4390,
+      "name": "Power Vest",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          41,
+          33
+        ]
+      }
+    },
+    {
+      "contentId": 4391,
+      "name": "Ninja Gear",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          44,
+          35
+        ]
+      }
+    },
+    {
+      "contentId": 4392,
+      "name": "Gigas Chestplate",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          47,
+          37
+        ]
+      }
+    },
+    {
+      "contentId": 4393,
+      "name": "Minerva Bustier",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          50,
+          39
+        ]
+      }
+    },
+    {
+      "contentId": 4394,
+      "name": "Rubber Suit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          53,
+          39
+        ]
+      }
+    },
+    {
+      "contentId": 4395,
+      "name": "Mirage Vest",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          55,
+          39
+        ]
+      }
+    },
+    {
+      "contentId": 4396,
+      "name": "Brave Suit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          57,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4397,
+      "name": "Cotton Shirt",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          4,
+          2
+        ]
+      }
+    },
+    {
+      "contentId": 4398,
+      "name": "Light Woven Shirt",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "contentId": 4399,
+      "name": "Silken Shirt",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "contentId": 4400,
+      "name": "Kilimweave Shirt",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          8,
+          5
+        ]
+      }
+    },
+    {
+      "contentId": 4401,
+      "name": "Shepherd's Bolero",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          62,
+          199
+        ],
+        "defense": [
+          10,
+          6
+        ]
+      }
+    },
+    {
+      "contentId": 4402,
+      "name": "Wizard's Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          12,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4403,
+      "name": "Chanter's Djellaba",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          15,
+          9
+        ]
+      }
+    },
+    {
+      "contentId": 4404,
+      "name": "Traveler's Vestment",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          18,
+          11
+        ]
+      }
+    },
+    {
+      "contentId": 4405,
+      "name": "Mage's Habit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          21,
+          13
+        ]
+      }
+    },
+    {
+      "contentId": 4406,
+      "name": "Enchanter's Habit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          25,
+          14
+        ]
+      }
+    },
+    {
+      "contentId": 4407,
+      "name": "Sorcerer's Habit",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          29,
+          15
+        ]
+      }
+    },
+    {
+      "contentId": 4408,
+      "name": "Black Garb",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          33,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4409,
+      "name": "Carmagnole",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          37,
+          17
+        ]
+      }
+    },
+    {
+      "contentId": 4410,
+      "name": "Maduin Gear",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          41,
+          19
+        ]
+      }
+    },
+    {
+      "contentId": 4411,
+      "name": "Jade Gown",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          44,
+          20
+        ]
+      }
+    },
+    {
+      "contentId": 4412,
+      "name": "Gaia Gear",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          47,
+          21
+        ]
+      }
+    },
+    {
+      "contentId": 4413,
+      "name": "Cleric's Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          50,
+          22
+        ]
+      }
+    },
+    {
+      "contentId": 4414,
+      "name": "White Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          53,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4415,
+      "name": "Black Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          56,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4416,
+      "name": "Glimmering Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          59,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4417,
+      "name": "Lordly Robes",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          61,
+          25
+        ]
+      }
+    },
+    {
+      "contentId": 4418,
+      "name": "Leather Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          200
+        ],
+        "defense": [
+          6,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4419,
+      "name": "Scale Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          80,
+          201
+        ],
+        "defense": [
+          7,
+          8
+        ]
+      }
+    },
+    {
+      "contentId": 4420,
+      "name": "Bronze Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          9,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4421,
+      "name": "Iron Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          202
+        ],
+        "defense": [
+          11,
+          13
+        ]
+      }
+    },
+    {
+      "contentId": 4422,
+      "name": "Linen Cuirass",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          203
+        ],
+        "defense": [
+          14,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4423,
+      "name": "Chainmail",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          81,
+          204
+        ],
+        "defense": [
+          17,
+          19
+        ]
+      }
+    },
+    {
+      "contentId": 4424,
+      "name": "Golden Armor",
+      "category": "Body armor",
+      "set": {
+        "attributeBlock": [
+          82,
+          205
+        ],
+        "defense": [
+          21,
+          24
+        ]
+      }
+    },
+    {
+      "contentId": 4425,
+      "name": "Shielded Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          25,
+          29
+        ]
+      }
+    },
+    {
+      "contentId": 4426,
+      "name": "Demon Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          30,
+          32
+        ]
+      }
+    },
+    {
+      "contentId": 4427,
+      "name": "Bone Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          35,
+          34
+        ],
+        "attributeBlock": [
+          85,
+          225
+        ]
+      }
+    },
+    {
+      "contentId": 4428,
+      "name": "Diamond Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          40,
+          38
+        ]
+      }
+    },
+    {
+      "contentId": 4429,
+      "name": "Mirror Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          44,
+          41
+        ]
+      }
+    },
+    {
+      "contentId": 4430,
+      "name": "Platinum Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          49,
+          44
+        ]
+      }
+    },
+    {
+      "contentId": 4431,
+      "name": "Carabineer Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          53,
+          48
+        ]
+      }
+    },
+    {
+      "contentId": 4432,
+      "name": "Dragon Mail",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          57,
+          51
+        ]
+      }
+    },
+    {
+      "contentId": 4433,
+      "name": "Genji Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          63,
+          55
+        ]
+      }
+    },
+    {
+      "contentId": 4434,
+      "name": "Maximillian",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          64,
+          55
+        ]
+      }
+    },
+    {
+      "contentId": 4435,
+      "name": "Grand Armor",
+      "category": "Body armor",
+      "set": {
+        "defense": [
+          67,
+          59
+        ]
+      }
+    },
+    {
+      "contentId": 4436,
+      "name": "Opal Ring",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          2,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4438,
+      "name": "Tourmaline Ring",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          255,
+          16
+        ]
+      }
+    },
+    {
+      "contentId": 4440,
+      "name": "Ring of Renewal",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          6,
+          0
+        ],
+        "magickResist": [
+          5,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4441,
+      "name": "Agate Ring",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          16,
+          48
+        ]
+      }
+    },
+    {
+      "contentId": 4443,
+      "name": "Orrachea Armlet",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "magickResist": [
+          1,
+          0
+        ],
+        "augment": [
+          114,
+          255
+        ]
+      }
+    },
+    {
+      "contentId": 4447,
+      "name": "Amber Armlet",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          3,
+          0
+        ],
+        "augment": [
+          9,
+          255
+        ]
+      }
+    },
+    {
+      "contentId": 4448,
+      "name": "Berserker Bracers",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          2,
+          0
+        ],
+        "augment": [
+          255,
+          58
+        ]
+      }
+    },
+    {
+      "contentId": 4449,
+      "name": "Magick Gloves",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          103,
+          255
+        ]
+      }
+    },
+    {
+      "contentId": 4451,
+      "name": "Blazer Gloves",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          11,
+          255
+        ]
+      }
+    },
+    {
+      "contentId": 4453,
+      "name": "Gauntlets",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "augment": [
+          5,
+          1
+        ]
+      }
+    },
+    {
+      "contentId": 4457,
+      "name": "Leather Gorget",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "augment": [
+          8,
+          255
+        ]
+      }
+    },
+    {
+      "contentId": 4459,
+      "name": "Steel Gorget",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "augment": [
+          10,
+          255
+        ],
+        "attributeBlock": [
+          0,
+          176
+        ]
+      }
+    },
+    {
+      "contentId": 4460,
+      "name": "Rose Corsage",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          2,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4468,
+      "name": "Cameo Belt",
+      "category": "Accessory",
+      "set": {
+        "augment": [
+          2,
+          255
+        ]
+      }
+    },
+    {
+      "contentId": 4470,
+      "name": "Black Belt",
+      "category": "Accessory",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "augment": [
+          255,
+          7
+        ]
+      }
+    },
+    {
+      "contentId": 4475,
+      "name": "Steel Poleyns",
+      "category": "Accessory",
+      "set": {
+        "attributeBlock": [
+          0,
+          226
+        ]
+      }
+    },
+    {
+      "contentId": 4480,
+      "name": "Fuzzy Miter",
+      "category": "Accessory (special)",
+      "set": {
+        "defense": [
+          0,
+          10
+        ],
+        "magickResist": [
+          0,
+          10
+        ]
+      }
+    },
+    {
+      "contentId": 4481,
+      "name": "Ribbon",
+      "category": "Accessory (special)",
+      "set": {
+        "defense": [
+          1,
+          0
+        ],
+        "magickResist": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "contentId": 4485,
+      "name": "Parallel Arrows",
+      "category": "Arrow",
+      "set": {
+        "elements": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4487,
+      "name": "Bamboo Arrows",
+      "category": "Arrow",
+      "set": {
+        "elements": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4496,
+      "name": "Black Bolts",
+      "category": "Bolt",
+      "set": {
+        "elements": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "contentId": 4541,
+      "name": "Lamont's Sword (guest)",
+      "category": "Sword",
+      "set": {
+        "attack": [
+          30,
+          16
+        ],
+        "evade": [
+          0,
+          15
+        ],
+        "onHitRate": [
+          0,
+          10
+        ],
+        "statusEffects": [
+          [],
+          [
+            "Silence"
+          ]
+        ],
+        "icon": [
+          0,
+          1
+        ],
+        "model": [
+          276,
+          269
+        ]
+      }
+    },
+    {
+      "contentId": 4544,
+      "name": "Larsa's Guard",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          15,
+          6
+        ],
+        "magickEvade": [
+          0,
+          14
+        ],
+        "icon": [
+          0,
+          18
+        ],
+        "model": [
+          277,
+          271
+        ]
+      }
+    },
+    {
+      "contentId": 4565,
+      "name": "Lamont's Guard",
+      "category": "Shield",
+      "set": {
+        "evade": [
+          20,
+          4
+        ],
+        "magickEvade": [
+          0,
+          10
+        ],
+        "hitsFlying": [
+          true,
+          false
+        ],
+        "icon": [
+          0,
+          18
+        ]
+      }
+    },
+    {
+      "contentId": 4581,
+      "name": "Reddas's Guard",
+      "category": "Shield",
+      "set": {
+        "hitsFlying": [
+          true,
+          false
+        ],
+        "icon": [
+          0,
+          18
+        ]
+      }
+    }
+  ],
+  "attributes": [
+    {
+      "attributeIndex": 12,
+      "users": [
+        4230
+      ],
+      "set": {
+        "magick": [
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "attributeIndex": 16,
+      "users": [
+        4242
+      ],
+      "set": {
+        "boost": [
+          [
+            "Dark"
+          ],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 35,
+      "users": [
+        4313
+      ],
+      "set": {
+        "vitality": [
+          0,
+          20
+        ]
+      }
+    },
+    {
+      "attributeIndex": 37,
+      "users": [
+        4315
+      ],
+      "set": {
+        "status": [
+          [
+            "Poison",
+            "Sap",
+            "Slow"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "attributeIndex": 42,
+      "users": [
+        4451
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 43,
+      "users": [
+        4321
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 44,
+      "users": [
+        4322
+      ],
+      "set": {
+        "hp": [
+          110,
+          80
+        ],
+        "strength": [
+          0,
+          3
+        ],
+        "immune": [
+          [],
+          [
+            "Oil"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 45,
+      "users": [
+        4323
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 46,
+      "users": [
+        4324
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Sap"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 47,
+      "users": [
+        4325
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 48,
+      "users": [
+        4326
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 51,
+      "users": [
+        4329
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Immobilize"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 52,
+      "users": [
+        4330
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 53,
+      "users": [
+        4331
+      ],
+      "set": {
+        "hp": [
+          460,
+          380
+        ],
+        "speed": [
+          4,
+          8
+        ]
+      }
+    },
+    {
+      "attributeIndex": 54,
+      "users": [
+        4332
+      ],
+      "set": {
+        "magick": [
+          2,
+          0
+        ],
+        "vitality": [
+          0,
+          8
+        ],
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 55,
+      "users": [
+        4333
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 56,
+      "users": [
+        4334
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 57,
+      "users": [
+        4335
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Sap"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 58,
+      "users": [
+        4336
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 59,
+      "users": [
+        4337
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 60,
+      "users": [
+        4338
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Slow"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 61,
+      "users": [
+        4339
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 63,
+      "users": [
+        4341
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 64,
+      "users": [
+        4342
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Silence"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 65,
+      "users": [
+        4343
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 66,
+      "users": [
+        4344
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 67,
+      "users": [
+        4345
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Confuse",
+            "Berserk"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 69,
+      "users": [
+        4347
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 70,
+      "users": [
+        4348
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 71,
+      "users": [
+        4349
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 72,
+      "users": [
+        4350
+      ],
+      "set": {
+        "absorb": [
+          [],
+          [
+            "Earth"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 73,
+      "users": [
+        4351
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Sleep"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 74,
+      "users": [
+        4352
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Silence"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 75,
+      "users": [
+        4353
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Doom"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 78,
+      "users": [
+        4356
+      ],
+      "set": {
+        "magick": [
+          10,
+          5
+        ],
+        "immune": [
+          [],
+          [
+            "Confuse",
+            "Berserk"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 79,
+      "users": [
+        4357
+      ],
+      "set": {}
+    },
+    {
+      "attributeIndex": 83,
+      "users": [
+        4363
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Float"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 86,
+      "users": [
+        4368
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Slow"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 87,
+      "users": [
+        4369
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 88,
+      "users": [
+        4370
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 89,
+      "users": [
+        4371
+      ],
+      "set": {}
+    },
+    {
+      "attributeIndex": 90,
+      "users": [
+        4372
+      ],
+      "set": {
+        "hp": [
+          70,
+          0
+        ],
+        "boost": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 92,
+      "users": [
+        4374
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Stop"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 93,
+      "users": [
+        4375
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 94,
+      "users": [
+        4380
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Slow"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 96,
+      "users": [
+        4382
+      ],
+      "set": {
+        "hp": [
+          120,
+          90
+        ],
+        "vitality": [
+          0,
+          8
+        ]
+      }
+    },
+    {
+      "attributeIndex": 97,
+      "users": [
+        4383
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 98,
+      "users": [
+        4384
+      ],
+      "set": {
+        "hp": [
+          160,
+          120
+        ],
+        "speed": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "attributeIndex": 99,
+      "users": [
+        4385
+      ],
+      "set": {
+        "hp": [
+          180,
+          140
+        ],
+        "speed": [
+          0,
+          4
+        ],
+        "immune": [
+          [],
+          [
+            "Slow"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 101,
+      "users": [
+        4387
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 103,
+      "users": [
+        4389
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 104,
+      "users": [
+        4390
+      ],
+      "set": {
+        "hp": [
+          400,
+          320
+        ],
+        "strength": [
+          2,
+          5
+        ]
+      }
+    },
+    {
+      "attributeIndex": 105,
+      "users": [
+        4391
+      ],
+      "set": {
+        "hp": [
+          470,
+          400
+        ],
+        "speed": [
+          4,
+          8
+        ]
+      }
+    },
+    {
+      "attributeIndex": 106,
+      "users": [
+        4392
+      ],
+      "set": {
+        "hp": [
+          540,
+          500
+        ],
+        "magick": [
+          2,
+          0
+        ],
+        "vitality": [
+          0,
+          8
+        ],
+        "immune": [
+          [],
+          [
+            "Disease"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 107,
+      "users": [
+        4393
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Poison"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 111,
+      "users": [
+        4397
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 112,
+      "users": [
+        4398
+      ],
+      "set": {
+        "mp": [
+          7,
+          3
+        ],
+        "speed": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "attributeIndex": 113,
+      "users": [
+        4399
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 114,
+      "users": [
+        4400
+      ],
+      "set": {
+        "mp": [
+          16,
+          10
+        ],
+        "vitality": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "attributeIndex": 115,
+      "users": [
+        4402
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 116,
+      "users": [
+        4403
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 117,
+      "users": [
+        4404
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 118,
+      "users": [
+        4405
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 119,
+      "users": [
+        4406
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 120,
+      "users": [
+        4407
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 121,
+      "users": [
+        4408
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Sleep"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 122,
+      "users": [
+        4409
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 123,
+      "users": [
+        4410
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 124,
+      "users": [
+        4411
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 125,
+      "users": [
+        4412
+      ],
+      "set": {
+        "absorb": [
+          [],
+          [
+            "Earth"
+          ]
+        ],
+        "boost": [
+          [],
+          [
+            "Earth"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 126,
+      "users": [
+        4413
+      ],
+      "set": {
+        "mp": [
+          70,
+          120
+        ],
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 129,
+      "users": [
+        4416
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 130,
+      "users": [
+        4417
+      ],
+      "set": {
+        "strength": [
+          5,
+          0
+        ],
+        "magick": [
+          15,
+          8
+        ],
+        "half": [
+          [],
+          [
+            "Fire",
+            "Lightning",
+            "Ice",
+            "Earth",
+            "Water",
+            "Wind",
+            "Holy",
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 133,
+      "users": [
+        4426
+      ],
+      "set": {
+        "absorb": [
+          [],
+          [
+            "Dark"
+          ]
+        ],
+        "weak": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 134,
+      "users": [
+        4428
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 136,
+      "users": [
+        4430
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 137,
+      "users": [
+        4431
+      ],
+      "set": {
+        "speed": [
+          0,
+          10
+        ]
+      }
+    },
+    {
+      "attributeIndex": 138,
+      "users": [
+        4432
+      ],
+      "set": {
+        "hp": [
+          100,
+          0
+        ],
+        "boost": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 140,
+      "users": [
+        4434
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Disable"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 141,
+      "users": [
+        4435
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 142,
+      "users": [
+        4436
+      ],
+      "set": {
+        "magick": [
+          5,
+          0
+        ],
+        "speed": [
+          0,
+          3
+        ],
+        "boost": [
+          [],
+          [
+            "Ice",
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 143,
+      "users": [
+        4437
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Fire",
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 144,
+      "users": [
+        4438
+      ],
+      "set": {
+        "vitality": [
+          0,
+          4
+        ],
+        "half": [
+          [
+            "Ice"
+          ],
+          []
+        ],
+        "boost": [
+          [],
+          [
+            "Lightning",
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 145,
+      "users": [
+        4439
+      ],
+      "set": {
+        "strength": [
+          0,
+          4
+        ],
+        "boost": [
+          [],
+          [
+            "Earth",
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 146,
+      "users": [
+        4440
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Sap"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 147,
+      "users": [
+        4441
+      ],
+      "set": {
+        "vitality": [
+          20,
+          2
+        ],
+        "half": [
+          [
+            "Wind"
+          ],
+          []
+        ],
+        "weak": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 148,
+      "users": [
+        4442
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 149,
+      "users": [
+        4443
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Sleep",
+            "Confuse"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 150,
+      "users": [
+        4444
+      ],
+      "set": {
+        "strength": [
+          3,
+          0
+        ]
+      }
+    },
+    {
+      "attributeIndex": 152,
+      "users": [
+        4447
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Berserk"
+          ]
+        ],
+        "half": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 153,
+      "users": [
+        4448
+      ],
+      "set": {
+        "magick": [
+          0,
+          1
+        ],
+        "vitality": [
+          0,
+          2
+        ],
+        "status": [
+          [
+            "Berserk"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "attributeIndex": 154,
+      "users": [
+        4449
+      ],
+      "set": {
+        "hp": [
+          100,
+          0
+        ],
+        "status": [
+          [],
+          [
+            "Faith"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 155,
+      "users": [
+        4453
+      ],
+      "set": {}
+    },
+    {
+      "attributeIndex": 156,
+      "users": [
+        4454
+      ],
+      "set": {
+        "speed": [
+          3,
+          0
+        ]
+      }
+    },
+    {
+      "attributeIndex": 157,
+      "users": [
+        4457
+      ],
+      "set": {
+        "mp": [
+          30,
+          20
+        ],
+        "magick": [
+          0,
+          1
+        ],
+        "vitality": [
+          0,
+          1
+        ],
+        "status": [
+          [],
+          [
+            "Shell"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 158,
+      "users": [
+        4458
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 159,
+      "users": [
+        4460
+      ],
+      "set": {
+        "mp": [
+          0,
+          15
+        ],
+        "magick": [
+          1,
+          2
+        ],
+        "speed": [
+          0,
+          2
+        ],
+        "immune": [
+          [
+            "Silence"
+          ],
+          [
+            "Doom",
+            "Silence"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 160,
+      "users": [
+        4462
+      ],
+      "set": {
+        "speed": [
+          7,
+          0
+        ]
+      }
+    },
+    {
+      "attributeIndex": 161,
+      "users": [
+        4464
+      ],
+      "set": {
+        "absorb": [
+          [],
+          [
+            "Dark"
+          ]
+        ],
+        "weak": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 163,
+      "users": [
+        4466
+      ],
+      "set": {
+        "speed": [
+          20,
+          10
+        ],
+        "half": [
+          [
+            "Fire"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "attributeIndex": 164,
+      "users": [
+        4467
+      ],
+      "set": {
+        "vitality": [
+          0,
+          3
+        ],
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 166,
+      "users": [
+        4470
+      ],
+      "set": {
+        "immune": [
+          [
+            "Disable",
+            "Immobilize"
+          ],
+          [
+            "Stone",
+            "Petrify",
+            "Disable",
+            "Immobilize"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 167,
+      "users": [
+        4472
+      ],
+      "set": {
+        "vitality": [
+          20,
+          0
+        ],
+        "speed": [
+          50,
+          10
+        ]
+      }
+    },
+    {
+      "attributeIndex": 168,
+      "users": [
+        4473
+      ],
+      "set": {
+        "strength": [
+          5,
+          0
+        ],
+        "speed": [
+          0,
+          2
+        ],
+        "status": [
+          [
+            "Haste"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "attributeIndex": 170,
+      "users": [
+        4476
+      ],
+      "set": {
+        "weak": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 171,
+      "users": [
+        4477
+      ],
+      "set": {
+        "hp": [
+          500,
+          0
+        ],
+        "status": [
+          [],
+          [
+            "Protect",
+            "Shell"
+          ]
+        ],
+        "immune": [
+          [
+            "Sap"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "attributeIndex": 174,
+      "users": [
+        4480
+      ],
+      "set": {
+        "immune": [
+          [
+            "Petrify"
+          ],
+          [
+            "Stone",
+            "Petrify"
+          ]
+        ],
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 175,
+      "users": [
+        4481
+      ],
+      "set": {
+        "status": [
+          [
+            "Regen",
+            "Libra"
+          ],
+          []
+        ],
+        "immune": [
+          [
+            "Petrify",
+            "Stop",
+            "Sleep",
+            "Confuse",
+            "Doom",
+            "Blind",
+            "Poison",
+            "Silence",
+            "Sap",
+            "Oil",
+            "Disable",
+            "Immobilize",
+            "Slow",
+            "Disease"
+          ],
+          [
+            "Stone",
+            "Petrify",
+            "Stop",
+            "Sleep",
+            "Confuse",
+            "Doom",
+            "Blind",
+            "Poison",
+            "Silence",
+            "Sap",
+            "Oil",
+            "Disable",
+            "Immobilize",
+            "Slow",
+            "Disease",
+            "X-Zone"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 176,
+      "users": [
+        4459
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Protect"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 177,
+      "users": [
+        4300
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 178,
+      "users": [
+        4302
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 179,
+      "users": [
+        4305
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 180,
+      "users": [
+        4306
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Earth"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 181,
+      "users": [
+        4316
+      ],
+      "set": {
+        "hp": [
+          0,
+          10
+        ],
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 182,
+      "users": [
+        4317
+      ],
+      "set": {
+        "hp": [
+          0,
+          20
+        ],
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 183,
+      "users": [
+        4318
+      ],
+      "set": {
+        "hp": [
+          0,
+          30
+        ],
+        "immune": [
+          [],
+          [
+            "Doom"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 184,
+      "users": [
+        4319
+      ],
+      "set": {
+        "hp": [
+          0,
+          25
+        ],
+        "speed": [
+          0,
+          2
+        ]
+      }
+    },
+    {
+      "attributeIndex": 185,
+      "users": [
+        4320
+      ],
+      "set": {
+        "hp": [
+          0,
+          50
+        ],
+        "immune": [
+          [],
+          [
+            "Poison"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 186,
+      "users": [
+        4340
+      ],
+      "set": {
+        "mp": [
+          0,
+          20
+        ],
+        "magick": [
+          0,
+          3
+        ],
+        "boost": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 187,
+      "users": [
+        4358
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 188,
+      "users": [
+        4359
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "immune": [
+          [],
+          [
+            "Stone",
+            "Petrify"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 189,
+      "users": [
+        4360
+      ],
+      "set": {
+        "strength": [
+          0,
+          1
+        ],
+        "vitality": [
+          0,
+          4
+        ]
+      }
+    },
+    {
+      "attributeIndex": 190,
+      "users": [
+        4361
+      ],
+      "set": {
+        "strength": [
+          0,
+          3
+        ],
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 191,
+      "users": [
+        4362
+      ],
+      "set": {
+        "strength": [
+          0,
+          4
+        ],
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 192,
+      "users": [
+        4364
+      ],
+      "set": {
+        "strength": [
+          0,
+          5
+        ],
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 193,
+      "users": [
+        4365
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "vitality": [
+          0,
+          6
+        ],
+        "immune": [
+          [],
+          [
+            "Stone",
+            "Petrify"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 194,
+      "users": [
+        4366
+      ],
+      "set": {
+        "strength": [
+          0,
+          5
+        ],
+        "half": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 195,
+      "users": [
+        4376
+      ],
+      "set": {
+        "hp": [
+          0,
+          10
+        ],
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 196,
+      "users": [
+        4377
+      ],
+      "set": {
+        "hp": [
+          0,
+          10
+        ],
+        "speed": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "attributeIndex": 197,
+      "users": [
+        4378
+      ],
+      "set": {
+        "hp": [
+          0,
+          30
+        ],
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 198,
+      "users": [
+        4379
+      ],
+      "set": {
+        "hp": [
+          0,
+          30
+        ],
+        "vitality": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "attributeIndex": 199,
+      "users": [
+        4401
+      ],
+      "set": {
+        "mp": [
+          0,
+          20
+        ],
+        "magick": [
+          0,
+          3
+        ],
+        "immune": [
+          [],
+          [
+            "Doom"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 200,
+      "users": [
+        4418
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 201,
+      "users": [
+        4419
+      ],
+      "set": {
+        "strength": [
+          0,
+          2
+        ],
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 202,
+      "users": [
+        4421
+      ],
+      "set": {
+        "strength": [
+          0,
+          3
+        ],
+        "immune": [
+          [],
+          [
+            "Doom"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 203,
+      "users": [
+        4422
+      ],
+      "set": {
+        "strength": [
+          0,
+          4
+        ],
+        "half": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 204,
+      "users": [
+        4423
+      ],
+      "set": {
+        "strength": [
+          0,
+          3
+        ],
+        "half": [
+          [],
+          [
+            "Dark"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 205,
+      "users": [
+        4424
+      ],
+      "set": {
+        "strength": [
+          0,
+          4
+        ],
+        "half": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 206,
+      "users": [
+        4110
+      ],
+      "set": {
+        "mp": [
+          0,
+          120
+        ],
+        "magick": [
+          0,
+          9
+        ]
+      }
+    },
+    {
+      "attributeIndex": 207,
+      "users": [
+        4140
+      ],
+      "set": {
+        "hp": [
+          0,
+          25
+        ],
+        "mp": [
+          0,
+          25
+        ]
+      }
+    },
+    {
+      "attributeIndex": 208,
+      "users": [
+        4143
+      ],
+      "set": {
+        "mp": [
+          0,
+          70
+        ],
+        "magick": [
+          0,
+          6
+        ]
+      }
+    },
+    {
+      "attributeIndex": 209,
+      "users": [
+        4153
+      ],
+      "set": {
+        "hp": [
+          0,
+          160
+        ]
+      }
+    },
+    {
+      "attributeIndex": 210,
+      "users": [
+        4167
+      ],
+      "set": {
+        "mp": [
+          0,
+          25
+        ],
+        "magick": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "attributeIndex": 211,
+      "users": [
+        4173
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Ice"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 212,
+      "users": [
+        4175
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 213,
+      "users": [
+        4179
+      ],
+      "set": {
+        "strength": [
+          0,
+          7
+        ],
+        "speed": [
+          0,
+          4
+        ]
+      }
+    },
+    {
+      "attributeIndex": 214,
+      "users": [
+        4188
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Water"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 215,
+      "users": [
+        4189
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 216,
+      "users": [
+        4191
+      ],
+      "set": {
+        "boost": [
+          [],
+          [
+            "Wind"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 217,
+      "users": [
+        4195
+      ],
+      "set": {
+        "hp": [
+          0,
+          140
+        ],
+        "vitality": [
+          0,
+          5
+        ]
+      }
+    },
+    {
+      "attributeIndex": 218,
+      "users": [
+        4222
+      ],
+      "set": {
+        "mp": [
+          0,
+          50
+        ]
+      }
+    },
+    {
+      "attributeIndex": 219,
+      "users": [
+        4231
+      ],
+      "set": {
+        "magick": [
+          0,
+          6
+        ],
+        "boost": [
+          [],
+          [
+            "Earth"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 220,
+      "users": [
+        4298
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Lightning"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 221,
+      "users": [
+        4308
+      ],
+      "set": {
+        "hp": [
+          0,
+          300
+        ]
+      }
+    },
+    {
+      "attributeIndex": 222,
+      "users": [
+        4310
+      ],
+      "set": {
+        "immune": [
+          [],
+          [
+            "Oil",
+            "Disease"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 223,
+      "users": [
+        4311
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Holy"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 224,
+      "users": [
+        4367
+      ],
+      "set": {
+        "strength": [
+          0,
+          6
+        ],
+        "immune": [
+          [],
+          [
+            "Disable"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 225,
+      "users": [
+        4427
+      ],
+      "set": {
+        "strength": [
+          0,
+          6
+        ],
+        "half": [
+          [],
+          [
+            "Fire"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 226,
+      "users": [
+        4475
+      ],
+      "set": {
+        "half": [
+          [],
+          [
+            "Earth"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 227,
+      "users": [
+        4116
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Shell"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 228,
+      "users": [
+        4118
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Bubble"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 229,
+      "users": [
+        4171
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Berserk"
+          ]
+        ]
+      }
+    },
+    {
+      "attributeIndex": 230,
+      "users": [
+        4115
+      ],
+      "set": {
+        "status": [
+          [],
+          [
+            "Protect"
+          ]
+        ]
+      }
+    }
+  ],
+  "equipmentNames": {
+    "sourceSha256": "3b1dbac27b2c433a50e09b67160fa33eee3912a2a142f35d0e00290fce914bbc",
+    "subTable": 1,
+    "changes": [
+      {
+        "index": 340,
+        "contentId": 4436,
+        "before": "Opal Ring",
+        "replacement": "Cagnazzo Ring",
+        "beforeHex": "00002e493a45043142474000094c003a47040000"
+      },
+      {
+        "index": 341,
+        "contentId": 4437,
+        "before": "Ruby Ring",
+        "replacement": "Rubicante Ring",
+        "beforeHex": "0000314e3b52043142474000094c003a04000000"
+      },
+      {
+        "index": 342,
+        "contentId": 4438,
+        "before": "Tourmaline Ring",
+        "replacement": "Barbariccia Ring",
+        "beforeHex": "000033484e4b463a4542473e043142474000094c003a040000000000"
+      },
+      {
+        "index": 343,
+        "contentId": 4439,
+        "before": "Sage's Ring",
+        "replacement": "Scarmiglione Ring",
+        "beforeHex": "0000323a403eac4c043142474000094c003a040000000000"
+      },
+      {
+        "index": 344,
+        "contentId": 4440,
+        "before": "Ring of Renewal",
+        "replacement": "Mistflow Ring",
+        "beforeHex": "00003142474004483f04313e473e503a45000804804c04483f04313e473e503a45003a0400000000"
+      },
+      {
+        "index": 345,
+        "contentId": 4441,
+        "before": "Agate Ring",
+        "replacement": "Dampening Ring",
+        "beforeHex": "000020403a4d3e043142474000094c003a47040000000000"
+      },
+      {
+        "index": 346,
+        "contentId": 4442,
+        "before": "Bangle",
+        "replacement": "Scholar Bangle",
+        "beforeHex": "0000213a4740453e00094c003a040000"
+      },
+      {
+        "index": 347,
+        "contentId": 4443,
+        "before": "Orrachea Armlet",
+        "replacement": "Cachusha",
+        "beforeHex": "00002e4b4b3a3c413e3a04204b46453e4d00094c003a470400000000"
+      },
+      {
+        "index": 348,
+        "contentId": 4444,
+        "before": "Power Armlet",
+        "replacement": "Hyper Wrist",
+        "beforeHex": "00002f48503e4b04204b46453e4d00094c003a0400000000"
+      },
+      {
+        "index": 351,
+        "contentId": 4447,
+        "before": "Amber Armlet",
+        "replacement": "Rancor Bracelet",
+        "beforeHex": "000020463b3e4b04204b46453e4d00094c003a4704000000"
+      },
+      {
+        "index": 352,
+        "contentId": 4448,
+        "before": "Berserker Bracers",
+        "replacement": "Reflect Bracers",
+        "beforeHex": "0000213e4b4c3e4b443e4b04214b3a3c3e4b4c00493a424b4c04483f0409003a04493a424b04483f04000000"
+      },
+      {
+        "index": 353,
+        "contentId": 4449,
+        "before": "Magick Gloves",
+        "replacement": "Magnus Gloves",
+        "beforeHex": "00002c3a40423c44042645484f3e4c00493a424b4c04483f0409003a04493a424b04483f04000000"
+      },
+      {
+        "index": 355,
+        "contentId": 4451,
+        "before": "Blazer Gloves",
+        "replacement": "Braver Gloves",
+        "beforeHex": "000021453a533e4b042645484f3e4c00493a424b4c04483f0409003a04493a424b04483f04000000"
+      },
+      {
+        "index": 357,
+        "contentId": 4453,
+        "before": "Gauntlets",
+        "replacement": "Hale Gauntlets",
+        "beforeHex": "0000263a4e474d453e4d4c00493a424b4c04483f0409003a04493a424b04483f04000000"
+      },
+      {
+        "index": 361,
+        "contentId": 4457,
+        "before": "Leather Gorget",
+        "replacement": "Shell Gorget",
+        "beforeHex": "00002b3e3a4d413e4b0426484b403e4d00094c003a040000"
+      },
+      {
+        "index": 362,
+        "contentId": 4458,
+        "before": "Jade Collar",
+        "replacement": "Zephyr Collar",
+        "beforeHex": "0000293a3d3e04224845453a4b00094c003a040000000000"
+      },
+      {
+        "index": 363,
+        "contentId": 4459,
+        "before": "Steel Gorget",
+        "replacement": "Protect Gorget",
+        "beforeHex": "0000324d3e3e450426484b403e4d00094c003a0400000000"
+      },
+      {
+        "index": 364,
+        "contentId": 4460,
+        "before": "Rose Corsage",
+        "replacement": "Moonsilver Amulet",
+        "beforeHex": "000031484c3e0422484b4c3a403e00094c003a0400000000"
+      },
+      {
+        "index": 368,
+        "contentId": 4464,
+        "before": "Bowline Sash",
+        "replacement": "Elmdore Fang",
+        "beforeHex": "00002148504542473e04323a4c4100093e4c003a04000000"
+      },
+      {
+        "index": 376,
+        "contentId": 4472,
+        "before": "Germinas Boots",
+        "replacement": "Shinobi Tabi",
+        "beforeHex": "0000263e4b4642473a4c042148484d4c00493a424b4c04483f0409003a04493a424b04483f040000"
+      },
+      {
+        "index": 380,
+        "contentId": 4476,
+        "before": "Winged Boots",
+        "replacement": "Pixie Shoes",
+        "beforeHex": "0000364247403e3d042148484d4c00493a424b4c04483f0409003a04493a424b04483f0400000000"
+      },
+      {
+        "index": 381,
+        "contentId": 4477,
+        "before": "Quasimodo Boots",
+        "replacement": "Miracle Shoes",
+        "beforeHex": "0000304e3a4c4246483d48042148484d4c00493a424b4c04483f0409003a04493a424b04483f040000000000"
+      },
+      {
+        "index": 384,
+        "contentId": 4480,
+        "before": "Fuzzy Miter",
+        "replacement": "Iron Duke",
+        "beforeHex": "0000254e535352042c424d3e4b00094c003a040000000000"
+      }
+    ],
+    "resultSha256": "defcb6bcd59e3d538a5146e8f8c2a2bfa8f9d021a0450ba48faabba8eea6394e"
+  },
+  "resultSectionSha256": "7adb8cb5528441144adbf2e16080a84de3f59cedd6b2969542a88c0c89f97155"
+}

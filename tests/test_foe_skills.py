@@ -109,7 +109,7 @@ class RecipeRuleTests(unittest.TestCase):
         notes = RECIPE['itemNotes']
         for name, spec in RECIPE['help'].items():
             for text in spec['strings'].values():
-                self.assertLessEqual(len(text), 48)
+                self.assertLessEqual(len(text), 60)
         self.assertEqual(notes['9'], 'Remove Poison and Sap from one ally.')
 
     @unittest.skipIf(LuaRuntime is None, 'requires lupa')

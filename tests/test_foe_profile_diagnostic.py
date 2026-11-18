@@ -141,7 +141,7 @@ class FoeProfileDiagnosticTests(unittest.TestCase):
     def test_action_adapter_wraps_unchanged_forge_261(self):
         src = (ROOT / 'prototypes/forge_diagnostic_261.lua').read_text()
         self.assertIn("loadfile('scripts/TheInsurgentsForge/functions/261.lua'", src)
-        self.assertIn('return priced(observer:wrap_action(original))', src)
+        self.assertIn('return observer:wrap_action(original)', src)
         self.assertIsNone(re.search(r'memory\.\w+\[[^\]]+\]\s*=(?!=)', src))
 
 

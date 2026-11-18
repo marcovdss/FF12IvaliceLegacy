@@ -1,14 +1,15 @@
--- MP economy: a stronger caster pays more for each spell, and no spell can pay for itself.
+-- MP economy: no spell can pay for itself.
 --
 -- The party has many ways to win MP back (Proficiency lines that return a share of an overflowing heal, of max MP, or of
 -- the heal to an ally), while spell costs stayed native. A Seer whose Cura heals 1,500 past full HP got 75 MP back from
--- a spell that costs 18 to 26: infinite casting. Two rules close that loop.
+-- a spell that costs 18 to 26: infinite casting. One rule closes that loop.
 --
--- 1. Cost grows with Magick. After a party member casts a Magick (battle menu category 1, with an MP cost), the caster pays
---    a surcharge so the total is paid x Magick / DIVISOR, never below what the game charged and never above CAP times it.
---    Charged once per cast, at the end of the cast, from the caster's current MP (never below 0). The listed cost and the
---    action table stay native: foes cast the same rows and Together reads the cost.
--- 2. A spell's MP returns are capped. Everything a single cast hands back as MP (to the caster or to allies, from every
+-- 0.3.0 (Marco, 2026-11-16: "every kit has a downside, never a punishment"): the Magick surcharge is removed. It grew with
+-- Magick, so it taxed build investment: the staff, Lordly Robes and every Magick helm raised their own spell costs. A spell
+-- costs what the game charges. CAP is 1, so the factor is always 1 and the surcharge always 0; the constants stay because
+-- the co-op menu reads DIVISOR and CAP from this file (a cap of 1 shows the game's own price).
+--
+-- A spell's MP returns are capped. Everything a single cast hands back as MP (to the caster or to allies, from every
 --    target it reaches) is at most RETURN_SHARE of what that cast cost in total. Drains taken from a foe's own MP and
 --    returns from items (Potions cost gil, not MP) are not capped.
 --
@@ -18,11 +19,11 @@
 -- native_command_metadata.effective_cost, float32 steps included). 0.1.0 scaled the listed cost, so a Parsimony caster
 -- paid half the cost plus a full-size surcharge, an Offering caster paid gil plus an MP surcharge, and Penelo's Cura
 -- (26 listed, 18 charged) cost 18 + 26.
-local M = {version = '0.2.0'}
+local M = {version = '0.3.0'}
 
 M.MAGICK_CATEGORY = 1      -- battle menu category of Magicks (Technicks 2, items 3, Quickenings 6, Espers 5)
-M.DIVISOR = 30             -- Magick at which a spell costs exactly its listed price
-M.CAP = 3                  -- the most a spell can cost, as a multiple of its listed price
+M.DIVISOR = 30             -- kept for the co-op menu's settings record (it is read, not used here)
+M.CAP = 1                  -- the most a spell can cost, as a multiple of what the game charges: 1, no surcharge
 M.RETURN_SHARE = 0.5       -- the most one cast can give back as MP, as a share of what it cost
 
 -- Augment bits (Forge classes/getAugments.lua) of the native MP-cost rule.

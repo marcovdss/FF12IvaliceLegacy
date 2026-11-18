@@ -219,7 +219,7 @@ class HybridLinesTest(unittest.TestCase):
           return table.concat(failures, '; '), fired
         ''')
         self.assertEqual(failures, '', 'stages that did not act at 4/4 with their conditions met')
-        self.assertEqual(fired, 199)     # 198 stages, and Doublecast III listens to two events
+        self.assertEqual(fired, 200)     # 198 stages; Doublecast III and Hellfire I (counter, struck) listen to two events
 
     def test_loading_attaches_66_lines_of_3_stages_with_distinct_names(self):
         lines = self.lines()

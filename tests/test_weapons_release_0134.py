@@ -1,5 +1,5 @@
 """Weapons release 0.1.34, family and damage side: the Forge-chain membership check (B6) and the behaviours of
-B1, B3, B5, B7, D1a, D2, D4, D6, D8 and D11, against Forge-shaped strict fakes (see test_family_identities)."""
+B1, B3, B5, B7, D1a, D2, D4, D6, D8 and D11 (0.6.0: Open, Reckless and rod Lure are gone; their tests prove it), against Forge-shaped strict fakes (see test_family_identities)."""
 import json
 import os
 from pathlib import Path
@@ -26,7 +26,7 @@ MELEE = [20, 21, 22, 23, 24, 28, 29, 64, 103, 104]
 # identity -> (adapter file that wraps the Forge function, phase, the weapon formulas that must run that function)
 # Formulas are the deployed section_013 ids per family (RUNTIME-AUDIT 0 fact 2); Mend wraps the heal of formula 4.
 IDENTITIES = {
-    'sunder / reckless': ('forge_family_68.lua', 'onHit', [23]),
+    'sunder': ('forge_family_68.lua', 'onHit', [23]),
     'pierce': ('forge_diagnostic_113.lua', 'onHit', [20]),
     'glancing (dagger, ninja sword)': ('forge_diagnostic_113.lua', 'onHit', [21]),
     'damage floor, spear/katana/pole/bow/crossbow/gun': ('forge_diagnostic_113.lua', 'onHit', [20, 22, 24, 25, 26, 27]),
@@ -36,9 +36,9 @@ IDENTITIES = {
     'afflict': ('forge_diagnostic_171.lua', 'onHit', [25, 26]),
     'spellbreak': ('forge_proficiency_165.lua', 'onHit', [104, 27]),
     'cadence': ('forge_proficiency_165.lua', 'onHit', [29]),
-    'mend / lure': ('forge_proficiency_110.lua', 'onHit', [4]),
+    'mend': ('forge_proficiency_110.lua', 'onHit', [4]),
     'counterflow': ('forge_family_8.lua', 'onCast', [24, 20]),
-    'chain / open': ('forge_family_10.lua', 'onCast', [22]),
+    'chain': ('forge_family_10.lua', 'onCast', [22]),
     'fatigue 41': ('forge_guard_41.lua', 'onCast', MELEE),
     'fatigue 42': ('forge_guard_42.lua', 'onCast', [25]),
     'fatigue 43': ('forge_guard_43.lua', 'onCast', [26]),
@@ -137,7 +137,8 @@ class ReleaseBehaviourTests(unittest.TestCase):
 
     # ---------- B3 ----------
 
-    def test_open_is_spent_only_by_an_in_stance_evade_roll(self):
+    def test_a_katana_combo_leaves_the_wielder_its_evasion(self):
+        # 0.6.0: Open is gone. A combo no longer strips the Samurai's evasion from the next attack on it.
         self.lua.execute(r"""
           cat = 'katana'
           local sam = wielder(7, 93)
@@ -151,15 +152,10 @@ class ReleaseBehaviourTests(unittest.TestCase):
           end
           local function forge10(f) f.comboState = 1; f.caster.keep.battleFlags.comboCount = 3 end
           local f = hit(sam, foe()); module.wrap10(forge10, deps)(f, sam, foe(), {}, {}, {})
-          attack(0)                                                   -- mid-action: no roll runs, the opening is kept
-          assert(seen[1][1] == 30 and seen[1][3] == 40, 'out of stance nothing is zeroed')
-          attack(1)                                                   -- the next in-stance roll meets no evasion
-          assert(seen[2][1] == 0 and seen[2][2] == 0 and seen[2][3] == 0, 'opened')
-          attack(1); assert(seen[3][3] == 40, 'and it is spent once')
-          -- a stale opening is dropped by an out-of-stance attack too
-          f = hit(sam, foe()); module.wrap10(forge10, deps)(f, sam, foe(), {}, {}, {})
-          now = now + 11000000; attack(0); attack(1)
-          assert(seen[5][3] == 40, 'the window passed')
+          assert(f.caster.keep.battleFlags.comboCount == 4, 'Chain still runs a combo one hit longer')
+          attack(0); attack(1); attack(1)
+          for i = 1, 3 do assert(seen[i][1] == 30 and seen[i][2] == 20 and seen[i][3] == 40, 'evasion untouched ' .. i) end
+          assert(module.OPEN_WINDOW == nil and module.open == nil)
         """)
 
     # ---------- B5 ----------
@@ -177,7 +173,7 @@ class ReleaseBehaviourTests(unittest.TestCase):
             assert(r[1] == 'error', r[1])
             seen[r[2]] = (seen[r[2]] or 0) + 1
           end
-          assert(seen.sunder == 1 and seen.reckless == 1 and seen.pierce == 1, kinds())
+          assert(seen.sunder == 1 and seen.pierce == 1 and seen.reckless == nil, kinds())
           assert(reports[1][3]:find('reader unavailable', 1, true) and not reports[1][3]:find('\\n'))
         ''')
 
@@ -282,7 +278,7 @@ class ReleaseBehaviourTests(unittest.TestCase):
           cat = 'spear'
           blow(wielder(1, 51), 0, 1); assert(seen[1] == 30, 'a spear that rolled a counter parries and counters')
           blow(wielder(2, 52), 0, 0); assert(seen[2] == 0, 'a plain blow meets no spear parry')
-          blow(wielder(3, 53), 30, 0); assert(seen[3] == 0, 'Long haft still zeroes a spear evade')
+          blow(wielder(3, 53), 30, 0); assert(seen[3] == 30, 'no runtime zeroing: a spear keeps the evade its row shows (Vrsabha)')
           blow(wielder(4, 54), 40, 1); assert(seen[4] == 40, 'the legendary spear keeps its own higher evade, never lowered')
           cat = 'bow'; blow(wielder(5, 55), 0, 1); assert(seen[5] == 30, 'a bow')
           cat = 'bow'; blow(wielder(6, 56), 0, 0); assert(seen[6] == 0)
@@ -325,22 +321,22 @@ class ReleaseBehaviourTests(unittest.TestCase):
           ROLL = 0
           f = hit(foe(), wielder(2, 72), {}); f.evadeWeapon = 0; f.counterState = 0
           wrapped(f, foe(), wielder(2, 72), {}, {}, {})
-          assert(f.outcomeType == 0 and f.skipState == 0, 'a spear that did not roll a counter never parries')
+          assert(f.outcomeType == 0 and f.skipState == 0, 'a spear whose row shows evade 0 does not parry a blow it did not counter')
         """)
 
-    def test_counter_parry_leaves_fists_foes_and_opened_samurai_alone(self):
+    def test_counter_parry_leaves_fists_and_foes_alone(self):
         self.lua.execute(self.PARRY + """
           cat = 'unarmed'; blow(wielder(1, 81), 0, 1); assert(seen[1] == 0, 'fists count through the Cadence streak')
           cat = 'spear'; blow(foe(), 0, 1)
           assert(seen[2] == nil or seen[2] == 0, 'a foe defender is native')
           active = false; blow(wielder(2, 82), 0, 1); assert(seen[#seen] == 0, 'outside Legacy')
           active = true
-          -- an opened Samurai meets no evasion at all, counter or not
+          -- a katana that just comboed is an ordinary defender now (Open is gone): its counter roll gets the parry floor
           cat = 'katana'
           local sam = wielder(3, 83)
           local f = hit(sam, foe()); module.wrap10(function(g) g.comboState = 1; g.caster.keep.battleFlags.comboCount = 3 end,
                                                   deps)(f, sam, foe(), {}, {}, {})
-          blow(sam, 20, 1); assert(seen[#seen] == 0, 'Open wins: ' .. tostring(seen[#seen]))
+          blow(sam, 20, 1); assert(seen[#seen] == 30, 'counter-parry applies: ' .. tostring(seen[#seen]))
         """)
 
     # ---------- D2 ----------
@@ -387,7 +383,7 @@ class ReleaseBehaviourTests(unittest.TestCase):
           assert(errors == 1)
         ''')
 
-    # ---------- D6: Reckless (Lua state, applied by the damage formula) ----------
+    # ---------- D6: Reckless is gone (0.6.0: a downside is never a punishment) ----------
 
     RECKLESS = """
           cats = {}
@@ -400,8 +396,6 @@ class ReleaseBehaviourTests(unittest.TestCase):
             now = now + gap
             return run(wrapped, axeman, target or dummy, {}, {})
           end
-          -- a foe's hit on `unit` through the damage formula (0.1.4x: Reckless raises the damage taken, not a Defense dent).
-          -- formula 20 is physical; absorbState 0 with reverse 0 is a damaging hit; formula 50 is a magick.
           seenAttack, seenDefense = nil, nil
           function foeHit(unit, defense, attack, identifier)
             now = now + 1
@@ -419,101 +413,41 @@ class ReleaseBehaviourTests(unittest.TestCase):
           end
     """
 
-    def test_cleave_clears_the_reckless_dent(self):
+    def test_axe_swings_never_raise_the_damage_the_wielder_takes(self):
         self.lua.execute(self.RECKLESS + """
-          swing(1000000); swing(1000000)
-          assert(math.abs(module.recklessDent(axeman, deps) - 0.10) < 1e-9)
-          assert(module.clearReckless(axeman.address) == true, 'there was a dent')
-          assert(module.recklessDent(axeman, deps) == 0)
-          assert(module.clearReckless(axeman.address) == false, 'nothing left to clear')
-          swing(1000000); assert(math.abs(module.recklessDent(axeman, deps) - 0.05) < 1e-9, 'it starts over')
-        """)
-
-    def test_reckless_grows_per_attack_and_stops_at_a_fifth(self):
-        self.lua.execute(self.RECKLESS + """
-          assert(module.recklessDent(axeman, deps) == 0, 'no swing yet')
-          swing(1000000); assert(math.abs(module.recklessDent(axeman, deps) - 0.05) < 1e-9)
-          swing(100000); assert(math.abs(module.recklessDent(axeman, deps) - 0.05) < 1e-9, 'a combo follow-up shares its Attack')
+          local before = foeHit(axeman, 40, 100); assert(before == 600, tostring(before))
           for i = 1, 12 do swing(1000000) end
-          assert(math.abs(module.recklessDent(axeman, deps) - 0.20) < 1e-9, 'cap: +20%')
-          local lines = {}
-          for _, r in ipairs(reports) do if r[1] == 'reckless' then lines[#lines + 1] = r[3] end end
-          assert(lines[1] == 'dent=5%' and lines[2] == 'dent=10%' and lines[4] == 'dent=20%' and #lines == 4, table.concat(lines, ','))
-          assert(axeman.additiveDefense == 0 and axeman.defense == 40, 'no keep is ever written')
+          local after, attack, modifier = foeHit(axeman, 40, 100)
+          assert(after == 600 and attack == 100 and modifier == 40, 'twelve swings later a foe hits the same: ' .. tostring(after))
+          -- the floor rule alone decides, as for any other wearer: attack 20 against defense 40 keeps attack / 2
+          local floored = foeHit(axeman, 40, 20)
+          assert(math.abs(floored - 10 * 10) < 1e-6, 'floor only: ' .. tostring(floored))
+          assert(foeHit(axeman, 40, 100, 50) == 600, 'a magick is unchanged too')
+          for _, r in ipairs(reports) do assert(r[1] ~= 'reckless' and r[1] ~= 'reckless-hit', r[1]) end
         """)
 
-    def test_reckless_raises_a_foes_physical_hit_and_logs_it(self):
+    def test_the_reckless_state_and_api_are_gone_but_sunder_still_dents(self):
         self.lua.execute(self.RECKLESS + """
-          local damage0 = foeHit(axeman, 40, 100); assert(seenDefense == 40 and damage0 == 600, 'no dent yet: ' .. tostring(damage0))
-          for i = 1, 3 do swing(1000000) end                          -- +15%
-          local hp, attack, modifier = foeHit(axeman, 40, 100)
-          assert(math.abs(hp - 10 * (115 - 46)) < 1e-6, 'taken x1.15: ' .. tostring(hp))
-          assert(attack == 100 and modifier == 40, 'the fields are restored for later observers')
-          local hit_ = nil
-          for _, r in ipairs(reports) do if r[1] == 'reckless-hit' then hit_ = r end end
-          assert(hit_ and hit_[2] == 1 and hit_[3] == 'taken x1.15', hit_ and hit_[3])
-          -- the floor rule decides first, then Reckless scales its attack term: attack 20 vs defense 40 -> attack/2
-          local lifted = foeHit(axeman, 40, 20)
-          assert(math.abs(lifted - 10 * 10 * 1.15) < 1e-6, 'floor x1.15: ' .. tostring(lifted))
-          -- a foe's magick never reads Reckless
-          local magick = foeHit(axeman, 40, 100, 50)
-          assert(magick == 600, 'magick unchanged: ' .. tostring(magick))
+          for _, name in ipairs({'recklessStep', 'recklessDent', 'recklessTaken', 'clearReckless', 'RECKLESS_STEP',
+                                 'RECKLESS_CAP', 'RECKLESS_WINDOW', 'brace', 'BRACED_PUSH', 'lure', 'LURE', 'LURE_SCALE'}) do
+            assert(module[name] == nil, name .. ' must not exist')
+          end
+          assert(damage.reckless == nil)
+          local f, r = run(wrapped, axeman, dummy, {}, {})
+          local n = 0 for _, rep in ipairs(reports) do if rep[1] == 'error' then n = n + 1 end end
+          assert(n == 0, kinds())
+          assert(module.SUNDER_STEP == 0.05 and module.SUNDER_FLOOR == 0.5)
         """)
 
-    def test_reckless_applies_only_to_foe_hits_on_the_axe_wielder(self):
-        self.lua.execute(self.RECKLESS + """
-          for i = 1, 5 do swing(1000000) end
-          local other = wielder(2, 62, {defense = 40}); cats[62] = 'axe'
-          assert(foeHit(other, 40) == 600, 'another axe wielder takes no more')
-          cats[61] = 'sword'; assert(foeHit(axeman, 40) == 600, 'no axe in hand, no Reckless')
-          cats[61] = 'axe'; active = false; assert(foeHit(axeman, 40) == 600, 'outside Legacy'); active = true
-          local hp = foeHit(axeman, 40)
-          assert(math.abs(hp - 600 * 1.20) < 1e-6, 'the wielder itself: x1.20 at the cap: ' .. tostring(hp))
-          -- a party hit on a foe, or on an ally, never reads it
-          now = now + 1
-          local f = {power = 10, multiplier = 100, modifier = 40, outcomeType = 0, action = 150, identifier = 20, absorbState = 0,
-                     target = {removedHp = -1, statusEffects = {reverse = 0}}}
-          _G.IvaliceLegacyFamily = module
-          damage.wrap(function(g) seenAttack = g.multiplier end, deps)(f, axeman, {type = 1, identifier = 100, address = 555})
-          assert(seenAttack == 100, 'the wielder own hits on foes are not raised')
-          damage.wrap(function(g) seenAttack = g.multiplier end, deps)(f, other, axeman)
-          _G.IvaliceLegacyFamily = nil
-          assert(seenAttack == 100, 'a party member hitting the wielder is not a foe')
-        """)
-
-    def test_swings_at_allies_or_without_an_axe_build_no_dent(self):
-        self.lua.execute(self.RECKLESS + """
-          local ally = wielder(3, 63)
-          swing(1000000, ally); assert(module.recklessDent(axeman, deps) == 0, 'only foes are swung at')
-          cats[61] = 'sword'; swing(1000000); cats[61] = 'axe'; assert(module.recklessDent(axeman, deps) == 0)
-          active = false; swing(1000000); active = true; assert(module.recklessDent(axeman, deps) == 0)
-          wrapped(hit(axeman, dummy, {action = 394}), axeman, dummy, {}, {}, {})
-          assert(module.recklessDent(axeman, deps) == 0, 'only the Attack')
-        """)
-
-    def test_reckless_is_forgotten_after_ten_quiet_seconds_and_on_reset(self):
-        self.lua.execute(self.RECKLESS + """
-          swing(1000000); swing(1000000); swing(1000000)
-          assert(math.abs(module.recklessDent(axeman, deps) - 0.15) < 1e-9)
-          now = now + 9000000; assert(math.abs(module.recklessDent(axeman, deps) - 0.15) < 1e-9, 'still within 10 s')
-          now = now + 2000000; assert(module.recklessDent(axeman, deps) == 0, 'forgotten 10 s after the last swing')
-          swing(1000000); assert(math.abs(module.recklessDent(axeman, deps) - 0.05) < 1e-9, 'a new streak restarts at 5%')
-          module.reset(); assert(module.recklessDent(axeman, deps) == 0, 'map jump, load and new game clear it')
-          -- the timer and the reset are Lua state only: no native handle exists to call
-          assert(axeman.additiveDefense == 0)
-        """)
-
-    def test_reckless_never_raises_out_of_the_wrap_or_the_formula(self):
+    def test_swings_still_never_fail_when_the_reader_is_unavailable(self):
         self.lua.execute(self.RECKLESS + """
           local bad = {active = function() error('reader unavailable') end, category = deps.category, report = deps.report}
           local w = module.wrap68(function() return 'n' end, bad)
           local f, r = run(w, axeman, dummy, {}, {})
           assert(r[1] == 'n' and kinds():find('error', 1, true))
-          -- the formula falls back to the native Defense when the Family deps are unreadable
-          _G.IvaliceLegacyFamily = module
+          -- the damage formula needs no Family state at all now
           local g = {power = 10, multiplier = 100, modifier = 40, outcomeType = 0, action = 150, target = {removedHp = -1}}
           damage.wrap(function(h) seenDefense = h.modifier end, bad)(g, {type = 1}, axeman)
-          _G.IvaliceLegacyFamily = nil
           assert(seenDefense == 40)
         """)
 
@@ -598,52 +532,31 @@ class ReleaseBehaviourTests(unittest.TestCase):
           end
     '''
 
-    def test_an_overflowing_rod_heal_draws_lure_for_a_quarter_duration(self):
+    def test_an_overflowing_rod_heal_draws_nothing_to_the_caster(self):
+        # 0.6.0: the rod's Lure is gone. Mend still lifts the heal by 20%, and overflow costs the caster nothing.
         self.lua.execute(self.LURE + '''
           local f = cast(200, 100)                     -- 240 after Mend, 100 missing: overflow
           assert(f.target.addedHp == 240)
-          assert(f.caster.addedStatusEffects[17] == 1 and f.caster.statusEffectDurations[17] == 150)
-          assert(kinds():find('lure', 1, true))
-          f = cast(200, 300)                           -- the heal fits: no Lure
-          assert(f.caster.addedStatusEffects[17] == 0 and f.caster.statusEffectDurations[17] == -1)
-          f = cast(200, 240)                           -- exactly full: not an overflow
-          assert(f.caster.addedStatusEffects[17] == 0)
+          assert(f.caster.addedStatusEffects[17] == 0 and f.caster.statusEffectDurations[17] == -1, 'no Lure queued')
+          assert(not kinds():find('lure', 1, true))
+          f = cast(200, 300); assert(f.target.addedHp == 240 and f.caster.addedStatusEffects[17] == 0)
+          assert(module.lure == nil and module.LURE == nil)
         ''')
 
-    def test_lure_gates(self):
+    def test_mend_gates_and_a_broken_helper_never_stops_the_heal(self):
         self.lua.execute(self.LURE + '''
-          local immune = slots(0); immune[17] = 1
-          local f = cast(200, 100, {permanentStatusEffectImmunities = immune})
-          assert(f.caster.addedStatusEffects[17] == 0, 'a caster immune to Lure is left alone')
-          local running = slots(0); running[17] = 1
-          local dur = slots(0); dur[17] = 400
-          f = cast(200, 100, {temporaryStatusEffects = running, statusEffectDurations = dur})
-          assert(f.caster.addedStatusEffects[17] == 0, 'a longer Lure already running is kept')
-          dur = slots(0); dur[17] = 20
-          f = cast(200, 100, {temporaryStatusEffects = running, statusEffectDurations = dur})
-          assert(f.caster.addedStatusEffects[17] == 1 and f.caster.statusEffectDurations[17] == 150, 'a shorter one is refreshed')
-          cat = 'staff'; f = cast(200, 100); assert(f.caster.addedStatusEffects[17] == 0, 'a rod only')
-          cat = 'rod'; active = false; f = cast(200, 100); assert(f.caster.addedStatusEffects[17] == 0, 'outside Legacy')
+          cat = 'staff'; local f = cast(200, 100); assert(f.target.addedHp == 200, 'a rod only')
+          cat = 'rod'; active = false; f = cast(200, 100); assert(f.target.addedHp == 200, 'outside Legacy')
           active = true
-          -- a backfire (the undead branch) is no heal
+          -- a backfire (the undead branch) is no heal and is not amplified
           local caster, ally = wielder(0, 11), wielder(1, 99, {currentHp = 900})
           local g = hit(caster, ally, {action = 5, reverse = 1})
           module.mendWrap(function(h) h.target.removedHp = 200 end, deps)(g, caster, ally, {}, {}, helpers)
-          assert(g.caster.addedStatusEffects[17] == 0)
-        ''')
-
-    def test_a_queued_longer_lure_is_kept_and_a_broken_helper_never_stops_the_heal(self):
-        self.lua.execute(self.LURE + '''
-          local caster, ally = wielder(0, 11), wielder(1, 99, {currentHp = 900})
-          local g = hit(caster, ally, {action = 5})
-          g.caster.addedStatusEffects[17] = 1; g.caster.statusEffectDurations[17] = 400
-          module.mendWrap(function(h) h.target.addedHp = 200 end, deps)(g, caster, ally, {}, {}, helpers)
-          assert(g.caster.statusEffectDurations[17] == 400)
+          assert(g.target.removedHp == 200 and g.caster.addedStatusEffects[17] == 0)
           local bad = {getStatusEffectDuration = function() error('native call failed') end}
-          local f, r = run(module.mendWrap(function(h) h.target.addedHp = 200 end, deps), wielder(0, 12),
-                           wielder(1, 98, {currentHp = 900}), {action = 5}, bad)
-          assert(f.target.addedHp == 240, 'the heal itself is untouched')
-          assert(kinds():find('error', 1, true))
+          local f2 = run(module.mendWrap(function(h) h.target.addedHp = 200 end, deps), wielder(0, 12),
+                         wielder(1, 98, {currentHp = 900}), {action = 5}, bad)
+          assert(f2.target.addedHp == 240, 'the heal itself is untouched')
         ''')
 
 

@@ -173,7 +173,8 @@ for L = 1, 4 do
      'Cleave I-' .. L .. ' kill while Brave cures')
   local low = P.decide('hit', S(J.warrior, {casterHpPct=45}), rank(2, L))
   assert(low.casterAdd[ST.bravery], 'Cleave II-' .. L .. ' Bravery below 50%')
-  eq(low.clearReckless == true, L >= 2, 'Cleave II-' .. L .. ' Reckless dent')
+  -- II-2..4: installed 0.1.58 clears the Reckless dent; 0.6.0 (Reckless gone) Breaks the foe instead. Either way from level 2.
+  eq(low.clearReckless == true or low.breakFoe == true, L >= 2, 'Cleave II-' .. L .. ' Reckless dent cleared or foe Broken')
   local mid = P.decide('hit', S(J.warrior, {casterHpPct=70}), rank(2, L))
   eq(mid ~= nil and mid.casterAdd ~= nil, L >= 3, 'Cleave II-' .. L .. ' below 75%')
   eq(the(low, 'add', 200, ST.bravery) ~= nil, L == 4, 'Cleave II-' .. L .. ' ally Bravery')
@@ -345,7 +346,12 @@ for L = 1, 4 do
   fresh(); clock = 0
   c(rank(2, L), 1); c(rank(2, L), 1)
   local third = c(rank(2, L), 1)
-  eq(the(third, 'mp', 100).amount, math.max(1, 30 * (L == 4 and 60 or (L == 3 and 40 or 30)) // 100), 'Resonance II-' .. L .. ' refund')
+  -- II-4: installed 0.1.58 refunds 60%; the repository refunds half (the return cap would cut 60% anyway). Either, from level 4.
+  local got = the(third, 'mp', 100).amount
+  local want = {math.max(1, 30 * (L == 3 and 40 or 30) // 100)}
+  if L == 4 then want = {math.max(1, 30 * 60 // 100), math.max(1, 30 * 50 // 100)} end
+  local okRefund = false for _, w in ipairs(want) do if got == w then okRefund = true end end
+  assert(okRefund, 'Resonance II-' .. L .. ' refund ' .. tostring(got))
   eq(third.damage ~= nil and near(third.damage, 1.15), L >= 2, 'Resonance II-' .. L .. ' +15%')
   fresh(); clock = 0
   c(rank(3, L), 1); c(rank(3, L), 1)

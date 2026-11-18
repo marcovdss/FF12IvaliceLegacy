@@ -26,13 +26,11 @@
 --                  attacks wears down the same way; a Regen holder's guard is fresh after 5 s, not 10
 -- and the shared states other pillars read (0.1.44): Broken (an Armour or Magick Resist cut: Sunder,
 -- Expose, Shear, a Brave spear hit, a Faithful staff spell) and Staggered (a foe's push budget is spent; the runtime owns it)
--- and three family costs that live on the same evade rolls (every family cuts both ways, play feedback 2026-11-10):
---   Braced    Sword        each parry or block pushes the wielder's own next charge back 10%
---   Open      Katana       after a katana combo, the next attack on the Samurai meets no evasion
---   Long haft Spear        a spear never parries (its weapon evade, the parry roll, is 0), except to counter (needs the Counter augment)
---   Reckless  Axe          each axe Attack makes foes' physical hits on the wielder deal 5% more (up to +20%), back to
---                          normal 10 s after the last swing; tracked here, applied in damage_formula (axe Attack: 68)
--- and the rod's cost: a heal that overflows draws Lure to the caster (heal amount 110).
+-- 0.6.0 (Marco, 2026-11-16, "downsides, never punishments"): the family costs that fired on the wielder's own success are
+-- gone: Braced (a sword parry pushed the wielder's charge back), Open (a katana combo left the wielder without
+-- evasion), Reckless (axe swings raised the damage the wielder takes), the rod's Lure (an overflowing heal drew foes)
+-- and the Long haft rule (a spear's runtime parry zeroing, an exception to its own grid). Each family keeps a visible
+-- downside in its data or matchup instead (see FAMILY_LINES), answered by the player's choices.
 --
 -- Swords (evade), greatswords (sweep), hammers (Disable), hand-bombs (Slow/Oil), bows (crit),
 -- daggers (speed), measures (buffs), staves (element potency) and guns' defence bypass are
@@ -47,7 +45,7 @@
 -- never a crash (each decision is pcall-guarded). 0.2.0 is the first version that fires in game: 0.1.x
 -- adapters never passed the shared deps, and four decisions read the wrong object.
 local M = {}
-M.version = '0.5.7'
+M.version = '0.6.0'
 
 M.ATTACK = 150
 M.SUMMON_MIN = 27  -- identifiers 27-39 are the Espers; guests and party wield, summons do not
@@ -56,6 +54,8 @@ M.PIERCE_FACTOR = 0.7        -- Spear: 30% of Defence ignored per hit (Expose's 
 M.MEND_FACTOR = 1.2          -- Rod: healing spells +20% (about half of Faith, always on)
 M.COUNTERFLOW_FACTOR = 2     -- Pole: twice the counter chance the Counter licence grants
 M.COUNTERFLOW_BASE = 2       -- Pole without Counter: Speed / 2, the chance the Counter augment itself grants
+M.COUNTERFLOW_BOOSTED = 2    -- ...or Speed x 2 with Counter Boost (Forge 7's own pair, so the item keeps its word: 4 times the chance)
+M.COUNTER_BOOST = 'counterBoost'  -- Forge's name for the Counter Boost augment (classes/getAugments.lua bit 7; read in Forge 7)
 M.COUNTERFLOW_STEP = 10      -- every blow taken without countering adds 10 to the next chance (flow)
 M.COUNTERFLOW_CAP = 75       -- without the Counter augment the chance never passes 75; with it, 100
 M.COUNTERFLOW_WINDOW = 20000000  -- flow fades after 20 s without a blow (event clock, microseconds)
@@ -81,13 +81,6 @@ M.REGEN_WINDOW = 5000000     -- Guard fatigue: a Regen holder's guard is fresh a
 M.TIRED_STEPS = 2            -- Unseen: a foe with this many fatigue steps loses its dodge to a ninja sword (0.1.44)
 M.SUNDER_STAGGER = 2         -- Sunder: on a Staggered foe each hit dents twice as deep; the floor is unchanged (0.1.44)
 M.INTERRUPT_PUSH = 0.10      -- True aim: a gun hit on a foe about to act pushes its charge back 10% (0.1.44)
-M.BRACED_PUSH = 0.10         -- Sword: a parry or block costs 10% of the wielder's own charge
-M.OPEN_WINDOW = 10000000     -- Katana: the opening a combo leaves lasts until the next Attack, 10 s at most
-M.RECKLESS_STEP = 0.05       -- Axe: foes' physical hits on the wielder deal 5% more per fresh axe Attack
-M.RECKLESS_CAP = 0.20        -- at most +20% (four steps)
-M.RECKLESS_WINDOW = 10000000 -- forgotten after 10 s without an axe Attack
-M.LURE = 17                  -- Forge status bit (helpers/statusEffectBits)
-M.LURE_SCALE = 0.25          -- Rod: the Lure an overflowing heal draws lasts a quarter of its full duration
 M.COUNTER_PARRY_EVADE = 30   -- weapon evade a rolled counter gets so the swing can happen (Forge 41: roll < evade); the pole's top band
 
 -- Per-fight dent memory for Sunder, keyed by target address with a maxHp/level fingerprint, so a
@@ -100,12 +93,7 @@ local fatigue = {}
 -- Keeps Counterflow has lent the Counter augment to (see wrap8). Deliberately NOT cleared by M.reset: party keep
 -- addresses outlive a map jump or a load, and the loan must still be taken back when that member stops holding a pole.
 local lent = {}
--- Samurai left open by a katana combo: keep address -> clock when it opened (consumed by one attack on it).
-local open = {}
 local pendingCharge = {}
--- Reckless: party axe wielder's swings taken so far, keep address -> {steps, at}. Lua state only: nothing is written to
--- the unit, nothing is saved; the damage formula reads it when a foe hits the wielder.
-local reckless = {}
 -- Broken (0.1.43): foe keep address -> {at, hp, level, by, byAt, renew}: the clock of the last Defence or Magick Resist cut a party member
 -- landed on it (a fresh Sunder dent, Expose, Shear; 0.1.44 also a Brave spear hit and a Faithful staff spell; 0.1.46 also an
 -- axe hit on a foe already at the Sunder floor, which renews it), the foe's
@@ -114,7 +102,8 @@ local reckless = {}
 -- Grounding II, Pursuit I, the hybrid 'ailing' stages and Hyper Wrist read it through isBroken.
 local broken = {}
 function M.reset()
-  dents = {} cadence = {} flows = {} fatigue = {} pendingCharge = {} open = {} reckless = {} broken = {}
+  dents = {} cadence = {} flows = {} fatigue = {} pendingCharge = {} broken = {}
+  if M.resetProcs then M.resetProcs() end
 end
 
 -- A party member just cut this foe's Defence or Magick Resist (or, 0.1.44, a Brave spear hit or a Faithful staff spell Broke
@@ -189,7 +178,8 @@ local REPORT_LIMIT = 150
 local reported = {}
 -- Identities whose wrap already logged a failure this load: a broken reader prints one line, not one per hit.
 local failed = {}
-local function clearLog() reported = {} failed = {} end
+local boostLoggedReset
+local function clearLog() reported = {} failed = {} if boostLoggedReset then boostLoggedReset() end end
 
 -- One throttled error line per failed wrap pcall (per identity, per load), so "nothing applied" and "dead
 -- identity" read differently in the log. Never raises.
@@ -235,7 +225,7 @@ end
 -- `target` is the foe's keep (its live Defence); `result` is formula.target, whose defense slot the
 -- engine applies after the hit, exactly as Expose (function 138) lowers Defence. Called after the damage
 -- function ran, so this hit still meets full Defence; the next one reads the dented keep.
-function M.dent(target, result, steps)
+function M.dent(target, result, steps, now)
   if target.type ~= 1 then return nil end
   local before = target.defense
   if type(before) ~= 'number' or before <= 0 then return nil end
@@ -255,81 +245,12 @@ function M.dent(target, result, steps)
   local queued = result.defense
   if type(queued) == 'number' and queued >= 0 and queued <= after then return nil end
   result.defense = after
+  entry.pct = math.floor((1 - after / entry.baseline) * 100 + 0.5)   -- the HUD's "Defense -N%" (hudStates); read nowhere else
+  entry.at = type(now) == 'number' and now > 0 and now or nil        -- when it was last deepened: the HUD hides a dent that old
   return before, after
 end
 
 -- ---------- wraps (each Forge adapter composes one of these around its original) ----------
-
--- Reckless: the axe's own cost, a mirror of Sunder on the wielder. Each fresh axe Attack on a foe (a combo's
--- follow-up hits within COMBO_WINDOW share their Attack) adds a step; each step makes foes' physical hits on the
--- wielder deal 5% more damage, up to +20%, and the steps are forgotten after 10 s without an axe Attack, on load, new
--- game and map jump. 0.5.1: the cost acts on damage taken, after the foe-hit floor, because a Defense dent did nothing
--- once the floor (attack/2) decided the hit. 0.5.2: physical hits only, never a foe's magick or a hit the wielder
--- absorbs. It is applied by damage_formula (M.recklessTaken) on a foe's physical hit on the wielder, never by writing
--- a stat:
--- Forge 323 ignores caster stat slots for party members, and a keep write would need refreshStats outside the hit.
--- Returns the new dent in percent when it grew, else nil.
-local function recklessSteps(address, now)
-  local entry = reckless[address]
-  if entry and now > 0 and now - entry.at > M.RECKLESS_WINDOW then
-    reckless[address] = nil
-    entry = nil
-  end
-  return entry
-end
-
-local function maxSteps() return math.ceil(M.RECKLESS_CAP / M.RECKLESS_STEP - 1e-9) end
-
-function M.recklessStep(caster, deps, brave)
-  local address = caster.address
-  if type(address) ~= 'number' or address <= 0 then return nil end
-  local now = deps.clock and deps.clock() or 0
-  if type(now) ~= 'number' then now = 0 end
-  local entry = recklessSteps(address, now)
-  -- 0.1.44: while the wielder is Brave a swing adds no step, and the steps held keep fading from the last unbraced swing
-  if brave then return nil end
-  if not entry then
-    entry = {steps = 0, at = now, fresh = true}
-    reckless[address] = entry
-  end
-  local fresh = entry.steps == 0 or now == 0 or now - entry.at >= M.COMBO_WINDOW
-  entry.at = now
-  if not fresh or entry.steps >= maxSteps() then return nil end
-  entry.steps = entry.steps + 1
-  return math.floor(entry.steps * M.RECKLESS_STEP * 100 + 0.5)
-end
-
--- Clears a unit's Reckless dent (Warrior Cleave II). True when there was one.
-function M.clearReckless(address)
-  if reckless[address] == nil then return false end
-  reckless[address] = nil
-  return true
-end
-
--- The wielder's extra damage taken as a fraction (0 to 0.20), 0 when there is none, it has expired or the wielder no
--- longer holds an axe.
-function M.recklessDent(unit, deps)
-  deps = deps or registered
-  if not M.isWielder(unit) or deps.active() ~= true or deps.category(unit) ~= 'axe' then return 0 end
-  local now = deps.clock and deps.clock() or 0
-  if type(now) ~= 'number' then now = 0 end
-  local entry = recklessSteps(unit.address, now)
-  if not entry then return 0 end
-  return math.min(entry.steps * M.RECKLESS_STEP, M.RECKLESS_CAP)
-end
-
--- The damage multiplier for a foe's hit on `unit`: 1 plus the unit's Reckless steps. Logs a raised hit.
--- Called by damage_formula (Forge 113 and 126) after its floor rule, only for a foe's damaging physical hit on a party
--- member.
-function M.recklessTaken(unit, deps)
-  deps = deps or registered
-  local dent = M.recklessDent(unit, deps)
-  if dent <= 0 then return 1 end
-  if deps.report then
-    pcall(deps.report, 'reckless-hit', unit.identifier, string.format('taken x%.2f', 1 + dent), M.who(unit))
-  end
-  return 1 + dent
-end
 
 -- Forge's evade and Safety outcomes (formula.outcomeType, proc work +0x24; 0.1.48): 1-4 weapon parry or shield block
 -- (with or without a counter) and 5 the body evade, from the evade roll (Forge 41/42); 10 Safety (Forge 0). An
@@ -343,7 +264,6 @@ end
 
 -- Axe, fam function 68: original sets this hit's power and Defence term, then the dent lands for
 -- everything that comes after. Hand-bombs share function 68 and are excluded by the category gate.
--- Reckless runs after Sunder in the same gate.
 -- An evaded, missed or Safety-stopped swing never reaches 68 (0.1.49 note). The cast stage leaves formula.outcomeType at
 -- 1-4 (a weapon parry or shield block, with or without a counter), 5 (the body evade) or 6 (the plain miss) from Forge
 -- 41/42, or 10 from Forge 0 (Safety). In the hit stage Forge's onHitPre middleware 280 (functions/280.lua) sets
@@ -363,11 +283,12 @@ function M.wrap68(original, deps)
       if M.evaded(formula) then return nil end
       -- 0.1.44: a Staggered foe takes the dent twice as deep (the floor stays at half)
       local twice = M.isStaggered(target, classes, helpers)
-      local before, after, floored = M.dent(target, formula.target, twice and M.SUNDER_STAGGER or 1)
+      local before, after, floored = M.dent(target, formula.target, twice and M.SUNDER_STAGGER or 1, deps.clock and deps.clock() or 0)
       -- a fresh dent Breaks the foe; 0.1.46: so does a hit on a foe already at the floor (it renews Broken, no deeper dent).
       -- 0.1.47: either way a live Broken keeps its breaker; only its 10 s restart. 0.1.48: an ally stays the breaker only
       -- within 10 s of the ally's own Break.
       if before or floored then M.noteBroken(target, deps.clock and deps.clock() or 0, caster.address, true) end
+      if before then M.noteProc('SUNDER', caster.address, deps.clock and deps.clock() or 0) end   -- the log tag only
       return before, after, twice, floored
     end)
     if ok and before and deps.report then
@@ -377,16 +298,6 @@ function M.wrap68(original, deps)
       pcall(deps.report, 'sunder-floor', caster.identifier, target.identifier, 'broken renewed', M.who(caster))
     elseif not ok then
       M.fail(deps, 'sunder', before)
-    end
-    local okR, dent = pcall(function()
-      if target.type ~= 1 or not M.applies(formula, caster, 'axe', deps) then return nil end
-      local okBrave, brave = pcall(function() return formula.caster.statusEffects.bravery == 1 end)
-      return M.recklessStep(caster, deps, okBrave and brave == true)
-    end)
-    if okR and dent then
-      if deps.report then pcall(deps.report, 'reckless', caster.identifier, 'dent=' .. dent .. '%', M.who(caster)) end
-    elseif not okR then
-      M.fail(deps, 'reckless', dent)
     end
     return table.unpack(result, 1, result.n)
   end
@@ -605,7 +516,11 @@ function M.wrap165(original, deps)
       -- scale the settled damage of this hit; a fresh Attack also hastens the fighter's next charge
       formula.target.removedHp = math.floor(formula.target.removedHp * (1 + value.steps * M.CADENCE_STEP))
       local haste = value.fresh and value.steps * M.CADENCE_HASTE or 0
-      if haste > 0 and deps.armCharge then pcall(deps.armCharge, caster.address, haste, classes, helpers) end
+      -- 0.6.0: the Proficiency runtime's own charge route when it is loaded, so a Cadence bonus and a Proficiency "next
+      -- action faster" bonus waiting for the same action never stack: the larger one wins. Without it, the module's own.
+      local Rt = rawget(_G, 'IvaliceLegacyProficiency')
+      local arm = (type(Rt) == 'table' and type(Rt.armCharge) == 'function') and Rt.armCharge or deps.armCharge
+      if haste > 0 and arm then pcall(arm, caster.address, haste, classes, helpers) end
       if deps.report then
         pcall(deps.report, 'cadence', caster.identifier, target.identifier, value.steps,
               value.fresh and 'fresh' or 'combo', formula.target.removedHp, M.who(caster))
@@ -662,26 +577,6 @@ local function healBranch(result)
   return not reversed
 end
 
--- Queue Lure on the caster when `heal` is more than the target's missing HP. 323 commits formula.caster's status
--- slots for any unit type. A longer Lure already running or queued is kept; a caster that can't take it is left alone.
--- Returns the duration queued, or nil.
-function M.lure(formula, caster, target, helpers, heal)
-  local missing = target.maxHp - target.currentHp
-  if heal <= missing then return nil end
-  local id = M.LURE
-  if caster.permanentStatusEffectImmunities[id] == 1 or caster.permanentStatusEffects[id] == 1 then return nil end
-  local plus = formula.caster
-  local duration = math.max(1, math.floor(helpers.getStatusEffectDuration(caster.address, id) * M.LURE_SCALE))
-  if caster.temporaryStatusEffects[id] == 1 and caster.statusEffectDurations[id] >= duration then return nil end
-  if plus.addedStatusEffects[id] == 1 then
-    local queued = plus.statusEffectDurations[id]
-    if queued == -1 or queued >= duration then return nil end
-  end
-  plus.addedStatusEffects[id] = 1
-  plus.statusEffectDurations[id] = duration
-  return duration
-end
-
 function M.mendWrap(original, deps)
   assert(type(original) == 'function', 'original function required')
   return function(formula, caster, target, functions, classes, helpers)
@@ -698,13 +593,6 @@ function M.mendWrap(original, deps)
     if okAfter and type(heal) == 'number' and heal > 0 then
       formula.target.addedHp = math.floor(heal * M.MEND_FACTOR)
       if deps.report then pcall(deps.report, 'mend', caster.identifier, heal, formula.target.addedHp, M.who(caster)) end
-      -- The rod's cost: a heal that overflows draws Lure to the caster, for a quarter of its full duration.
-      local okL, lured = pcall(M.lure, formula, caster, target, helpers, math.floor(formula.target.addedHp))
-      if okL and lured and deps.report then
-        pcall(deps.report, 'lure', caster.identifier, target.identifier, lured, M.who(caster))
-      elseif not okL then
-        M.fail(deps, 'lure', lured)
-      end
     elseif not okAfter then
       M.fail(deps, 'mend', heal)
     end
@@ -730,6 +618,40 @@ end
 local function realCounter(keep)
   if keep.permanentAugments.counter == 1 then return true end
   return keep.temporaryAugments.counter == 1 and not lent[keep.address]
+end
+
+-- Counter Boost held by a unit. Forge 7 decides the counter chance from formula.target.augments.counterBoost, the unit's
+-- effective augments for this hit, so that view counts; the keep's permanent (an item such as Genji Armor or the Black
+-- Belt) and temporary tables count too. Any of them true means held. A view that cannot be read is skipped; when none can
+-- be read (a wrong field name in some Forge build) the answer is false, Counterflow falls back to its plain base, and the
+-- log says so once per load. The first answer is logged once, with the view that gave it, so the field name is confirmed
+-- in play. (The Counter licence test, realCounter, stays on the keep: it must tell a licence from the loan this module
+-- makes, and the effective view cannot.)
+local boostLogged = false
+boostLoggedReset = function() boostLogged = false end
+function M.hasCounterBoost(keep, deps, formula)
+  local name = M.COUNTER_BOOST
+  local sources = {
+    {'permanent', function() return keep.permanentAugments[name] end},
+    {'temporary', function() return keep.temporaryAugments[name] end},
+    {'formula', function() return formula.target.augments[name] end},
+  }
+  local held, readable, source = false, 0, 'none'
+  for _, s in ipairs(sources) do
+    local ok, v = pcall(s[2])
+    if ok and type(v) == 'number' then
+      readable = readable + 1
+      if v == 1 and not held then held, source = true, s[1] end
+    end
+  end
+  deps = deps or registered
+  if not boostLogged and deps and deps.report then
+    boostLogged = true
+    pcall(deps.report, 'counterboost-field', 'name=' .. name,
+          readable > 0 and ('read=ok held=' .. tostring(held)) or 'read=FAILED', 'source=' .. source,
+          'views=' .. readable .. 'of3')
+  end
+  return held
 end
 
 local function takeBack(keep, formula)
@@ -760,7 +682,9 @@ function M.wrap8(original, deps)
       if realCounter(defender) then
         base, cap = (chance > 0 and chance or own) * M.COUNTERFLOW_FACTOR, 100
       else
+        -- Counter Boost without the licence: Speed x 2 instead of Speed / 2, as Forge 7 gives a licensed holder (0.6.0)
         base, cap = own, M.COUNTERFLOW_CAP
+        if M.hasCounterBoost(defender, deps, formula) then base = defender.speed * M.COUNTERFLOW_BOOSTED end
         if defender.temporaryAugments.counter ~= 1 then
           defender.temporaryAugments.counter = 1
           lent[defender.address] = true
@@ -810,22 +734,11 @@ function M.lentCounters() local n = 0 for _ in pairs(lent) do n = n + 1 end retu
 -- a row leaves 25% less of each evasion for the next attack, and four in a row leave none. A hit that lands
 -- resets it, as does 10 s without being attacked. A plain accuracy miss (outcome 6) changes nothing.
 -- Party members, and (0.1.44) the foes a party member attacks: a foe's evasion wears down the same way, so evasion is a
--- delay and not a wall. Only the fatigue applies to a foe (no Long haft, Open, counter-parry or Braced). A Regen holder's
+-- delay and not a wall. Only the fatigue applies to a foe (no counter-parry). A Regen holder's
 -- guard is fresh after 5 s without being attacked instead of 10 s. 1-5 are the evade outcomes Forge 41-43 write (2 and 4
 -- with a counter).
 local EVADED = {[1] = true, [2] = true, [3] = true, [4] = true, [5] = true}
 
--- Braced: move the wielder's own charge back by BRACED_PUSH of what it needs, only while it is charging (a full or
--- empty timer is left alone). The same write Proficiency uses on foes' charge, here on the party member's own.
-function M.brace(address, classes, helpers)
-  local w = classes.getBattleUnitWork(helpers.getBattleUnitWork(address))
-  if w.address == 0 then return nil end
-  local cur, req = w.currentChargeTime, w.requiredChargeTime
-  if not (cur > 0 and cur < req) then return nil end
-  local after = math.max(1, cur - math.floor(req * M.BRACED_PUSH))
-  w.currentChargeTime = after
-  return cur, after
-end
 local FIELDS = {'evadeShield', 'evadeWeapon', 'evadeParry'}
 -- Guard-fatigue steps a unit carries now (0 when fresh, expired, or another foe at a recycled address).
 function M.fatigueSteps(target, now)
@@ -866,35 +779,14 @@ function M.guardWrap(original, deps)
         end
       end
       local category = mine and deps.category(target) or nil
-      -- Long haft: a spear has no parry, except to counter. Forge's weapon roll (evadeWeapon, outcomes 1/2) is the
-      -- parry; the body's roll (evadeParry, outcome 5) is a dodge and stays, as do shield blocks. A spear that rolled
-      -- a counter (counterState 1 from Forge 8, which only a Counter licence lets it roll) keeps its parry, so it can
-      -- parry and counter (outcome 2).
-      if category == 'spear' and formula.counterState ~= 1 and type(formula.evadeWeapon) == 'number'
-         and formula.evadeWeapon > 0 then
-        parts[#parts + 1] = 'spear evadeWeapon=' .. formula.evadeWeapon .. '>0'
-        formula.evadeWeapon = 0
-      end
-      -- Open: the attack after a katana combo meets no evasion at all. Forge 41-43 roll evasion only while the
-      -- target stands in battle stance; an attack on a Samurai mid-action meets no roll and lands anyway, so it
-      -- must not spend the opening. A stale opening (window passed) is dropped either way.
+      -- The attack's stance, for the log: Forge 41-43 roll evasion only while the target stands in battle stance.
       local okS, inStance = pcall(function() return formula.target.battleUnitWork.battleFlags.isInBattleStance end)
       local stance = okS and inStance or '?'
-      local opened = open[target.address]
-      if opened and not (now == 0 or opened == 0 or now - opened <= M.OPEN_WINDOW) then
-        open[target.address] = nil
-      elseif opened and stance == 1 then
-        open[target.address] = nil
-        for _, field in ipairs(FIELDS) do formula[field] = 0 end
-        parts[#parts + 1] = 'open'
-        parts.opened = true
-      end
       -- Counter-parry: "never parries, except to counter". Forge 41 rolls the weapon evade for a counter swing
-      -- (outcome 2), so a defender whose weapon evade is 0 (a spear after Long haft, a bow, a hand-bomb, any weapon
+      -- (outcome 2), so a defender whose weapon evade is 0 (a spear, a bow, a hand-bomb, any weapon
       -- row with no evade) could never answer a blow it rolled a counter for. When Forge 8 has rolled one, that
-      -- roll gets weapon evade 30 (the pole's top band), never lowered. Fists are left alone (their counters come from the Cadence streak) and an
-      -- opened Samurai meets no evasion at all.
-      if formula.counterState == 1 and category and category ~= 'unarmed' and not parts.opened then
+      -- roll gets weapon evade 30 (the pole's top band), never lowered. Fists are left alone (their counters come from the Cadence streak).
+      if formula.counterState == 1 and category and category ~= 'unarmed' then
         local evade = formula.evadeWeapon
         -- Hybrid rework, decision 3 (2026-11-11): every weapon but fists (axe 6, rod 6, hammer 2-5, crossbow 5, staff, measure,
         -- gun...), not only the evade-0 rows, rolls its counter against 30. Only ever raised: a weapon that already evades
@@ -938,19 +830,13 @@ function M.guardWrap(original, deps)
       if okOut and mine and skipped == 1 and (outcome == 2 or outcome == 4) and deps.report then
         pcall(deps.report, 'counter-swing', target.identifier, 'outcome=' .. outcome, category or '?', M.who(target))
       end
-      -- Braced: a sword wielder that parries (weapon roll, outcomes 1/2) or blocks (shield, 3/4) loses 10% of its own
-      -- charge. A dodge (5) is footwork and costs nothing. (0.4.0 counted dodges and missed sword parries.)
-      if okOut and skipped == 1 and category == 'sword' and outcome >= 1 and outcome <= 4 then
-        local okB, before, after = pcall(M.brace, target.address, classes, helpers)
-        if okB and before and deps.report then pcall(deps.report, 'braced', target.identifier, before, after) end
-      end
     end
     return table.unpack(result, 1, result.n)
   end
 end
 
 -- Katana, combo engine 10: the original rolls the combo and stores its length on the caster's keep;
--- Chain extends a rolled katana combo by two hits, inside the engine's own cap. Function 10 also runs
+-- Chain extends a rolled katana combo by one hit, inside the engine's own cap. Function 10 also runs
 -- for every follow-up hit of a running combo (battleUnitWork.comboCount > 0 counts the hits so far),
 -- and the stored length must be extended once, on the hit that rolled it, or every combo would climb
 -- to the cap. Combo rate stays the weapon's own data (already the highest of any family).
@@ -968,18 +854,12 @@ function M.wrap10(original, deps)
       if type(count) ~= 'number' or count <= 0 then return nil end
       return count
     end)
-    if okFresh and fresh then pcall(function()
-      if M.applies(formula, caster, 'katana', deps) then open[caster.address] = nil end
-    end) end
     if ok and before then
       local after = math.min(M.CHAIN_MAX, before + M.CHAIN_EXTRA)
       if after > before then
         formula.caster.keep.battleFlags.comboCount = after
         if deps.report then pcall(deps.report, 'chain', caster.identifier, before, after, M.who(caster)) end
       end
-      -- Open: the combo commits the Samurai; the next attack aimed at it finds no guard.
-      local now = deps.clock and deps.clock() or 0
-      open[caster.address] = type(now) == 'number' and now or 0
     end
     return table.unpack(result, 1, result.n)
   end
@@ -1059,24 +939,24 @@ M.CATEGORY_NAMES = {'unarmed', 'sword', 'greatsword', 'katana', 'ninjaSword', 's
 -- wording by ivalice_legacy/clan_primer.py). Identity first, then the cost where a family has one.
 -- The game language Legacy supports is English.
 M.FAMILY_LINES = {
-  unarmed = {'Cadence', 'each Attack in a row on one foe deals +6% more (up to +30%) and quickens the next action; a full streak counts as a counter for Ki Flow'},
-  sword = {'Guard', 'the best weapon evade; a parry or block pushes your next charge back 10%'},
-  greatsword = {'Sweep', 'attacking a foe cleaves a half circle around it for half damage'},
-  katana = {'Chain', 'combos run one hit longer; after a combo, the next attack on you meets no evasion'},
-  ninjaSword = {'Unseen', 'your hits can\'t be parried or blocked, and a foe that is Slowed, Immobilized, Stopped or tired can\'t dodge them; Blind 10%, five also carry a second status at 10%; Glancing against armor'},
-  spear = {'Pierce', 'every hit ignores 30% of Defense, and while you are Brave it Breaks the foe; a spear never parries, except to counter, and a counter needs the Counter augment'},
-  pole = {'Counterflow', 'counters even without the Counter augment (the Battle Harness or Magepower Shishak), and blows taken build the next counter; strikes Magick Resist; its evade lets counters swing'},
-  bow = {'Volley', 'the keenest critical chance among the ranged weapons'},
-  crossbow = {'Afflict', 'the bolt\'s status chance doubled, up to 100%; charge 30'},
-  gun = {'True aim', 'a gunner\'s shots never miss, Blind or not, and ignore Defense; a shot at a foe about to act pushes it back 10%; damage depends on the gun alone'},
-  axe = {'Sunder', 'every hit Breaks the foe and dents its Defense 5% of its start for the rest of the fight, twice as deep on a Staggered foe; the dents stop at half, the Breaks do not; Reckless: each swing makes foes\' physical hits on you 5% stronger, up to 20%, and none while you are Brave'},
-  hammer = {'Concussion', 'Disable 15% on hit, 30% knockback chance; a slow swing (charge 40)'},
-  dagger = {'Swift', 'the fastest charge, frequent combos, a little evade; Glancing against armor'},
-  rod = {'Mend', 'healing spells heal +20% while it is held; a heal that overflows draws Lure to the caster'},
-  staff = {'Channel', 'element potency, and the most Magick of the caster weapons; with Faith, each damage spell that lands Breaks the foe'},
-  mace = {'Spellbreak', 'hits burn foe MP equal to 10% of the damage, at most 10% of its pool'},
-  measure = {'Tempo', 'each measure grants one status to an ally it strikes: Protect, Shell, Bravery, Invisible, Haste or Bubble'},
-  handBomb = {'Barrage', 'the bombs you load decide the status, 25% on hit; Chaos Bombs (Confuse) and Stun Bombs (Stop) set up Time Mage Detonate'},
+  unarmed = {'Cadence', "Each Attack in a row on the same foe hits 6% harder, up to 30%, and makes your next action charge 5% faster per step. A full streak counts as a counter for Ki Flow. Switching foes restarts the ramp."},
+  sword = {'Guard', "Most swords carry high evade, 17 to 38, so a sword wielder parries often. A sword has no answer to armor or to a foe's evasion."},
+  greatsword = {'Sweep', "An Attack hits its target in full and every foe around it for half of that hit. The swing is slow, most greatswords can't reach flying foes, and an axe or a spear does more against a lone armored foe."},
+  katana = {'Chain', "The highest combo rate of any family, and a combo runs one hit longer. Every combo hit meets the foe's full Defense, and a katana leaves no hand for a shield."},
+  ninjaSword = {'Unseen', "Your hits cannot be parried or blocked, and a foe that is Slowed, Immobilized, Stopped or tired cannot dodge them. Every blade carries Blind at 10%, and five also carry a second status at 10%. Against a heavily armored foe your hits keep less of their force."},
+  spear = {'Pierce', "Every hit ignores 30% of Defense, and while you are Brave each hit Breaks the foe. Spears reach far, but most have no parry of their own."},
+  pole = {'Counterflow', "You counter even without the Counter augment (the Battle Harness and the Magepower Shishak carry it), and every blow you take builds the next counter. The pole strikes Magick Resist, and its evade lets counters swing."},
+  bow = {'Volley', "Bows have the keenest critical chance among the ranged weapons."},
+  crossbow = {'Afflict', "The bolt's status chance is doubled, up to 100%. Bolts take a little longer to load."},
+  gun = {'True aim', "A gunner's shots never miss, Blind or not, and ignore Defense. Strength doesn't raise them, only the gun's own power, and a gun is the slowest weapon to charge. A shot at a foe about to act pushes it back 10%."},
+  axe = {'Sunder', "Every hit Breaks the foe and dents its Defense by 5% of its starting value for the fight. The dent is twice as deep on a Staggered foe and stops at half, but the Breaks go on. Its swings land unevenly and it barely parries."},
+  hammer = {'Concussion', "Every hit has a 15% chance to Disable the foe, 20% for the Scorpion Tail, and a 30% chance to knock it back. The swing is slow."},
+  dagger = {'Swift', "The fastest charge, frequent combos and a little evade. Against a heavily armored foe your hits keep less of their force."},
+  rod = {'Mend', "Healing spells heal 20% more while you hold a rod. A rod has the weakest attack and the least Magick of the caster weapons."},
+  staff = {'Channel', "Staves raise element potency and give the most Magick of the caster weapons. While you hold Faith, each damage spell that lands Breaks the foe."},
+  mace = {'Spellbreak', "Each hit burns MP from the foe equal to 10% of the damage, and never more than 10% of its pool."},
+  measure = {'Tempo', "Each measure grants the ally it strikes one status, which is Protect, Shell, Bravery, Invisible, Haste or Bubble depending on the tier."},
+  handBomb = {'Barrage', "The bombs you load decide the status, which lands with a 25% chance on hit. Chaos Bombs, which Confuse, and Stun Bombs, which Stop, set up a Time Mage's Detonate."},
 }
 function M.familyLine(name)
   if type(name) ~= 'string' then return nil end
@@ -1116,10 +996,271 @@ function M.register()
       print('Legacy Family: ' .. kind .. ' ' .. table.concat(parts, ' '))
     end,
   }
-  pcall(print, 'Legacy Family: identities ' .. M.version .. ' ready (ten families, true aim, reckless, lure; bonuses=on)')
+  pcall(print, 'Legacy Family: identities ' .. M.version .. ' ready (ten families, true aim; bonuses=on)')
+  pcall(M.hudShareStart)   -- the co-op HUD's view of this state (a timer on this script thread; see the end of the file)
   return true
 end
 
 function M.deps() return registered end
+
+-- ---------- the HUD's view (the co-op overlay; read only, never consulted by any rule above) ----------
+-- Procs as log tags: the last HUD_PROCS identity procs, each {tag, address of the unit whose hit fired it, clock}. A ring
+-- the HUD publisher reads; nothing here reads it back.
+M.HUD_PROCS = 8
+M.HUD_FOES = 8
+M.HUD_WORDS = 4
+M.DENT_HUD_WINDOW = 60000000   -- microseconds since the last Sunder hit that deepened the dent: shown on the HUD this long
+local procs = {}
+function M.resetProcs() procs = {} end
+function M.noteProc(tag, address, now)
+  if type(tag) ~= 'string' or type(address) ~= 'number' or address <= 0 or type(now) ~= 'number' or now <= 0 then
+    return
+  end
+  procs[#procs + 1] = {tag = tag, address = address, at = now}
+  if #procs > M.HUD_PROCS then table.remove(procs, 1) end
+end
+
+local function ceilSeconds(us) return math.max(0, math.ceil(us / 1000000)) end
+
+-- The states the HUD shows, at clock `now` (event clock, microseconds), from this module's own tables: foes (Broken
+-- with seconds left, Sunder's dent, guard fatigue) and party words (guard fatigue, Cadence, Counterflow) for party
+-- records under `root` (the battle state: party record = root + 8 + id * 0x1C8), plus the procs of the last 5 s.
+-- Entries past their windows are left out (they are also what every rule above would ignore). Pure: no memory read.
+function M.hudStates(now, root)
+  local out = {foes = {}, words = {}, procs = {}}
+  if type(now) ~= 'number' or now <= 0 then return out end
+  local foes, order = {}, {}
+  local function foe(address)
+    local f = foes[address]
+    if not f then
+      f = {record = address, flags = 0, broken_s = 0, dent_pct = 0, tired = 0}
+      foes[address] = f
+      order[#order + 1] = address
+    end
+    return f
+  end
+  local function member(address)
+    if type(root) ~= 'number' or root <= 0 then return nil end
+    local off = address - root - 8
+    if off < 0 or off % 0x1C8 ~= 0 then return nil end
+    local id = off // 0x1C8
+    if id > 39 then return nil end
+    return id
+  end
+  for address, e in pairs(broken) do
+    local age = now - e.at
+    if age >= 0 and age <= M.BROKEN_WINDOW then
+      local f = foe(address)
+      f.flags = f.flags | 0x01
+      f.broken_s = math.min(60, ceilSeconds(M.BROKEN_WINDOW - age))
+    end
+  end
+  for address, e in pairs(dents) do
+    -- Aged out of the HUD (not out of the rule: dent() still keeps its baseline): a later foe at a reused address with
+    -- the same fingerprint must not show the previous foe's "Defense -N%".
+    if type(e.pct) == 'number' and e.pct > 0 and type(e.at) == 'number' and now >= e.at
+       and now - e.at <= M.DENT_HUD_WINDOW then
+      foe(address).dent_pct = math.min(50, e.pct)
+    end
+  end
+  local words = {}
+  for address, e in pairs(fatigue) do
+    if now - e.at <= M.FATIGUE_WINDOW and e.stacks > 0 then
+      local steps = math.min(e.stacks, M.FATIGUE_MAX)
+      if e.hp then
+        foe(address).tired = steps                         -- a foe's entry carries its fingerprint
+      else
+        local id = member(address)
+        if id then words[#words + 1] = {member = id, kind = 1, value = steps} end
+      end
+    end
+  end
+  for address, m in pairs(cadence) do
+    local id = member(address)
+    if id and m.hits > 1 and now - m.at <= M.CADENCE_WINDOW then
+      words[#words + 1] = {member = id, kind = 2, value = math.min(m.hits - 1, M.CADENCE_CAP)}
+    end
+  end
+  for address, f in pairs(flows) do
+    local id = member(address)
+    if id and f.stacks > 0 and now - f.at <= M.COUNTERFLOW_WINDOW then
+      words[#words + 1] = {member = id, kind = 3, value = math.min(255, f.stacks * M.COUNTERFLOW_STEP)}
+    end
+  end
+  table.sort(order)
+  for _, address in ipairs(order) do
+    if #out.foes >= M.HUD_FOES then break end
+    out.foes[#out.foes + 1] = foes[address]
+  end
+  -- One word per member: the first found (guard first, then Cadence, then Flow).
+  local seen = {}
+  for _, w in ipairs(words) do
+    if not seen[w.member] and #out.words < 4 then
+      seen[w.member] = true
+      out.words[#out.words + 1] = w
+    end
+  end
+  for _, p in ipairs(procs) do
+    local age = now - p.at
+    if age >= 0 and age <= 5000000 then
+      out.procs[#out.procs + 1] = {record = p.address, tag = p.tag, age_ms = age // 1000}
+    end
+  end
+  return out
+end
+
+-- ---------- the HUD's shared block (this Forge state -> the co-op state) ----------
+-- The loader gives every scripts/*.lua its own Lua state, so the co-op script cannot read this module through a global:
+-- the module lives in the Forge state (the adapters load it there). A timer on THIS state's script thread (never a
+-- formula hook) packs hudStates into one small block of memory and registers its address as the global symbol
+-- ilc_hud_share; the co-op script (coop/hud_states.lua) resolves the symbol, copies the block and builds the wire
+-- record. Read only: nothing here changes a rule, and a failure only stops the publishing.
+--
+-- Block (little endian; the reader in coop/hud_states.lua carries the same constants, tests/test_coop_hud_states_lua.py
+-- checks both against each other):
+--   +0  u32 magic 'ILS1'      +4  u32 sequence (even = stable; odd = being written; +2 per publish)
+--   +8  u32 checksum of bytes 16..SIZE-1 (sum of byte * (offset % 251 + 1), mod 2^32)
+--   +12 u32 SIZE              +16 i64 event clock of the publish (microseconds)
+--   +24 u8 foe count, u8 word count, u8 proc count, u8 0
+--   +28 foes x8, 16 bytes each: i64 record, u8 flags, u8 broken_s, u8 dent_pct, u8 tired, 4 zero bytes
+--   +156 words x4, 4 bytes each: u8 member, u8 kind, u8 value, u8 0        (unused entries are all zero)
+--   +172 procs x8, 16 bytes each: i64 record, u8 tag code, 3 zero bytes, u32 age_ms
+-- Unused entries are all zero, as the wire record requires.
+M.HUD_SHARE_SYMBOL = 'ilc_hud_share'
+M.HUD_SHARE_PERIOD_MS = 250
+M.HUD_SHARE_ROOT = 0x02EBF190   -- the battle state pointer: party record = [ROOT] + 8 + id * 0x1C8
+M.HUD_SHARE = {MAGIC = 0x31534C49, SEQ = 4, SUM = 8, SIZE_AT = 12, CLOCK = 16, COUNTS = 24, FOES = 28, WORDS = 156,
+               PROCS = 172, SIZE = 300}
+-- The wire tag codes (ilc_hud_tag in the co-op schema).
+M.HUD_TAG_CODES = {SUNDER = 1, BREAK = 2, CADENCE = 3, COUNTERFLOW = 4, GUARD = 5, UNSEEN = 6, PIERCE = 7, MEND = 8,
+                   PROFICIENCY = 9, SPOTTED = 10, KINDLE = 11}
+
+function M.hudShareChecksum(bytes, first)
+  local sum = 0
+  for i = first + 1, #bytes do
+    sum = (sum + bytes[i] * ((i - 1) % 251 + 1)) % 0x100000000
+  end
+  return sum
+end
+
+local function clamp(v, hi)
+  if type(v) ~= 'number' or v ~= v then return 0 end
+  return math.max(0, math.min(hi, math.floor(v)))
+end
+
+-- The block bytes (a table of SIZE byte values, sequence 0) for a hudStates view taken at clock `now`.
+function M.hudSharePack(view, now)
+  local S = M.HUD_SHARE
+  local parts = {}
+  local foes = {}
+  for _, f in ipairs(view.foes or {}) do
+    if #foes >= M.HUD_FOES then break end
+    if type(f.record) == 'number' and f.record > 0 then foes[#foes + 1] = f end
+  end
+  local words = {}
+  for _, w in ipairs(view.words or {}) do
+    if #words >= M.HUD_WORDS then break end
+    if type(w.member) == 'number' and w.member >= 0 and w.member < 40 and clamp(w.kind, 255) > 0 then
+      words[#words + 1] = w
+    end
+  end
+  local procList = {}
+  for _, p in ipairs(view.procs or {}) do
+    if #procList >= M.HUD_PROCS then break end
+    if M.HUD_TAG_CODES[p.tag] and type(p.record) == 'number' and p.record > 0 then procList[#procList + 1] = p end
+  end
+  parts[#parts + 1] = string.pack('<I4I4I4I4i8', S.MAGIC, 0, 0, S.SIZE, math.floor(now))
+  parts[#parts + 1] = string.pack('<BBBB', #foes, #words, #procList, 0)
+  for i = 1, M.HUD_FOES do
+    local f = foes[i]
+    if f then
+      parts[#parts + 1] = string.pack('<i8BBBBI4', math.floor(f.record), clamp(f.flags, 255), clamp(f.broken_s, 60),
+                                      clamp(f.dent_pct, 50), clamp(f.tired, 4), 0)
+    else
+      parts[#parts + 1] = string.rep('\0', 16)
+    end
+  end
+  for i = 1, M.HUD_WORDS do
+    local w = words[i]
+    if w then
+      parts[#parts + 1] = string.pack('<BBBB', math.floor(w.member), clamp(w.kind, 255), clamp(w.value, 255), 0)
+    else
+      parts[#parts + 1] = string.rep('\0', 4)
+    end
+  end
+  for i = 1, M.HUD_PROCS do
+    local p = procList[i]
+    if p then
+      parts[#parts + 1] = string.pack('<i8BBBBI4', math.floor(p.record), M.HUD_TAG_CODES[p.tag], 0, 0, 0,
+                                      clamp(p.age_ms, 5000))
+    else
+      parts[#parts + 1] = string.rep('\0', 16)
+    end
+  end
+  local raw = table.concat(parts)
+  assert(#raw == S.SIZE, 'hud share block size')
+  local bytes = {}
+  for i = 1, #raw, 100 do
+    for _, b in ipairs({string.byte(raw, i, math.min(#raw, i + 99))}) do bytes[#bytes + 1] = b end
+  end
+  local sum = M.hudShareChecksum(bytes, S.CLOCK)
+  for k = 0, 3 do bytes[S.SUM + k + 1] = (sum >> (8 * k)) & 0xFF end
+  return bytes
+end
+
+local share = {base = nil, seq = 0, failed = false, armed = false, logged = false}
+function M.hudShareState() return share end
+
+local function shareLog(text)
+  if share.logged then return end
+  share.logged = true
+  pcall(print, 'Legacy Family: HUD share ' .. text)
+end
+
+-- One publish (the timer's body). Allocates the block and registers its symbol on the first call. Returns true when a
+-- block was written. Read only on the game: it reads the battle state pointer and nothing else.
+function M.hudSharePublish()
+  local S = M.HUD_SHARE
+  if not share.base then
+    local base
+    if type(memory.allocData) == 'function' then base = memory.allocData(S.SIZE) end
+    if not base or base == 0 then base = memory.alloc(S.SIZE) end
+    if not base or base == 0 or memory.registerGlobalSymbol(M.HUD_SHARE_SYMBOL, base) ~= true then
+      share.failed = true
+      shareLog('not started (no block or symbol)')
+      return false
+    end
+    share.base = base
+    memory.writeU32(base, S.MAGIC)
+  end
+  local now = type(event.getClock) == 'function' and event.getClock() or 0
+  if type(now) ~= 'number' or now <= 0 then return false end
+  local ok, root = pcall(function() return memory.u64[M.HUD_SHARE_ROOT] end)
+  local view = M.hudStates(now, ok and root or nil)
+  local bytes = M.hudSharePack(view, now)
+  local base = share.base
+  memory.writeU32(base + S.SEQ, (share.seq + 1) % 0x100000000)                    -- odd: being written
+  local body = {}
+  for i = 9, #bytes do body[#body + 1] = bytes[i] end
+  memory.writeArray(base + 8, body)
+  share.seq = (share.seq + 2) % 0x100000000
+  memory.writeU32(base + S.SEQ, share.seq)                                        -- even: stable
+  return true
+end
+
+-- Arm the publisher timer on this state's own script thread (idempotent; without the timer API: nothing). The timer
+-- always re-arms, whatever a tick does.
+function M.hudShareStart()
+  if share.armed or share.failed then return false end
+  if type(event) ~= 'table' or type(event.executeAfterMs) ~= 'function' or type(memory) ~= 'table' then return false end
+  share.armed = true
+  event.executeAfterMs(M.HUD_SHARE_PERIOD_MS, function()
+    share.armed = false
+    local ok, err = pcall(M.hudSharePublish)
+    if not ok then shareLog('tick failed: ' .. tostring(err)) end
+    M.hudShareStart()
+  end)
+  return true
+end
 
 return M

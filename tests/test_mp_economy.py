@@ -1,4 +1,5 @@
-"""MP economy: Magick-scaled spell cost (Forge 261 adapter) and the per-cast cap on spell MP returns (Proficiency)."""
+"""MP economy 0.3.0: a spell costs what the game charges (the Magick surcharge is gone; Marco, 2026-11-16), and one cast
+returns at most half of its cost as MP (Proficiency)."""
 from pathlib import Path
 import unittest
 
@@ -20,20 +21,22 @@ class EconomyMathTest(unittest.TestCase):
         self.lua = LuaRuntime(unpack_returned_tuples=True)
         self.M = self.lua.execute(source('mp_economy'))
 
-    def test_cost_follows_magick(self):
+    def test_a_spell_costs_what_the_game_charges_at_any_magick(self):
         M = self.M
-        self.assertEqual(M.total(26, 20), 26)      # below the divisor: listed price
-        self.assertEqual(M.total(26, 30), 26)
-        self.assertEqual(M.total(26, 57), 49)      # Penelo's Cura at Magick 57: x1.9
-        self.assertEqual(M.total(18, 57), 34)
-        self.assertEqual(M.total(46, 99), 138)     # capped at x3
-        self.assertEqual(M.total(46, 200), 138)
-        self.assertEqual(M.surcharge(26, 57), 23)
+        self.assertEqual(M.version, '0.3.0')
+        for magick in (0, 20, 30, 57, 99, 200):
+            self.assertEqual(M.total(26, magick), 26)       # Penelo's Cura at any Magick: the listed price
+            self.assertEqual(M.surcharge(26, magick), 0)
+            self.assertEqual(M.factor(magick), 1)
+        self.assertEqual(M.total(46, 200), 46)
         self.assertEqual(M.surcharge(0, 99), 0)
+        # the co-op menu reads DIVISOR and CAP from this file: a cap of 1 shows the game's own price
+        self.assertEqual((M.DIVISOR, M.CAP), (30, 1))
 
     def test_return_cap_is_half_the_cast(self):
-        self.assertEqual(self.M.returnCap(26, 57), 24)
+        self.assertEqual(self.M.returnCap(26, 57), 13)
         self.assertEqual(self.M.returnCap(18, 20), 9)
+        self.assertEqual(self.M.returnCap(26, 200), 13)     # Magick no longer moves it
 
     def test_only_magicks_with_a_cost_are_priced(self):
         t = self.lua.table_from
@@ -63,8 +66,8 @@ class EconomyMathTest(unittest.TestCase):
           assert(M.paid(26, aug({'offering', 'parsimony'})) == 0)                        -- gil instead of MP
           assert(M.paid(26, aug({'spellspring'})) == 0)
           assert(M.paid(26, nil) == 26 and M.paid(0, aug({})) == 0)
-          assert(M.surcharge(26, 57, 18) == 16 and M.returnCap(26, 57, 18) == 17)
-          assert(M.surcharge(26, 57) == 23)                                               -- no paid given: listed cost
+          assert(M.surcharge(26, 57, 18) == 0 and M.returnCap(26, 57, 18) == 9)           -- no surcharge: half of what was paid
+          assert(M.surcharge(26, 57) == 0)                                                -- no paid given: listed cost
         """)
 
 @unittest.skipIf(LuaRuntime is None, 'requires lupa')
@@ -104,59 +107,29 @@ class SurchargeAdapterTest(unittest.TestCase):
     def run_cast(self, **kw):
         return self.lua.eval('cast')(self.lua.table_from(kw))
 
-    def test_party_magick_pays_once_per_cast(self):
-        self.assertEqual(self.run_cast(), (1, -23))
-        self.assertEqual(self.run_cast(target=301, initial=300), (0, 0))   # the spell's other targets
-        self.assertEqual(self.lua.eval('ORIGINAL'), 2)                     # Forge's 261 always runs
+    def test_no_cast_is_ever_charged_a_surcharge(self):
+        self.assertEqual(self.run_cast(), (0, 0))                          # Penelo's Cura at Magick 57: the game's price only
+        self.assertEqual(self.run_cast(magick=150), (0, 0))
+        self.assertEqual(self.run_cast(mp=10), (0, 0))
+        self.assertEqual(self.run_cast(target=301, initial=300), (0, 0))
+        self.assertEqual(self.lua.eval('ORIGINAL'), 4)                     # Forge's 261 always runs
 
-    def test_not_charged(self):
-        self.assertEqual(self.run_cast(casterType=1), (0, 0))      # foes keep native costs
-        self.assertEqual(self.run_cast(action=82), (0, 0))         # items
-        self.assertEqual(self.run_cast(action=208), (0, 0))        # Quickenings
-        self.assertEqual(self.run_cast(magick=25), (0, 0))         # low Magick: listed price only
+    def test_foes_items_and_quickenings_are_native_too(self):
+        self.assertEqual(self.run_cast(casterType=1), (0, 0))
+        self.assertEqual(self.run_cast(action=82), (0, 0))
+        self.assertEqual(self.run_cast(action=208), (0, 0))
         self.assertEqual(self.run_cast(cause=2), (0, 0))
 
-    def test_never_below_zero_and_capped(self):
-        self.assertEqual(self.run_cast(mp=10), (1, -10))
-        self.assertEqual(self.run_cast(mp=0), (0, 0))
-        self.assertEqual(self.run_cast(magick=150), (1, -52))      # x3 cap: 78 total, 52 on top
-
-    def test_logged_and_ready_line(self):
+    def test_ready_line_states_the_returns_cap_and_nothing_logs_a_charge(self):
         self.run_cast()
         logs = list(self.lua.eval('logs').values())
-        self.assertTrue(any('Legacy MP: economy 0.2.0 ready' in s for s in logs))
-        self.assertTrue(any('Legacy MP: cast action=4 cost=26 paid=26 magick=57 surcharge=23 mpLeft=177' in s for s in logs))
+        self.assertTrue(any('Legacy MP: economy 0.3.0 ready (spells cost what the game charges, returns <= 50% per cast)' in s
+                            for s in logs), logs)
+        self.assertFalse(any('surcharge' in s for s in logs))
 
-    def test_surcharge_scales_what_the_game_charged(self):
-        # mp_economy 0.2.0: Parsimony halves the surcharge too; Offering (gil) and Spellspring (free) pay none.
-        self.lua.execute('bpack.section58 = {[91]={parameter=10}, [92]={parameter=10}, [93]={parameter=10}}')
-        def cast_with(augs, **kw):
-            self.lua.execute('AUGS = {' + ','.join(f'{a}=1' for a in augs) + '}')
-            self.lua.execute('''
-              local real = cast
-              cast = function(t)
-                local fn0 = fn
-                fn = function(formula, caster, target, ...)
-                  formula.caster.augments = AUGS
-                  return fn0(formula, caster, target, ...)
-                end
-                local a, b = real(t)
-                fn = fn0
-                cast = real
-                return a, b
-              end''')
-            return self.run_cast(**kw)
-        self.assertEqual(cast_with(['parsimony']), (1, -12))          # paid 13, total floor(13*1.9+0.5)=25
-        self.assertEqual(cast_with(['offering']), (0, 0))
-        self.assertEqual(cast_with(['spellspring']), (0, 0))
-        self.assertEqual(cast_with(['channeling1', 'channeling2', 'channeling3']), (1, -16))  # Cura: 26 -> 18, x1.9 = 34
-
-    def test_gate_is_the_campaign_not_the_clan_rank(self):
-        # 0.1.23: a loaded Legacy campaign pays the surcharge before Montblanc's first reward (rank 0).
-        self.lua.execute("IvaliceLegacyProficiency = {active=function() return false end, inCampaign=function() return true end}")
-        self.assertEqual(self.run_cast(), (1, -23))
-        self.lua.execute("IvaliceLegacyProficiency = {active=function() return true end, inCampaign=function() return false end}")
-        self.assertEqual(self.run_cast(), (0, 0))                  # no Legacy campaign loaded: native cost
+    def test_the_adapter_no_longer_reads_a_campaign_or_a_clan_rank(self):
+        self.lua.execute("IvaliceLegacyProficiency = {active=function() return true end, inCampaign=function() return true end}")
+        self.assertEqual(self.run_cast(), (0, 0))
         self.lua.execute("IvaliceLegacyProficiency = nil")
 
 
@@ -199,26 +172,26 @@ class ReturnCapTest(unittest.TestCase):
         return list(self.lua.execute(code).values())
 
     def test_overflow_loop_is_capped(self):
-        # Cura (26) at Magick 57 costs 49: at most 24 MP back, however much it overflowed
-        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}})"), [24])
+        # Cura (26) costs 26 at any Magick: at most 13 MP back, however much it overflowed
+        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}})"), [13])
 
     def test_cap_follows_what_the_game_charged(self):
-        # mp_economy 0.2.0: a Parsimony caster's Cura costs 13 natively, 25 in all: at most 12 back. Offering: none.
+        # a Parsimony caster's Cura costs 13: at most 6 back. Offering (gil, no MP): none.
         self.lua.execute("caster.permanentAugments = {parsimony=1}")
-        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}}, 2000000)"), [12])
+        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}}, 2000000)"), [6])
         self.lua.execute("caster.permanentAugments = {offering=1}")
         self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}}, 4000000)"), [])   # cap 0: nothing handed back
         self.lua.execute("caster.permanentAugments = nil")
 
     def test_every_target_of_one_cast_shares_the_budget(self):
-        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=15}})"), [15])
-        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=15}}, NOW + 1000)"), [9])
-        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=200, amount=15}}, NOW + 1000)"), [])
+        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=8}})"), [8])
+        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=8}}, NOW + 1000)"), [5])
+        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=200, amount=8}}, NOW + 1000)"), [])
 
     def test_a_new_cast_gets_a_new_budget(self):
         self.lua.execute("give(4, {{op='mp', unit=100, amount=75}})")
-        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}}, NOW + 1000000)"), [24])
-        self.assertEqual(self.amounts("return give(5, {{op='mp', unit=100, amount=75}}, NOW + 10)"), [19])
+        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}}, NOW + 1000000)"), [13])
+        self.assertEqual(self.amounts("return give(5, {{op='mp', unit=100, amount=75}}, NOW + 10)"), [10])
 
     def test_foe_drain_is_free(self):
         self.assertEqual(self.amounts(
@@ -230,12 +203,12 @@ class ReturnCapTest(unittest.TestCase):
           function cast(initial, target) R.startCast({causeType=0, action=4, initialTarget={address=initial}}, caster,
                                                      {address=target}) end
           cast(300, 300)""")
-        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}})"), [24])
+        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}})"), [13])
         for later in (1000000, 2000000, 3000000):
             self.lua.execute("cast(300, %d)" % (300 + later // 1000000))     # other targets: same cast
             self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}}, NOW + %d)" % 1000000), [])
         self.lua.execute("cast(300, 300)")                                  # the next Cura
-        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}}, NOW + 1000000)"), [24])
+        self.assertEqual(self.amounts("return give(4, {{op='mp', unit=100, amount=75}}, NOW + 1000000)"), [13])
 
     def test_reflected_or_foe_casts_do_not_start_a_cast(self):
         self.lua.execute("""R.startCast({causeType=0, action=4, initialTarget={address=300}}, caster, {address=300})""")
@@ -248,7 +221,7 @@ class ReturnCapTest(unittest.TestCase):
         self.assertEqual(self.lua.eval("R.castId(caster, 4)"), first)
 
     def test_spell_drains_come_out_of_the_budget(self):
-        # Hellfire-type drain on an area spell: each foe's drain draws on the cast's 24 MP budget.
+        # Hellfire-type drain on an area spell: each foe's drain draws on the cast's 13 MP budget.
         self.lua.execute("""R.startCast({causeType=0, action=4, initialTarget={address=300}}, caster, {address=300})
           function drain(amount)
             local f = {caster={}, target={}}
@@ -256,7 +229,7 @@ class ReturnCapTest(unittest.TestCase):
             R.apply(a, f, caster, {}, helpers, nil)
             return f.caster.addedMp, f.target.removedMp
           end""")
-        self.assertEqual(self.lua.eval("drain")(160), (24, 24))
+        self.assertEqual(self.lua.eval("drain")(160), (13, 13))
         self.assertEqual(self.lua.eval("drain")(160), (None, None))       # budget spent: nothing written
 
     def test_items_and_technicks_are_not_capped(self):

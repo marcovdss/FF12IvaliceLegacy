@@ -275,8 +275,8 @@ class Review0145Tests(unittest.TestCase):
 
         # ---- L6, L7, R7, L1 on the shipped prototypes
         check('L7: family_identities is 0.5.3 or later (0.1.46: 0.5.4) and its ready line prints the version',
-              int(re.search(r"M\.version = '0\.5\.(\d+)'", FAM).group(1)) >= 3 and "'Legacy Family: identities ' .. M.version .. ' ready" in FAM)
-        check('L6: Resonance I-2 says "faster"', "next action charges 20% faster, one stray spell forgiven" in PRO)
+              (lambda v: (int(v.group(1)), int(v.group(2))) >= (5, 3))(re.search(r"M\.version = '0\.(\d+)\.(\d+)'", FAM)) and "'Legacy Family: identities ' .. M.version .. ' ready" in FAM)
+        check('L6: Resonance I-2 says "faster"', "makes your next action 20% faster, forgiving a stray spell" in PRO)
         got = world().execute(r'''
           local function line(name) for _, l in ipairs(H.LINES) do if l.line == name then return l end end end
           local function texts(name, k) local out = {} for L = 1, 4 do out[L] = H.stageText(line(name)[k], L, H.firstLimit(name)) end return out end
@@ -308,27 +308,27 @@ class Review0145Tests(unittest.TestCase):
         check('R7: the Imbue II and Runeguard II texts say Faith or the old trigger, at every level shown',
               all('Faith' in x and ' or ' in x for x in (got[4], got[5], got[6], got[7])) and 'and Faith' not in got[4] + got[6])
         ail = got[9].split('|')
-        check('L1: the 17 ailing stages that said "a foe with an ailment" say "ailing or Broken"; three "an ailing foe" triggers stay; 2+/3+ stages keep their text',
+        check('L1: the 17 ailing stages that said "a foe with an ailment" say "ailing or Broken"; three "an ailing foe" triggers stay; two-or-more/three-or-more stages keep their text',
               got[8] == 20 and sum('ailing or Broken' in x for x in ail) == 17 and not any('with an ailment' in x for x in ail)
-              and sum(x.endswith('an ailing foe') for x in ail) == 3 and 'Broken' not in got[10] and '2+ ailments' in got[10])
+              and sum(x.endswith('an ailing foe') for x in ail) == 3 and 'Broken' not in got[10] and 'two or more ailments' in got[10])
         check('R7: neither trigger keeps Imbue II and Runeguard II quiet; either alone, or both, fires them', got[11] is False and got[14] is False
               and got[12] is True and got[15] is True and got[13] is True and got[16] is True and got[17] is True)
         check('R7 control: the old single conditions keep their meaning', got[18] is False and got[19] is False and got[20] is False and got[21] is True)
         check('L1: the ninja-sword Clan Primer line says who loses the dodge, not "the dodge still applies"',
-              'the dodge still applies' not in FAM and "Slowed, Immobilized, Stopped or tired can\\'t dodge them" in FAM)
+              'the dodge still applies' not in FAM and "Slowed, Immobilized, Stopped or tired cannot dodge them" in FAM)
 
         # ---- S5 and the Clan Primer text, as the repository's patches carry them
         import json
         from ivalice_legacy import clan_primer as CP
         gp = json.loads((ROOT / 'patches/gambit_text.json').read_text(encoding='utf-8'))
-        fix = [c for c in gp['fieldCorrections'] if c['row'] == 226]
+        fix = [c for c in gp['fieldCorrections'] if c['row'] == 226 and c['offset'] == 8]
         check('S5: patches/gambit_text.json turns row 226 into "Foe: any ailment" (condition 0x221B -> 0x221E, the game\'s own any-ailment code)',
               len(fix) == 1 and (fix[0]['offset'], fix[0]['before'], fix[0]['after']) == (8, 0x221B, 0x221E)
               and [r['name'] for r in gp['records'] if r['row'] == 226] == ['Foe: any ailment'])
         tp = json.loads((ROOT / 'patches/families_tip.json').read_text(encoding='utf-8'))
         bodies = [t['body'] for t in CP.tips(tp)]
         check('tips: the Weapon Families text defines Broken and Staggered, fits the window, and no longer says the dodge still applies',
-              'Broken: cut open' in bodies[0] and 'Staggered: charge pushed' in bodies[0] and 'dodge still applies' not in bodies[1]
+              'A foe is Broken for 10 seconds' in bodies[0] and "A Staggered foe's charge is pushed" in bodies[0] and 'dodge still applies' not in bodies[1]
               and all(len(CP.visible(b).split('\n')) <= CP.MAX_BODY_LINES and max(map(len, CP.visible(b).split('\n'))) <= 56 for b in bodies))
 
 
